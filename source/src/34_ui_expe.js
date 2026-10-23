@@ -61,7 +61,7 @@ ACT.launch = () => {
   E.daily = null; save(); sfx("door"); musicPlay("map");
   go("map");
   const R = regionById(S.run.region);
-  setTimeout(() => toast(`<b>${R.n}</b><br><span class="small lore">${R.d}</span>`), 300);
+  setTimeout(() => toast(`<b>${R.n}</b><br><span class="small lore">${gl(R.d)}</span>`), 300);
 };
 // ── carte ──
 SCREENS.map = {
@@ -78,11 +78,11 @@ SCREENS.map = {
     const party = runParty();
     return `<div class="wrap" style="padding-top:4px">
       <div class="panel" style="padding:8px 10px"><div class="row sp"><div class="row" style="gap:10px">
-        <span class="tag" title="Lueur : sous 30, les ennemis frappent plus fort mais le butin est meilleur">${ico("torch", run.light < 30 ? "#ff5a3a" : "#ffb050")}<span style="width:70px" class="bar"><i style="width:${run.light}%;background:linear-gradient(#ffd08a,#c0601a)"></i></span>${Math.round(run.light)}</span>
-        <span class="tag">${ico("potion", "#e86a5a")}${run.potions}</span><span class="tag">${ico("coin", "#e8c060")}${fmt(run.gold)}</span><span class="tag" style="cursor:pointer" data-a="runBag" title="Butin : voir et équiper">${ico("chest", "#c8a070")}${run.loot.length}</span>
+        <span class="tag" data-tip="lueur">${ico("torch", run.light < 30 ? "#ff5a3a" : "#ffb050")}<span style="width:70px" class="bar"><i style="width:${run.light}%;background:linear-gradient(#ffd08a,#c0601a)"></i></span>${Math.round(run.light)}</span>
+        <span class="tag" data-tip="potion">${ico("potion", "#e86a5a")}${run.potions}</span><span class="tag" data-tip="or">${ico("coin", "#e8c060")}${fmt(run.gold)}</span><span class="tag" style="cursor:pointer" data-a="runBag" title="Butin : voir et équiper">${ico("chest", "#c8a070")}${run.loot.length}</span>
       </div><button class="btn ghost sm" data-a="retreat">${ico("flee")}Rentrer</button></div>
-      ${runSynergies(run).length ? `<div class="row" style="gap:4px;margin-top:6px">${runSynergies(run).map(k => `<span class="tag gold" style="cursor:pointer" data-a="synInfo" data-v="${k}">${ico("link", "#e8c878")}${SYNERGIES[k].n}</span>`).join("")}</div>` : ""}
-      ${run.relics.length ? `<div class="row" style="gap:4px;margin-top:6px">${run.relics.map(k => `<span class="tag" style="cursor:pointer" data-a="relicInfo" data-v="${k}" title="${RELICS[k].d}">${ico("gem", ["#c8beaa", "#6ab0ff", "#c87aff"][RELICS[k].r])}${RELICS[k].n}</span>`).join("")}</div>` : ""}</div>
+      ${runSynergies(run).length ? `<div class="row" style="gap:4px;margin-top:6px">${runSynergies(run).map(k => `<span class="tag gold" style="cursor:pointer" ${tipAttr(SYNERGIES[k].n, SYNERGIES[k].d)}>${ico("link", "#e8c878")}${SYNERGIES[k].n}</span>`).join("")}</div>` : ""}
+      ${run.relics.length ? `<div class="row" style="gap:4px;margin-top:6px">${run.relics.map(k => `<span class="tag" style="cursor:pointer" ${tipAttr(RELICS[k].n, RELICS[k].d)}>${ico("gem", ["#c8beaa", "#6ab0ff", "#c87aff"][RELICS[k].r])}${RELICS[k].n}</span>`).join("")}</div>` : ""}</div>
       <div class="mapwrap" style="width:${W}px;height:${H}px;margin-top:8px"><canvas data-cv="mapbg" width="${Math.round(W * Math.min(2, devicePixelRatio || 1))}" height="${Math.round(H * Math.min(2, devicePixelRatio || 1))}" style="position:absolute;inset:0;width:${W}px;height:${H}px"></canvas>${nodes}${pawn && pawnArt ? `<img class="pawn" src="${pawnArt}" alt="" style="left:${pawn[0]}px;top:${pawn[1]}px">` : ""}</div>
       <div class="row" style="justify-content:center;gap:6px;margin-top:6px;flex-wrap:nowrap">${party.map(h => { const mx = heroStats(h, relicHooks(run)).hp, hp = h.hp == null ? mx : h.hp, fallen = run.fallen.includes(h.id); return `<div class="panel" style="padding:4px;width:84px;text-align:center;${fallen ? "filter:grayscale(1) brightness(.5)" : ""}">${canvasSlot("mh:" + h.id, 64, 64)}<div class="tiny"><b>${esc(h.name.split(" ")[0])}</b></div><div class="bar" style="height:6px"><i style="width:${100 * hp / mx}%"></i></div><div class="tiny dim">${fallen ? "Tombé" : hp + "/" + mx}</div></div>`; }).join("")}</div>
       <p class="tiny dim" style="text-align:center">${run.region === "abime" ? "Chaque gardien vaincu ouvre un passage plus profond." : "Atteignez le gardien au bout du chemin."} Touchez une salle lumineuse pour avancer.</p></div>`;
@@ -90,7 +90,7 @@ SCREENS.map = {
   mount: () => { fillCanvases($("#view"), (c, id) => id === "mapbg" ? paintMapBg(c, S.run, UI.mapWH[0], UI.mapWH[1], UI.mapPos) : paintHero(c, heroById(id.split(":")[1]))); resumeNode(); tutoHint("map", "Choisissez votre chemin : <b>combats</b>, <b>mystères</b>, <b>trésors</b>, <b>feux de camp</b>… La lueur baisse à chaque salle."); },
   resize: () => refresh(),
 };
-ACT.relicInfo = k => toast(`<b>${RELICS[k].n}</b><br><span class="small">${RELICS[k].d}</span>`);
+ACT.relicInfo = k => toast(`<b>${RELICS[k].n}</b><br><span class="small">${gl(RELICS[k].d)}</span>`);
 ACT.retreat = () => confirmBox("Rentrer au Bastion ? Vous gardez l'or et le butin, mais le gardien n'est pas vaincu.", () => finishRun("retreat"), { yes: "Rentrer" });
 ACT.node = v => {
   const [c, i] = v.split(":").map(Number); const run = S.run, n = run.map[c][i];
@@ -152,7 +152,7 @@ ACT.evChoice = i => {
   const n = UI.evNode, run = S.run; const res = resolveEvent(run, n.ev, +i); n.done = 1; save();
   if (res.fight) { closeModal(); toast(res.text.join("<br>"), "bad"); const fn = { c: n.c, i: n.i, type: "combat", ambush: 1 }; go("combat", { node: fn }); return; }
   sfx(res.relic || res.item ? "coin" : "click");
-  modal(`<h2>${EVENTS.find(e => e.id === n.ev).n}</h2>${res.text.map(t => `<p>${t}</p>`).join("")}${res.relic ? `<p class="small"><b>${RELICS[res.relic].n}</b> : ${RELICS[res.relic].d}</p>` : ""}<div class="row" style="justify-content:flex-end"><button class="btn main" data-a="closeModal">Continuer</button></div>`, { onClose: () => refresh() });
+  modal(`<h2>${EVENTS.find(e => e.id === n.ev).n}</h2>${res.text.map(t => `<p>${t}</p>`).join("")}${res.relic ? `<p class="small"><b>${RELICS[res.relic].n}</b> : ${gl(RELICS[res.relic].d)}</p>` : ""}<div class="row" style="justify-content:flex-end"><button class="btn main" data-a="closeModal">Continuer</button></div>`, { onClose: () => refresh() });
 };
 function showCamp(n) {
   modal(`<h2>${ico("camp", "#ff9a3a")} Feu de camp</h2><p class="lore">Un instant de répit. Les flammes dansent, les ombres reculent. Que faire de cette nuit ?</p>${CAMP.map(c => `<button class="btn choice" data-a="camp" data-v="${c.k}"><b>${c.n}</b> — <span class="small">${c.d}</span></button>`).join("")}`, { close: false });
@@ -193,7 +193,7 @@ function rewardModal(title, text, R, ups = [], onClose) {
   ${R.xp ? `<div class="reward">${ico("star", "#e8c878", 22)}<span>+${R.xp} expérience pour chaque héros</span></div>` : ""}
   ${ups.map(h => `<div class="reward" style="color:var(--gold2)">${ico("up", "#e8c878", 22)}<b>${esc(h.name)}</b> passe niveau ${h.lvl} !${h.lvl === EVO_LVL ? " <span class='small'>(évolution possible)</span>" : ""}</div>`).join("")}
   ${it.map(i => `<div class="reward" style="align-items:flex-start">${slotHTML(i, "itemInfo", i.id)}<div style="flex:1;min-width:0"><b class="rar${i.rar}">${gearName(i)}</b><div class="tiny dim">${RARITY[i.rar].n}${i.cls ? " · " + CLASSES[i.cls].n : ""} — ${itemLine(i)}</div>${runEquipBtns(i)}</div></div>`).join("")}
-  ${R.relic ? `<div class="reward">${ico("gem", "#c87aff", 22)}<div><b>Relique : ${RELICS[R.relic].n}</b><div class="tiny">${RELICS[R.relic].d}</div></div></div>` : ""}
+  ${R.relic ? `<div class="reward">${ico("gem", "#c87aff", 22)}<div><b>Relique : ${RELICS[R.relic].n}</b><div class="tiny">${gl(RELICS[R.relic].d)}</div></div></div>` : ""}
   ${R.mats && (R.mats.fer || R.mats.essence || R.mats.cendre) ? `<div class="reward">${ico("iron", "#a8a8a8", 22)}<span>${[R.mats.fer && "+" + R.mats.fer + " ferraille", R.mats.essence && "+" + R.mats.essence + " essence", R.mats.cendre && "+" + R.mats.cendre + " cendre royale"].filter(Boolean).join(", ")}</span></div>` : ""}
   ${R.shards ? `<div class="reward">${ico("shard", "#c090ff", 22)}<b>+${R.shards} éclat${R.shards > 1 ? "s" : ""} de couronne</b></div>` : ""}
   <div class="row" style="justify-content:flex-end;margin-top:10px"><button class="btn main" data-a="closeModal">Continuer</button></div>`, { close: false, onClose: onClose || (() => refresh()) });

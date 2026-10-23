@@ -5,95 +5,11 @@ function hubLayout(w, h) {
   return port ? [P("academie", .26, .36, .8), P("menagerie", .74, .36, .8), P("chapelle", .2, .56, .9), P("fonderie", .8, .56, .9), P("taverne", .2, .78), P("porte", .5, .74, 1.1), P("forge", .8, .78)]
     : [P("academie", .33, .6, .78), P("menagerie", .67, .6, .78), P("chapelle", .1, .8), P("taverne", .27, .82), P("porte", .5, .78, 1.15), P("forge", .73, .82), P("fonderie", .9, .8)];
 }
-function drawBuilding(x, k, bx, by, s, lvl, t) {
-  const im = artImg("bld_" + k);
-  if (im) { // bâtiment peint : posé sur le sol, lueur qui grandit avec le niveau
-    const hh = s * (k === "porte" ? 1.62 : k === "academie" ? 2.0 : k === "chapelle" ? 1.9 : 1.3), sc = Math.min(hh / im.height, s * 1.7 / im.width), w = im.width * sc, h = im.height * sc;
-    if (lvl > 1) glow(x, bx, by - h * .35, w * (.45 + lvl * .06), "#ff9a4a", .05 + lvl * .03 + Math.sin(t * 2 + bx) * .015);
-    x.drawImage(im, bx - w / 2, by - h + s * .04, w, h); return;
-  }
-  x.save(); x.translate(bx, by); const u = s / 100; x.scale(u, u);
-  const win = (wx, wy, ww, wh, col = "#ffb050") => { const f = .75 + Math.sin(t * 3 + wx) * .1; glow(x, wx + ww / 2, wy + wh / 2, ww * 2.2, col, .35 * f); x.fillStyle = col; x.fillRect(wx, wy, ww, wh); x.strokeStyle = INK; x.lineWidth = 2; x.strokeRect(wx, wy, ww, wh); x.beginPath(); x.moveTo(wx + ww / 2, wy); x.lineTo(wx + ww / 2, wy + wh); x.stroke(); };
-  const stone = "#1e1a1e", wood = "#22160e", roof = "#120c0e";
-  const bricks = (x0, y0, x1, y1) => { x.save(); x.beginPath(); x.rect(x0, y0, x1 - x0, y1 - y0); x.clip(); x.strokeStyle = "rgba(0,0,0,.55)"; x.lineWidth = 1.2; for (let yy = y0, r = 0; yy < y1; yy += 9, r++) { x.beginPath(); x.moveTo(x0, yy); x.lineTo(x1, yy); x.stroke(); for (let xx = x0 + (r % 2) * 8; xx < x1; xx += 16) { x.beginPath(); x.moveTo(xx, yy); x.lineTo(xx, yy + 9); x.stroke(); } } x.fillStyle = lgrad(x, 0, y0, 0, y1, [[0, "rgba(0,0,0,.35)"], [1, "rgba(255,140,60,.08)"]]); x.fillRect(x0, y0, x1 - x0, y1 - y0); x.restore(); };
-  const lv = lvl || 1;
-  switch (k) {
-    case "taverne": {
-      shade(x, poly([[-50, 0], [-50, -70], [50, -70], [50, 0]]), wood, { d: 4 });
-      for (let i = 0; i < 4; i++) line(x, [[-50 + i * 33, -70], [-50 + i * 33, 0]], 3, "#140c08");
-      line(x, [[-50, -40], [50, -40]], 3, "#140c08");
-      shade(x, poly([[-62, -68], [0, -120], [62, -68]]), roof, { d: 5 });
-      shade(x, poly([[24, -105], [24, -130], [36, -130], [36, -95]]), stone, { d: 2 });
-      for (let i = 0; i < 3; i++) { const k2 = (t * .3 + i / 3) % 1; x.fillStyle = rgba("#8a8080", .25 * (1 - k2)); x.beginPath(); x.arc(30 + Math.sin(t + i) * 6, -134 - k2 * 50, 6 + k2 * 10, 0, 7); x.fill(); }
-      win(-38, -60, 18, 16); win(20, -60, 18, 16); if (lv >= 3) win(-9, -100, 18, 14);
-      shade(x, poly([[-12, 0], [-12, -30], [12, -30], [12, 0]]), "#1a0e08", { d: 2 });
-      line(x, [[50, -50], [70, -50]], 3, INK); shade(x, poly([[60, -50], [78, -50], [78, -30], [60, -30]]), "#4a3424", { d: 1.5 }); x.save(); x.translate(69, -40); x.scale(.5, .5); x.strokeStyle = "#e8c070"; x.lineWidth = 3; x.strokeRect(-8, -10, 12, 18); x.beginPath(); x.arc(6, -1, 5, -1.4, 1.4); x.stroke(); x.restore();
-      break;
-    }
-    case "forge": {
-      shade(x, poly([[-55, 0], [-55, -60], [55, -60], [55, 0]]), stone, { d: 4 }); bricks(-55, -60, 55, 0);
-      shade(x, poly([[-62, -58], [-10, -100], [40, -100], [62, -58]]), roof, { d: 4 });
-      shade(x, poly([[18, -90], [18, -150], [40, -150], [40, -90]]), "#221e20", { d: 3 });
-      x.save(); x.globalCompositeOperation = "lighter"; for (let i = 0; i < 8; i++) { const k2 = (t * .6 + i / 8) % 1; glow(x, 29 + Math.sin(t * 3 + i) * 8, -152 - k2 * 70, 4, "#ff8a3a", (1 - k2) * .9); } x.restore();
-      const fl = .8 + Math.sin(t * 9) * .1 + Math.sin(t * 13) * .08;
-      glow(x, -15, -24, 60, "#ff6a1a", .5 * fl); shade(x, P([[-38, 0, 1], [-38, -30], [-15, -48], [8, -30], [8, 0, 1]], true, .5), "#3a1408", { ol: 3, d: 2 }); x.save(); x.globalCompositeOperation = "lighter"; for (let i = 0; i < 5; i++) glow(x, -15 + Math.sin(t * 7 + i) * 6, -8 - i * 6, 18 - i * 2, i < 2 ? "#fff0a0" : "#ff7a2a", .75 * fl); x.restore();
-      x.fillStyle = rgba("#fff0a0", .6 * fl); x.beginPath(); x.ellipse(-15, -12, 10, 8, 0, 0, 7); x.fill();
-      shade(x, poly([[20, -20], [48, -20], [44, -12], [36, -12], [36, 0], [30, 0], [30, -12], [24, -12]]), "#4a4448", { d: 1.5 });
-      if (lv >= 3) win(30, -50, 14, 12, "#ff9a4a");
-      break;
-    }
-    case "chapelle": {
-      shade(x, poly([[-40, 0], [-40, -70], [40, -70], [40, 0]]), "#221e22", { d: 4 }); bricks(-40, -70, 40, 0);
-      shade(x, poly([[-46, -68], [0, -112], [46, -68]]), roof, { d: 4 });
-      shade(x, poly([[-14, -100], [-14, -150], [14, -150], [14, -100]]), "#1e1a1e", { d: 3 }); bricks(-14, -150, 14, -100); shade(x, poly([[-18, -148], [0, -185], [18, -148]]), roof, { d: 3 });
-      line(x, [[0, -185], [0, -200]], 3, MAT.gold); line(x, [[-6, -195], [6, -195]], 3, MAT.gold);
-      const rc = lv >= 3 ? "#ffd27a" : "#c8a060"; glow(x, 0, -55, 40, rc, .35); shade(x, circ(0, -55, 14), rc, { ol: 2.5, d: 2 });
-      for (let i = 0; i < 8; i++) { const a = i * Math.PI / 4; line(x, [[0, -55], [Math.cos(a) * 13, -55 + Math.sin(a) * 13]], 1.5, INK); }
-      shade(x, P([[-10, 0, 1], [-10, -22], [0, -32], [10, -22], [10, 0, 1]], true, .5), "#140e0c", { d: 2 });
-      if (lv >= 2) for (const dx of [-30, 30]) candle(x, dx, 0, 1.4);
-      break;
-    }
-    case "academie": {
-      shade(x, poly([[-30, 0], [-30, -150], [30, -150], [30, 0]]), "#1c1820", { d: 5 }); bricks(-30, -150, 30, 0);
-      shade(x, poly([[-38, -148], [0, -200], [38, -148]]), roof, { d: 4 });
-      for (let i = 0; i < 3; i++) win(-8, -130 + i * 38, 16, 22, lv > i ? "#9ab8ff" : "#3a3a44");
-      shade(x, poly([[-50, 0], [-50, -40], [-30, -40], [-30, 0]]), "#221e24", { d: 2 }); shade(x, poly([[30, 0], [30, -40], [50, -40], [50, 0]]), "#221e24", { d: 2 });
-      if (lv >= 4) { glow(x, 0, -205, 30, "#9ab8ff", .5); }
-      break;
-    }
-    case "menagerie": {
-      shade(x, poly([[-60, 0], [-60, -50], [60, -50], [60, 0]]), "#241810", { d: 4 }); for (let i = 0; i < 8; i++) line(x, [[-60 + i * 15, -50], [-60 + i * 15, 0]], 1.4, "rgba(0,0,0,.5)");
-      shade(x, poly([[-70, -48], [0, -95], [70, -48]]), "#1e1410", { d: 4 });
-      shade(x, P([[-16, 0, 1], [-16, -30], [0, -40], [16, -30], [16, 0, 1]], true, .5), "#120c08", { d: 2 });
-      for (let i = 0; i < 6; i++) { line(x, [[-90 + i * 8, 0], [-90 + i * 8, -22]], 3, "#3a2a1a"); } line(x, [[-92, -16], [-50, -16]], 3, "#3a2a1a");
-      win(-44, -38, 14, 12); win(30, -38, 14, 12);
-      x.save(); x.translate(0, -70); x.scale(.9, .9); x.fillStyle = "#c8a060"; x.beginPath(); x.arc(0, 4, 6, 0, 7); x.fill(); for (const [dx, dy] of [[-8, -4], [-3, -9], [3, -9], [8, -4]]) { x.beginPath(); x.arc(dx, dy, 2.6, 0, 7); x.fill(); } x.restore();
-      break;
-    }
-    case "fonderie": {
-      shade(x, poly([[-40, 0], [-34, -120], [34, -120], [40, 0]]), "#1e1a1c", { d: 5 }); bricks(-40, -120, 40, 0);
-      for (let i = 0; i < 4; i++) line(x, [[-38 + i, -30 * i], [38 - i, -30 * i]], 2, rgba(INK, .6));
-      const fl = .75 + Math.sin(t * 4) * .15;
-      glow(x, 0, -70, 60 + lv * 6, "#9ad06a", .35 * fl);
-      shade(x, P([[-16, -40], [-16, -80], [0, -96], [16, -80], [16, -40]], true, .5), "#2a3a1a", { ol: 2.5, d: 2 }); x.save(); x.globalCompositeOperation = "lighter"; for (let i = 0; i < 6; i++) glow(x, Math.sin(t * 4 + i) * 5, -48 - i * 7 - Math.abs(Math.sin(t * 3 + i)) * 5, 16 - i * 1.5, i < 2 ? "#f0ffc0" : "#8ad04a", .7); x.restore();
-      x.save(); x.globalCompositeOperation = "lighter"; for (let i = 0; i < 6; i++) { const k2 = (t * .5 + i / 6) % 1; glow(x, Math.sin(t * 2 + i) * 10, -125 - k2 * 60, 5, "#c8f07a", (1 - k2) * .8); } x.restore();
-      break;
-    }
-    case "porte": {
-      shade(x, poly([[-80, 0], [-80, -150], [-44, -150], [-44, 0]]), stone, { d: 5 }); shade(x, poly([[44, 0], [44, -150], [80, -150], [80, 0]]), stone, { d: 5 }); bricks(-80, -150, -44, 0); bricks(44, -150, 80, 0);
-      for (const dx of [-80, 44]) for (let i = 0; i < 3; i++) shade(x, poly([[dx + i * 13, -150], [dx + i * 13, -164], [dx + i * 13 + 9, -164], [dx + i * 13 + 9, -150]]), stone, { d: 1.5 });
-      shade(x, P([[-44, 0, 1], [-44, -96], [0, -132], [44, -96], [44, 0, 1]], true, .5), "#0a0608", { d: 0, flat: true });
-      const g = x.createLinearGradient(0, -130, 0, 0); g.addColorStop(0, "rgba(255,120,40,.0)"); g.addColorStop(1, "rgba(255,120,40,.25)"); x.fillStyle = g; x.fill(P([[-44, 0, 1], [-44, -96], [0, -132], [44, -96], [44, 0, 1]], true, .5));
-      const lift = 30 + Math.sin(t * .6) * 4;
-      x.save(); x.clip(P([[-44, 0, 1], [-44, -96], [0, -132], [44, -96], [44, 0, 1]], true, .5));
-      for (let i = -4; i <= 4; i++) line(x, [[i * 10, -140], [i * 10, -lift]], 3, "#3a3436"); for (let j = 0; j < 8; j++) line(x, [[-44, -lift - j * 14], [44, -lift - j * 14]], 3, "#3a3436");
-      x.restore();
-      for (const dx of [-62, 62]) { const f = .8 + Math.sin(t * 8 + dx) * .15; glow(x, dx, -110, 40, "#ff8a3a", .55 * f); shade(x, poly([[dx - 3, -96], [dx + 3, -96], [dx + 4, -110], [dx - 4, -110]]), "#3a2a1a", { d: 1 }); x.save(); x.globalCompositeOperation = "lighter"; glow(x, dx, -118, 10, "#ffd08a", .9 * f); x.restore(); }
-      banner(x, -76, -146, 26, 70, "#5a0e08", t); banner(x, 50, -146, 26, 70, "#5a0e08", t + 1);
-      break;
-    }
-  }
-  x.restore();
+function drawBuilding(x, k, bx, by, s, lvl, t) { // bâtiment peint : posé sur le sol, lueur qui grandit avec le niveau
+  const im = artImg("bld_" + k); if (!im) return;
+  const hh = s * (k === "porte" ? 1.62 : k === "academie" ? 2.0 : k === "chapelle" ? 1.9 : 1.3), sc = Math.min(hh / im.height, s * 1.7 / im.width), w = im.width * sc, h = im.height * sc;
+  if (lvl > 1) glow(x, bx, by - h * .35, w * (.45 + lvl * .06), "#ff9a4a", .05 + lvl * .03 + Math.sin(t * 2 + bx) * .015);
+  x.drawImage(im, bx - w / 2, by - h + s * .04, w, h);
 }
 SCREENS.bastion = {
   title: "Le Bastion", tab: "bastion",
@@ -139,7 +55,7 @@ function openBuilding(k, tab) {
   UI.bldTab = tab || UI.bldTab || "";
   if (k === "taverne") {
     body = `<p class="lore">Une odeur de bière tiède et de sang séché. Des âmes perdues attendent un capitaine.</p><p class="small">Caserne : <b>${S.heroes.length}/${rosterMax()}</b> héros.</p>
-    <div class="grid" style="--min:170px">${S.recruits.map((h, i) => { const C = CLASSES[h.cls], c = recruitPrice(i); return `<div class="card" style="text-align:center">${canvasSlot("r:" + i, 150, 188)}<h3 style="margin:2px 0">${esc(h.name)}</h3><div class="row" style="justify-content:center;gap:4px">${roleTag(C.role)}<span class="tag">${h.evo ? CLASSES[h.cls].evos[h.evo].n : C.n} · niv ${h.lvl}</span></div><p class="tiny" style="min-height:30px;margin-bottom:2px">${h.traits.map(t => `<span class="${TRAITS[t].good ? "good" : "bad"}" title="${TRAITS[t].d}">${TRAITS[t].n}</span>`).join(" · ")}</p><div class="tiny dim" style="margin-bottom:6px">${h.skills.map(k => skillDef(h, k).n).join(" · ")}</div><div class="row" style="justify-content:center;gap:4px"><button class="btn ghost sm" data-a="recruitInfo" data-v="${i}">${ico("info")}Détails</button><button class="btn ${c === 0 ? "main" : ""} sm" data-a="recruit" data-v="${i}">${c === 0 ? "Gratuit" : c + " " + ico("coin", "#e8c060")}</button></div></div>`; }).join("") || '<div class="empty">Plus personne. Revenez après une expédition.</div>'}</div>
+    <div class="grid" style="--min:170px">${S.recruits.map((h, i) => { const C = CLASSES[h.cls], c = recruitPrice(i); return `<div class="card" style="text-align:center">${canvasSlot("r:" + i, 150, 188)}<h3 style="margin:2px 0">${esc(h.name)}</h3><div class="row" style="justify-content:center;gap:4px">${roleTag(C.role)}<span class="tag">${h.evo ? CLASSES[h.cls].evos[h.evo].n : C.n} · niv ${h.lvl}</span></div><p class="tiny" style="min-height:30px;margin-bottom:2px">${h.traits.map(t => `<span class="${TRAITS[t].good ? "good" : "bad"}" ${tipAttr(TRAITS[t].n, TRAITS[t].d)}>${TRAITS[t].n}</span>`).join(" · ")}</p><div class="tiny dim" style="margin-bottom:6px">${h.skills.map(k => skillDef(h, k).n).join(" · ")}</div><div class="row" style="justify-content:center;gap:4px"><button class="btn ghost sm" data-a="recruitInfo" data-v="${i}">${ico("info")}Détails</button><button class="btn ${c === 0 ? "main" : ""} sm" data-a="recruit" data-v="${i}">${c === 0 ? "Gratuit" : c + " " + ico("coin", "#e8c060")}</button></div></div>`; }).join("") || '<div class="empty">Plus personne. Revenez après une expédition.</div>'}</div>
     <div class="row" style="margin-top:10px"><button class="btn ghost sm" data-a="reroll">${ico("dice")}Nouvelles recrues (${40 + S.bld.taverne * 20} or)</button><span class="small dim">Les recrues changent après chaque expédition. Classes débloquées : ${CLASS_IDS.filter(classUnlocked).length}/${CLASS_IDS.length}.</span></div>`;
   }
   if (k === "forge") {
@@ -211,8 +127,7 @@ function equipRow(h, it, act, v, relicH = {}) {
     <div class="eqcmp"><span class="tiny dim">${D.old ? `Remplace <span class="rar${D.old.rar}">${gearName(D.old)}</span>` : "Emplacement libre"}</span><span class="chips">${deltaChips(D)}</span></div></div>`;
 }
 // ── icônes d'équipement peintes : l'arme réelle, l'armure portée sur un mannequin, les bibelots en médaillon ciselé ──
-const ITEM_ART = {}, ITEM_WAIT = new Map(), ITEM_WPN = { dagues: "dague", grimoire: "grimoire" };
-const TR_METAL = ["#b07a44", "#c8ccd4", "#e0b050", "#3a2a3a"];
+const ITEM_ART = {}, ITEM_WAIT = Object.assign(new Map(), { n: 0 });
 function cropDraw(src, W, pad) { // recadre au plus juste puis centre dans un carré W×W
   const w = src.width, h = src.height, d = src.getContext("2d").getImageData(0, 0, w, h).data;
   let x0 = w, y0 = h, x1 = 0, y1 = 0;
@@ -247,58 +162,16 @@ function itemArt(it) {
     } else if (tim) { // bibelot peint, halo selon la rareté
       const t0 = mkCanvas(tim.width, tim.height); t0.getContext("2d").drawImage(tim, 0, 0);
       cv = cropDraw(t0, W, 10);
-    } else if (it.kind === "wpn") {
-      const wt = CLASSES[it.cls].wpn, type = ITEM_WPN[wt] || wt;
-      const up = uprightWeapon(type, it.tier, { t: 0, runeCol: it.rar >= 3 ? "#ffb04a" : null }, type === "grimoire" ? 3.2 : 1.6);
-      const ang = type === "grimoire" ? -.25 : type === "luth" ? .55 : type === "encensoir" ? .2 : Math.PI / 4;
-      const src = rotatedCopy(up, ang), x = src.getContext("2d");
-      litPass(x, src.width, src.height); spritePost(src, 1.6, { rim: "#ffe0b0" });
-      cv = cropDraw(src, W, 8);
     } else if (it.kind === "arm" && bust) { // armure : buste de l'illustration du héros portant ce palier
       const bh = Math.round(bust.height * .52), src = mkCanvas(bust.width, bh), x = src.getContext("2d");
       x.drawImage(bust, 0, 0, bust.width, bh, 0, 0, bust.width, bh);
       const fade = x.createLinearGradient(0, bh * .8, 0, bh); fade.addColorStop(0, "rgba(0,0,0,1)"); fade.addColorStop(1, "rgba(0,0,0,0)");
       x.globalCompositeOperation = "destination-in"; x.fillStyle = fade; x.fillRect(0, 0, bust.width, bh); x.globalCompositeOperation = "source-over";
       cv = cropDraw(src, W, 4);
-    } else if (it.kind === "arm") {
-      const src = mkCanvas(360, 420), x = src.getContext("2d");
-      const sp = outfit({ cls: it.cls, tier: it.tier, wtier: it.tier, skin: "#8a6a50", hair: 0, hairCol: "#2a2018", beard: -1, scar: -1 });
-      sp.wpn = null; sp.shield = 0; sp.quiver = 0; sp.offhand = null; sp.halo = null;
-      x.save(); x.translate(180, 400); x.scale(1.9, 1.9);
-      drawFigure(x, sp, { h: 1, w: 1, female: false }, { aFs: .12, aFe: .15, aBs: -.1, aBe: .1, lFh: .15, lFk: -.05, lBh: -.12, lBk: -.02 }, 0, {});
-      x.restore();
-      // on ne garde que le buste (du sommet au milieu des cuisses)
-      const d = x.getImageData(0, 0, 360, 420).data; let top = 420; for (let y = 0; y < 420 && top === 420; y += 2) for (let xx = 0; xx < 360; xx += 3) if (d[(y * 360 + xx) * 4 + 3] > 24) { top = y; break; }
-      const cut = top + (400 - top) * .5;
-      const fade = x.createLinearGradient(0, cut - 26, 0, cut); fade.addColorStop(0, "rgba(0,0,0,1)"); fade.addColorStop(1, "rgba(0,0,0,0)");
-      x.globalCompositeOperation = "destination-in"; x.fillStyle = fade; x.fillRect(0, 0, 360, 420); x.globalCompositeOperation = "source-over";
-      litPass(x, 360, 420); spritePost(src, 1.9, { rim: "#cfe0ff" });
-      cv = cropDraw(src, W, 6);
-    } else {
-      const T = TRINKETS[it.key], ic = IC[T.ic] || IC.gem, m = TR_METAL[it.rar] || TR_METAL[0];
-      cv = document.createElement("canvas"); cv.width = cv.height = W; const x = cv.getContext("2d"), c = W / 2, R = W * .36;
-      // anneau et chaînette
-      x.lineWidth = 5; x.strokeStyle = INK; x.beginPath(); x.arc(c, c - R - 6, 7, 0, 7); x.stroke(); x.lineWidth = 2.6; x.strokeStyle = it.rar >= 3 ? "#8a6a8a" : m; x.stroke();
-      // médaillon
-      const disc = circ(c, c + 4, R), mg = x.createLinearGradient(c - R, c - R, c + R, c + R + 8);
-      mg.addColorStop(0, lt(m, .45)); mg.addColorStop(.45, m); mg.addColorStop(1, dk(m, .55));
-      x.save(); x.shadowColor = "rgba(0,0,0,.7)"; x.shadowBlur = 8; x.shadowOffsetY = 3; x.fillStyle = mg; x.fill(disc); x.restore();
-      x.lineWidth = 3; x.strokeStyle = INK; x.stroke(disc);
-      x.lineWidth = 2; x.strokeStyle = rgba(lt(m, .5), .7); x.beginPath(); x.arc(c, c + 4, R - 5, Math.PI * .9, Math.PI * 1.6); x.stroke();
-      x.lineWidth = 1.4; x.strokeStyle = rgba(dk(m, .6), .9); x.beginPath(); x.arc(c, c + 4, R - 5, 0, 7); x.stroke();
-      if (it.rar >= 2) { x.save(); x.globalCompositeOperation = "lighter"; const g = x.createRadialGradient(c, c + 4, 2, c, c + 4, R); g.addColorStop(0, it.rar >= 3 ? "rgba(255,120,40,.55)" : "rgba(200,120,255,.35)"); g.addColorStop(1, "rgba(0,0,0,0)"); x.fillStyle = g; x.fill(disc); x.restore(); }
-      // motif gravé : creux sombre puis arête claire
-      const p = new Path2D(ic), s = R * 1.25 / 24;
-      x.save(); x.translate(c - 12 * s, c + 4 - 12 * s); x.scale(s, s); x.lineCap = x.lineJoin = "round";
-      x.lineWidth = 3.4; x.strokeStyle = rgba(INK, .85); x.stroke(p);
-      x.translate(-.5, -.5); x.lineWidth = 1.6; x.strokeStyle = it.rar >= 3 ? "#ffb04a" : lt(m, .55); x.stroke(p);
-      x.restore();
-    }
+    } else return ""; // illustration pas encore chargée : slotHTML met l'icône en attendant
     // éclat de rareté discret
-    if (it.rar >= 1 && (it.kind !== "tr" || tim)) { const x = cv.getContext("2d"); x.save(); x.globalCompositeOperation = "destination-over"; const g = x.createRadialGradient(W / 2, W / 2, 4, W / 2, W / 2, W / 2); g.addColorStop(0, RARITY[it.rar].c + "50"); g.addColorStop(1, "#0000"); x.fillStyle = g; x.fillRect(0, 0, W, W); x.restore(); }
+    if (it.rar >= 1) { const x = cv.getContext("2d"); x.save(); x.globalCompositeOperation = "destination-over"; const g = x.createRadialGradient(W / 2, W / 2, 4, W / 2, W / 2, W / 2); g.addColorStop(0, RARITY[it.rar].c + "50"); g.addColorStop(1, "#0000"); x.fillStyle = g; x.fillRect(0, 0, W, W); x.restore(); }
     const url = ITEM_ART[key] = cv.toDataURL();
-    // illustration pas encore chargée : on retiendra l'objet pour repeindre l'icône à son arrivée
-    if (!(bust || wim || tim) && artHas(it.kind === "tr" ? "tr_" + it.key : it.kind === "wpn" ? "wpn_" + CLASSES[it.cls].wpn : "hero_" + it.cls + "_t3")) ITEM_WAIT.set(url, it);
     return url;
   } catch (e) { return ITEM_ART[key] = ""; }
 }
@@ -311,9 +184,9 @@ function itemLine(it) {
   if (it.kind === "arm") stats.push(`+${Math.round((ARM_HP[it.tier] * (1 + .07 * it.up) + it.up * .025) * 100)} % PV`, `+${Math.round(ARM_PROT[it.tier] * 100)} % protection`);
   if (it.kind === "tr") stats.push(TRINKETS[it.key].d);
   for (const f of it.aff || []) { const A = AFFIXES[f.k]; stats.push(`+${A.fmt === "pct" ? Math.round(f.v * 100) + " %" : f.v} ${A.n}`); }
-  return stats.filter(t => !/^\+0 %/.test(t)).join(" · ") || "Équipement de base";
+  return gl(stats.filter(t => !/^\+0 %/.test(t)).join(" · ")) || "Équipement de base";
 }
-function slotHTML(it, act, v, extra = "") { if (!it) return `<div class="slot" data-a="${act}" data-v="${v}">${ico("plus", "#5a4a3a")}</div>`; return `<div class="slot r${it.rar}" data-a="${act}" data-v="${v}" title="${esc(gearName(it))}">${(() => { const a = itemArt(it); return a ? `<img class="itimg" src="${a}" alt="">` : ico(itemIcon(it), RARITY[it.rar].c); })()}${it.kind !== "tr" ? `<span class="tier">${"I II III IV V".split(" ")[it.tier - 1]}</span>` : ""}${it.up ? `<span class="up">+${it.up}</span>` : ""}${extra}</div>`; }
+function slotHTML(it, act, v, extra = "") { if (!it) return `<div class="slot" data-a="${act}" data-v="${v}">${ico("plus", "#5a4a3a")}</div>`; return `<div class="slot r${it.rar}" data-a="${act}" data-v="${v}" title="${esc(gearName(it))}">${(() => { const a = itemArt(it); if (a) return `<img class="itimg" src="${a}" alt="">`; const id = "w" + (++ITEM_WAIT.n); ITEM_WAIT.set(id, it); return `<span class="itw" data-iw="${id}">${ico(itemIcon(it), RARITY[it.rar].c)}</span>`; })()}${it.kind !== "tr" ? `<span class="tier">${"I II III IV V".split(" ")[it.tier - 1]}</span>` : ""}${it.up ? `<span class="up">+${it.up}</span>` : ""}${extra}</div>`; }
 function invList(filter) {
   const items = S.inv.filter(filter || (() => true)).sort((a, b) => b.rar - a.rar || b.tier - a.tier);
   if (!items.length) return '<div class="empty">Inventaire vide. Explorez pour trouver du butin, ou forgez.</div>';

@@ -1,7 +1,7 @@
 /* ═══════════════════════ Démarrage ═══════════════════════ */
 if (HASWIN) {
   const boot = () => {
-    sceneInit(); uiEvents();
+    sceneInit(); uiEvents(); tipEvents();
     artImg("bg_titre"); artImg("bg_bastion"); setTimeout(artPreload, 300);
     if (window.CC_SW && "serviceWorker" in navigator) navigator.serviceWorker.register("sw.js").catch(() => { });
     go("title");

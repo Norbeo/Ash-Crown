@@ -157,7 +157,7 @@ function cbBar(u) {
 function cbTopLeft() {
   const B = CB.B, el = $("#cb-tl"); if (!el || !B) return;
   const mc = B.morale >= 80 ? "#ffd27a" : B.morale <= 20 ? "#ff5a4a" : "#c8b8a0";
-  el.innerHTML = `<div class="panel" style="padding:5px 8px;font-size:12px"><div class="row" style="gap:6px;flex-wrap:nowrap"><span title="Résolution du groupe : à 80+ les héros sont exaltés, sous 20 ils sont ébranlés">${ico("banner", mc, 16)}</span><div class="bar" style="width:70px"><i style="width:${B.morale}%;background:linear-gradient(${mc},#6a4a2a)"></i></div><span style="color:${mc}">${B.morale >= 80 ? "Exaltés" : B.morale <= 20 ? "Ébranlés" : "Résolus"}</span></div><div class="row" style="gap:6px;margin-top:3px;flex-wrap:nowrap">${ico("torch", B.light < 30 ? "#ff5a3a" : "#ffb050", 16)}<span class="tiny">${Math.round(B.light)}</span><span class="tiny dim">Tour ${B.round}</span></div></div>`;
+  el.innerHTML = `<div class="panel" style="padding:5px 8px;font-size:12px"><div class="row" style="gap:6px;flex-wrap:nowrap"><span data-tip="resolution" style="display:contents">${ico("banner", mc, 16)}</span><div class="bar" style="width:70px"><i style="width:${B.morale}%;background:linear-gradient(${mc},#6a4a2a)"></i></div><span class="gl" data-tip="resolution" style="color:${mc}">${B.morale >= 80 ? "Exaltés" : B.morale <= 20 ? "Ébranlés" : "Résolus"}</span></div><div class="row" style="gap:6px;margin-top:3px;flex-wrap:nowrap"><span class="row" data-tip="lueur" style="gap:4px;flex-wrap:nowrap">${ico("torch", B.light < 30 ? "#ff5a3a" : "#ffb050", 16)}<span class="tiny">${Math.round(B.light)}</span></span><span class="tiny dim">Tour ${B.round}</span></div></div>`;
 }
 // ── saisie sur la scène ──
 function unitAt(px, py) {
@@ -175,7 +175,7 @@ function cbClick(px, py) {
   choose({ sk: CB.sel.sk, tgt: u });
 }
 function showUnitInfo(u) {
-  const st = u.st.map(s => `<span class="tag" style="color:${ST_INFO[s.k].c}">${ST_INFO[s.k].n}${s.t < 50 ? " " + s.t : ""}</span>`).join(" ");
+  const st = u.st.map(s => `<span class="tag" data-tip="${s.k}" style="color:${ST_INFO[s.k].c}">${ST_INFO[s.k].n}${s.t < 50 ? " " + s.t : ""}</span>`).join(" ");
   let txt = `<b>${esc(u.name)}</b> ${u.side === "e" ? `<span class="tiny dim">niv ${u.lvl}${u.tags.includes("impie") ? " · impie" : ""}</span>` : ""}<br><span class="small">PV ${Math.ceil(u.hp)}/${u.hpMax} · Prot ${Math.round(effProt(u) * 100)} % · Vit ${effSpd(u)} · Esq ${Math.round(effDodge(u))}</span>${st ? "<br>" + st : ""}`;
   if (u.side === "e" && u.intent && u.intent.sk) txt += `<br><span class="small bad">Intention : ${u.intent.sk.n}</span>`;
   toast(txt);
@@ -297,7 +297,7 @@ async function combatEnd(over) {
   await new Promise(r => setTimeout(r, 600));
   finishRun("wipe");
 }
-function rewardHTML(R) { return `${R.gold ? `<div class="reward">${ico("coin", "#e8c060", 22)}<b>+${R.gold} or</b></div>` : ""}${(R.loot || []).map(i => `<div class="reward" style="align-items:flex-start">${slotHTML(i, "itemInfo", i.id)}<div style="flex:1;min-width:0"><b class="rar${i.rar}">${gearName(i)}</b><div class="tiny dim">${i.cls ? CLASSES[i.cls].n + " — " : ""}${itemLine(i)}</div>${runEquipBtns(i)}</div></div>`).join("")}${R.relic ? `<div class="reward">${ico("gem", "#c87aff", 22)}<b>${RELICS[R.relic].n}</b> <span class="tiny">${RELICS[R.relic].d}</span></div>` : ""}${R.shards ? `<div class="reward">${ico("shard", "#c090ff", 22)}<b>+${R.shards} éclats</b></div>` : ""}`; }
+function rewardHTML(R) { return `${R.gold ? `<div class="reward">${ico("coin", "#e8c060", 22)}<b>+${R.gold} or</b></div>` : ""}${(R.loot || []).map(i => `<div class="reward" style="align-items:flex-start">${slotHTML(i, "itemInfo", i.id)}<div style="flex:1;min-width:0"><b class="rar${i.rar}">${gearName(i)}</b><div class="tiny dim">${i.cls ? CLASSES[i.cls].n + " — " : ""}${itemLine(i)}</div>${runEquipBtns(i)}</div></div>`).join("")}${R.relic ? `<div class="reward">${ico("gem", "#c87aff", 22)}<b>${RELICS[R.relic].n}</b> <span class="tiny">${gl(RELICS[R.relic].d)}</span></div>` : ""}${R.shards ? `<div class="reward">${ico("shard", "#c090ff", 22)}<b>+${R.shards} éclats</b></div>` : ""}`; }
 ACT.abyssUp = () => { closeModal(); finishRun("victory"); };
 ACT.abyssDown = () => { const run = S.run; run.floor++; run.map = genMap(RNG, 6, { elite: run.oaths.includes("elite") }); run.pos = null; run.light = clamp(run.light + 30, 0, 100); S.abyss.best = Math.max(S.abyss.best, run.floor - 1); save(); closeModal(); go("map"); toast(`Profondeur ${run.floor}…`, "epic"); };
 // ── dessin ──

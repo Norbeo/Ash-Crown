@@ -21,13 +21,21 @@ function artPump() {
     if (e.started) continue;
     e.started = 1; PIC.busy++;
     const im = new Image(); im.decoding = "async";
-    im.onload = () => { e.im = im; e.ok = 1; PIC.busy--; PIC.done++; artChanged(); artPump(); };
-    im.onerror = () => { e.fail = 1; PIC.busy--; PIC.done++; artPump(); };
+    im.onload = () => { e.im = im; e.ok = 1; PIC.busy--; PIC.done++; artProgress(); artChanged(); artPump(); };
+    im.onerror = () => { e.fail = 1; PIC.busy--; PIC.done++; artProgress(); artPump(); };
     im.src = "assets/" + n + ".webp";
   }
 }
 // précharge tout en tâche de fond (après les images demandées par l'écran courant)
-function artPreload() { if (typeof Image === "undefined") return; PIC.total = ART_SET.size; for (const n of [...ART_SET].sort((a, b) => /^(tr|wpn|map)_/.test(b) - /^(tr|wpn|map)_/.test(a))) if (!PIC.img[n]) { PIC.img[n] = { ok: 0 }; PIC.queue.push(n); } artPump(); }
+function artPreload() { if (typeof Image === "undefined") return; PIC.total = ART_SET.size; for (const n of [...ART_SET].sort((a, b) => /^(tr|wpn|map)_/.test(b) - /^(tr|wpn|map)_/.test(a))) if (!PIC.img[n]) { PIC.img[n] = { ok: 0 }; PIC.queue.push(n); } artPump(); artProgress(); }
+// barre de chargement discrète (premier lancement : ensuite tout vient du cache de l'appli)
+function artProgress() {
+  if (typeof document === "undefined" || !PIC.total) return;
+  const el = document.getElementById("artload"); if (!el) return;
+  const k = Math.min(1, PIC.done / PIC.total);
+  if (k >= 1) { el.classList.add("done"); return; }
+  el.hidden = false; el.firstElementChild.style.width = (k * 100).toFixed(1) + "%"; el.lastElementChild.textContent = "Illustrations " + Math.min(PIC.done, PIC.total) + " / " + PIC.total;
+}
 const ART_REPAINT = [];
 // une image vient d'arriver : on vide les caches de sprites et on repeint les vignettes encore à l'écran
 function artChanged() {
@@ -40,8 +48,8 @@ function artChanged() {
     if (typeof WALK_CACHE !== "undefined") for (const k in WALK_CACHE) delete WALK_CACHE[k];
     if (typeof CB !== "undefined") { for (const id in CB.vis) if (CB.vis[id]) CB.vis[id].cache = {}; CB.petCache = null; }
     if (typeof ICON_CACHE !== "undefined") for (const k in ICON_CACHE) delete ICON_CACHE[k];
-    if (typeof ITEM_WAIT !== "undefined" && ITEM_WAIT.size && typeof document !== "undefined") document.querySelectorAll("img.itimg").forEach(im => {
-      const it = ITEM_WAIT.get(im.getAttribute("src")); if (!it) return; const u = itemArt(it); if (u && u !== im.getAttribute("src")) im.setAttribute("src", u); });
+    if (typeof ITEM_WAIT !== "undefined" && ITEM_WAIT.size && typeof document !== "undefined") document.querySelectorAll("span.itw[data-iw]").forEach(sp => {
+      const it = ITEM_WAIT.get(sp.dataset.iw); const u = it && itemArt(it); if (u) { sp.outerHTML = `<img class="itimg" src="${u}" alt="">`; ITEM_WAIT.delete(sp.dataset.iw); } });
     for (let i = ART_REPAINT.length - 1; i >= 0; i--) {
       const [root, fn] = ART_REPAINT[i];
       if (!root.isConnected) { ART_REPAINT.splice(i, 1); continue; }

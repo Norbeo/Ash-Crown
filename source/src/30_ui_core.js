@@ -50,10 +50,10 @@ function renderHud() {
   const hd = $("#hud"); const Sx = SCREENS[UI.screen] || {};
   if (!S || Sx.noHud) { hd.innerHTML = ""; hd.style.display = "none"; return; }
   hd.style.display = "";
-  const r = (ic, v, c, t) => `<span class="res" title="${t}">${ico(ic, c)}${fmt(v)}</span>`;
+  const RES_TIP = { coin: "or", shard: "eclat" }, r = (ic, v, c, t) => `<span class="res" data-tip="${RES_TIP[ic] || ""}">${ico(ic, c)}${fmt(v)}</span>`;
   hd.innerHTML = `<span class="title">${Sx.title ? (typeof Sx.title === "function" ? Sx.title() : Sx.title) : "Couronne de Cendres"}</span>` +
     r("coin", S.gold, "#e8c060", "Or") + r("shard", S.shards, "#c090ff", "Éclats de couronne") +
-    `<span class="res" title="Ferraille, essences, cendres royales">${ico("iron", "#a8a8a8")}${S.mats.fer}<span class="dim">·</span>${ico("essence", "#7ad0ff")}${S.mats.essence}${S.mats.cendre ? `<span class="dim">·</span>${ico("ember", "#ff8a3a")}${S.mats.cendre}` : ""}</span>`;
+    `<span class="res"><span data-tip="ferraille">${ico("iron", "#a8a8a8")}${S.mats.fer}</span><span class="dim">·</span><span data-tip="essence">${ico("essence", "#7ad0ff")}${S.mats.essence}</span>${S.mats.cendre ? `<span class="dim">·</span><span data-tip="cendre">${ico("ember", "#ff8a3a")}${S.mats.cendre}</span>` : ""}</span>`;
 }
 const NAV = [["bastion", "castle", "Bastion"], ["heroes", "helm", "Héros"], ["expe", "map", "Expédition"], ["codex", "book", "Archives"], ["options", "gear", "Options"]];
 function renderNav() {
@@ -124,9 +124,9 @@ function synergyHTML(classes, roster) {
   const act = activeSynergies(classes);
   const near = roster ? Object.keys(SYNERGIES).filter(k => !act.includes(k) && SYNERGIES[k].need && SYNERGIES[k].need.filter(g => !g.some(c => classes.includes(c))).length === 1 && SYNERGIES[k].need.some(g => !g.some(c => classes.includes(c)) && g.some(c => roster.includes(c)))).slice(0, 3) : [];
   if (!act.length && !near.length) return "";
-  return `<div class="syn">${act.map(k => `<div class="synr on" data-a="synInfo" data-v="${k}">${ico("link", "#e8c878", 14)}<b>${SYNERGIES[k].n}</b><span class="tiny">${SYNERGIES[k].d}</span></div>`).join("")}${near.map(k => `<div class="synr" data-a="synInfo" data-v="${k}">${ico("link", "#7a6a5a", 14)}<b>${SYNERGIES[k].n}</b><span class="tiny dim">Il manque : ${SYNERGIES[k].need.filter(g => !g.some(c => classes.includes(c))).map(g => g.map(c => CLASSES[c].n).join(" ou ")).join(", ")}</span></div>`).join("")}</div>`;
+  return `<div class="syn">${act.map(k => `<div class="synr on" data-a="synInfo" data-v="${k}">${ico("link", "#e8c878", 14)}<b>${SYNERGIES[k].n}</b><span class="tiny">${gl(SYNERGIES[k].d)}</span></div>`).join("")}${near.map(k => `<div class="synr" data-a="synInfo" data-v="${k}">${ico("link", "#7a6a5a", 14)}<b>${SYNERGIES[k].n}</b><span class="tiny dim">Il manque : ${SYNERGIES[k].need.filter(g => !g.some(c => classes.includes(c))).map(g => g.map(c => CLASSES[c].n).join(" ou ")).join(", ")}</span></div>`).join("")}</div>`;
 }
-ACT.synInfo = k => { const Y = SYNERGIES[k]; toast(`<b>${Y.n}</b> <span class="tiny dim">(${synergyNeedText(Y)})</span><br><span class="small">${Y.d}</span>`); };
+ACT.synInfo = k => { const Y = SYNERGIES[k]; toast(`<b>${Y.n}</b> <span class="tiny dim">(${synergyNeedText(Y)})</span><br><span class="small">${gl(Y.d)}</span>`); };
 // description automatique d'une compétence
 function skillText(sk, u) {
   const out = [], t = sk.t || "e";
@@ -145,5 +145,5 @@ function skillText(sk, u) {
   if (sk.bonus) { const b = sk.bonus; if (b.tag) out.push(`×${b.x} contre les ${b.tag}s`); if (b.st === "stealth_self") out.push(`×${b.x} si furtif`); else if (b.st) out.push(`×${b.x} si ${ST_INFO[b.st].n.toLowerCase()}`); if (b.low) out.push(`×${b.x} sous ${Math.round(b.low * 100)} % PV`); if (b.selfHit) out.push(`×${b.x} si frappé depuis son dernier tour`); if (b.fallen) out.push(`+${Math.round(b.x * 100)} % par ennemi tué`); }
   if (sk.det) out.push(`Fait exploser les ${ST_INFO[sk.det].n.toLowerCase()}s (×${sk.detX})`);
   if (sk.cr) out.push(`+${sk.cr} % critique`); if (sk.cd) out.push(`Recharge ${sk.cd} t.`); if (sk.morale) out.push(`+${sk.morale} résolution`); if (sk.petStrike) out.push(`Le compagnon frappe ${sk.petStrike > 1 ? sk.petStrike + " fois" : ""}`); if (sk.light) out.push(`+${sk.light} lueur`);
-  return out.join(" · ");
+  return gl(out.join(" · "));
 }

@@ -69,6 +69,8 @@
 "hero_sorciere_t3": 0.012,
 "hero_sorciere_t4": 0.009,
 "hero_sorciere_t5": 0.012,
+"hero_templier_bastion": 0.021,
+"hero_templier_inquisiteur": 0.007,
 "hero_templier_t1": 0.007,
 "hero_templier_t2": 0.007,
 "hero_templier_t3": 0.005,

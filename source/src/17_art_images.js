@@ -27,7 +27,7 @@ function artPump() {
   }
 }
 // précharge tout en tâche de fond (après les images demandées par l'écran courant)
-function artPreload() { if (typeof Image === "undefined") return; PIC.total = ART_SET.size; for (const n of [...ART_SET].sort((a, b) => /^(tr|wpn)_/.test(b) - /^(tr|wpn)_/.test(a))) if (!PIC.img[n]) { PIC.img[n] = { ok: 0 }; PIC.queue.push(n); } artPump(); }
+function artPreload() { if (typeof Image === "undefined") return; PIC.total = ART_SET.size; for (const n of [...ART_SET].sort((a, b) => /^(tr|wpn|map)_/.test(b) - /^(tr|wpn|map)_/.test(a))) if (!PIC.img[n]) { PIC.img[n] = { ok: 0 }; PIC.queue.push(n); } artPump(); }
 const ART_REPAINT = [];
 // une image vient d'arriver : on vide les caches de sprites et on repeint les vignettes encore à l'écran
 function artChanged() {

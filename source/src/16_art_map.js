@@ -24,8 +24,14 @@ function paintMapBg(c, run, W, H, pos) {
 // jeton peint d'une salle (cercle de pierre et objet), mis en cache en image
 function mapToken(type) {
   if (!HASWIN) return "";
-  if (TOKEN_ART[type]) return TOKEN_ART[type];
+  const pim = type !== "pawn" ? artImg("map_" + type) : null, tk = type + (pim ? "|i" : "");
+  if (TOKEN_ART[tk]) return TOKEN_ART[tk];
   const S0 = 128, cv = document.createElement("canvas"); cv.width = cv.height = S0; const x = cv.getContext("2d"), c = S0 / 2;
+  if (pim) { // jeton peint
+    const s = Math.min(S0 * .9 / pim.width, S0 * .9 / pim.height) * (type === "boss" ? 1 : .9), w = pim.width * s, h = pim.height * s;
+    x.save(); x.shadowColor = "rgba(0,0,0,.7)"; x.shadowBlur = 10; x.shadowOffsetY = 4; x.drawImage(pim, c - w / 2, c - h / 2, w, h); x.restore();
+    return TOKEN_ART[tk] = cv.toDataURL();
+  }
   if (type !== "pawn") {
     const base = TOKEN_BASE[type] || "#5a5a5a", R = S0 * .4;
     x.save(); x.shadowColor = "rgba(0,0,0,.7)"; x.shadowBlur = 10; x.shadowOffsetY = 4;
@@ -98,5 +104,5 @@ function mapToken(type) {
     }
   }
   x.restore();
-  return TOKEN_ART[type] = cv.toDataURL();
+  return TOKEN_ART[tk] = cv.toDataURL();
 }

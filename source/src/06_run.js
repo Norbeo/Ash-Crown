@@ -83,21 +83,34 @@ function availableNodes(run = S.run) {
 }
 
 // ── rencontres ──
+const ALL_ELITES = Object.keys(MONSTERS).filter(k => MONSTERS[k].elite);
+const ALL_BOSSES = Object.keys(MONSTERS).filter(k => MONSTERS[k].boss);
+// facteurs pour ramener un monstre venu d'ailleurs à la force de la référence du chapitre
+function monNorm(key, ref) {
+  if (!ref || key === ref) return null; const M = MONSTERS[key], R = MONSTERS[ref], avg = m => (m.dmg[0] + m.dmg[1]) / 2;
+  return { hp: R.hp / M.hp * .92, dmg: avg(R) / avg(M) * .95, prot: (R.prot || 0) - (M.prot || 0) };
+}
 function genEncounter(run, node, rng = RNG) {
   const R = regionById(run.region), lvl = runLevel(run, node);
   const pool = R.pool.slice(), out = [];
   const pickFor = rank => { const ok = pool.filter(k => MONSTERS[k].rk.includes(rank)); return rng.pick(ok.length ? ok : pool); };
   if (node.type === "boss") {
-    const bk = run.region === "abime" ? R.bosses[(run.floor - 1) % R.bosses.length] : R.boss2 && S.prog[R.id] && S.prog[R.id].clears && rng.chance(.5) ? R.boss2 : R.boss;
+    // gardien tiré parmi tous les gardiens du jeu (jamais deux fois de suite le même ici), ramené à la force du gardien du chapitre
+    const ref = run.region === "abime" ? R.bosses[(run.floor - 1) % R.bosses.length] : R.boss2 && S.prog[R.id] && S.prog[R.id].clears && rng.chance(.5) ? R.boss2 : R.boss;
+    const last = (S.lastBoss || (S.lastBoss = {}))[R.id], cand = ALL_BOSSES.filter(k => k !== last);
+    const bk = rng.pick(cand); S.lastBoss[R.id] = bk;
     out.push({ key: pickFor(1), lvl });
-    out.push({ key: bk, lvl: lvl + 1 });
+    out.push({ key: bk, lvl: lvl + 1, f: monNorm(bk, ref) });
     if (run.region === "abime" || R.lvl >= 9) out.push({ key: pickFor(4), lvl });
     return out;
   }
   let n = node.c === 0 ? 2 + (rng.chance(.4) ? 1 : 0) : rng.chance(.55) ? 3 : 4;
   if (R.lvl >= 9 && node.c >= 3) n = Math.max(n, 3);
   let ranks = 0;
-  if (node.type === "elite") { const ek = rng.pick(R.elite); out.push({ key: ek, lvl: lvl + 1 }); ranks += MONSTERS[ek].sz || 1; n = Math.min(n, 3); }
+  if (node.type === "elite") { // élite tirée parmi toutes les élites, adaptée au niveau du chapitre
+    const ref = rng.pick(R.elite), last = (S.lastElite || (S.lastElite = {}))[R.id], cand = ALL_ELITES.filter(k => k !== last);
+    const ek = rng.pick(cand); S.lastElite[R.id] = ek;
+    out.push({ key: ek, lvl: lvl + 1, f: monNorm(ek, ref) }); ranks += MONSTERS[ek].sz || 1; n = Math.min(n, 3); }
   while (out.length < n && ranks < 4) { const k = pickFor(ranks + 1); out.push({ key: k, lvl }); ranks += MONSTERS[k].sz || 1; }
   // les monstres de mêlée devant
   out.sort((a, b) => Math.min(...MONSTERS[a.key].rk) - Math.min(...MONSTERS[b.key].rk));

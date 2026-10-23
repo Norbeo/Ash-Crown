@@ -152,7 +152,8 @@ function openBuilding(k, tab) {
       <div class="row">${owned.map(c => `<button class="btn sm ${c === cls ? "on gold" : "ghost"}" data-a="forgeCls" data-v="${c}">${CLASSES[c].n}</button>`).join("")}</div>
       <div class="grid" style="--min:250px;margin-top:10px">${[1, 2, 3, 4, 5].map(t => { const c = craftCost(t), lock = t > S.bld.forge; return `<div class="card ${lock ? "lock" : ""}" style="cursor:default"><div class="row">${canvasSlot("tier:" + cls + ":" + t, 76, 95)}<div style="flex:1"><h3>${TIER_N[t]} ${lock ? ico("lock", "#9a8c7a", 14) : ""}</h3><div class="tiny dim">${GEAR_NAMES[cls].wpn[t - 1]}<br>${GEAR_NAMES[cls].arm[t - 1]}</div><div class="tiny" style="margin-top:4px">${c.gold} or · ${c.fer} fer${c.essence ? ` · ${c.essence} ess.` : ""}${c.cendre ? ` · ${c.cendre} cendre` : ""}</div></div></div>${lock ? `<p class="tiny dim">Forge niveau ${t} requise</p>` : `<div class="row" style="margin-top:6px"><button class="btn sm ${canPay(c) ? "" : "off"}" data-a="craft" data-v="${cls}:wpn:${t}">${ico("weapon")}Arme</button><button class="btn sm ${canPay(c) ? "" : "off"}" data-a="craft" data-v="${cls}:arm:${t}">${ico("armor")}Armure</button></div>`}</div>`; }).join("")}</div>`;
     } else {
-      body = head + invList();
+      const junk = S.inv.filter(it => !itemUseful(it));
+      body = head + (S.inv.length ? `<div class="row sp" style="margin-bottom:8px"><span class="tiny dim">${junk.length ? `${junk.length} objet${junk.length > 1 ? "s" : ""} moins bon${junk.length > 1 ? "s" : ""} que ce que portent vos héros` : "Tout l'inventaire peut encore servir."}</span><button class="btn sm ${junk.length ? "gold" : "ghost off"}" data-a="salvAll">${ico("iron")}Tout recycler l'inutile</button></div>` : "") + invList();
     }
   }
   if (k === "chapelle") {
@@ -210,7 +211,7 @@ function equipRow(h, it, act, v, relicH = {}) {
     <div class="eqcmp"><span class="tiny dim">${D.old ? `Remplace <span class="rar${D.old.rar}">${gearName(D.old)}</span>` : "Emplacement libre"}</span><span class="chips">${deltaChips(D)}</span></div></div>`;
 }
 // ── icônes d'équipement peintes : l'arme réelle, l'armure portée sur un mannequin, les bibelots en médaillon ciselé ──
-const ITEM_ART = {}, ITEM_WPN = { dagues: "dague", grimoire: "grimoire" };
+const ITEM_ART = {}, ITEM_WAIT = new Map(), ITEM_WPN = { dagues: "dague", grimoire: "grimoire" };
 const TR_METAL = ["#b07a44", "#c8ccd4", "#e0b050", "#3a2a3a"];
 function cropDraw(src, W, pad) { // recadre au plus juste puis centre dans un carré W×W
   const w = src.width, h = src.height, d = src.getContext("2d").getImageData(0, 0, w, h).data;
@@ -226,12 +227,27 @@ function cropDraw(src, W, pad) { // recadre au plus juste puis centre dans un ca
 function itemArt(it) {
   if (!HASWIN || !it) return "";
   const bust = it.kind === "arm" ? heroArt({ cls: it.cls, tier: it.tier }) : null;
-  const key = (it.kind === "tr" ? "tr|" + it.key : [it.kind, it.cls, it.tier, it.rar].join("|")) + (bust ? "|i" : "");
+  const wim = it.kind === "wpn" ? artImg("wpn_" + CLASSES[it.cls].wpn) : null, tim = it.kind === "tr" ? artImg("tr_" + it.key) : null;
+  const key = (it.kind === "tr" ? "tr|" + it.key + "|" + it.rar : [it.kind, it.cls, it.tier, it.rar].join("|")) + (bust || wim || tim ? "|i" : "");
   if (ITEM_ART[key]) return ITEM_ART[key];
   const W = 112;
   let cv;
   try {
-    if (it.kind === "wpn") {
+    if (wim) { // arme peinte : posée en diagonale, patine selon le palier, lueur selon la rareté
+      const s = 300 / wim.height, src0 = mkCanvas(Math.ceil(wim.width * s), 300), x0 = src0.getContext("2d");
+      x0.drawImage(wim, 0, 0, src0.width, 300);
+      const pat = ["rgba(70,45,25,.32)", "rgba(70,45,25,.14)", null, "rgba(255,210,140,.10)", "rgba(255,200,90,.18)"][clamp(it.tier || 1, 1, 5) - 1];
+      if (pat) { x0.globalCompositeOperation = it.tier >= 4 ? "lighter" : "source-atop"; if (it.tier >= 4) { x0.save(); x0.globalCompositeOperation = "source-atop"; x0.fillStyle = pat; x0.fillRect(0, 0, src0.width, 300); x0.restore(); } else { x0.fillStyle = pat; x0.fillRect(0, 0, src0.width, 300); } x0.globalCompositeOperation = "source-over"; }
+      const ang = src0.width / src0.height > .8 ? -.15 : .45;
+      const src = rotatedCopy(src0, ang);
+      cv = cropDraw(src, W, 6);
+      if (it.rar >= 2) { const o = mkCanvas(W, W), ox = o.getContext("2d"), r = W / 2;
+        const gr = ox.createRadialGradient(r, r, 3, r, r, r); gr.addColorStop(0, it.rar >= 3 ? "rgba(255,120,40,.55)" : "rgba(170,110,255,.42)"); gr.addColorStop(1, "rgba(0,0,0,0)");
+        ox.fillStyle = gr; ox.fillRect(0, 0, W, W); ox.drawImage(cv, 0, 0); cv = o; }
+    } else if (tim) { // bibelot peint, halo selon la rareté
+      const t0 = mkCanvas(tim.width, tim.height); t0.getContext("2d").drawImage(tim, 0, 0);
+      cv = cropDraw(t0, W, 10);
+    } else if (it.kind === "wpn") {
       const wt = CLASSES[it.cls].wpn, type = ITEM_WPN[wt] || wt;
       const up = uprightWeapon(type, it.tier, { t: 0, runeCol: it.rar >= 3 ? "#ffb04a" : null }, type === "grimoire" ? 3.2 : 1.6);
       const ang = type === "grimoire" ? -.25 : type === "luth" ? .55 : type === "encensoir" ? .2 : Math.PI / 4;
@@ -279,8 +295,11 @@ function itemArt(it) {
       x.restore();
     }
     // éclat de rareté discret
-    if (it.rar >= 1 && it.kind !== "tr") { const x = cv.getContext("2d"); x.save(); x.globalCompositeOperation = "destination-over"; const g = x.createRadialGradient(W / 2, W / 2, 4, W / 2, W / 2, W / 2); g.addColorStop(0, RARITY[it.rar].c + "50"); g.addColorStop(1, "#0000"); x.fillStyle = g; x.fillRect(0, 0, W, W); x.restore(); }
-    return ITEM_ART[key] = cv.toDataURL();
+    if (it.rar >= 1 && (it.kind !== "tr" || tim)) { const x = cv.getContext("2d"); x.save(); x.globalCompositeOperation = "destination-over"; const g = x.createRadialGradient(W / 2, W / 2, 4, W / 2, W / 2, W / 2); g.addColorStop(0, RARITY[it.rar].c + "50"); g.addColorStop(1, "#0000"); x.fillStyle = g; x.fillRect(0, 0, W, W); x.restore(); }
+    const url = ITEM_ART[key] = cv.toDataURL();
+    // illustration pas encore chargée : on retiendra l'objet pour repeindre l'icône à son arrivée
+    if (!(bust || wim || tim) && artHas(it.kind === "tr" ? "tr_" + it.key : it.kind === "wpn" ? "wpn_" + CLASSES[it.cls].wpn : "hero_" + it.cls + "_t3")) ITEM_WAIT.set(url, it);
+    return url;
   } catch (e) { return ITEM_ART[key] = ""; }
 }
 function itemIcon(it) { return it.kind === "wpn" ? { masse: "mace", espadon: "sword", baton: "sun", faucille: "scythe", luth: "lute", hache: "axe", dagues: "dagger", arbalete: "bolt", grimoire: "book", faux: "scythe", marteau: "hammer", encensoir: "flask", rapiere: "sword", hallebarde: "axe", croix: "bless" }[CLASSES[it.cls].wpn] : it.kind === "arm" ? "armor" : TRINKETS[it.key].ic; }
@@ -303,5 +322,22 @@ function invList(filter) {
 ACT.itemInfo = id => { const it = findItem(id); if (!it) return; const c = it.kind !== "tr" ? upCost(it) : null; toast(`<b class="rar${it.rar}">${gearName(it)}</b><br><span class="small">${itemLine(it)}</span>${c ? `<br><span class="tiny dim">Amélioration : ${c.gold} or, ${c.fer} fer${c.essence ? ", " + c.essence + " ess." : ""}</span>` : ""}`); };
 ACT.upItem = id => { const it = findItem(id); const r = upgradeItem(it); if (!r || r.err) return toast((r && r.err) || "Impossible.", "bad"); sfx("forge"); toast(`${gearName(it)}`, "good"); save(); renderHud(); if (UI.bldOpen === "forge" && !$("#modal").hidden && !UI.heroOpen) openBuilding("forge", "inv"); else refresh(); };
 ACT.salv = id => { const it = findItem(id); if (!it) return; const go2 = () => { const r = salvageItem(it); sfx("forge"); toast(`Recyclé : +${r.fer} fer${r.essence ? `, +${r.essence} ess.` : ""}${r.cendre ? ", +1 cendre" : ""}, +${r.gold} or`); save(); renderHud(); openBuilding("forge", "inv"); }; if (it.rar >= 2) confirmBox(`Recycler <b class="rar${it.rar}">${gearName(it)}</b> ?`, go2); else go2(); };
+// un objet sert encore s'il améliore au moins un héros de la caserne (les légendaires sont toujours gardés)
+function itemUseful(it) {
+  if (it.rar >= 3) return true;
+  return S.heroes.some(h => {
+    if (!canEquip(h, it)) return false;
+    if (it.kind === "tr") { const t = [h.gear.tr1, h.gear.tr2]; if (t.some(x => x && x.key === it.key)) return false; if (!t[0] || !t[1]) return true; return it.rar > Math.min(t[0].rar, t[1].rar); }
+    return gearDelta(h, it).score > 0;
+  });
+}
+ACT.salvAll = () => {
+  const junk = S.inv.filter(it => !itemUseful(it)); if (!junk.length) return toast("Rien d'inutile à recycler.");
+  const tot = { fer: 0, essence: 0, cendre: 0, gold: 0 }; for (const it of junk) { const r = salvage(it); for (const k in tot) tot[k] += r[k]; }
+  const gain = `+${tot.gold} or, +${tot.fer} fer${tot.essence ? `, +${tot.essence} ess.` : ""}${tot.cendre ? `, +${tot.cendre} cendre` : ""}`;
+  confirmBox(`Recycler <b>${junk.length}</b> objet${junk.length > 1 ? "s" : ""} qu'aucun héros n'a intérêt à porter ?<br><span class="small dim">${gain}. Les objets qui amélioreraient un héros et les légendaires sont gardés.</span>`, () => {
+    for (const it of junk) salvageItem(it); sfx("forge"); toast(`Recyclé : ${gain}`, "good"); save(); renderHud(); openBuilding("forge", "inv");
+  }, { yes: "Recycler" });
+};
 ACT.equipPick = id => { const it = findItem(id); const hs = S.heroes.filter(h => canEquip(h, it)); if (!hs.length) return toast("Aucun héros ne peut porter cet objet.", "bad"); modal(`<h2>Équiper ${gearName(it)}</h2><div class="row" style="gap:10px;margin-bottom:8px">${slotHTML(it, "itemInfo", it.id)}<div style="flex:1;min-width:0"><b class="rar${it.rar}">${gearName(it)}</b><div class="tiny dim">${itemLine(it)}</div></div></div><div class="col">${hs.sort((a, b) => gearDelta(b, it).score - gearDelta(a, it).score).map(h => equipRow(h, it, "equipTo", it.id + ":" + h.id)).join("")}</div>`, { mount: m => fillCanvases(m, (c, i) => paintHero(c, heroById(i.split(":")[1]))) }); };
 ACT.equipTo = v => { const [iid, hid] = v.split(":"); const it = findItem(iid), h = heroById(hid); if (!equip(h, it)) return toast("Impossible (deux fois le même bibelot ?).", "bad"); sfx("forge"); toast(`${esc(h.name)} : ${gearName(it)}`, "good"); save(); closeModal(); if (UI.screen === "hero") refresh(); else openBuilding("forge", "inv"); };

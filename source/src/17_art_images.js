@@ -6,6 +6,8 @@ const PIC = { v: 0, img: {}, queue: [], busy: 0, done: 0, total: 0, timer: 0 };
 const ART_SET = new Set(typeof window !== "undefined" && window.ART_LIST ? window.ART_LIST : []);
 // images tournées vers la gauche à retourner (héros : face à droite ; monstres : face à droite avant le miroir du combat)
 const ART_FLIP = new Set(typeof window !== "undefined" && window.ART_FLIP ? window.ART_FLIP : []);
+// part de l'image au-dessus de la tête (bâton, arme levée) : tous les héros ont la même taille de corps
+const ART_META = typeof window !== "undefined" && window.ART_META ? window.ART_META : {};
 function artHas(n) { return ART_SET.has(n); }
 function artImg(n) {
   if (!ART_SET.has(n) || typeof Image === "undefined") return null;
@@ -25,7 +27,7 @@ function artPump() {
   }
 }
 // précharge tout en tâche de fond (après les images demandées par l'écran courant)
-function artPreload() { if (typeof Image === "undefined") return; PIC.total = ART_SET.size; for (const n of ART_SET) if (!PIC.img[n]) { PIC.img[n] = { ok: 0 }; PIC.queue.push(n); } artPump(); }
+function artPreload() { if (typeof Image === "undefined") return; PIC.total = ART_SET.size; for (const n of [...ART_SET].sort((a, b) => /^(tr|wpn)_/.test(b) - /^(tr|wpn)_/.test(a))) if (!PIC.img[n]) { PIC.img[n] = { ok: 0 }; PIC.queue.push(n); } artPump(); }
 const ART_REPAINT = [];
 // une image vient d'arriver : on vide les caches de sprites et on repeint les vignettes encore à l'écran
 function artChanged() {
@@ -38,6 +40,8 @@ function artChanged() {
     if (typeof WALK_CACHE !== "undefined") for (const k in WALK_CACHE) delete WALK_CACHE[k];
     if (typeof CB !== "undefined") { for (const id in CB.vis) if (CB.vis[id]) CB.vis[id].cache = {}; CB.petCache = null; }
     if (typeof ICON_CACHE !== "undefined") for (const k in ICON_CACHE) delete ICON_CACHE[k];
+    if (typeof ITEM_WAIT !== "undefined" && ITEM_WAIT.size && typeof document !== "undefined") document.querySelectorAll("img.itimg").forEach(im => {
+      const it = ITEM_WAIT.get(im.getAttribute("src")); if (!it) return; const u = itemArt(it); if (u && u !== im.getAttribute("src")) im.setAttribute("src", u); });
     for (let i = ART_REPAINT.length - 1; i >= 0; i--) {
       const [root, fn] = ART_REPAINT[i];
       if (!root.isConnected) { ART_REPAINT.splice(i, 1); continue; }
@@ -52,7 +56,7 @@ const PET_H = { chauve_souris: 95, feu_follet: 85, corbeau: 95, chouette: 100, v
 // pose : lean (penché, + = vers l'avant), hx/hy (décalage), atk (fente), hurt, agony, glow
 function imgSprite(im, o) {
   const sc = o.sc || 1, fh = (o.h || 210) * sc, maxW = (o.maxW || 260) * sc;
-  let s = fh / im.height; if (im.width * s > maxW) s = maxW / im.width;
+  let s = fh / (im.height * (1 - (o.top || 0))); if (im.width * s > maxW) s = maxW / im.width;
   const iw = im.width * s, ih = im.height * s, pad = Math.ceil(Math.max(iw, ih) * .35 + 30 * sc);
   const W = Math.ceil(iw + pad * 2), H = Math.ceil(ih + pad + 24 * sc), cv = mkCanvas(W, H), x = cv.getContext("2d");
   const ax = W / 2, ay = H - 22 * sc, p = o.pose || {};
@@ -79,13 +83,14 @@ function heroArt(L) { const t = clamp(L.tier || 1, 1, 5); return artImg("hero_" 
 function heroImgSprite(L, pose, sc, o = {}) {
   const im = heroArt(L); if (!im) return null;
   const hurt = pose.lean < -.25 && pose.hx < 0, agony = pose.hy > 15;
-  return imgSprite(im, { sc, h: 195, maxW: 122, flip: ART_FLIP.has("hero_" + L.cls + "_t" + clamp(L.tier || 1, 1, 5)), aura: evoAura(L), auraA: L.apex ? .45 : .28,
+  const nm = "hero_" + L.cls + "_t" + clamp(L.tier || 1, 1, 5);
+  return imgSprite(im, { sc, h: 182, maxW: 260, top: ART_META[nm] || ART_META["hero_" + L.cls + "_t3"] || 0, flip: ART_FLIP.has("hero_" + L.cls + "_t" + clamp(L.tier || 1, 1, 5)), aura: evoAura(L), auraA: L.apex ? .45 : .28,
     pose: Object.assign({}, pose, { agony, cast: pose.free || pose.aBs > 1.5 }), tint: o.tint || (hurt ? "rgba(160,20,20,.16)" : null) });
 }
 function monImgSprite(key, pose, sc) {
   const M = MONSTERS[key] || {}, n = "mon_" + (M.art || key), im = artImg(n); if (!im) return null;
   const big = (M.sz || 1) > 1, f = pose.fig || {};
-  return imgSprite(im, { sc, h: MON_H[M.art || key] || (M.elite ? 235 : 205), maxW: big ? 300 : (M.elite ? 175 : 140), flip: !ART_FLIP.has(n),
+  return imgSprite(im, { sc, h: MON_H[M.art || key] || (M.elite ? 225 : 190), maxW: big ? 300 : (M.elite ? 175 : 140), flip: !ART_FLIP.has(n),
     pose: { atk: pose.atk, lean: f.lean, hx: f.hx }, tint: f.lean < 0 ? "rgba(170,20,20,.16)" : null });
 }
 function petImgSprite(id, o, sc) {

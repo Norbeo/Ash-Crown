@@ -44,7 +44,9 @@ function doRun() {
       if (node.type === "boss") { T.bossTry[reg] = (T.bossTry[reg] || 0) + 1; node.first = !(S.prog[reg] && S.prog[reg].clears); if (node.first) T.ft[reg] = (T.ft[reg] || 0) + 1; }
       const B = battleFor(run, node, genEncounter(run, node));
       const p0 = run.potions;
+      const bkey = node.type === "boss" ? (B.enemies.find(e => e.boss) || {}).key : null;
       const r = simBattle(B, run, "bal");
+      if (bkey) { T.bk = T.bk || {}; const o = T.bk[reg + ":" + bkey] = T.bk[reg + ":" + bkey] || [0, 0]; o[1]++; if (r === "win") o[0]++; }
       T.potions += p0 - run.potions;
       T.battles++; T.rounds += B.round; if (B.round >= 55) { T.stalls++; if (T.stalls < 6) console.log("ENLISÉ", reg, node.type, "H:", B.heroes.map(h => h.cls + ":" + Math.round(h.hp) + (h.agony ? "!" : "") + "@" + rankOf(B, h)).join(" "), "E:", B.enemies.map(e => e.key + ":" + e.hp + "@" + rankOf(B, e)).join(" ")); }
       for (const f of B.fallen) { T.falls++; T.perClassFall[f.cls] = (T.perClassFall[f.cls] || 0) + 1; }
@@ -120,6 +122,7 @@ console.log(`Combats ${T.battles} · perdus ${T.blost} (${(100 * T.blost / T.bat
 console.log(`Héros tombés ${T.falls} (${(T.falls / T.battles).toFixed(2)} par combat)`);
 console.log("Région jouée :", JSON.stringify(T.regionAt));
 console.log("Gardiens jamais vaincus (victoires/essais) :", Object.keys(T.ft).map(k => k + " " + (T.fw[k] || 0) + "/" + T.ft[k]).join(" · "));
+if (T.bk) console.log("Par gardien :", Object.keys(T.bk).sort().map(k => k + " " + T.bk[k][0] + "/" + T.bk[k][1]).join(" · "));
 console.log("Gardiens (victoires/essais) :", Object.keys(T.bossTry).map(k => k + " " + (T.bossWin[k] || 0) + "/" + T.bossTry[k]).join(" · "));
 for (let i = 0; i < 5; i++) { const xs = careers.filter(c => c.cleared[i]).map(c => c.cleared[i]); console.log(`Chapitre ${i + 1} terminé par ${xs.length}/${careers.length} carrières, à l'expédition ${xs.length ? avg(xs, x => x).toFixed(1) : "—"}`); }
 console.log(`Niveau moyen : à 10 exp ${avg(careers, c => c.lvlAt10).toFixed(1)} · à 20 ${avg(careers, c => c.lvlAt20).toFixed(1)} · final ${avg(careers, c => c.final).toFixed(1)}`);

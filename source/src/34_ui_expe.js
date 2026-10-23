@@ -145,7 +145,7 @@ SCREENS.travel = {
 ACT.skipTravel = () => { if (UI.travelDone) UI.travelDone(); };
 function showEvent(n) {
   const E = EVENTS.find(e => e.id === n.ev);
-  modal(`<h2>${ico("quest", "#b48cff")} ${E.n}</h2><p class="lore">${E.t}</p>${E.ch.map((c, i) => `<button class="btn choice" data-a="evChoice" data-v="${i}">${c.n}</button>`).join("")}`, { close: false });
+  modal(`<h2>${ico("quest", "#b48cff")} ${E.n}</h2><p class="lore">${E.t}</p>${E.ch.map((c, i) => { const poor = c.fx.cost && S.gold + S.run.gold < c.fx.cost; return `<button class="btn choice" data-a="evChoice" data-v="${i}" ${poor ? "disabled" : ""}><b>${c.n.replace(/\s*\([^)]*\)\s*$/, "")}</b><span class="fxs">${fxText(c.fx)}</span></button>`; }).join("")}`, { close: false });
   UI.evNode = n;
 }
 ACT.evChoice = i => {
@@ -155,8 +155,14 @@ ACT.evChoice = i => {
   modal(`<h2>${EVENTS.find(e => e.id === n.ev).n}</h2>${res.text.map(t => `<p>${t}</p>`).join("")}${res.relic ? `<p class="small"><b>${RELICS[res.relic].n}</b> : ${gl(RELICS[res.relic].d)}</p>` : ""}<div class="row" style="justify-content:flex-end"><button class="btn main" data-a="closeModal">Continuer</button></div>`, { onClose: () => refresh() });
 };
 function showCamp(n) {
-  modal(`<h2>${ico("camp", "#ff9a3a")} Feu de camp</h2><p class="lore">Un instant de répit. Les flammes dansent, les ombres reculent. Que faire de cette nuit ?</p>${CAMP.map(c => `<button class="btn choice" data-a="camp" data-v="${c.k}"><b>${c.n}</b> — <span class="small">${c.d}</span></button>`).join("")}`, { close: false });
+  modal(`<h2>${ico("camp", "#ff9a3a")} Feu de camp</h2><p class="lore">Un instant de répit. Les flammes dansent, les ombres reculent. Que faire de cette nuit ?</p>${campPartyHTML()}${CAMP.map(c => `<button class="btn choice" data-a="camp" data-v="${c.k}"><b>${c.n}</b> — <span class="small">${c.d}</span></button>`).join("")}`, { close: false, mount: m => fillCanvases(m, (c, id) => paintHero(c, heroById(id.split(":")[1]))) });
   UI.campNode = n;
+}
+// état du groupe autour du feu : PV actuels et ce que rendrait le repos
+function campPartyHTML() {
+  const run = S.run, rh = relicHooks(run);
+  return `<div class="campparty">${runParty().map(h => { const mx = heroStats(h, rh).hp, hp = h.hp == null ? mx : h.hp, dead = run.fallen.includes(h.id), after = dead ? 0 : Math.min(mx, Math.round(hp + mx * .45));
+    return `<div class="cph ${dead ? "dead" : ""}">${canvasSlot("h:" + h.id, 64, 72)}<div style="flex:1;min-width:0"><b class="small">${esc(h.name)}</b><div class="bar hp"><i class="gain" style="width:${100 * after / mx}%"></i><i style="width:${100 * hp / mx}%"></i></div><div class="tiny ${dead ? "bad" : hp < mx * .4 ? "bad" : "dim"}">${dead ? "Tombé" : `${hp} / ${mx} PV${after > hp ? ` <span class="good">→ ${after} en se reposant</span>` : ""}`}</div></div></div>`; }).join("")}</div>`;
 }
 ACT.camp = k => { doCamp(S.run, k); UI.campNode.done = 1; sfx(k === "rest" ? "heal" : "buff"); save(); closeModal(); refresh(); toast({ rest: "Le groupe reprend des forces.", train: "Les héros s'entraînent jusqu'à l'aube.", watch: "Vous ravivez les torches." }[k], "good"); };
 function showShop(n) {

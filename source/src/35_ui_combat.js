@@ -387,7 +387,9 @@ function drawCombat(x, t, dt) {
   // vignette
   const vg = x.createRadialGradient(W / 2, stH * .6, stH * .3, W / 2, stH * .6, Math.max(W, stH)); vg.addColorStop(0, "rgba(0,0,0,0)"); vg.addColorStop(1, "rgba(0,0,0,.55)"); x.fillStyle = vg; x.fillRect(0, 0, W, stH);
 }
-function drawIcon(x, name, cx, cy, s, col, lw = 2) { const p = new Path2D(IC[name] || IC.star); x.save(); x.translate(cx - 12 * s, cy - 12 * s); x.scale(s, s); x.strokeStyle = col; x.lineWidth = lw / s * s; x.lineCap = "round"; x.lineJoin = "round"; x.stroke(p); x.restore(); }
+function drawIcon(x, name, cx, cy, s, col, lw = 2) {
+  const im = artImg("ui_" + name); if (im) { const d = 26 * s; x.drawImage(im, cx - d / 2, cy - d / 2, d, d); return; } // icône peinte
+ const p = new Path2D(IC[name] || IC.star); x.save(); x.translate(cx - 12 * s, cy - 12 * s); x.scale(s, s); x.strokeStyle = col; x.lineWidth = lw / s * s; x.lineCap = "round"; x.lineJoin = "round"; x.stroke(p); x.restore(); }
 function drawUnitUI(x, u, v, t) {
   const B = CB.B, s = Math.max(.75, Math.min(1.25, CB.scale * 1.6)), w = 64 * s * (u.sz > 1 ? 1.5 : 1), bx = v.x - w / 2, by = v.y + 8 * s;
   // barre de PV

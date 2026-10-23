@@ -10,8 +10,41 @@ function enterNode(run, node) {
 }
 function pickEvent(run) {
   run.seenEv = run.seenEv || [];
-  const pool = EVENTS.filter(e => !run.seenEv.includes(e.id));
-  const e = pick(pool.length ? pool : EVENTS); run.seenEv.push(e.id); return e.id;
+  const here = EVENTS.filter(e => !e.reg || e.reg.includes(run.region)), pool = here.filter(e => !run.seenEv.includes(e.id));
+  const e = pick(pool.length ? pool : here); run.seenEv.push(e.id); return e.id;
+}
+// ce que fait un choix, en clair (affiché sous chaque choix avant de décider)
+function fxText(fx) {
+  const P = [], pc = v => Math.round(v * 100) + " %";
+  const one = f => {
+    const o = [];
+    if (f.cost) o.push(["bad", "−" + f.cost + " or"]);
+    if (f.gold) o.push(["good", "+" + f.gold + " or"]);
+    if (f.heal) o.push(["good", "Soins " + pc(f.heal)]);
+    if (f.hurt) o.push(["bad", "−" + pc(f.hurt) + " PV au groupe"]);
+    if (f.poison) o.push(["bad", "Poison (−8 % PV)"]);
+    if (f.relic) o.push(["good", "Relique"]);
+    if (f.loot) o.push(["good", "Équipement"]);
+    if (f.trinket) o.push(["good", "Bibelot"]);
+    if (f.mat) o.push(["good", "+" + f.mat + " ferraille"]);
+    if (f.ess) o.push(["good", "+" + f.ess + " essence"]);
+    if (f.light) o.push([f.light > 0 ? "good" : "bad", (f.light > 0 ? "+" : "−") + Math.abs(f.light) + " lueur"]);
+    if (f.morale) o.push([f.morale > 0 ? "good" : "bad", (f.morale > 0 ? "+" : "−") + Math.abs(f.morale) + " résolution"]);
+    if (f.xp) o.push(["good", "+" + f.xp + " expérience"]);
+    if (f.petXp) o.push(["good", "Expérience du compagnon"]);
+    if (f.potion) o.push(["good", "+1 potion"]);
+    if (f.potionCost) o.push(["bad", "−1 potion"]);
+    if (f.cleanse) o.push(["good", "Purification"]);
+    if (f.buff) o.push(["good", "+20 % dégâts au prochain combat"]);
+    if (f.upgrade) o.push(["good", "Améliore une arme ou armure"]);
+    if (f.curse) o.push(["bad", "Malédiction (ennemis +10 % dégâts)"]);
+    if (f.fight) o.push(["bad", "Combat"]);
+    return o.map(([c, t]) => `<span class="fx ${c}">${t}</span>`).join("");
+  };
+  const rest = Object.assign({}, fx); delete rest.gamble;
+  const base = one(rest); if (base) P.push(base);
+  if (fx.gamble) { const [p, a, b] = fx.gamble; P.push(`<span class="fx risk">${Math.round(p * 100)} % de chances :</span>${one(a) || '<span class="fx">rien</span>'}<span class="fx risk">sinon :</span>${one(b) || '<span class="fx">rien</span>'}`); }
+  return P.join("") || '<span class="fx">Rien ne se passe</span>';
 }
 // applique l'effet d'un choix d'événement ; renvoie { text:[], fight }
 function resolveEvent(run, evId, ci) {
@@ -27,6 +60,7 @@ function resolveEvent(run, evId, ci) {
     if (f.loot) { const it = lootGear(runLevel(run, null) + 1, .05); run.loot.push(it); out.text.push("Butin : " + gearName(it)); out.item = it; }
     if (f.trinket) { const it = makeGear("tr", null, 1, rollRarity(.05)); run.loot.push(it); out.text.push("Bibelot : " + gearName(it)); out.item = it; }
     if (f.mat) { run.mats.fer += f.mat; out.text.push("+" + f.mat + " ferraille"); }
+    if (f.ess) { run.mats.essence += f.ess; out.text.push("+" + f.ess + " essence"); }
     if (f.light) { run.light = clamp(run.light + f.light, 0, 100); out.text.push((f.light > 0 ? "+" : "") + f.light + " lueur"); }
     if (f.morale) { run.morale = clamp((run.morale || 0) + f.morale, -30, 30); out.text.push((f.morale > 0 ? "+" : "") + f.morale + " résolution au prochain combat"); }
     if (f.xp) { for (const h of party) giveXp(h, f.xp); out.text.push("+" + f.xp + " expérience"); }

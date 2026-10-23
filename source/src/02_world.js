@@ -112,6 +112,17 @@ const MONSTERS = {
   liche: { n: "La Liche couronnée", art: "liche", tags: ["impie"], boss: 1, sz: 2, hp: 470, dmg: [9, 15], prot: .15, spd: 5, dodge: 8, res: 35, rk: [2],
     sk: [{ n: "Rayon de nécrose", m: 1.3, at: [1, 2, 3, 4], fx: [{ k: "vuln", t: 2, ch: 1 }] }, { n: "Tempête d'âmes", m: .6, t: "ae", at: [1, 2, 3, 4], fx: [{ k: "weak", t: 2, ch: .7 }] }, { n: "Phylactère", t: "self", heal: .1, sfx: [{ k: "shield", v: .1, t: 2 }], w: .5 }, { n: "Gel de la tombe", m: .5, t: "ae", at: [1, 2, 3, 4], fx: [{ k: "stun", t: 1, ch: .3 }] }],
     phase: { at: .5, n: "La couronne de la Liche s'embrase de vert !", sfx: [{ k: "dmgUp", v: .35, t: 99 }, { k: "spdUp", v: 2, t: 99 }] } },
+  moine_flagellant: { n: "Moine flagellant", art: "moine_flagellant", tags: ["humain"], hp: 30, dmg: [6, 10], prot: .05, spd: 5, dodge: 6, rk: [1, 2],
+    sk: [{ n: "Discipline", m: .8, t: "ae", at: [1, 2], fx: [{ k: "bleed", v: .45, t: 3, ch: .9 }] }, { n: "Extase", t: "self", selfDmg: .1, sfx: [{ k: "dmgUp", v: .4, t: 3 }], w: .5 }, { n: "Coup de fléau", m: 1.1, at: [1, 2] }] },
+  thuriferaire: { n: "Thuriféraire maudit", art: "thuriferaire", tags: ["impie"], hp: 22, dmg: [5, 9], prot: .05, spd: 5, dodge: 8, rk: [3, 4],
+    sk: [{ n: "Encens putride", m: .45, t: "ae", at: [1, 2, 3, 4], fx: [{ k: "poison", v: .4, t: 3, ch: 1 }] }, { n: "Bénédiction impie", t: "allies", heal: .18, w: .6 }, { n: "Fumée aveuglante", m: 0, t: "ae", at: [1, 2, 3, 4], fx: [{ k: "accDn", v: 12, t: 2, ch: .9 }], w: .5 }] },
+  hallebardier_os: { n: "Hallebardier d'os", art: "hallebardier_os", tags: ["impie"], hp: 30, dmg: [6, 10], prot: .2, spd: 3, dodge: 3, rk: [1, 2, 3],
+    sk: [{ n: "Estoc d'os", m: 1, at: [1, 2, 3] }, { n: "Crochet", m: .6, at: [3, 4], pull: 2, fx: [{ k: "protDn", v: .1, t: 2, ch: 1 }] }] },
+  prieur: { n: "Le Prieur sanglant", art: "prieur", tags: ["humain"], elite: 1, hp: 80, dmg: [8, 13], prot: .15, spd: 5, dodge: 6, rk: [2, 3],
+    sk: [{ n: "Croix de fer", m: 1.2, at: [1, 2], fx: [{ k: "stun", t: 1, ch: .4 }] }, { n: "Litanie de sang", t: "allies", heal: .2, regen: .04, w: .6 }, { n: "Anathème", m: .5, t: "ae", at: [1, 2, 3, 4], fx: [{ k: "weak", t: 2, ch: .7 }, { k: "vuln", t: 2, ch: .5 }] }] },
+  abbe: { n: "L'Abbé de Saint-Morne", art: "abbe", tags: ["impie"], boss: 1, sz: 2, hp: 500, dmg: [9, 15], prot: .18, spd: 5, dodge: 6, res: 35, rk: [2],
+    sk: [{ n: "Crosse de fer", m: 1.2, at: [1, 2], fx: [{ k: "stun", t: 1, ch: .45 }] }, { n: "Encens d'ossuaire", m: .6, t: "ae", at: [1, 2, 3, 4], fx: [{ k: "poison", v: .5, t: 3, ch: 1 }] }, { n: "Excommunication", m: .5, at: [1, 2, 3, 4], fx: [{ k: "mark", t: 3, ch: 1 }, { k: "vuln", t: 2, ch: 1 }, { k: "weak", t: 2, ch: .8 }] }, { n: "Dernière messe", t: "self", heal: .08, sfx: [{ k: "protUp", v: .2, t: 2 }], w: .5 }],
+    phase: { at: .5, n: "L'Abbé brise sa crosse : les dix mille moines chantent !", sfx: [{ k: "dmgUp", v: .35, t: 99 }, { k: "spdUp", v: 2, t: 99 }] } },
   // Région 4 — Le Marais des Noyés
   noye: { n: "Noyé", art: "noye", tags: ["impie"], hp: 32, dmg: [6, 10], prot: .1, spd: 3, dodge: 4, rk: [1, 2],
     sk: [{ n: "Étreinte du noyé", m: 1, at: [1, 2], fx: [{ k: "spdDn", v: 2, t: 2, ch: 1 }] }, { n: "Eau noire", m: .6, at: [1, 2, 3], fx: [{ k: "poison", v: .5, t: 3, ch: 1 }] }] },
@@ -128,6 +139,15 @@ const MONSTERS = {
   mere_noyes: { n: "La Mère des Noyés", art: "mere_noyes", tags: ["impie"], boss: 1, sz: 2, hp: 600, dmg: [10, 17], prot: .15, spd: 5, dodge: 6, res: 40, rk: [2],
     sk: [{ n: "Marée noire", m: .7, t: "ae", at: [1, 2, 3, 4], fx: [{ k: "spdDn", v: 3, t: 2, ch: 1 }] }, { n: "Appel des profondeurs", m: 1, at: [2, 3, 4], pull: 3, fx: [{ k: "stun", t: 1, ch: .5 }] }, { n: "Étreinte", m: 1.4, at: [1, 2], leech: .5 }, { n: "Chant funèbre", t: "ae", at: [1, 2, 3, 4], m: .3, fx: [{ k: "weak", t: 2, ch: .8 }, { k: "vuln", t: 2, ch: .6 }] }],
     phase: { at: .5, n: "Les eaux montent : la Mère révèle sa vraie forme !", sfx: [{ k: "dmgUp", v: .35, t: 99 }, { k: "regen", v: .015, t: 99 }] } },
+  sorciere_marais: { n: "Sorcière des tourbières", art: "sorciere_marais", tags: ["impie"], hp: 30, dmg: [6, 11], prot: .05, spd: 6, dodge: 12, rk: [3, 4],
+    sk: [{ n: "Maléfice", m: .4, at: [1, 2, 3, 4], fx: [{ k: "vuln", t: 2, ch: 1 }, { k: "weak", t: 2, ch: .7 }] }, { n: "Brouet", m: .5, t: "ae", at: [1, 2, 3, 4], fx: [{ k: "poison", v: .45, t: 3, ch: 1 }] }, { n: "Danse du sabbat", t: "allies", heal: .15, regen: .04, w: .5 }] },
+  pecheur: { n: "Pêcheur d'âmes", art: "pecheur", tags: ["humain"], hp: 38, dmg: [7, 11], prot: .12, spd: 4, dodge: 6, rk: [1, 2, 3],
+    sk: [{ n: "Gaffe", m: .8, at: [3, 4], pull: 2 }, { n: "Harpon", m: 1.15, at: [1, 2, 3], fx: [{ k: "bleed", v: .5, t: 3, ch: .8 }] }] },
+  ogre: { n: "Ogre des tourbières", art: "ogre", tags: ["bete"], elite: 1, hp: 130, dmg: [10, 16], prot: .15, spd: 3, dodge: 2, rk: [1],
+    sk: [{ n: "Massue", m: 1.4, at: [1, 2], fx: [{ k: "stun", t: 1, ch: .5 }] }, { n: "Balayage", m: .8, t: "ae", at: [1, 2, 3] }, { n: "Ripaille", t: "self", heal: .15, w: .3 }] },
+  reine_sabbat: { n: "La Reine du Sabbat", art: "reine_sabbat", tags: ["impie"], boss: 1, sz: 2, hp: 560, dmg: [10, 16], prot: .12, spd: 6, dodge: 10, res: 40, rk: [2],
+    sk: [{ n: "Malédiction du sabbat", m: .6, t: "ae", at: [1, 2, 3, 4], fx: [{ k: "weak", t: 2, ch: .8 }, { k: "accDn", v: 12, t: 2, ch: .8 }] }, { n: "Chaudron", m: .65, t: "ae", at: [1, 2, 3, 4], fx: [{ k: "poison", v: .6, t: 3, ch: 1 }] }, { n: "Faucille lunaire", m: 1.4, at: [1, 2], fx: [{ k: "bleed", v: .6, t: 3, ch: 1 }] }, { n: "Pacte", t: "self", heal: .1, sfx: [{ k: "dmgUp", v: .2, t: 2 }], w: .5 }],
+    phase: { at: .5, n: "La Reine du Sabbat s'élève au-dessus du chaudron !", sfx: [{ k: "dmgUp", v: .35, t: 99 }, { k: "regen", v: .015, t: 99 }] } },
   // Région 5 — La Citadelle de Cendres
   chevalier_dechu: { n: "Chevalier déchu", art: "chevalier_dechu", tags: ["impie"], hp: 44, dmg: [8, 13], prot: .3, spd: 4, dodge: 4, rk: [1, 2],
     sk: [{ n: "Lame de cendre", m: 1, at: [1, 2], fx: [{ k: "burn", v: .4, t: 2, ch: .7 }] }, { n: "Garde noire", t: "self", sfx: [{ k: "protUp", v: .25, t: 2 }, { k: "riposte", v: .7, t: 2 }], w: .5 }] },
@@ -158,15 +178,15 @@ const REGIONS = [
     d: "Le village de Morvaine pourrit sous la peste. Les morts ne restent pas couchés.", sky: ["#1a1d14", "#3a3a24"], fog: "#9aa06a", accent: "#a8c05a" },
   { id: "foret", n: "La Forêt des Pendus", sub: "Chapitre II", lvl: 5, pool: ["loup_noir", "araignee", "brigand", "archer_brig", "dryade", "pendu"], elite: ["alpha"], boss: "mere_ronces",
     d: "Chaque arbre porte un pendu. La forêt, elle, a faim.", sky: ["#0e1612", "#24342a"], fog: "#6a8a70", accent: "#6ad08a" },
-  { id: "catacombes", n: "Les Catacombes de Saint-Morne", sub: "Chapitre III", lvl: 9, pool: ["squelette", "archer_os", "spectre", "necrophage", "gargouille"], elite: ["chevalier_os"], boss: "liche",
+  { id: "catacombes", n: "Les Catacombes de Saint-Morne", sub: "Chapitre III", lvl: 9, pool: ["squelette", "archer_os", "spectre", "necrophage", "gargouille", "moine_flagellant", "thuriferaire", "hallebardier_os"], elite: ["chevalier_os", "prieur"], boss: "liche", boss2: "abbe",
     d: "Sous l'abbaye dorment dix mille moines. Ils se réveillent.", sky: ["#0e0e14", "#262632"], fog: "#7a8aa8", accent: "#7adcc0" },
-  { id: "marais", n: "Le Marais des Noyés", sub: "Chapitre IV", lvl: 13, pool: ["noye", "crapaud_geant", "sangsue", "feu_follet_e", "profond"], elite: ["hydre"], boss: "mere_noyes",
+  { id: "marais", n: "Le Marais des Noyés", sub: "Chapitre IV", lvl: 13, pool: ["noye", "crapaud_geant", "sangsue", "feu_follet_e", "profond", "sorciere_marais", "pecheur"], elite: ["hydre", "ogre"], boss: "mere_noyes", boss2: "reine_sabbat",
     d: "L'eau noire garde ceux qu'elle prend. Et elle prend tout.", sky: ["#0a1214", "#1e3034"], fog: "#5a8a8a", accent: "#5ac0c0" },
   { id: "citadelle", n: "La Citadelle de Cendres", sub: "Chapitre V", lvl: 17, pool: ["chevalier_dechu", "inquisiteur_fou", "diablotin", "golem_cendre"], elite: ["bourreau"], boss: "roi_cendres",
     d: "Le trône du Roi brûle depuis cent ans. Il est temps d'éteindre la couronne.", sky: ["#180a08", "#3a1a10"], fog: "#c0704a", accent: "#ff8a4a" },
 ];
 const ABYSS = { id: "abime", n: "L'Abîme", sub: "Sans fin", lvl: 20, pool: ["horreur", "oeil", "chevalier_dechu", "spectre", "noye", "necrophage", "diablotin", "gargouille", "profond"], elite: ["bourreau", "hydre", "chevalier_os", "alpha"], boss: "sans_nom",
-  bosses: ["docteur_peste", "mere_ronces", "liche", "mere_noyes", "roi_cendres", "sans_nom"], d: "Sous la Citadelle, il n'y a pas de fond. Seulement plus d'ombre.", sky: ["#08060c", "#1e1428"], fog: "#8a6aaa", accent: "#b48cff" };
+  bosses: ["docteur_peste", "mere_ronces", "liche", "abbe", "mere_noyes", "reine_sabbat", "roi_cendres", "sans_nom"], d: "Sous la Citadelle, il n'y a pas de fond. Seulement plus d'ombre.", sky: ["#08060c", "#1e1428"], fog: "#8a6aaa", accent: "#b48cff" };
 const regionById = id => id === "abime" ? ABYSS : REGIONS.find(r => r.id === id);
 
 // ── Histoire ── (un fragment de couronne par chapitre)

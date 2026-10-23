@@ -93,6 +93,30 @@ const RELICS = {
   coeur_noir: { n: "Cœur noir", r: 2, d: "+35 % de dégâts, mais -15 % de PV max.", h: { dmg: .35, hp: -.15 } },
   graal: { n: "Graal terni", r: 2, d: "Soigne tout le groupe de 4 % au début de chaque tour.", h: { roundHeal: .04 } },
 };
+// synergies de compagnie : bonus d'expédition quand certaines classes partent ensemble
+// need : liste de groupes, il faut au moins une classe de chaque groupe · roles : rôles distincts requis · tanks : nombre de tanks
+const SYNERGIES = {
+  sainte_traque: { n: "La Sainte Traque", need: [["exorciste"], ["chasseur_sorcieres"]], h: { vsImpie: .25, morale: 10 }, d: "+25 % de dégâts contre les impies, +10 de résolution au début des combats." },
+  foi_acier: { n: "Foi et acier", need: [["templier"], ["pretresse"]], h: { prot: .06, heal: .15 }, d: "+6 % de protection et +15 % de soins pour le groupe." },
+  mur_boucliers: { n: "Mur de boucliers", tanks: 2, h: { prot: .08, thorns: .1 }, d: "Deux tanks : +8 % de protection, 10 % des dégâts de mêlée renvoyés." },
+  sang_nord: { n: "Sang du Nord", need: [["berserker"], ["gardien_runes"]], h: { dmg: .1, morale: 8 }, d: "+10 % de dégâts, +8 de résolution au début des combats." },
+  morts_sans_repos: { n: "Morts sans repos", need: [["necromancien"], ["revenant"]], h: { leech: .06, hp: .08 }, d: "+6 % de vol de vie et +8 % de PV pour le groupe." },
+  herbes_poisons: { n: "Herbes et poisons", need: [["medecin_peste"], ["sorciere"]], h: { poisonT: 1, heal: .12 }, d: "Les poisons durent 1 tour de plus, +12 % de soins." },
+  bucher: { n: "Le Bûcher", need: [["pyromancien"], ["chasseur_sorcieres", "templier"]], h: { burnT: 1, dot: .15 }, d: "Les brûlures durent 1 tour de plus, +15 % de dégâts sur la durée." },
+  embuscade: { n: "Embuscade", need: [["ombre"], ["arbaletriere"]], h: { firstStrike: 1, crit: 5 }, d: "Le groupe agit en premier au premier tour, +5 % de critique." },
+  garde_royale: { n: "Garde royale", need: [["hallebardier"], ["arbaletriere", "templier"]], h: { thorns: .12, crit: 4 }, d: "12 % des dégâts de mêlée renvoyés, +4 % de critique." },
+  choeur_funebre: { n: "Chœur funèbre", need: [["menestrel"], ["exorciste", "pretresse"]], h: { morale: 15, roundHeal: .02 }, d: "+15 de résolution au début des combats, le groupe récupère 2 % de PV par tour." },
+  danse_macabre: { n: "Danse macabre", need: [["necromancien"], ["menestrel"]], h: { markDmg: .2 }, d: "+20 % de dégâts contre les cibles marquées." },
+  compagnie_complete: { n: "Compagnie complète", roles: ["tank", "soin", "soutien", "dps"], h: { dmg: .05, hp: .05 }, d: "Un tank, un soigneur, un soutien et une lame : +5 % de dégâts et de PV." },
+};
+function activeSynergies(classes) {
+  const roles = classes.map(c => CLASSES[c] && CLASSES[c].role);
+  return Object.keys(SYNERGIES).filter(k => { const Y = SYNERGIES[k];
+    if (Y.need && !Y.need.every(g => g.some(c => classes.includes(c)))) return false;
+    if (Y.tanks && roles.filter(r => r === "tank").length < Y.tanks) return false;
+    if (Y.roles && !Y.roles.every(r => roles.includes(r))) return false;
+    return true; });
+}
 // événements : choix narratifs entre deux salles
 const EVENTS = [
   { id: "autel", n: "Autel sanglant", t: "Un autel de pierre, encore humide. Une voix murmure : « Donne, et tu recevras. »", ch: [

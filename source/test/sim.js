@@ -52,6 +52,7 @@ function doRun() {
       if (r !== "win") { T.blost++; const key = reg + "-" + node.c; T.nodeDeaths[key] = (T.nodeDeaths[key] || 0) + 1; return endRun("wipe"); }
       if (node.type === "boss") { T.bossWin[reg] = (T.bossWin[reg] || 0) + 1; if (node.first) T.fw[reg] = (T.fw[reg] || 0) + 1; }
       grantReward(run, rewardFor(run, node));
+      for (const it of run.loot.slice()) { if (it.kind === "tr") continue; for (const h of runEquipTargets(it, run)) { const cur = h.gear[it.kind]; if (!cur || it.tier * 3 + it.rar > cur.tier * 3 + cur.rar) { runEquip(h, it, run); T.runEq = (T.runEq || 0) + 1; break; } } }
     } else if (node.type === "event") {
       const E = EVENTS.find(e => e.id === node.ev); const ci = rint(0, E.ch.length - 1);
       const res = resolveEvent(run, node.ev, ci);
@@ -125,4 +126,5 @@ console.log(`Niveau moyen : à 10 exp ${avg(careers, c => c.lvlAt10).toFixed(1)}
 console.log(`Abîme record moyen ${avg(careers, c => c.abyss).toFixed(1)} · or final ${avg(careers, c => c.gold).toFixed(0)} · héros ${avg(careers, c => c.heroes).toFixed(1)} · succès ${avg(careers, c => c.ach).toFixed(1)} · compagnons ${avg(careers, c => c.pets).toFixed(1)}`);
 console.log("Chutes par classe (chutes / participations) :", Object.keys(T.perClassUse).map(k => k + " " + ((T.perClassFall[k] || 0) / T.perClassUse[k]).toFixed(2)).join(" · "));
 console.log("Défaites par salle :", JSON.stringify(T.nodeDeaths));
+console.log(`Objets équipés en expédition : ${T.runEq || 0}`);
 console.log("Erreurs :", T.errors.length ? "\n" + T.errors.slice(0, 8).join("\n") : "aucune");

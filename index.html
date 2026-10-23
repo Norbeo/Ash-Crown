@@ -80,6 +80,9 @@ p{margin:6px 0;line-height:1.45}
 .rar0{color:#c8beaa}.rar1{color:#6ab0ff}.rar2{color:#c87aff}.rar3{color:#ffb848;text-shadow:0 0 8px #ff8a2a88}
 .slot{width:58px;height:58px;border-radius:4px;background:radial-gradient(#2a201c,#0e0a0a);border:1px solid #3a2a22;display:flex;align-items:center;justify-content:center;position:relative;cursor:pointer;box-shadow:inset 0 0 12px #000}
 .slot .ic{width:30px;height:30px}
+.syn{display:flex;flex-direction:column;gap:4px;margin-top:8px}
+.synr{display:flex;align-items:baseline;gap:6px;flex-wrap:wrap;padding:5px 9px;border:1px solid #3a2e24;border-radius:4px;background:#120e0c;cursor:pointer}
+.synr.on{border-color:#8a6a2a;background:linear-gradient(90deg,#2a1e10,#120e0c)}.synr .ic{align-self:center}
 .slot img.itimg{width:100%;height:100%;object-fit:contain;padding:2px;pointer-events:none;filter:drop-shadow(0 2px 2px #000a)}
 .slot.r1{border-color:#3a6aaa;box-shadow:inset 0 0 12px #000,0 0 8px #3a6aaa55}.slot.r2{border-color:#8a4ac0;box-shadow:inset 0 0 12px #000,0 0 10px #8a4ac066}.slot.r3{border-color:#d0902a;box-shadow:inset 0 0 12px #000,0 0 14px #ffa03a88}
 .slot .tier{position:absolute;bottom:1px;right:3px;font-family:var(--f-head);font-size:10px;color:var(--gold2)}
@@ -128,11 +131,15 @@ p{margin:6px 0;line-height:1.45}
 .ctop .btn{padding:6px 9px}
 /* carte */
 .mapwrap{position:relative;margin:0 auto}
-.node{position:absolute;transform:translate(-50%,-50%);width:46px;height:46px;border-radius:50%;background:radial-gradient(#2a201c,#0a0606);border:2px solid #4a3a2a;display:flex;align-items:center;justify-content:center;cursor:default;transition:transform .2s,box-shadow .2s}
-.node .ic{width:24px;height:24px}
-.node.av{cursor:pointer;border-color:var(--gold);box-shadow:0 0 16px #ffb04a99;animation:pulse 1.6s infinite}
-.node.done{opacity:.45;filter:grayscale(.6)}.node.cur{border-color:#fff;box-shadow:0 0 22px #fff8}
-.node.boss{width:64px;height:64px}.node.boss .ic{width:34px;height:34px}
+.node{position:absolute;transform:translate(-50%,-50%);width:52px;height:52px;border-radius:50%;display:flex;align-items:center;justify-content:center;cursor:default;transition:transform .2s,filter .2s;z-index:1}
+.node img{width:100%;height:100%;pointer-events:none}.node .ic{width:24px;height:24px}
+.node.av{cursor:pointer;animation:nodePulse 1.6s infinite;z-index:2}.node.av:hover{transform:translate(-50%,-50%) scale(1.12)}
+@keyframes nodePulse{0%,100%{filter:drop-shadow(0 0 3px var(--nc,#ffb04a)) drop-shadow(0 0 2px #fff6)}50%{filter:drop-shadow(0 0 12px var(--nc,#ffb04a)) drop-shadow(0 0 4px #fff8)}}
+.node.done{filter:grayscale(.85) brightness(.75) sepia(.35);opacity:.8}.node.cur{filter:drop-shadow(0 0 8px #fff8)}
+.node.boss{width:74px;height:74px}
+.node .nlab{position:absolute;top:100%;left:50%;transform:translateX(-50%);margin-top:1px;white-space:nowrap;font:italic 600 11px Georgia,serif;color:#3a2616;text-shadow:0 0 3px #e2d1aa,0 0 6px #e2d1aa;pointer-events:none}
+.pawn{position:absolute;width:56px;height:56px;transform:translate(-30%,-92%);pointer-events:none;z-index:3;filter:drop-shadow(0 3px 3px #0008)}
+@media (prefers-reduced-motion:reduce){.node.av{animation:none;filter:drop-shadow(0 0 8px var(--nc,#ffb04a))}}
 .statline{display:flex;gap:6px;flex-wrap:wrap;align-items:center;justify-content:center}
 /* divers */
 .sep{height:1px;background:linear-gradient(90deg,transparent,#c9a24a55,transparent);margin:12px 0}
@@ -752,6 +759,17 @@ const MONSTERS = {
   liche: { n: "La Liche couronnée", art: "liche", tags: ["impie"], boss: 1, sz: 2, hp: 470, dmg: [9, 15], prot: .15, spd: 5, dodge: 8, res: 35, rk: [2],
     sk: [{ n: "Rayon de nécrose", m: 1.3, at: [1, 2, 3, 4], fx: [{ k: "vuln", t: 2, ch: 1 }] }, { n: "Tempête d'âmes", m: .6, t: "ae", at: [1, 2, 3, 4], fx: [{ k: "weak", t: 2, ch: .7 }] }, { n: "Phylactère", t: "self", heal: .1, sfx: [{ k: "shield", v: .1, t: 2 }], w: .5 }, { n: "Gel de la tombe", m: .5, t: "ae", at: [1, 2, 3, 4], fx: [{ k: "stun", t: 1, ch: .3 }] }],
     phase: { at: .5, n: "La couronne de la Liche s'embrase de vert !", sfx: [{ k: "dmgUp", v: .35, t: 99 }, { k: "spdUp", v: 2, t: 99 }] } },
+  moine_flagellant: { n: "Moine flagellant", art: "moine_flagellant", tags: ["humain"], hp: 30, dmg: [6, 10], prot: .05, spd: 5, dodge: 6, rk: [1, 2],
+    sk: [{ n: "Discipline", m: .8, t: "ae", at: [1, 2], fx: [{ k: "bleed", v: .45, t: 3, ch: .9 }] }, { n: "Extase", t: "self", selfDmg: .1, sfx: [{ k: "dmgUp", v: .4, t: 3 }], w: .5 }, { n: "Coup de fléau", m: 1.1, at: [1, 2] }] },
+  thuriferaire: { n: "Thuriféraire maudit", art: "thuriferaire", tags: ["impie"], hp: 22, dmg: [5, 9], prot: .05, spd: 5, dodge: 8, rk: [3, 4],
+    sk: [{ n: "Encens putride", m: .45, t: "ae", at: [1, 2, 3, 4], fx: [{ k: "poison", v: .4, t: 3, ch: 1 }] }, { n: "Bénédiction impie", t: "allies", heal: .18, w: .6 }, { n: "Fumée aveuglante", m: 0, t: "ae", at: [1, 2, 3, 4], fx: [{ k: "accDn", v: 12, t: 2, ch: .9 }], w: .5 }] },
+  hallebardier_os: { n: "Hallebardier d'os", art: "hallebardier_os", tags: ["impie"], hp: 30, dmg: [6, 10], prot: .2, spd: 3, dodge: 3, rk: [1, 2, 3],
+    sk: [{ n: "Estoc d'os", m: 1, at: [1, 2, 3] }, { n: "Crochet", m: .6, at: [3, 4], pull: 2, fx: [{ k: "protDn", v: .1, t: 2, ch: 1 }] }] },
+  prieur: { n: "Le Prieur sanglant", art: "prieur", tags: ["humain"], elite: 1, hp: 80, dmg: [8, 13], prot: .15, spd: 5, dodge: 6, rk: [2, 3],
+    sk: [{ n: "Croix de fer", m: 1.2, at: [1, 2], fx: [{ k: "stun", t: 1, ch: .4 }] }, { n: "Litanie de sang", t: "allies", heal: .2, regen: .04, w: .6 }, { n: "Anathème", m: .5, t: "ae", at: [1, 2, 3, 4], fx: [{ k: "weak", t: 2, ch: .7 }, { k: "vuln", t: 2, ch: .5 }] }] },
+  abbe: { n: "L'Abbé de Saint-Morne", art: "abbe", tags: ["impie"], boss: 1, sz: 2, hp: 500, dmg: [9, 15], prot: .18, spd: 5, dodge: 6, res: 35, rk: [2],
+    sk: [{ n: "Crosse de fer", m: 1.2, at: [1, 2], fx: [{ k: "stun", t: 1, ch: .45 }] }, { n: "Encens d'ossuaire", m: .6, t: "ae", at: [1, 2, 3, 4], fx: [{ k: "poison", v: .5, t: 3, ch: 1 }] }, { n: "Excommunication", m: .5, at: [1, 2, 3, 4], fx: [{ k: "mark", t: 3, ch: 1 }, { k: "vuln", t: 2, ch: 1 }, { k: "weak", t: 2, ch: .8 }] }, { n: "Dernière messe", t: "self", heal: .08, sfx: [{ k: "protUp", v: .2, t: 2 }], w: .5 }],
+    phase: { at: .5, n: "L'Abbé brise sa crosse : les dix mille moines chantent !", sfx: [{ k: "dmgUp", v: .35, t: 99 }, { k: "spdUp", v: 2, t: 99 }] } },
   // Région 4 — Le Marais des Noyés
   noye: { n: "Noyé", art: "noye", tags: ["impie"], hp: 32, dmg: [6, 10], prot: .1, spd: 3, dodge: 4, rk: [1, 2],
     sk: [{ n: "Étreinte du noyé", m: 1, at: [1, 2], fx: [{ k: "spdDn", v: 2, t: 2, ch: 1 }] }, { n: "Eau noire", m: .6, at: [1, 2, 3], fx: [{ k: "poison", v: .5, t: 3, ch: 1 }] }] },
@@ -768,6 +786,15 @@ const MONSTERS = {
   mere_noyes: { n: "La Mère des Noyés", art: "mere_noyes", tags: ["impie"], boss: 1, sz: 2, hp: 600, dmg: [10, 17], prot: .15, spd: 5, dodge: 6, res: 40, rk: [2],
     sk: [{ n: "Marée noire", m: .7, t: "ae", at: [1, 2, 3, 4], fx: [{ k: "spdDn", v: 3, t: 2, ch: 1 }] }, { n: "Appel des profondeurs", m: 1, at: [2, 3, 4], pull: 3, fx: [{ k: "stun", t: 1, ch: .5 }] }, { n: "Étreinte", m: 1.4, at: [1, 2], leech: .5 }, { n: "Chant funèbre", t: "ae", at: [1, 2, 3, 4], m: .3, fx: [{ k: "weak", t: 2, ch: .8 }, { k: "vuln", t: 2, ch: .6 }] }],
     phase: { at: .5, n: "Les eaux montent : la Mère révèle sa vraie forme !", sfx: [{ k: "dmgUp", v: .35, t: 99 }, { k: "regen", v: .015, t: 99 }] } },
+  sorciere_marais: { n: "Sorcière des tourbières", art: "sorciere_marais", tags: ["impie"], hp: 30, dmg: [6, 11], prot: .05, spd: 6, dodge: 12, rk: [3, 4],
+    sk: [{ n: "Maléfice", m: .4, at: [1, 2, 3, 4], fx: [{ k: "vuln", t: 2, ch: 1 }, { k: "weak", t: 2, ch: .7 }] }, { n: "Brouet", m: .5, t: "ae", at: [1, 2, 3, 4], fx: [{ k: "poison", v: .45, t: 3, ch: 1 }] }, { n: "Danse du sabbat", t: "allies", heal: .15, regen: .04, w: .5 }] },
+  pecheur: { n: "Pêcheur d'âmes", art: "pecheur", tags: ["humain"], hp: 38, dmg: [7, 11], prot: .12, spd: 4, dodge: 6, rk: [1, 2, 3],
+    sk: [{ n: "Gaffe", m: .8, at: [3, 4], pull: 2 }, { n: "Harpon", m: 1.15, at: [1, 2, 3], fx: [{ k: "bleed", v: .5, t: 3, ch: .8 }] }] },
+  ogre: { n: "Ogre des tourbières", art: "ogre", tags: ["bete"], elite: 1, hp: 130, dmg: [10, 16], prot: .15, spd: 3, dodge: 2, rk: [1],
+    sk: [{ n: "Massue", m: 1.4, at: [1, 2], fx: [{ k: "stun", t: 1, ch: .5 }] }, { n: "Balayage", m: .8, t: "ae", at: [1, 2, 3] }, { n: "Ripaille", t: "self", heal: .15, w: .3 }] },
+  reine_sabbat: { n: "La Reine du Sabbat", art: "reine_sabbat", tags: ["impie"], boss: 1, sz: 2, hp: 560, dmg: [10, 16], prot: .12, spd: 6, dodge: 10, res: 40, rk: [2],
+    sk: [{ n: "Malédiction du sabbat", m: .6, t: "ae", at: [1, 2, 3, 4], fx: [{ k: "weak", t: 2, ch: .8 }, { k: "accDn", v: 12, t: 2, ch: .8 }] }, { n: "Chaudron", m: .65, t: "ae", at: [1, 2, 3, 4], fx: [{ k: "poison", v: .6, t: 3, ch: 1 }] }, { n: "Faucille lunaire", m: 1.4, at: [1, 2], fx: [{ k: "bleed", v: .6, t: 3, ch: 1 }] }, { n: "Pacte", t: "self", heal: .1, sfx: [{ k: "dmgUp", v: .2, t: 2 }], w: .5 }],
+    phase: { at: .5, n: "La Reine du Sabbat s'élève au-dessus du chaudron !", sfx: [{ k: "dmgUp", v: .35, t: 99 }, { k: "regen", v: .015, t: 99 }] } },
   // Région 5 — La Citadelle de Cendres
   chevalier_dechu: { n: "Chevalier déchu", art: "chevalier_dechu", tags: ["impie"], hp: 44, dmg: [8, 13], prot: .3, spd: 4, dodge: 4, rk: [1, 2],
     sk: [{ n: "Lame de cendre", m: 1, at: [1, 2], fx: [{ k: "burn", v: .4, t: 2, ch: .7 }] }, { n: "Garde noire", t: "self", sfx: [{ k: "protUp", v: .25, t: 2 }, { k: "riposte", v: .7, t: 2 }], w: .5 }] },
@@ -798,15 +825,15 @@ const REGIONS = [
     d: "Le village de Morvaine pourrit sous la peste. Les morts ne restent pas couchés.", sky: ["#1a1d14", "#3a3a24"], fog: "#9aa06a", accent: "#a8c05a" },
   { id: "foret", n: "La Forêt des Pendus", sub: "Chapitre II", lvl: 5, pool: ["loup_noir", "araignee", "brigand", "archer_brig", "dryade", "pendu"], elite: ["alpha"], boss: "mere_ronces",
     d: "Chaque arbre porte un pendu. La forêt, elle, a faim.", sky: ["#0e1612", "#24342a"], fog: "#6a8a70", accent: "#6ad08a" },
-  { id: "catacombes", n: "Les Catacombes de Saint-Morne", sub: "Chapitre III", lvl: 9, pool: ["squelette", "archer_os", "spectre", "necrophage", "gargouille"], elite: ["chevalier_os"], boss: "liche",
+  { id: "catacombes", n: "Les Catacombes de Saint-Morne", sub: "Chapitre III", lvl: 9, pool: ["squelette", "archer_os", "spectre", "necrophage", "gargouille", "moine_flagellant", "thuriferaire", "hallebardier_os"], elite: ["chevalier_os", "prieur"], boss: "liche", boss2: "abbe",
     d: "Sous l'abbaye dorment dix mille moines. Ils se réveillent.", sky: ["#0e0e14", "#262632"], fog: "#7a8aa8", accent: "#7adcc0" },
-  { id: "marais", n: "Le Marais des Noyés", sub: "Chapitre IV", lvl: 13, pool: ["noye", "crapaud_geant", "sangsue", "feu_follet_e", "profond"], elite: ["hydre"], boss: "mere_noyes",
+  { id: "marais", n: "Le Marais des Noyés", sub: "Chapitre IV", lvl: 13, pool: ["noye", "crapaud_geant", "sangsue", "feu_follet_e", "profond", "sorciere_marais", "pecheur"], elite: ["hydre", "ogre"], boss: "mere_noyes", boss2: "reine_sabbat",
     d: "L'eau noire garde ceux qu'elle prend. Et elle prend tout.", sky: ["#0a1214", "#1e3034"], fog: "#5a8a8a", accent: "#5ac0c0" },
   { id: "citadelle", n: "La Citadelle de Cendres", sub: "Chapitre V", lvl: 17, pool: ["chevalier_dechu", "inquisiteur_fou", "diablotin", "golem_cendre"], elite: ["bourreau"], boss: "roi_cendres",
     d: "Le trône du Roi brûle depuis cent ans. Il est temps d'éteindre la couronne.", sky: ["#180a08", "#3a1a10"], fog: "#c0704a", accent: "#ff8a4a" },
 ];
 const ABYSS = { id: "abime", n: "L'Abîme", sub: "Sans fin", lvl: 20, pool: ["horreur", "oeil", "chevalier_dechu", "spectre", "noye", "necrophage", "diablotin", "gargouille", "profond"], elite: ["bourreau", "hydre", "chevalier_os", "alpha"], boss: "sans_nom",
-  bosses: ["docteur_peste", "mere_ronces", "liche", "mere_noyes", "roi_cendres", "sans_nom"], d: "Sous la Citadelle, il n'y a pas de fond. Seulement plus d'ombre.", sky: ["#08060c", "#1e1428"], fog: "#8a6aaa", accent: "#b48cff" };
+  bosses: ["docteur_peste", "mere_ronces", "liche", "abbe", "mere_noyes", "reine_sabbat", "roi_cendres", "sans_nom"], d: "Sous la Citadelle, il n'y a pas de fond. Seulement plus d'ombre.", sky: ["#08060c", "#1e1428"], fog: "#8a6aaa", accent: "#b48cff" };
 const regionById = id => id === "abime" ? ABYSS : REGIONS.find(r => r.id === id);
 
 // ── Histoire ── (un fragment de couronne par chapitre)
@@ -913,6 +940,30 @@ const RELICS = {
   coeur_noir: { n: "Cœur noir", r: 2, d: "+35 % de dégâts, mais -15 % de PV max.", h: { dmg: .35, hp: -.15 } },
   graal: { n: "Graal terni", r: 2, d: "Soigne tout le groupe de 4 % au début de chaque tour.", h: { roundHeal: .04 } },
 };
+// synergies de compagnie : bonus d'expédition quand certaines classes partent ensemble
+// need : liste de groupes, il faut au moins une classe de chaque groupe · roles : rôles distincts requis · tanks : nombre de tanks
+const SYNERGIES = {
+  sainte_traque: { n: "La Sainte Traque", need: [["exorciste"], ["chasseur_sorcieres"]], h: { vsImpie: .25, morale: 10 }, d: "+25 % de dégâts contre les impies, +10 de résolution au début des combats." },
+  foi_acier: { n: "Foi et acier", need: [["templier"], ["pretresse"]], h: { prot: .06, heal: .15 }, d: "+6 % de protection et +15 % de soins pour le groupe." },
+  mur_boucliers: { n: "Mur de boucliers", tanks: 2, h: { prot: .08, thorns: .1 }, d: "Deux tanks : +8 % de protection, 10 % des dégâts de mêlée renvoyés." },
+  sang_nord: { n: "Sang du Nord", need: [["berserker"], ["gardien_runes"]], h: { dmg: .1, morale: 8 }, d: "+10 % de dégâts, +8 de résolution au début des combats." },
+  morts_sans_repos: { n: "Morts sans repos", need: [["necromancien"], ["revenant"]], h: { leech: .06, hp: .08 }, d: "+6 % de vol de vie et +8 % de PV pour le groupe." },
+  herbes_poisons: { n: "Herbes et poisons", need: [["medecin_peste"], ["sorciere"]], h: { poisonT: 1, heal: .12 }, d: "Les poisons durent 1 tour de plus, +12 % de soins." },
+  bucher: { n: "Le Bûcher", need: [["pyromancien"], ["chasseur_sorcieres", "templier"]], h: { burnT: 1, dot: .15 }, d: "Les brûlures durent 1 tour de plus, +15 % de dégâts sur la durée." },
+  embuscade: { n: "Embuscade", need: [["ombre"], ["arbaletriere"]], h: { firstStrike: 1, crit: 5 }, d: "Le groupe agit en premier au premier tour, +5 % de critique." },
+  garde_royale: { n: "Garde royale", need: [["hallebardier"], ["arbaletriere", "templier"]], h: { thorns: .12, crit: 4 }, d: "12 % des dégâts de mêlée renvoyés, +4 % de critique." },
+  choeur_funebre: { n: "Chœur funèbre", need: [["menestrel"], ["exorciste", "pretresse"]], h: { morale: 15, roundHeal: .02 }, d: "+15 de résolution au début des combats, le groupe récupère 2 % de PV par tour." },
+  danse_macabre: { n: "Danse macabre", need: [["necromancien"], ["menestrel"]], h: { markDmg: .2 }, d: "+20 % de dégâts contre les cibles marquées." },
+  compagnie_complete: { n: "Compagnie complète", roles: ["tank", "soin", "soutien", "dps"], h: { dmg: .05, hp: .05 }, d: "Un tank, un soigneur, un soutien et une lame : +5 % de dégâts et de PV." },
+};
+function activeSynergies(classes) {
+  const roles = classes.map(c => CLASSES[c] && CLASSES[c].role);
+  return Object.keys(SYNERGIES).filter(k => { const Y = SYNERGIES[k];
+    if (Y.need && !Y.need.every(g => g.some(c => classes.includes(c)))) return false;
+    if (Y.tanks && roles.filter(r => r === "tank").length < Y.tanks) return false;
+    if (Y.roles && !Y.roles.every(r => roles.includes(r))) return false;
+    return true; });
+}
 // événements : choix narratifs entre deux salles
 const EVENTS = [
   { id: "autel", n: "Autel sanglant", t: "Un autel de pierre, encore humide. Une voix murmure : « Donne, et tu recevras. »", ch: [
@@ -1659,10 +1710,12 @@ const heroById = id => S.heroes.find(h => h.id === id);
 // blessure : le héros guérit seul avec le temps (ou à la Chapelle) ; s'il part blessé, il commence à 50 % de PV
 const injuryTime = h => (12 + h.lvl * 2) * 60000;
 const isInjured = h => !!h.injured && Date.now() < h.injured;
+function runSynergies(run) { return activeSynergies(run.party.map(id => { const h = heroById(id); return h && h.cls; }).filter(Boolean)); }
 function runParty() { return S.run.party.map(heroById).filter(Boolean); }
 function relicHooks(run = S.run) {
   const H = {};
   for (const k of (run ? run.relics : [])) { const R = RELICS[k]; if (!R) continue; for (const h in R.h) H[h] = (H[h] || 0) + R.h[h]; }
+  for (const k of (run ? runSynergies(run) : [])) { const Y = SYNERGIES[k]; for (const h in Y.h) H[h] = (H[h] || 0) + Y.h[h]; }
   return H;
 }
 function runLevel(run, node) {
@@ -1684,7 +1737,7 @@ function genEncounter(run, node, rng = RNG) {
   const pool = R.pool.slice(), out = [];
   const pickFor = rank => { const ok = pool.filter(k => MONSTERS[k].rk.includes(rank)); return rng.pick(ok.length ? ok : pool); };
   if (node.type === "boss") {
-    const bk = run.region === "abime" ? R.bosses[(run.floor - 1) % R.bosses.length] : R.boss;
+    const bk = run.region === "abime" ? R.bosses[(run.floor - 1) % R.bosses.length] : R.boss2 && S.prog[R.id] && S.prog[R.id].clears && rng.chance(.5) ? R.boss2 : R.boss;
     out.push({ key: pickFor(1), lvl });
     out.push({ key: bk, lvl: lvl + 1 });
     if (run.region === "abime" || R.lvl >= 9) out.push({ key: pickFor(4), lvl });
@@ -1746,12 +1799,25 @@ function givePetXp(id, v) {
   return up;
 }
 
+// équiper un objet du butin pendant l'expédition (l'ancien rejoint le butin ; annulé en cas de déroute)
+function runEquipTargets(it, run = S.run) { if (!run || !it) return []; return runParty().filter(h => !run.fallen.includes(h.id) && canEquip(h, it) && !(it.kind === "tr" && [h.gear.tr1, h.gear.tr2].some(x => x && x.key === it.key))); }
+function runEquip(h, it, run = S.run) {
+  const i = run.loot.indexOf(it); if (i < 0 || !runEquipTargets(it, run).includes(h)) return false;
+  const slot = it.kind === "wpn" ? "wpn" : it.kind === "arm" ? "arm" : !h.gear.tr1 ? "tr1" : !h.gear.tr2 ? "tr2" : "tr1";
+  const before = heroStats(h, relicHooks(run)).hp;
+  run.loot.splice(i, 1); const old = h.gear[slot]; h.gear[slot] = it; if (old) run.loot.push(old);
+  (run.swaps = run.swaps || []).push({ hid: h.id, slot, old: old ? old.id : null, nu: it.id });
+  const after = heroStats(h, relicHooks(run)).hp; if (h.hp != null) h.hp = clamp(Math.round(h.hp * after / before), 1, after);
+  if (it.tier >= 5) S.stats.tier5 = 1;
+  return true;
+}
 // ── fin d'expédition ──
 function endRun(outcome) {
   const run = S.run; if (!run) return null;
   const R = regionById(run.region);
   const res = { outcome, gold: run.gold, loot: run.loot.slice(), mats: Object.assign({}, run.mats), shards: run.shards, region: run.region, floor: run.floor, story: null, unlocks: [] };
-  if (outcome === "wipe") { res.gold = Math.round(run.gold * .5); res.loot = []; res.shards = 0; }
+  if (outcome === "wipe") { res.gold = Math.round(run.gold * .5); res.loot = []; res.shards = 0;
+    for (const w of (run.swaps || []).slice().reverse()) { const h = heroById(w.hid); if (!h || !h.gear[w.slot] || h.gear[w.slot].id !== w.nu) continue; h.gear[w.slot] = w.old ? run.loot.find(x => x.id === w.old) || h.gear[w.slot] : null; } }
   const before = regionsCleared();
   if (outcome === "victory" && run.region !== "abime") {
     const p = S.prog[run.region] = S.prog[run.region] || { clears: 0, best: 0 };
@@ -3236,6 +3302,15 @@ function monFig(key) {
     case "noye": return { B: { h: 1.05, w: 1.15 }, sp: base({ skin: "#6a8a84", bulk: 1.2, torso: { mat: "cloth", col: "#2a3a38" }, skirt: { type: "kilt", col: "#24302e", len: .45 }, arms: { bareFore: 1, col: "#2a3a38" }, legs: { col: "#24302e" }, boots: { type: "bare" }, headgear: { type: "drowned", full: 1 }, wpn: "crochet", chains: 1, stance: { aFs: .7, aFe: 1.0, aBs: .6, aBe: .5, wa: 2.2 }, pose0: { lean: .2, head: .2 } }) };
     case "profond": return { B: { h: 1.05 }, sp: base({ skin: "#3a6a64", torso: { mat: "scales", col: "#3a6a64" }, skirt: { type: "kilt", col: "#2a3a30", len: .38 }, arms: { bare: 1, bareFore: 1 }, legs: { col: "#3a6a64" }, boots: { type: "bare" }, headgear: { type: "fish", full: 1 }, wpn: "trident", stance: { aFs: .6, aFe: .9, aBs: .9, aBe: .4, wa: 2.4, twoH: 1 } }) };
     case "chevalier_dechu": return { B: { h: 1.08, w: 1.1 }, sp: base({ skin: "#3a3030", torso: { mat: "plate", col: "#2e2a2a", trim: "#8a3a1a" }, skirt: { type: "tassets", col: "#2e2a2a", trim: "#8a3a1a" }, arms: { col: MAT.black, rerebrace: "#2e2a2a", bracer: "#2e2a2a", bracerMetal: 1, glove: "#2e2a2a", gloveMetal: 1 }, legs: { col: MAT.black, type: "plate", metal: "#2e2a2a" }, boots: { type: "sabaton", metal: "#2e2a2a" }, shoulders: { type: "ornate", col: "#2e2a2a", spike: 1, trim: "#8a3a1a" }, headgear: { type: "skullhelm", col: "#2e2a2a", spikes: 1, flame: "#ff6a1a" }, eyeGlow: "#ff8a3a", cape: { col: "#2a1210", len: .85, tatter: 1 }, wpn: "epee_feu", stance: STANCE.espadon, embers: 1 }) };
+    case "moine_flagellant": return { B: { h: 1 }, sp: base({ skin: "#c8a080", hair: 2, hairCol: "#3a2a1a", torso: { mat: "bare", straps: [[[-12, -54], [12, -28]]] }, skirt: { type: "robe", col: "#4a3424", len: .9, trim: "#2a1a10" }, arms: { bare: 1, bareFore: 1 }, legs: { col: "#3a2a1a" }, boots: { type: "bare" }, headgear: { type: "hood_down", col: "#4a3424" }, belt: { col: MAT.rope }, scar: 1, wpn: "masse", wt: 1, eyeGlow: null }) };
+    case "thuriferaire": return { B: { h: 1 }, sp: base({ skin: "#9aa49a", torso: { mat: "cloth", col: "#2a3028", bones: 1 }, skirt: { type: "robe", col: "#222820", len: .97, trim: "#6a8a3a" }, arms: { col: "#2a3028", bell: 1 }, headgear: { type: "cowl", col: "#1a2018", mask: MAT.bone }, eyeGlow: "#b0f05a", wpn: "encensoir", wt: 4, belt: { col: MAT.rope } }) };
+    case "hallebardier_os": return { B: { h: 1.05 }, sp: base({ bones: 1, torso: { mat: "bones", plate: "#4a4a50" }, headgear: { type: "skull", helm: "kettle", hcol: "#4a4440", full: 1 }, shoulders: { type: "plate", col: "#4a4a50" }, wpn: "hallebarde", wt: 2, eyeGlow: "#7af0e0" }) };
+    case "prieur": return { B: { h: 1.1, w: 1.08 }, sp: base({ skin: "#d0a888", beard: 2, hairCol: "#8a8a8a", torso: { mat: "cloth", col: "#5a1a14", cross: MAT.gold, collar: "#d8d0b8" }, skirt: { type: "robe", col: "#4a120e", len: .97, trim: MAT.gold }, arms: { col: "#5a1a14", bell: 1 }, mantle: { col: "#2a0a08", trim: MAT.gold }, headgear: { type: "hood", col: "#3a0e0a", trim: MAT.gold }, wpn: "croix", wt: 3, belt: { col: MAT.rope } }) };
+    case "abbe": return { B: { h: 1.55, w: 1.1 }, sp: base({ skin: "#9a9a8c", undead: 1, eyeGlow: "#9ae86a", torso: { mat: "cloth", col: "#16161a", cross: MAT.gold, collar: MAT.bone }, skirt: { type: "robe", col: "#121216", len: .98, trim: MAT.gold, wisp: 1 }, arms: { col: "#16161a", bell: 1 }, mantle: { col: "#6a1a14", trim: MAT.gold }, cape: { col: "#0e0e10", len: .95, tatter: 1, trim: "#4a3a1a" }, headgear: { type: "mitre", col: "#1a1a1e", trim: MAT.gold, gem: "#9ae86a" }, wpn: "croix", wt: 5, belt: { col: MAT.gold } }) };
+    case "sorciere_marais": return { B: { h: .98, female: true }, sp: base({ skin: "#7a9a6a", hair: 5, hairCol: "#2a2a20", torso: { mat: "cloth", col: "#2a3424" }, skirt: { type: "robe", col: "#222c1c", len: .92, wisp: 1 }, arms: { col: "#2a3424", bareFore: 1 }, headgear: { type: "witch", col: "#1a2216", band: "#6a1a6a", charms: ["#9ae86a", MAT.bone, "#c04ac0"] }, mantle: { col: "#2e3a22", fur: 1 }, eyeGlow: "#b0ff6a", wpn: "faucille", wt: 2, belt: { col: MAT.rope, pouch: MAT.leather } }) };
+    case "pecheur": return { B: { h: 1.05, w: 1.1 }, sp: base({ skin: "#8a9a90", beard: 2, hairCol: "#4a4a40", torso: { mat: "leather", col: "#3a4a40", buckle: MAT.iron }, skirt: { type: "coat", col: "#2e3c34", len: .55 }, arms: { col: "#3a4a40", glove: MAT.dleather }, legs: { col: "#2a3028" }, boots: { col: "#1a201c", high: 1 }, headgear: { type: "hat", col: "#24302a", band: MAT.rope }, wpn: "hallebarde", wt: 1, belt: { col: MAT.dleather, pouch: MAT.leather } }) };
+    case "ogre": return { B: { h: 1.3, w: 1.2 }, sp: base({ skin: "#6a7a5a", bulk: 1.32, hair: 2, hairCol: "#2a2a1a", beard: 0, torso: { mat: "bare", straps: [[[-12, -54], [12, -24]]] }, skirt: { type: "fur", col: "#4a3a28", len: .5 }, arms: { bare: 1, bareFore: 1, bracer: MAT.dleather }, legs: { col: "#6a7a5a" }, boots: { type: "bare" }, belt: { col: MAT.dleather }, wpn: "masse", wt: 1, eyeGlow: "#ffb04a" }) };
+    case "reine_sabbat": return { B: { h: 1.6, w: 1.1, female: true }, sp: base({ skin: "#5a7a5a", hair: 5, hairCol: "#1a1a14", torso: { mat: "cloth", col: "#1e2418", vials: ["#9ae86a", "#c04ac0", "#ffb04a"] }, skirt: { type: "robe", col: "#181e14", len: .98, wisp: 1, trim: "#6a1a6a" }, arms: { col: "#1e2418", bareFore: 1 }, mantle: { col: "#2a2a1e", fur: 1, trim: "#6a1a6a" }, cape: { col: "#101410", len: .95, tatter: 1 }, headgear: { type: "witch", col: "#121610", band: MAT.gold, charms: ["#9ae86a", MAT.bone, "#c04ac0"] }, eyeGlow: "#b0ff6a", wpn: "faucille", wt: 5, belt: { col: MAT.rope, pouch: MAT.leather } }) };
     case "inquisiteur": return { B: { h: 1.02 }, sp: base({ skin: "#d0b090", beard: 1, hairCol: "#6a6a6a", torso: { mat: "cloth", col: "#5a1410", collar: "#d8d0b8" }, skirt: { type: "robe", col: "#4a100c", len: .95, trim: MAT.gold }, arms: { col: "#5a1410", bell: 1 }, headgear: { type: "mitre", col: "#2a0a08", trim: MAT.gold }, wpn: "torche", stance: { aFs: .7, aFe: 1.3, aBs: .9, aBe: 1.2, wa: 2.9 }, belt: { col: MAT.rope } }) };
     case "bourreau": return { B: { h: 1.15, w: 1.2 }, sp: base({ skin: "#b88868", bulk: 1.3, torso: { mat: "bare", straps: [[[-12, -54], [12, -24]]] }, skirt: { type: "kilt", col: "#1a1614", len: .5 }, arms: { bare: 1, bareFore: 1, bracer: MAT.dleather }, legs: { col: "#1a1614" }, boots: { col: MAT.dleather, high: 1 }, headgear: { type: "sack", col: "#141210", full: 1, glow: "#ff3a2a" }, wpn: "hache_b", stance: { aFs: .3, aFe: 1.7, aBs: .45, aBe: 1.3, wa: 2.95 }, belt: { col: MAT.dleather, buckle: MAT.iron } }) };
     case "roi": return { B: { h: 1.6, w: 1.15 }, sp: base({ skin: "#3a2a24", torso: { mat: "plate", col: "#2a2420", trim: MAT.gold, sun: "#ff8a3a" }, skirt: { type: "tassets", col: "#2a2420", trim: MAT.gold }, arms: { col: MAT.black, rerebrace: "#2a2420", bracer: "#2a2420", bracerMetal: 1, gold: 1, glove: "#2a2420", gloveMetal: 1 }, legs: { col: MAT.black, type: "plate", metal: "#2a2420", gold: 1 }, boots: { type: "sabaton", metal: "#2a2420" }, shoulders: { type: "ornate", col: "#2a2420", trim: MAT.gold, spike: 1, gem: "#ff6a2a", size: 1.2 }, headgear: { type: "skullhelm", col: "#2a2420", crown: MAT.gold, gem: "#ff6a2a", flame: "#ff6a1a" }, eyeGlow: "#ffb04a", cape: { col: "#3a0a08", len: .95, trim: MAT.gold }, wpn: "epee_feu", stance: STANCE.espadon, embers: 1 }) };
@@ -3793,6 +3868,158 @@ function drawAmbient(x, A, t, dt) {
   x.restore();
 }
 const REGION_AMB = { bourg: "spores", foret: "lucioles", catacombes: "ames", marais: "lucioles", citadelle: "braises", abime: "ames", bastion: "braises", titre: "braises" };
+/* ═══════════════════════ Carte d'expédition : parchemin peint, chemins à l'encre, jetons de salles ═══════════════════════ */
+const MAP_INK = "#3a2616";
+const TOKEN_ART = {};
+const TOKEN_BASE = { combat: "#6a6a6e", elite: "#7a1e16", event: "#4a3466", treasure: "#8a6a24", camp: "#6a3e1e", shop: "#2e5a44", boss: "#1a1214", pawn: null };
+// bord de parchemin déchiré
+function parchPath(W, H, rng, m = 6) {
+  const pts = [], step = 22;
+  for (let x = m; x < W - m; x += step) pts.push([x, m + rng() * 5 - 2]);
+  for (let y = m; y < H - m; y += step) pts.push([W - m - rng() * 5 + 2, y]);
+  for (let x = W - m; x > m; x -= step) pts.push([x, H - m - rng() * 5 + 2]);
+  for (let y = H - m; y > m; y -= step) pts.push([m + rng() * 5 - 2, y]);
+  return P(pts, true, .35);
+}
+// petits dessins de terrain propres à chaque chapitre
+function mapDoodle(x, kind, cx, cy, s, rng) {
+  x.save(); x.translate(cx, cy); x.scale(s, s); x.strokeStyle = rgba(MAP_INK, .38); x.fillStyle = rgba(MAP_INK, .12); x.lineWidth = 1.2; x.lineCap = x.lineJoin = "round";
+  const tri = (dx, h) => { x.beginPath(); x.moveTo(dx - 6, 0); x.lineTo(dx, -h); x.lineTo(dx + 6, 0); x.closePath(); x.fill(); x.stroke(); x.beginPath(); x.moveTo(dx, 0); x.lineTo(dx, 4); x.stroke(); };
+  if (kind === "foret") { tri(-7, 16); tri(4, 21); tri(13, 14); }
+  else if (kind === "bourg") { x.beginPath(); x.rect(-9, -10, 18, 10); x.moveTo(-11, -9); x.lineTo(0, -18); x.lineTo(11, -9); x.fill(); x.stroke(); x.beginPath(); x.rect(-2, -6, 4, 6); x.stroke(); }
+  else if (kind === "catacombes") { for (const dx of [-8, 8]) { x.beginPath(); x.moveTo(dx, 2); x.lineTo(dx, -14); x.moveTo(dx - 5, -9); x.lineTo(dx + 5, -9); x.stroke(); } x.beginPath(); x.arc(0, -4, 5, Math.PI, 0); x.lineTo(5, 2); x.lineTo(-5, 2); x.closePath(); x.fill(); x.stroke(); }
+  else if (kind === "marais") { for (let i = -1; i <= 1; i++) { x.beginPath(); x.moveTo(i * 6, 2); x.quadraticCurveTo(i * 6 + 2, -8, i * 6 + (i ? i * 4 : 1), -16); x.stroke(); } x.beginPath(); x.ellipse(0, 4, 14, 3, 0, 0, 7); x.stroke(); x.beginPath(); x.ellipse(2, 9, 9, 2, 0, 0, 7); x.stroke(); }
+  else if (kind === "citadelle") { x.beginPath(); x.rect(-6, -20, 12, 22); x.fill(); x.stroke(); x.beginPath(); for (let i = 0; i < 3; i++) x.rect(-6 + i * 4.5, -24, 3, 4); x.stroke(); x.beginPath(); x.moveTo(-14, 2); x.lineTo(-14, -8); x.lineTo(-6, -8); x.moveTo(6, -8); x.lineTo(14, -8); x.lineTo(14, 2); x.stroke(); }
+  else { x.beginPath(); for (let a = 0; a < 12; a += .3) { const r = a * 1.3; x.lineTo(Math.cos(a) * r, Math.sin(a) * r * .7); } x.stroke(); }
+  x.restore();
+}
+function compassRose(x, cx, cy, r) {
+  x.save(); x.translate(cx, cy); x.globalAlpha = .55;
+  x.strokeStyle = MAP_INK; x.lineWidth = 1; x.beginPath(); x.arc(0, 0, r * .72, 0, 7); x.stroke(); x.beginPath(); x.arc(0, 0, r * .6, 0, 7); x.stroke();
+  for (let i = 0; i < 8; i++) { const a = i * Math.PI / 4 - Math.PI / 2, L = i % 2 ? r * .6 : r; x.fillStyle = i % 2 ? "#8a6a3a" : (i === 0 ? "#7a1e16" : MAP_INK); x.beginPath(); x.moveTo(Math.cos(a) * L, Math.sin(a) * L); x.lineTo(Math.cos(a + .35) * r * .18, Math.sin(a + .35) * r * .18); x.lineTo(Math.cos(a - .35) * r * .18, Math.sin(a - .35) * r * .18); x.closePath(); x.fill(); }
+  x.fillStyle = MAP_INK; x.font = `bold ${Math.round(r * .42)}px Georgia, serif`; x.textAlign = "center"; x.fillText("N", 0, -r - 3);
+  x.restore();
+}
+// fond complet de la carte (le canvas fait W×H en pixels CSS, multiplié par la densité d'écran)
+function paintMapBg(c, run, W, H, pos) {
+  const x = c.getContext("2d"), k = c.width / W, rng = mkRng((run.seed || 7) * 13 + (run.floor || 0));
+  const R = regionById(run.region);
+  x.save(); x.scale(k, k); x.clearRect(0, 0, W, H);
+  const edge = parchPath(W, H, rng);
+  // ombre portée du parchemin
+  x.save(); x.shadowColor = "rgba(0,0,0,.75)"; x.shadowBlur = 18; x.shadowOffsetY = 6; x.fillStyle = "#b8a070"; x.fill(edge); x.restore();
+  x.save(); x.clip(edge);
+  const g = x.createRadialGradient(W * .45, H * .42, Math.min(W, H) * .1, W / 2, H / 2, Math.max(W, H) * .72);
+  g.addColorStop(0, "#e2d1aa"); g.addColorStop(.55, "#cdb688"); g.addColorStop(1, "#8a6a40"); x.fillStyle = g; x.fillRect(0, 0, W, H);
+  x.fillStyle = rgba(R.accent || "#8a8a6a", .07); x.fillRect(0, 0, W, H);
+  // taches, fibres et pliures
+  for (let i = 0; i < 26; i++) { const cx = rng() * W, cy = rng() * H, r = 10 + rng() * 46; const sg = x.createRadialGradient(cx, cy, 0, cx, cy, r); sg.addColorStop(0, `rgba(110,70,30,${.05 + rng() * .08})`); sg.addColorStop(1, "rgba(110,70,30,0)"); x.fillStyle = sg; x.fillRect(cx - r, cy - r, r * 2, r * 2); }
+  x.strokeStyle = "rgba(90,60,30,.07)"; x.lineWidth = .7; for (let i = 0; i < 90; i++) { const px = rng() * W, py = rng() * H, a = rng() * 6.28, l = 6 + rng() * 18; x.beginPath(); x.moveTo(px, py); x.lineTo(px + Math.cos(a) * l, py + Math.sin(a) * l); x.stroke(); }
+  for (const f of [1 / 3, 2 / 3]) { const fx = W * f; const fg = x.createLinearGradient(fx - 6, 0, fx + 6, 0); fg.addColorStop(0, "rgba(255,240,210,0)"); fg.addColorStop(.45, "rgba(255,240,210,.18)"); fg.addColorStop(.55, "rgba(80,50,20,.16)"); fg.addColorStop(1, "rgba(80,50,20,0)"); x.fillStyle = fg; x.fillRect(fx - 6, 0, 12, H); }
+  // décor dessiné à l'encre, à l'écart des salles
+  const nodes = run.map.flat().map(pos);
+  for (let i = 0, n = 0; i < 80 && n < 16; i++) { const px = 20 + rng() * (W - 40), py = 24 + rng() * (H - 40); if (nodes.some(([a, b]) => Math.hypot(a - px, b - py) < 46)) continue; mapDoodle(x, run.region, px, py, .8 + rng() * .5, rng); n++; }
+  // chemins
+  const cur = run.pos;
+  const ink = (a, b, style) => {
+    const mx = (a[0] + b[0]) / 2 + (rng() - .5) * 26, my = (a[1] + b[1]) / 2 + (rng() - .5) * 26;
+    x.beginPath(); x.moveTo(a[0], a[1]); x.quadraticCurveTo(mx, my, b[0], b[1]);
+    if (style === "hot") { x.save(); x.shadowColor = "#ffb04a"; x.shadowBlur = 10; x.strokeStyle = "#a8701e"; x.lineWidth = 3.4; x.setLineDash([]); x.stroke(); x.restore(); }
+    else if (style === "done") { x.strokeStyle = "#6a1e14"; x.lineWidth = 3; x.setLineDash([]); x.stroke(); }
+    else { x.strokeStyle = rgba(MAP_INK, .55); x.lineWidth = 1.8; x.setLineDash([2, 7]); x.lineCap = "round"; x.stroke(); }
+    x.setLineDash([]);
+  };
+  for (const col of run.map) for (const n of col) for (const j of n.links) {
+    const m = run.map[n.c + 1][j], from = cur && cur.c === n.c && cur.i === n.i;
+    ink(pos(n), pos(m), n.visited && m.visited ? "done" : from ? "hot" : "");
+  }
+  // titre calligraphié et rose des vents
+  compassRose(x, W - 34, 38, 20);
+  // bord brûlé
+  x.restore();
+  x.save(); x.clip(edge); x.shadowColor = "rgba(50,24,8,.9)"; x.shadowBlur = 22; x.lineWidth = 8; x.strokeStyle = "rgba(50,24,8,.55)"; x.stroke(edge); x.restore();
+  x.lineWidth = 1.6; x.strokeStyle = "rgba(50,28,12,.85)"; x.stroke(edge);
+  x.restore();
+}
+// jeton peint d'une salle (cercle de pierre et objet), mis en cache en image
+function mapToken(type) {
+  if (!HASWIN) return "";
+  if (TOKEN_ART[type]) return TOKEN_ART[type];
+  const S0 = 128, cv = document.createElement("canvas"); cv.width = cv.height = S0; const x = cv.getContext("2d"), c = S0 / 2;
+  if (type !== "pawn") {
+    const base = TOKEN_BASE[type] || "#5a5a5a", R = S0 * .4;
+    x.save(); x.shadowColor = "rgba(0,0,0,.7)"; x.shadowBlur = 10; x.shadowOffsetY = 4;
+    const g = x.createRadialGradient(c - R * .35, c - R * .4, 2, c, c, R * 1.1); g.addColorStop(0, lt(base, .35)); g.addColorStop(.6, base); g.addColorStop(1, dk(base, .55));
+    x.fillStyle = g; x.beginPath(); x.arc(c, c, R, 0, 7); x.fill(); x.restore();
+    x.lineWidth = 4; x.strokeStyle = INK; x.beginPath(); x.arc(c, c, R, 0, 7); x.stroke();
+    x.lineWidth = 2; x.strokeStyle = type === "boss" ? "#b02a1a" : rgba(lt(base, .5), .8); x.beginPath(); x.arc(c, c, R - 5, 0, 7); x.stroke();
+    x.lineWidth = 1.2; x.strokeStyle = rgba(INK, .6); x.beginPath(); x.arc(c, c, R - 8, 0, 7); x.stroke();
+    if (type === "boss") for (let i = 0; i < 12; i++) { const a = i * Math.PI / 6; shade(x, P([[c + Math.cos(a - .12) * R, c + Math.sin(a - .12) * R], [c + Math.cos(a) * (R + 11), c + Math.sin(a) * (R + 11), 1], [c + Math.cos(a + .12) * R, c + Math.sin(a + .12) * R]], true), "#2a1a1a", { ol: 1.4, d: .6 }); }
+  }
+  x.save(); x.translate(c, c); x.lineCap = x.lineJoin = "round";
+  switch (type) {
+    case "combat": { for (const s of [-1, 1]) drawWeapon(x, "espadon", 2, [s * 15, 22], Math.PI + s * .62, {}); break; }
+    case "elite": {
+      for (const s of [-1, 1]) { x.save(); x.rotate(s * .7); shade(x, seg([0, -26], [0, 26], 5, 5), MAT.bone, { ol: 1.6, d: 1 }); for (const e of [-26, 26]) shade(x, circ(0, e, 4.5), MAT.bone, { ol: 1.4, d: .8 }); x.restore(); }
+      shade(x, skullPath(0, -2, 17), MAT.bone, { d: 2.5 }); x.fillStyle = INK; for (const dx of [-6, 6]) { x.beginPath(); x.ellipse(dx, -4, 4.4, 5, 0, 0, 7); x.fill(); }
+      x.save(); x.globalCompositeOperation = "lighter"; for (const dx of [-6, 6]) glow(x, dx, -4, 7, "#ff4a2a", .8); x.restore();
+      x.beginPath(); x.moveTo(0, 2); x.lineTo(-2.5, 7); x.lineTo(2.5, 7); x.closePath(); x.fill(); for (let i = -2; i <= 2; i++) x.fillRect(i * 3.2 - 1, 10, 2, 5);
+      break;
+    }
+    case "event": {
+      x.save(); x.globalCompositeOperation = "lighter"; glow(x, 0, 0, 34, "#b48cff", .35); x.restore();
+      const eye = P([[-26, 0], [0, -15], [26, 0], [0, 15]], true, .5); shade(x, eye, "#efe6d4", { d: 2 });
+      x.save(); x.clip(eye); const ig = x.createRadialGradient(0, 0, 1, 0, 0, 11); ig.addColorStop(0, "#e8d0ff"); ig.addColorStop(.5, "#8a4ad0"); ig.addColorStop(1, "#2a1040"); x.fillStyle = ig; x.beginPath(); x.arc(0, 0, 11, 0, 7); x.fill(); x.fillStyle = INK; x.beginPath(); x.ellipse(0, 0, 2.6, 8, 0, 0, 7); x.fill(); x.restore();
+      dot(x, 4, -4, 2, "rgba(255,255,255,.9)"); x.lineWidth = 3; x.strokeStyle = INK; x.stroke(eye);
+      break;
+    }
+    case "treasure": {
+      const w = 26, h = 16; shade(x, P([[-w, -2, 1], [w, -2, 1], [w, h, 1], [-w, h, 1]], true), "#6a3e1a", { d: 2.5 });
+      shade(x, P([[-w, -2, 1], [-w, -12], [0, -20], [w, -12], [w, -2, 1]], true, .6), "#7a4a20", { d: 2 });
+      for (const dx of [-16, 16]) shade(x, P([[dx - 3, -17, 1], [dx + 3, -17, 1], [dx + 3, h, 1], [dx - 3, h, 1]], true), MAT.gold, { ol: 1.4, d: 1 });
+      shade(x, P([[-w, -3, 1], [w, -3, 1], [w, 1, 1], [-w, 1, 1]], true), MAT.gold, { ol: 1.2, d: .6 });
+      shade(x, P([[-5, -6, 1], [5, -6, 1], [5, 6, 1], [-5, 6, 1]], true), MAT.gold, { ol: 1.4, d: 1 }); x.fillStyle = INK; x.fillRect(-1, -2, 2, 5);
+      x.save(); x.globalCompositeOperation = "lighter"; glow(x, 0, -14, 20, "#ffd27a", .45); x.restore();
+      break;
+    }
+    case "camp": {
+      for (const s of [-1, 1]) { x.save(); x.rotate(s * .45); shade(x, seg([-24, 14], [24, 14], 8, 8), "#5a3a1e", { d: 1.5 }); x.restore(); }
+      for (let i = 0; i < 7; i++) { const a = i * .9; shade(x, ell(Math.cos(a) * 22, 20 + Math.sin(a) * 4, 6, 4), "#6a6460", { ol: 1.2, d: 1 }); }
+      x.save(); x.globalCompositeOperation = "lighter"; glow(x, 0, -4, 34, "#ff8a2a", .55);
+      const fl = (s, h, col) => { x.fillStyle = col; x.beginPath(); x.moveTo(-s, 12); x.bezierCurveTo(-s * 1.3, -h * .3, -s * .2, -h * .6, 0, -h); x.bezierCurveTo(s * .3, -h * .55, s * 1.3, -h * .3, s, 12); x.closePath(); x.fill(); };
+      fl(14, 30, "#ff6a1a"); fl(9, 22, "#ffb03a"); fl(4.5, 13, "#fff0b0"); x.restore();
+      break;
+    }
+    case "shop": {
+      shade(x, P([[-16, 18], [-20, 2], [-12, -12], [-4, -16], [4, -16], [12, -12], [20, 2], [16, 18]], true, .5), "#7a5a34", { d: 2.5 });
+      x.lineWidth = 3; x.strokeStyle = "#3a2410"; x.beginPath(); x.moveTo(-10, -12); x.quadraticCurveTo(0, -7, 10, -12); x.stroke();
+      for (const [dx, dy] of [[-20, 16], [-12, 22], [16, 20], [22, 14]]) { shade(x, ell(dx, dy, 8, 3.6), MAT.gold, { ol: 1.3, d: 1 }); x.fillStyle = rgba("#ffffff", .35); x.fillRect(dx - 3, dy - 1.5, 4, 1); }
+      x.save(); x.globalCompositeOperation = "lighter"; glow(x, 0, 6, 26, "#ffd27a", .3); x.restore();
+      break;
+    }
+    case "boss": {
+      x.save(); x.globalCompositeOperation = "lighter"; glow(x, 0, 0, 40, "#ff3a1a", .45); x.restore();
+      const cr = poly([[-24, 14], [-26, -12], [-14, 0], [-8, -20], [0, -4], [8, -20], [14, 0], [26, -12], [24, 14]]);
+      shade(x, cr, MAT.gold, { grad: metalGrad(x, MAT.gold, -24, -20, 24, 14), d: 2.5 });
+      shade(x, P([[-25, 10, 1], [25, 10, 1], [25, 18, 1], [-25, 18, 1]], true), dk(MAT.gold, .1), { ol: 1.6, d: 1 });
+      for (const [dx, col] of [[-14, "#c02a3a"], [0, "#2a8ad0"], [14, "#c02a3a"]]) shade(x, circ(dx, 14, 3.2), col, { ol: 1, hi: .7 });
+      for (const dx of [-26, -8, 8, 26]) shade(x, circ(dx * .96, dx === -26 || dx === 26 ? -12 : -20, 2.6), "#f0e8d0", { ol: 1 });
+      break;
+    }
+    case "pawn": { // fanion du groupe planté sur la carte
+      x.translate(-10, 6);
+      shade(x, seg([0, 50], [0, -50], 3.6, 3), MAT.dwood, { d: 1 });
+      shade(x, circ(0, -52, 4.2), MAT.gold, { ol: 1.2, d: .8 });
+      const fl = P([[2, -46, 1], [46, -38], [32, -26], [46, -14], [2, -10, 1]], true, .25); shade(x, fl, "#8a1a14", { grad: lgrad(x, 2, -46, 46, -10, [[0, "#a82a1a"], [1, "#5a0e0a"]]), d: 2 });
+      x.save(); x.clip(fl); x.strokeStyle = MAT.gold; x.lineWidth = 2; x.stroke(fl); x.restore(); x.lineWidth = 2.2; x.strokeStyle = INK; x.stroke(fl);
+      shade(x, poly([[16, -34], [22, -34], [22, -30], [26, -30], [26, -26], [22, -26], [22, -18], [16, -18], [16, -26], [12, -26], [12, -30], [16, -30]]), "#e8c878", { ol: 1, d: .5 });
+      x.fillStyle = "rgba(0,0,0,.35)"; x.beginPath(); x.ellipse(2, 52, 12, 4, 0, 0, 7); x.fill();
+      break;
+    }
+  }
+  x.restore();
+  return TOKEN_ART[type] = cv.toDataURL();
+}
 /* ═══════════════════════ Son : effets synthétisés et musique d'ambiance ═══════════════════════ */
 const SND = { ctx: null, master: null, music: null, sfx: null, noise: null, mTimer: null, mOn: false };
 function audioInit() {
@@ -4001,6 +4228,8 @@ const IC = {
   sound: "M4 9h4l5-4v14l-5-4H4zM16 8a5 5 0 0 1 0 8M19 5a9 9 0 0 1 0 14",
   music: "M9 18V5l11-2v13M9 18a3 3 0 1 1-3-3 3 3 0 0 1 3 3zM20 16a3 3 0 1 1-3-3 3 3 0 0 1 3 3z",
   install: "M12 3v12M7 10l5 5 5-5M4 21h16",
+  link: "M9 15l6-6M10 6.5l1.5-1.5a4 4 0 0 1 5.6 5.6L15.5 12M8.5 12L7 13.5a4 4 0 0 0 5.6 5.6L14 17.5",
+  bag: "M6 8h12l1 12H5zM9 8V6a3 3 0 0 1 6 0v2",
   dice: "M4 4h16v16H4zM8 8h.01M16 16h.01M12 12h.01M16 8h.01M8 16h.01",
   swap: "M7 4L3 8l4 4M3 8h14M17 20l4-4-4-4M21 16H7",
   info: "M12 22a10 10 0 1 0 0-20 10 10 0 0 0 0 20zM12 16v-5M12 8h.01",
@@ -4132,6 +4361,15 @@ function paintPet(c, id, evo) { const x = c.getContext("2d"); const sp = petSpri
 function paintMon(c, key) { const x = c.getContext("2d"); const big = (MONSTERS[key].sz || 1) > 1; const sp = monSprite(key, {}, 0, c.width / (big ? 330 : 250)); x.save(); x.translate(c.width / 2, 0); x.scale(-1, 1); x.drawImage(sp, -sp.ax, c.height - 6 - sp.ay); x.restore(); }
 function roleTag(role) { const R = ROLES[role]; return `<span class="tag" style="color:${R.c}">${ico(R.ic, R.c)}${R.n}</span>`; }
 function rankPips(use, at) { let s = '<span class="pips" title="Rangs">'; for (let r = 4; r >= 1; r--) s += `<i class="${use && use.includes(r) ? "y" : ""}"></i>`; s += "</span>"; if (at) { s += ' <span class="pips" title="Cibles">'; for (let r = 1; r <= 4; r++) s += `<i class="${at.includes(r) ? "t" : ""}"></i>`; s += "</span>"; } return s; }
+// synergies : actives (dorées) et à portée de main (une classe manque et elle est dans la caserne)
+function synergyNeedText(Y) { if (Y.tanks) return Y.tanks + " tanks"; if (Y.roles) return Y.roles.map(r => ROLES[r].n).join(" + "); return Y.need.map(g => g.map(c => CLASSES[c].n).join(" ou ")).join(" + "); }
+function synergyHTML(classes, roster) {
+  const act = activeSynergies(classes);
+  const near = roster ? Object.keys(SYNERGIES).filter(k => !act.includes(k) && SYNERGIES[k].need && SYNERGIES[k].need.filter(g => !g.some(c => classes.includes(c))).length === 1 && SYNERGIES[k].need.some(g => !g.some(c => classes.includes(c)) && g.some(c => roster.includes(c)))).slice(0, 3) : [];
+  if (!act.length && !near.length) return "";
+  return `<div class="syn">${act.map(k => `<div class="synr on" data-a="synInfo" data-v="${k}">${ico("link", "#e8c878", 14)}<b>${SYNERGIES[k].n}</b><span class="tiny">${SYNERGIES[k].d}</span></div>`).join("")}${near.map(k => `<div class="synr" data-a="synInfo" data-v="${k}">${ico("link", "#7a6a5a", 14)}<b>${SYNERGIES[k].n}</b><span class="tiny dim">Il manque : ${SYNERGIES[k].need.filter(g => !g.some(c => classes.includes(c))).map(g => g.map(c => CLASSES[c].n).join(" ou ")).join(", ")}</span></div>`).join("")}</div>`;
+}
+ACT.synInfo = k => { const Y = SYNERGIES[k]; toast(`<b>${Y.n}</b> <span class="tiny dim">(${synergyNeedText(Y)})</span><br><span class="small">${Y.d}</span>`); };
 // description automatique d'une compétence
 function skillText(sk, u) {
   const out = [], t = sk.t || "e";
@@ -4200,12 +4438,12 @@ SCREENS.newgame = {
       const pets = NG.pets;
       return `<div class="wrap"><h1 style="text-align:center;margin-top:10px">Votre premier compagnon</h1><p class="lore" style="text-align:center">Trois bêtes ont suivi vos traces jusqu'aux portes du Bastion. Une seule vous accompagnera : elle combattra à vos côtés, gagnera en puissance et pourra évoluer.</p>
       <div class="row" style="justify-content:center;gap:8px">${ngRollTag(NG.petRolls)}<button class="btn ghost sm" data-a="ngPetRoll" ${NG.petRolls ? "" : "disabled"}>${ico("dice")}Autres bêtes</button></div>
-      <div class="grid ctr" style="--min:200px;margin-top:12px">${pets.map(k => { const P = PETS[k]; return `<div class="card ${NG.pet === k ? "sel" : ""}" data-a="ngPet" data-v="${k}" style="text-align:center">${canvasSlot("pet:" + k, 200, 150)}<h3>${P.n}</h3>${roleTag(P.role)}<p class="small dim">${P.d}</p><p class="tiny">${P.sk.map(s => "<b>" + s.n + "</b>").join(" · ")}</p></div>`; }).join("")}</div>
+      <div class="grid ctr" style="--min:200px;margin-top:12px">${pets.map(k => { const P = PETS[k]; return `<div class="card ${NG.pet === k ? "sel" : ""}" data-a="ngPet" data-v="${k}" style="text-align:center">${canvasSlot("pet:" + k, 200, 150)}<h3>${P.n}</h3>${roleTag(P.role)}<p class="small dim">${P.d}</p><p class="tiny">${P.sk.map(s => "<b>" + s.n + "</b>").join(" · ")}</p><button class="btn ghost sm" data-a="ngPetInfo" data-v="${k}">${ico("info")}Compétences</button></div>`; }).join("")}</div>
       <div class="stickybar"><button class="btn main glow" data-a="ngNext">Choisir ${PETS[NG.pet].n}</button></div></div>`;
     }
     return `<div class="wrap"><h1 style="text-align:center;margin-top:10px">Votre compagnie</h1><p class="lore" style="text-align:center">Quatre âmes ont répondu à l'appel, au hasard des routes : un rempart, un soigneur et deux lames. Les autres viendront à la Taverne.</p>
       <div class="row" style="justify-content:center;gap:8px">${ngRollTag(NG.rolls)}<button class="btn ghost sm" data-a="ngRollAll" ${NG.rolls ? "" : "disabled"}>${ico("dice")}Tout relancer</button></div>
-      <div class="grid ctr" style="--min:180px;margin-top:12px">${NG.heroes.map((h, i) => { const C = CLASSES[h.cls]; return `<div class="card" style="text-align:center">${canvasSlot("hero:" + i, 170, 212)}<h3>${esc(h.name)}</h3><div class="row" style="justify-content:center">${roleTag(C.role)}<span class="tag">${C.n}</span></div><p class="tiny lore" style="margin:4px 0">${C.lore}</p><p class="tiny dim">${h.traits.map(t => `<span class="${TRAITS[t].good ? "good" : "bad"}">${TRAITS[t].n}</span>`).join(" · ")}</p><button class="btn ghost sm" data-a="ngReroll" data-v="${i}" ${NG.rolls ? "" : "disabled"}>${ico("dice")}Autre recrue</button></div>`; }).join("")}</div>
+      <div class="grid ctr" style="--min:180px;margin-top:12px">${NG.heroes.map((h, i) => { const C = CLASSES[h.cls]; return `<div class="card" style="text-align:center">${canvasSlot("hero:" + i, 170, 212)}<h3>${esc(h.name)}</h3><div class="row" style="justify-content:center">${roleTag(C.role)}<span class="tag">${C.n}</span></div><p class="tiny lore" style="margin:4px 0">${C.lore}</p><p class="tiny dim">${h.traits.map(t => `<span class="${TRAITS[t].good ? "good" : "bad"}">${TRAITS[t].n}</span>`).join(" · ")}</p><div class="row" style="justify-content:center;gap:4px"><button class="btn ghost sm" data-a="ngInfo" data-v="${i}">${ico("info")}Détails</button><button class="btn ghost sm" data-a="ngReroll" data-v="${i}" ${NG.rolls ? "" : "disabled"}>${ico("dice")}Autre recrue</button></div></div>`; }).join("")}</div>
       <div class="panel" style="padding:12px;margin-top:14px"><label class="row" style="cursor:pointer"><input type="checkbox" id="ng-hard" ${NG.hard ? "checked" : ""}> <b>Mode Hardi</b> <span class="small dim">— les héros tombés meurent pour de bon. Pour les vétérans.</span></label></div>
       <div class="stickybar"><button class="btn ghost" data-a="ngBack">Retour</button><button class="btn main glow" data-a="ngStart">${ico("castle")}Entrer au Bastion</button></div></div>`;
   },
@@ -4218,6 +4456,9 @@ ACT.ngNext = () => { NG.step++; refresh(); };
 ACT.ngBack = () => { NG.step = 1; refresh(); };
 ACT.ngPet = v => { NG.pet = v; refresh(); };
 ACT.ngReroll = i => { if (!NG.rolls) return; i = +i; NG.rolls--; const c = rollStartClass(i, NG.cls.filter((_, j) => j !== i).concat(NG.cls[i])); NG.cls[i] = c; NG.heroes[i] = makeHero(c); sfx("coin"); refresh(); };
+ACT.ngInfo = i => heroSheet(NG.heroes[+i], `<div class="row" style="justify-content:flex-end;margin-top:12px"><button class="btn main" data-a="closeModal">Fermer</button></div>`);
+ACT.ngPetInfo = (k, el, e) => { e && e.stopPropagation(); petSheet(k, `<div class="row" style="justify-content:flex-end;gap:6px;margin-top:12px"><button class="btn ghost" data-a="closeModal">Fermer</button><button class="btn main" data-a="ngPetPick" data-v="${k}">Choisir ${PETS[k].n}</button></div>`); };
+ACT.ngPetPick = k => { NG.pet = k; closeModal(); refresh(); };
 ACT.ngRollAll = () => { if (!NG.rolls) return; NG.rolls--; NG.cls = rollStartParty(); NG.heroes = NG.cls.map(c => makeHero(c)); sfx("coin"); refresh(); };
 ACT.ngPetRoll = () => { if (!NG.petRolls) return; NG.petRolls--; const old = NG.pets; let pool = PET_IDS.filter(p => PETS[p].starter && !old.includes(p)); RNG.shuffle(pool); NG.pets = pool.concat(RNG.shuffle(old.slice())).slice(0, 3); NG.pet = NG.pets[0]; sfx("coin"); refresh(); };
 ACT.ngStart = () => {
@@ -4361,7 +4602,7 @@ function openBuilding(k, tab) {
   UI.bldTab = tab || UI.bldTab || "";
   if (k === "taverne") {
     body = `<p class="lore">Une odeur de bière tiède et de sang séché. Des âmes perdues attendent un capitaine.</p><p class="small">Caserne : <b>${S.heroes.length}/${rosterMax()}</b> héros.</p>
-    <div class="grid" style="--min:170px">${S.recruits.map((h, i) => { const C = CLASSES[h.cls], c = recruitPrice(i); return `<div class="card" style="text-align:center">${canvasSlot("r:" + i, 150, 188)}<h3 style="margin:2px 0">${esc(h.name)}</h3><div class="row" style="justify-content:center;gap:4px">${roleTag(C.role)}<span class="tag">${h.evo ? CLASSES[h.cls].evos[h.evo].n : C.n} · niv ${h.lvl}</span></div><p class="tiny" style="min-height:30px">${h.traits.map(t => `<span class="${TRAITS[t].good ? "good" : "bad"}" title="${TRAITS[t].d}">${TRAITS[t].n}</span>`).join(" · ")}</p><button class="btn ${c === 0 ? "main" : ""} sm" data-a="recruit" data-v="${i}">${c === 0 ? "Gratuit" : c + " " + ico("coin", "#e8c060")}</button></div>`; }).join("") || '<div class="empty">Plus personne. Revenez après une expédition.</div>'}</div>
+    <div class="grid" style="--min:170px">${S.recruits.map((h, i) => { const C = CLASSES[h.cls], c = recruitPrice(i); return `<div class="card" style="text-align:center">${canvasSlot("r:" + i, 150, 188)}<h3 style="margin:2px 0">${esc(h.name)}</h3><div class="row" style="justify-content:center;gap:4px">${roleTag(C.role)}<span class="tag">${h.evo ? CLASSES[h.cls].evos[h.evo].n : C.n} · niv ${h.lvl}</span></div><p class="tiny" style="min-height:30px;margin-bottom:2px">${h.traits.map(t => `<span class="${TRAITS[t].good ? "good" : "bad"}" title="${TRAITS[t].d}">${TRAITS[t].n}</span>`).join(" · ")}</p><div class="tiny dim" style="margin-bottom:6px">${h.skills.map(k => skillDef(h, k).n).join(" · ")}</div><div class="row" style="justify-content:center;gap:4px"><button class="btn ghost sm" data-a="recruitInfo" data-v="${i}">${ico("info")}Détails</button><button class="btn ${c === 0 ? "main" : ""} sm" data-a="recruit" data-v="${i}">${c === 0 ? "Gratuit" : c + " " + ico("coin", "#e8c060")}</button></div></div>`; }).join("") || '<div class="empty">Plus personne. Revenez après une expédition.</div>'}</div>
     <div class="row" style="margin-top:10px"><button class="btn ghost sm" data-a="reroll">${ico("dice")}Nouvelles recrues (${40 + S.bld.taverne * 20} or)</button><span class="small dim">Les recrues changent après chaque expédition. Classes débloquées : ${CLASS_IDS.filter(classUnlocked).length}/${CLASS_IDS.length}.</span></div>`;
   }
   if (k === "forge") {
@@ -4388,7 +4629,7 @@ function openBuilding(k, tab) {
     ${evo.length ? `<h3>Prêts à évoluer</h3>${evo.map(h => `<div class="row sp card" data-go="hero" data-arg="${h.id}">${canvasSlot("h:" + h.id, 56, 56)}<div style="flex:1"><b>${esc(h.name)}</b> <span class="small dim">· ${CLASSES[h.cls].n} niv ${h.lvl}</span><div class="small gold">Peut devenir ${Object.values(CLASSES[h.cls].evos).map(e => e.n).join(" ou ")}</div></div>${ico("up", "#e8c878")}</div>`).join("")}` : `<p class="small dim">Au niveau ${EVO_LVL}, chaque héros choisit une voie : deux évolutions par classe, chacune avec ses compétences, son ultime et son apparence. Au niveau ${APEX_LVL}, il atteint son apogée.</p>`}`;
   }
   if (k === "menagerie") {
-    body = `<p class="lore">Grognements, plumes et yeux luisants dans le noir. Un seul compagnon vous suit en expédition.</p><div class="grid" style="--min:200px">${PET_IDS.map(id => { const P = PETS[id], own = S.pets.owned.includes(id), un = petUnlocked(id), ev = petEvolved(id), l = petLvl(id); return `<div class="card ${S.pet === id ? "sel" : ""} ${!un ? "lock" : ""}" style="text-align:center;cursor:default">${canvasSlot("p:" + id + ":" + (ev ? 1 : 0), 170, 120)}<h3 style="margin:0">${petName(id)}</h3><div class="row" style="justify-content:center;gap:4px">${roleTag(P.role)}${own ? `<span class="tag">niv ${l}</span>` : ""}</div><p class="tiny dim" style="min-height:32px">${ev ? P.evo.d : P.d}</p>${own ? `<div class="bar xp" style="margin:4px 0"><i style="width:${l >= 20 ? 100 : 100 * (S.pets.xp[id] || 0) / petXpNeed(l)}%"></i></div>` + (S.pet === id ? '<span class="tag gold">Compagnon actif</span>' : `<button class="btn sm" data-a="setPet" data-v="${id}">Emmener</button>`) + (!ev && l >= PET_EVO_LVL ? ` <button class="btn gold sm" data-a="evoPet" data-v="${id}">${ico("star")}Évoluer</button>` : "") : un ? `<button class="btn sm" data-a="adopt" data-v="${id}">Adopter · ${P.cost} ${ico("coin", "#e8c060")}</button>` : `<span class="tiny dim">${ico("lock", "#9a8c7a", 12)} Chapitre ${P.unlock} requis</span>`}</div>`; }).join("")}</div><p class="small dim">Évolution au niveau ${PET_EVO_LVL} : 600 or, 4 essences, 1 éclat. Capacité : ${S.bld.menagerie + 2} compagnons.</p>`;
+    body = `<p class="lore">Grognements, plumes et yeux luisants dans le noir. Un seul compagnon vous suit en expédition.</p><div class="grid" style="--min:200px">${PET_IDS.map(id => { const P = PETS[id], own = S.pets.owned.includes(id), un = petUnlocked(id), ev = petEvolved(id), l = petLvl(id); return `<div class="card ${S.pet === id ? "sel" : ""} ${!un ? "lock" : ""}" style="text-align:center;cursor:default">${canvasSlot("p:" + id + ":" + (ev ? 1 : 0), 170, 120)}<h3 style="margin:0">${petName(id)}</h3><div class="row" style="justify-content:center;gap:4px">${roleTag(P.role)}${own ? `<span class="tag">niv ${l}</span>` : ""}</div><p class="tiny dim" style="min-height:32px">${ev ? P.evo.d : P.d}</p><button class="btn ghost sm" data-a="petInfo" data-v="${id}" style="margin-bottom:4px">${ico("info")}Compétences</button><br>${own ? `<div class="bar xp" style="margin:4px 0"><i style="width:${l >= 20 ? 100 : 100 * (S.pets.xp[id] || 0) / petXpNeed(l)}%"></i></div>` + (S.pet === id ? '<span class="tag gold">Compagnon actif</span>' : `<button class="btn sm" data-a="setPet" data-v="${id}">Emmener</button>`) + (!ev && l >= PET_EVO_LVL ? ` <button class="btn gold sm" data-a="evoPet" data-v="${id}">${ico("star")}Évoluer</button>` : "") : un ? `<button class="btn sm" data-a="adopt" data-v="${id}">Adopter · ${P.cost} ${ico("coin", "#e8c060")}</button>` : `<span class="tiny dim">${ico("lock", "#9a8c7a", 12)} Chapitre ${P.unlock} requis</span>`}</div>`; }).join("")}</div><p class="small dim">Évolution au niveau ${PET_EVO_LVL} : 600 or, 4 essences, 1 éclat. Capacité : ${S.bld.menagerie + 2} compagnons.</p>`;
   }
   if (k === "fonderie") {
     const b = idleBank();
@@ -4559,6 +4800,50 @@ ACT.gearSlot = v => {
   <h3 style="margin-top:10px">Inventaire</h3>${items.length ? items.map(it => `<div class="row card" data-a="equipTo" data-v="${it.id}:${h.id}">${slotHTML(it, "itemInfo", it.id)}<div style="flex:1"><b class="rar${it.rar}">${gearName(it)}</b><div class="tiny">${itemLine(it)}</div></div></div>`).join("") : '<div class="empty small">Rien à équiper ici. Forgez ou explorez.</div>'}`);
 };
 ACT.unequip = v => { const [id, slot] = v.split(":"); unequip(heroById(id), slot); save(); closeModal(); refresh(); };
+// ── fiches de consultation : héros à recruter ou à choisir, compagnons ──
+function heroSheetHTML(h, foot = "") {
+  const C = CLASSES[h.cls], st = heroStats(h), ult = heroUlt(h);
+  const skl = (k, sk, on) => `<div class="skl ${on ? "on" : ""}" style="cursor:default">${ico(sk.ic, on ? "#e8c878" : "#9a8c7a")}<div style="flex:1;min-width:0"><div class="row sp"><b>${sk.n}</b><span>${rankPips(sk.use, sk.t === "e" || sk.t === "ae" ? sk.at : null)}</span></div><div class="tiny">${skillText(sk)}</div></div></div>`;
+  return `<div class="row" style="gap:12px;flex-wrap:wrap;align-items:flex-start">
+    <div style="flex:0 0 auto;margin:0 auto;text-align:center">${canvasSlot("sheet", 150, 188)}</div>
+    <div style="flex:1;min-width:220px">
+      <h2 style="margin:0">${esc(h.name)}</h2>
+      <div class="row" style="gap:4px;margin:4px 0">${roleTag(C.role)}<span class="tag gold">${heroTitle(h)}</span><span class="tag">Niveau ${h.lvl}</span></div>
+      <p class="lore small" style="margin:4px 0">${C.lore}</p>
+      <div class="col" style="gap:2px">${h.traits.map(t => `<div class="tiny"><b class="${TRAITS[t].good ? "good" : "bad"}">${TRAITS[t].n}</b> — ${TRAITS[t].d}</div>`).join("")}</div>
+      <div class="statgrid" style="margin-top:8px"><div>PV <b>${st.hp}</b></div><div>Dégâts <b>${st.dmgLo}–${st.dmgHi}</b></div><div>Protection <b>${Math.round(st.prot * 100)} %</b></div><div>Vitesse <b>${st.spd}</b></div><div>Critique <b>${Math.round(st.crit)} %</b></div><div>Esquive <b>${Math.round(st.dodge)}</b></div></div>
+      <p class="tiny dim" style="margin:6px 0 0">Rangs préférés : ${C.rk.join(", ")} · Armure ${C.armor}</p>
+    </div></div>
+    <h3 style="margin-top:12px">Compétences <span class="tiny dim" style="font-family:var(--f-body)">— en doré, les 4 équipées au départ</span></h3>
+    <div class="col">${heroSkillPool(h).map(k => skl(k, skillDef(h, k), h.skills.includes(k))).join("")}</div>
+    <div class="skl" style="margin-top:6px;border-color:#a05a2a;cursor:default">${ico(ult.ic, "#ff9a4a")}<div><b>Ultime : ${ult.n}</b><div class="tiny">${skillText(ult)}</div></div></div>
+    ${h.evo ? "" : `<h3 style="margin-top:12px">Évolutions au niveau ${EVO_LVL}</h3><div class="grid" style="--min:220px">${Object.values(C.evos).map(E => `<div class="card" style="cursor:default"><b class="gold">${E.n}</b><p class="tiny lore" style="margin:2px 0">${E.d}</p><div class="tiny">${pasText(E.pas)}</div><div class="tiny dim" style="margin-top:3px">Compétences : ${Object.values(E.skills).map(s => s.n).join(", ")} · Ultime : ${E.ult.n}</div></div>`).join("")}</div>`}
+    ${foot}`;
+}
+function heroSheet(h, foot) { modal(heroSheetHTML(h, foot), { wide: 1, mount: m => fillCanvases(m, c => paintHero(c, h, true)) }); }
+function petSkillText(s) {
+  const out = [], tg = { low: "l'allié le plus blessé", aa: "tout le groupe", e: "un ennemi", ae: "les ennemis visés" }[s.t] || "";
+  if (s.m) out.push(`Dégâts ${Math.round(s.m * 100)} % sur ${tg}`);
+  if (s.heal) out.push(`Soigne ${tg} de ${Math.round(s.heal * 100)} %`);
+  if (s.regen) out.push(`Régénération ${Math.round(s.regen * 100)} %`);
+  if (s.shield) out.push(`Bouclier ${Math.round(s.shield * 100)} % sur ${tg}`);
+  if (s.leechLow) out.push(`Soigne l'allié le plus blessé de ${Math.round(s.leechLow * 100)} % des dégâts`);
+  if (s.cleanse1) out.push("Purge une altération");
+  if (s.light) out.push(`+${s.light} lueur`);
+  if (s.cr) out.push(`+${s.cr} % critique`);
+  const fx = skillText({ t: s.t === "low" ? "a" : s.t, fx: s.fx, afx: s.afx });
+  if (fx) out.push(fx);
+  if (s.at && !s.m && !s.fx) out.push(`sur ${tg}`);
+  return out.join(" · ") + (s.every ? ` · tous les ${s.every} tours` : " · chaque tour");
+}
+function petSheet(id, foot = "") {
+  const P = PETS[id];
+  modal(`<div class="row" style="gap:12px;flex-wrap:wrap"><div style="margin:0 auto">${canvasSlot("pet", 200, 150)}</div><div style="flex:1;min-width:220px"><h2 style="margin:0">${P.n}</h2><div class="row" style="gap:4px;margin:4px 0">${roleTag(P.role)}${P.gold ? `<span class="tag gold">+${Math.round(P.gold * 100)} % d'or</span>` : ""}</div><p class="lore small">${P.d}</p><p class="tiny dim">Le compagnon agit seul à la fin de chaque tour. Il gagne des niveaux avec le groupe et évolue au niveau ${PET_EVO_LVL}.</p></div></div>
+    <h3 style="margin-top:10px">Compétences</h3><div class="col">${P.sk.map(s => `<div class="skl" style="cursor:default">${ico(s.m ? "claw" : s.heal ? "heal" : s.shield ? "shield" : "star", "#e8c878")}<div><b>${s.n}</b><div class="tiny">${petSkillText(s)}</div></div></div>`).join("")}</div>
+    <h3 style="margin-top:10px">Évolution : ${P.evo.n}</h3><p class="tiny lore">${P.evo.d}</p><div class="skl" style="cursor:default;border-color:#a05a2a">${ico("star", "#ff9a4a")}<div><b>${P.evo.sk.n}</b><div class="tiny">${petSkillText(Object.assign({ every: 2 }, P.evo.sk))}</div></div></div>${foot}`, { wide: 1, mount: m => fillCanvases(m, c => paintPet(c, id, 0)) });
+}
+ACT.petInfo = (id, el, e) => { e && e.stopPropagation(); petSheet(id, `<div class="row" style="justify-content:flex-end;margin-top:10px"><button class="btn" data-a="bld" data-v="menagerie">Retour à la Ménagerie</button></div>`); };
+ACT.recruitInfo = (i, el, e) => { e && e.stopPropagation(); const h = S.recruits[+i]; if (!h) return; const c = recruitPrice(+i); heroSheet(h, `<div class="row" style="justify-content:flex-end;gap:6px;margin-top:12px"><button class="btn ghost" data-a="bld" data-v="taverne">Retour</button><button class="btn main" data-a="recruit" data-v="${i}">Recruter · ${c === 0 ? "gratuit" : c + " or"}</button></div>`); };
 /* ═══════════════════════ Expéditions : préparation, carte, salles, bilan ═══════════════════════ */
 function regionThumb(c, id) { const x = c.getContext("2d"); const bg = paintRegion(id, 640, 360); x.drawImage(bg, 0, 0, c.width, c.height); const g = x.createLinearGradient(0, c.height * .4, 0, c.height); g.addColorStop(0, "rgba(0,0,0,0)"); g.addColorStop(1, "rgba(0,0,0,.85)"); x.fillStyle = g; x.fillRect(0, 0, c.width, c.height); }
 function autoParty() {
@@ -4588,6 +4873,7 @@ SCREENS.expe = {
     <h2 style="margin-top:14px">Ordre de marche</h2><p class="tiny dim" style="margin-top:-4px">Le rang 1 est en première ligne, face à l'ennemi. Touchez un héros pour l'ajouter ou le retirer, et une flèche pour changer son rang.</p>
     <div class="partyrow">${[3, 2, 1, 0].map(i => { const h = heroById(E.party[i]); return `<div class="card" style="text-align:center;padding:6px 3px" data-a="${h ? "unparty" : ""}" data-v="${i}"><div class="tiny gold">Rang ${i + 1}</div>${h ? canvasSlot("pt:" + h.id, 96, 120) + `<div class="tiny"><b>${esc(h.name.split(" ")[0])}</b></div><div class="tiny dim">${CLASSES[h.cls].n} ${h.lvl}</div>${isInjured(h) ? '<div class="tiny bad">Blessé (50 % PV)</div>' : ""}<div class="row" style="justify-content:center;gap:2px;margin-top:3px"><button class="btn ghost sm" data-a="mvParty" data-v="${i}:1" ${i >= 3 || !E.party[i + 1] ? "disabled" : ""}>◀</button><button class="btn ghost sm" data-a="mvParty" data-v="${i}:-1" ${i <= 0 ? "disabled" : ""}>▶</button></div>` : '<div class="empty" style="padding:40px 4px">vide</div>'}</div>`; }).join("")}</div>
     ${warn.length ? `<div class="small bad" style="text-align:center">${warn.join("<br>")}</div>` : ""}
+    ${synergyHTML(E.party.map(id => heroById(id).cls), S.heroes.filter(h => !E.party.includes(h.id)).map(h => h.cls))}
     <div class="row" style="gap:6px;margin-top:8px">${S.heroes.filter(h => !E.party.includes(h.id)).map(h => `<div class="card" style="padding:4px 8px" data-a="addParty" data-v="${h.id}"><div class="row" style="gap:6px;flex-wrap:nowrap">${canvasSlot("ro:" + h.id, 40, 40)}<div class="tiny"><b>${esc(h.name.split(" ")[0])}</b><br><span class="dim">${CLASSES[h.cls].n} ${h.lvl}${isInjured(h) ? ' · <span class="bad">blessé</span>' : ""}</span></div></div></div>`).join("")}<button class="btn ghost sm" data-a="autoParty">${ico("auto")}Composition auto</button></div>
     <h2 style="margin-top:14px">Compagnon</h2><div class="row">${S.pets.owned.map(id => `<div class="card ${E.pet === id ? "sel" : ""}" style="padding:4px 10px;text-align:center" data-a="pickPet" data-v="${id}">${canvasSlot("pe:" + id, 90, 64)}<div class="tiny"><b>${petName(id)}</b> niv ${petLvl(id)}</div></div>`).join("")}</div>
     <div class="stickybar"><span class="small dim">${ico("potion", "#e86a5a", 16)} ${potionMax() - (E.region === "abime" && (S.abyss.oaths || []).includes("jeune") ? 1 : 0)} potions</span><button class="btn main glow" data-a="launch" ${E.party.length ? "" : "disabled"}>${ico("map")}Partir</button></div></div>`;
@@ -4631,22 +4917,23 @@ SCREENS.map = {
     const run = S.run; if (!run) return "";
     const port = SC.w < SC.h, cols = run.map.length, av = availableNodes(run);
     const W = port ? Math.min(SC.w - 20, 440) : Math.min(SC.w - 30, 980), H = port ? Math.max(460, SC.h - 300) : Math.min(SC.h - 230, 420);
-    const pos = n => port ? [n.x * W, H - 30 - n.c * (H - 60) / (cols - 1)] : [30 + n.c * (W - 60) / (cols - 1), n.x * H];
-    let lines = "";
-    for (const col of run.map) for (const n of col) for (const j of n.links) { const m = run.map[n.c + 1][j]; const [x1, y1] = pos(n), [x2, y2] = pos(m); const hot = run.pos && run.pos.c === n.c && run.pos.i === n.i; lines += `<line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" stroke="${hot ? "#e8c878" : n.visited ? "#7a5a3a" : "#4a3a30"}" stroke-width="${hot ? 3 : 2}" stroke-dasharray="${n.visited || hot ? "" : "5 6"}" opacity="${hot ? 1 : .7}"/>`; }
-    const nodes = run.map.flat().map(n => { const [x, y] = pos(n), T = NODE_T[n.type], isAv = av.includes(n), cur = run.pos && run.pos.c === n.c && run.pos.i === n.i; return `<div class="node ${n.type === "boss" ? "boss" : ""} ${isAv ? "av" : ""} ${n.visited && !cur ? "done" : ""} ${cur ? "cur" : ""}" style="left:${x}px;top:${y}px;border-color:${isAv ? T.c : ""}" ${isAv ? `data-a="node" data-v="${n.c}:${n.i}"` : ""} title="${T.n}">${ico(T.ic, T.c)}</div>`; }).join("");
+    const pos = n => port ? [24 + n.x * (W - 48), H - 40 - n.c * (H - 92) / (cols - 1)] : [46 + n.c * (W - 98) / (cols - 1), 18 + n.x * (H - 36)];
+    UI.mapPos = pos; UI.mapWH = [W, H];
+    const nodes = run.map.flat().map(n => { const [x, y] = pos(n), T = NODE_T[n.type], isAv = av.includes(n), cur = run.pos && run.pos.c === n.c && run.pos.i === n.i, art = mapToken(n.type); return `<div class="node ${n.type === "boss" ? "boss" : ""} ${isAv ? "av" : ""} ${n.visited && !cur ? "done" : ""} ${cur ? "cur" : ""}" style="left:${x}px;top:${y}px;--nc:${T.c}" ${isAv ? `data-a="node" data-v="${n.c}:${n.i}"` : ""} title="${T.n}">${art ? `<img src="${art}" alt="${T.n}">` : ico(T.ic, T.c)}${isAv ? `<span class="nlab">${T.n}</span>` : ""}</div>`; }).join("");
+    const cp = run.pos ? run.map[run.pos.c][run.pos.i] : null, pawn = cp ? pos(cp) : null, pawnArt = mapToken("pawn");
     const party = runParty();
     return `<div class="wrap" style="padding-top:4px">
       <div class="panel" style="padding:8px 10px"><div class="row sp"><div class="row" style="gap:10px">
         <span class="tag" title="Lueur : sous 30, les ennemis frappent plus fort mais le butin est meilleur">${ico("torch", run.light < 30 ? "#ff5a3a" : "#ffb050")}<span style="width:70px" class="bar"><i style="width:${run.light}%;background:linear-gradient(#ffd08a,#c0601a)"></i></span>${Math.round(run.light)}</span>
-        <span class="tag">${ico("potion", "#e86a5a")}${run.potions}</span><span class="tag">${ico("coin", "#e8c060")}${fmt(run.gold)}</span><span class="tag">${ico("chest", "#c8a070")}${run.loot.length}</span>
+        <span class="tag">${ico("potion", "#e86a5a")}${run.potions}</span><span class="tag">${ico("coin", "#e8c060")}${fmt(run.gold)}</span><span class="tag" style="cursor:pointer" data-a="runBag" title="Butin : voir et équiper">${ico("chest", "#c8a070")}${run.loot.length}</span>
       </div><button class="btn ghost sm" data-a="retreat">${ico("flee")}Rentrer</button></div>
+      ${runSynergies(run).length ? `<div class="row" style="gap:4px;margin-top:6px">${runSynergies(run).map(k => `<span class="tag gold" style="cursor:pointer" data-a="synInfo" data-v="${k}">${ico("link", "#e8c878")}${SYNERGIES[k].n}</span>`).join("")}</div>` : ""}
       ${run.relics.length ? `<div class="row" style="gap:4px;margin-top:6px">${run.relics.map(k => `<span class="tag" style="cursor:pointer" data-a="relicInfo" data-v="${k}" title="${RELICS[k].d}">${ico("gem", ["#c8beaa", "#6ab0ff", "#c87aff"][RELICS[k].r])}${RELICS[k].n}</span>`).join("")}</div>` : ""}</div>
-      <div class="mapwrap" style="width:${W}px;height:${H}px;margin-top:8px"><svg width="${W}" height="${H}" style="position:absolute;inset:0">${lines}</svg>${nodes}</div>
+      <div class="mapwrap" style="width:${W}px;height:${H}px;margin-top:8px"><canvas data-cv="mapbg" width="${Math.round(W * Math.min(2, devicePixelRatio || 1))}" height="${Math.round(H * Math.min(2, devicePixelRatio || 1))}" style="position:absolute;inset:0;width:${W}px;height:${H}px"></canvas>${nodes}${pawn && pawnArt ? `<img class="pawn" src="${pawnArt}" alt="" style="left:${pawn[0]}px;top:${pawn[1]}px">` : ""}</div>
       <div class="row" style="justify-content:center;gap:6px;margin-top:6px;flex-wrap:nowrap">${party.map(h => { const mx = heroStats(h, relicHooks(run)).hp, hp = h.hp == null ? mx : h.hp, fallen = run.fallen.includes(h.id); return `<div class="panel" style="padding:4px;width:84px;text-align:center;${fallen ? "filter:grayscale(1) brightness(.5)" : ""}">${canvasSlot("mh:" + h.id, 64, 64)}<div class="tiny"><b>${esc(h.name.split(" ")[0])}</b></div><div class="bar" style="height:6px"><i style="width:${100 * hp / mx}%"></i></div><div class="tiny dim">${fallen ? "Tombé" : hp + "/" + mx}</div></div>`; }).join("")}</div>
       <p class="tiny dim" style="text-align:center">${run.region === "abime" ? "Chaque gardien vaincu ouvre un passage plus profond." : "Atteignez le gardien au bout du chemin."} Touchez une salle lumineuse pour avancer.</p></div>`;
   },
-  mount: () => { fillCanvases($("#view"), (c, id) => paintHero(c, heroById(id.split(":")[1]))); resumeNode(); tutoHint("map", "Choisissez votre chemin : <b>combats</b>, <b>mystères</b>, <b>trésors</b>, <b>feux de camp</b>… La lueur baisse à chaque salle."); },
+  mount: () => { fillCanvases($("#view"), (c, id) => id === "mapbg" ? paintMapBg(c, S.run, UI.mapWH[0], UI.mapWH[1], UI.mapPos) : paintHero(c, heroById(id.split(":")[1]))); resumeNode(); tutoHint("map", "Choisissez votre chemin : <b>combats</b>, <b>mystères</b>, <b>trésors</b>, <b>feux de camp</b>… La lueur baisse à chaque salle."); },
   resize: () => refresh(),
 };
 ACT.relicInfo = k => toast(`<b>${RELICS[k].n}</b><br><span class="small">${RELICS[k].d}</span>`);
@@ -4725,13 +5012,32 @@ function showShop(n) {
 }
 ACT.buy = i => { if (!shopBuy(S.run, UI.shopNode, +i)) return toast("Pas assez d'or.", "bad"); sfx("coin"); save(); renderHud(); showShop(UI.shopNode); };
 ACT.leaveShop = () => { UI.shopNode.done = 1; save(); closeModal(); refresh(); };
+// équipement du butin en cours d'expédition : boutons par héros, sans quitter la fenêtre ouverte
+function runEquipBtns(it) {
+  const run = S.run; if (!run || !run.loot.includes(it)) return "";
+  const hs = runEquipTargets(it); if (!hs.length) return "";
+  return `<div class="row runeq" style="gap:4px;margin-top:4px">${hs.map(h => { const cur = it.kind === "tr" ? null : h.gear[it.kind]; const up = cur ? (it.tier - cur.tier) * 2 + (it.rar - cur.rar) : 1; return `<button class="btn sm ${up > 0 ? "gold" : "ghost"}" data-a="runEquip" data-v="${it.id}:${h.id}">${ico("up", up > 0 ? "#8ad06a" : "#9a8c7a", 12)}Équiper ${esc(h.name.split(" ")[0])}</button>`; }).join("")}</div>`;
+}
+ACT.runEquip = (v, el, e) => {
+  e && e.stopPropagation(); const [id, hid] = v.split(":"); const run = S.run; if (!run) return;
+  const it = run.loot.find(x => x.id === id), h = heroById(hid); if (!it || !h) return;
+  const old = it.kind === "tr" ? null : h.gear[it.kind];
+  if (!runEquip(h, it)) return toast("Impossible d'équiper cet objet.", "bad");
+  sfx("forge"); save();
+  const row = el.closest(".runeq"); if (row) row.outerHTML = `<div class="tiny good" style="margin-top:4px">Équipé sur ${esc(h.name)}${old ? ` · ${gearName(old)} rangé dans le butin` : ""}</div>`;
+  if (UI.screen === "map" && $("#bagList")) ACT.runBag();
+};
+ACT.runBag = () => {
+  const run = S.run; if (!run) return;
+  modal(`<h2>${ico("chest", "#e8c878")} Butin de l'expédition</h2><p class="small dim">Rapporté au Bastion à la fin de l'expédition, ou perdu en cas de déroute. Vous pouvez l'équiper dès maintenant.</p><div class="col" id="bagList">${run.loot.length ? run.loot.map(i => `<div class="reward" style="align-items:flex-start">${slotHTML(i, "itemInfo", i.id)}<div style="flex:1;min-width:0"><b class="rar${i.rar}">${gearName(i)}</b><div class="tiny dim">${RARITY[i.rar].n}${i.cls ? " · " + CLASSES[i.cls].n : ""} — ${itemLine(i)}</div>${runEquipBtns(i)}</div></div>`).join("") : '<div class="empty small">Le sac est vide pour l\'instant.</div>'}</div>`, { wide: 1 });
+};
 function rewardModal(title, text, R, ups = [], onClose) {
   const it = R.loot || [];
   modal(`<h2>${ico("chest", "#e8c878")} ${title}</h2>${text ? `<p class="lore">${text}</p>` : ""}
   ${R.gold ? `<div class="reward">${ico("coin", "#e8c060", 22)}<b>+${R.gold} or</b></div>` : ""}
   ${R.xp ? `<div class="reward">${ico("star", "#e8c878", 22)}<span>+${R.xp} expérience pour chaque héros</span></div>` : ""}
   ${ups.map(h => `<div class="reward" style="color:var(--gold2)">${ico("up", "#e8c878", 22)}<b>${esc(h.name)}</b> passe niveau ${h.lvl} !${h.lvl === EVO_LVL ? " <span class='small'>(évolution possible)</span>" : ""}</div>`).join("")}
-  ${it.map(i => `<div class="reward">${slotHTML(i, "itemInfo", i.id)}<div><b class="rar${i.rar}">${gearName(i)}</b><div class="tiny dim">${RARITY[i.rar].n}${i.cls ? " · " + CLASSES[i.cls].n : ""} — ${itemLine(i)}</div></div></div>`).join("")}
+  ${it.map(i => `<div class="reward" style="align-items:flex-start">${slotHTML(i, "itemInfo", i.id)}<div style="flex:1;min-width:0"><b class="rar${i.rar}">${gearName(i)}</b><div class="tiny dim">${RARITY[i.rar].n}${i.cls ? " · " + CLASSES[i.cls].n : ""} — ${itemLine(i)}</div>${runEquipBtns(i)}</div></div>`).join("")}
   ${R.relic ? `<div class="reward">${ico("gem", "#c87aff", 22)}<div><b>Relique : ${RELICS[R.relic].n}</b><div class="tiny">${RELICS[R.relic].d}</div></div></div>` : ""}
   ${R.mats && (R.mats.fer || R.mats.essence || R.mats.cendre) ? `<div class="reward">${ico("iron", "#a8a8a8", 22)}<span>${[R.mats.fer && "+" + R.mats.fer + " ferraille", R.mats.essence && "+" + R.mats.essence + " essence", R.mats.cendre && "+" + R.mats.cendre + " cendre royale"].filter(Boolean).join(", ")}</span></div>` : ""}
   ${R.shards ? `<div class="reward">${ico("shard", "#c090ff", 22)}<b>+${R.shards} éclat${R.shards > 1 ? "s" : ""} de couronne</b></div>` : ""}
@@ -5071,7 +5377,7 @@ async function combatEnd(over) {
   await new Promise(r => setTimeout(r, 600));
   finishRun("wipe");
 }
-function rewardHTML(R) { return `${R.gold ? `<div class="reward">${ico("coin", "#e8c060", 22)}<b>+${R.gold} or</b></div>` : ""}${(R.loot || []).map(i => `<div class="reward">${slotHTML(i, "itemInfo", i.id)}<b class="rar${i.rar}">${gearName(i)}</b></div>`).join("")}${R.relic ? `<div class="reward">${ico("gem", "#c87aff", 22)}<b>${RELICS[R.relic].n}</b> <span class="tiny">${RELICS[R.relic].d}</span></div>` : ""}${R.shards ? `<div class="reward">${ico("shard", "#c090ff", 22)}<b>+${R.shards} éclats</b></div>` : ""}`; }
+function rewardHTML(R) { return `${R.gold ? `<div class="reward">${ico("coin", "#e8c060", 22)}<b>+${R.gold} or</b></div>` : ""}${(R.loot || []).map(i => `<div class="reward" style="align-items:flex-start">${slotHTML(i, "itemInfo", i.id)}<div style="flex:1;min-width:0"><b class="rar${i.rar}">${gearName(i)}</b><div class="tiny dim">${i.cls ? CLASSES[i.cls].n + " — " : ""}${itemLine(i)}</div>${runEquipBtns(i)}</div></div>`).join("")}${R.relic ? `<div class="reward">${ico("gem", "#c87aff", 22)}<b>${RELICS[R.relic].n}</b> <span class="tiny">${RELICS[R.relic].d}</span></div>` : ""}${R.shards ? `<div class="reward">${ico("shard", "#c090ff", 22)}<b>+${R.shards} éclats</b></div>` : ""}`; }
 ACT.abyssUp = () => { closeModal(); finishRun("victory"); };
 ACT.abyssDown = () => { const run = S.run; run.floor++; run.map = genMap(RNG, 6, { elite: run.oaths.includes("elite") }); run.pos = null; run.light = clamp(run.light + 30, 0, 100); S.abyss.best = Math.max(S.abyss.best, run.floor - 1); save(); closeModal(); go("map"); toast(`Profondeur ${run.floor}…`, "epic"); };
 // ── dessin ──
@@ -5205,9 +5511,10 @@ SCREENS.codex = {
   scene: () => backdrop("catacombes", { dark: .6 }),
   html: () => {
     const tab = UI.codexTab || "classes";
-    const T = [["classes", "helm", "Classes"], ["bestiaire", "skull", "Bestiaire"], ["histoire", "scroll", "Chroniques"], ["succes", "trophy", "Succès"], ["records", "cup", "Registres"]];
+    const T = [["classes", "helm", "Classes"], ["bestiaire", "skull", "Bestiaire"], ["synergies", "link", "Synergies"], ["histoire", "scroll", "Chroniques"], ["succes", "trophy", "Succès"], ["records", "cup", "Registres"]];
     let body = "";
     if (tab === "classes") body = `<div class="grid" style="--min:280px">${CLASS_IDS.map(k => { const C = CLASSES[k], un = classUnlocked(k); return `<div class="card ${un ? "" : "lock"}" style="cursor:default"><div class="row" style="flex-wrap:nowrap;gap:8px">${canvasSlot("cl:" + k, 90, 112)}<div style="flex:1"><h3 style="margin:0">${C.n} ${un ? "" : ico("lock", "#9a8c7a", 13)}</h3>${roleTag(C.role)}<p class="tiny lore" style="margin:4px 0">${C.lore}</p><div class="tiny">Voies : ${Object.values(C.evos).map(e => `<b class="gold">${e.n}</b>`).join(" ou ")}</div>${un ? "" : `<div class="tiny dim">Débloquée au chapitre ${C.unlock}</div>`}</div></div></div>`; }).join("")}</div>`;
+    if (tab === "synergies") body = `<p class="small dim">Certaines classes se complètent. Quand elles partent ensemble en expédition, tout le groupe en profite.</p><div class="grid" style="--min:260px">${Object.keys(SYNERGIES).map(k => { const Y = SYNERGIES[k]; return `<div class="card" style="cursor:default"><h3 style="margin:0">${ico("link", "#e8c878", 15)} ${Y.n}</h3><div class="tiny gold" style="margin:3px 0">${synergyNeedText(Y)}</div><p class="small" style="margin:0">${Y.d}</p></div>`; }).join("")}</div>`;
     if (tab === "bestiaire") { const ks = Object.keys(MONSTERS); body = `<p class="small dim">${ks.filter(k => S.seen.monsters[k] != null).length}/${ks.length} créatures rencontrées.</p><div class="grid" style="--min:170px">${ks.map(k => { const M = MONSTERS[k], seen = S.seen.monsters[k] != null; return `<div class="card ${seen ? "" : "lock"}" style="text-align:center;cursor:default">${seen ? canvasSlot("mo:" + k, 150, 150) : `<div style="height:150px;display:flex;align-items:center;justify-content:center">${ico("quest", "#5a4a3a", 48)}</div>`}<h3 style="margin:0">${seen ? M.n : "???"}</h3>${seen ? `<div class="tiny dim">${M.boss ? "Gardien" : M.elite ? "Élite" : "Créature"} · ${M.tags.map(t => t === "impie" ? "impie" : t === "bete" ? "bête" : "humain").join(", ")}</div><div class="tiny">PV ${M.hp} · ${M.sk.map(s => s.n).join(", ")}</div><div class="tiny dim">${S.seen.monsters[k] || 0} vaincus</div>` : ""}</div>`; }).join("")}</div>`; }
     if (tab === "histoire") body = `<div class="panel" style="padding:14px"><h3>Prologue</h3>${STORY.intro.map(l => `<p class="lore">${l}</p>`).join("")}${REGIONS.map(r => S.prog[r.id] && S.prog[r.id].clears ? `<div class="sep"></div><h3>${r.sub} — ${r.n}</h3><p class="lore">${STORY[r.id]}</p>` : `<div class="sep"></div><h3 class="dim">${r.sub} — ???</h3>`).join("")}</div>`;
     if (tab === "succes") body = `<p class="small dim">${Object.keys(S.ach).length}/${ACHIEVEMENTS.length} succès.</p><div class="grid" style="--min:240px">${ACHIEVEMENTS.map(a => { const done = S.ach[a.id], p = Math.min(a.v, S.stats[a.k] || 0); return `<div class="card ${done ? "sel" : ""}" style="cursor:default"><div class="row" style="flex-wrap:nowrap">${ico("trophy", done ? "#e8c878" : "#5a4a3a", 28)}<div style="flex:1"><b>${a.n}</b><div class="tiny">${a.d}</div>${done ? '<div class="tiny good">Accompli</div>' : `<div class="bar xp" style="margin-top:3px"><i style="width:${100 * p / a.v}%"></i></div>`}<div class="tiny dim">${a.gold ? a.gold + " or" : ""}${a.shards ? a.shards + " éclats" : ""}</div></div></div></div>`; }).join("")}</div>`;

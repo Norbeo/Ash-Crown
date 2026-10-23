@@ -59,3 +59,47 @@ ACT.gearSlot = v => {
   <h3 style="margin-top:10px">Inventaire</h3>${items.length ? items.map(it => `<div class="row card" data-a="equipTo" data-v="${it.id}:${h.id}">${slotHTML(it, "itemInfo", it.id)}<div style="flex:1"><b class="rar${it.rar}">${gearName(it)}</b><div class="tiny">${itemLine(it)}</div></div></div>`).join("") : '<div class="empty small">Rien à équiper ici. Forgez ou explorez.</div>'}`);
 };
 ACT.unequip = v => { const [id, slot] = v.split(":"); unequip(heroById(id), slot); save(); closeModal(); refresh(); };
+// ── fiches de consultation : héros à recruter ou à choisir, compagnons ──
+function heroSheetHTML(h, foot = "") {
+  const C = CLASSES[h.cls], st = heroStats(h), ult = heroUlt(h);
+  const skl = (k, sk, on) => `<div class="skl ${on ? "on" : ""}" style="cursor:default">${ico(sk.ic, on ? "#e8c878" : "#9a8c7a")}<div style="flex:1;min-width:0"><div class="row sp"><b>${sk.n}</b><span>${rankPips(sk.use, sk.t === "e" || sk.t === "ae" ? sk.at : null)}</span></div><div class="tiny">${skillText(sk)}</div></div></div>`;
+  return `<div class="row" style="gap:12px;flex-wrap:wrap;align-items:flex-start">
+    <div style="flex:0 0 auto;margin:0 auto;text-align:center">${canvasSlot("sheet", 150, 188)}</div>
+    <div style="flex:1;min-width:220px">
+      <h2 style="margin:0">${esc(h.name)}</h2>
+      <div class="row" style="gap:4px;margin:4px 0">${roleTag(C.role)}<span class="tag gold">${heroTitle(h)}</span><span class="tag">Niveau ${h.lvl}</span></div>
+      <p class="lore small" style="margin:4px 0">${C.lore}</p>
+      <div class="col" style="gap:2px">${h.traits.map(t => `<div class="tiny"><b class="${TRAITS[t].good ? "good" : "bad"}">${TRAITS[t].n}</b> — ${TRAITS[t].d}</div>`).join("")}</div>
+      <div class="statgrid" style="margin-top:8px"><div>PV <b>${st.hp}</b></div><div>Dégâts <b>${st.dmgLo}–${st.dmgHi}</b></div><div>Protection <b>${Math.round(st.prot * 100)} %</b></div><div>Vitesse <b>${st.spd}</b></div><div>Critique <b>${Math.round(st.crit)} %</b></div><div>Esquive <b>${Math.round(st.dodge)}</b></div></div>
+      <p class="tiny dim" style="margin:6px 0 0">Rangs préférés : ${C.rk.join(", ")} · Armure ${C.armor}</p>
+    </div></div>
+    <h3 style="margin-top:12px">Compétences <span class="tiny dim" style="font-family:var(--f-body)">— en doré, les 4 équipées au départ</span></h3>
+    <div class="col">${heroSkillPool(h).map(k => skl(k, skillDef(h, k), h.skills.includes(k))).join("")}</div>
+    <div class="skl" style="margin-top:6px;border-color:#a05a2a;cursor:default">${ico(ult.ic, "#ff9a4a")}<div><b>Ultime : ${ult.n}</b><div class="tiny">${skillText(ult)}</div></div></div>
+    ${h.evo ? "" : `<h3 style="margin-top:12px">Évolutions au niveau ${EVO_LVL}</h3><div class="grid" style="--min:220px">${Object.values(C.evos).map(E => `<div class="card" style="cursor:default"><b class="gold">${E.n}</b><p class="tiny lore" style="margin:2px 0">${E.d}</p><div class="tiny">${pasText(E.pas)}</div><div class="tiny dim" style="margin-top:3px">Compétences : ${Object.values(E.skills).map(s => s.n).join(", ")} · Ultime : ${E.ult.n}</div></div>`).join("")}</div>`}
+    ${foot}`;
+}
+function heroSheet(h, foot) { modal(heroSheetHTML(h, foot), { wide: 1, mount: m => fillCanvases(m, c => paintHero(c, h, true)) }); }
+function petSkillText(s) {
+  const out = [], tg = { low: "l'allié le plus blessé", aa: "tout le groupe", e: "un ennemi", ae: "les ennemis visés" }[s.t] || "";
+  if (s.m) out.push(`Dégâts ${Math.round(s.m * 100)} % sur ${tg}`);
+  if (s.heal) out.push(`Soigne ${tg} de ${Math.round(s.heal * 100)} %`);
+  if (s.regen) out.push(`Régénération ${Math.round(s.regen * 100)} %`);
+  if (s.shield) out.push(`Bouclier ${Math.round(s.shield * 100)} % sur ${tg}`);
+  if (s.leechLow) out.push(`Soigne l'allié le plus blessé de ${Math.round(s.leechLow * 100)} % des dégâts`);
+  if (s.cleanse1) out.push("Purge une altération");
+  if (s.light) out.push(`+${s.light} lueur`);
+  if (s.cr) out.push(`+${s.cr} % critique`);
+  const fx = skillText({ t: s.t === "low" ? "a" : s.t, fx: s.fx, afx: s.afx });
+  if (fx) out.push(fx);
+  if (s.at && !s.m && !s.fx) out.push(`sur ${tg}`);
+  return out.join(" · ") + (s.every ? ` · tous les ${s.every} tours` : " · chaque tour");
+}
+function petSheet(id, foot = "") {
+  const P = PETS[id];
+  modal(`<div class="row" style="gap:12px;flex-wrap:wrap"><div style="margin:0 auto">${canvasSlot("pet", 200, 150)}</div><div style="flex:1;min-width:220px"><h2 style="margin:0">${P.n}</h2><div class="row" style="gap:4px;margin:4px 0">${roleTag(P.role)}${P.gold ? `<span class="tag gold">+${Math.round(P.gold * 100)} % d'or</span>` : ""}</div><p class="lore small">${P.d}</p><p class="tiny dim">Le compagnon agit seul à la fin de chaque tour. Il gagne des niveaux avec le groupe et évolue au niveau ${PET_EVO_LVL}.</p></div></div>
+    <h3 style="margin-top:10px">Compétences</h3><div class="col">${P.sk.map(s => `<div class="skl" style="cursor:default">${ico(s.m ? "claw" : s.heal ? "heal" : s.shield ? "shield" : "star", "#e8c878")}<div><b>${s.n}</b><div class="tiny">${petSkillText(s)}</div></div></div>`).join("")}</div>
+    <h3 style="margin-top:10px">Évolution : ${P.evo.n}</h3><p class="tiny lore">${P.evo.d}</p><div class="skl" style="cursor:default;border-color:#a05a2a">${ico("star", "#ff9a4a")}<div><b>${P.evo.sk.n}</b><div class="tiny">${petSkillText(Object.assign({ every: 2 }, P.evo.sk))}</div></div></div>${foot}`, { wide: 1, mount: m => fillCanvases(m, c => paintPet(c, id, 0)) });
+}
+ACT.petInfo = (id, el, e) => { e && e.stopPropagation(); petSheet(id, `<div class="row" style="justify-content:flex-end;margin-top:10px"><button class="btn" data-a="bld" data-v="menagerie">Retour à la Ménagerie</button></div>`); };
+ACT.recruitInfo = (i, el, e) => { e && e.stopPropagation(); const h = S.recruits[+i]; if (!h) return; const c = recruitPrice(+i); heroSheet(h, `<div class="row" style="justify-content:flex-end;gap:6px;margin-top:12px"><button class="btn ghost" data-a="bld" data-v="taverne">Retour</button><button class="btn main" data-a="recruit" data-v="${i}">Recruter · ${c === 0 ? "gratuit" : c + " or"}</button></div>`); };

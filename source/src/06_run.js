@@ -61,10 +61,12 @@ const heroById = id => S.heroes.find(h => h.id === id);
 // blessure : le héros guérit seul avec le temps (ou à la Chapelle) ; s'il part blessé, il commence à 50 % de PV
 const injuryTime = h => (12 + h.lvl * 2) * 60000;
 const isInjured = h => !!h.injured && Date.now() < h.injured;
+function runSynergies(run) { return activeSynergies(run.party.map(id => { const h = heroById(id); return h && h.cls; }).filter(Boolean)); }
 function runParty() { return S.run.party.map(heroById).filter(Boolean); }
 function relicHooks(run = S.run) {
   const H = {};
   for (const k of (run ? run.relics : [])) { const R = RELICS[k]; if (!R) continue; for (const h in R.h) H[h] = (H[h] || 0) + R.h[h]; }
+  for (const k of (run ? runSynergies(run) : [])) { const Y = SYNERGIES[k]; for (const h in Y.h) H[h] = (H[h] || 0) + Y.h[h]; }
   return H;
 }
 function runLevel(run, node) {
@@ -86,7 +88,7 @@ function genEncounter(run, node, rng = RNG) {
   const pool = R.pool.slice(), out = [];
   const pickFor = rank => { const ok = pool.filter(k => MONSTERS[k].rk.includes(rank)); return rng.pick(ok.length ? ok : pool); };
   if (node.type === "boss") {
-    const bk = run.region === "abime" ? R.bosses[(run.floor - 1) % R.bosses.length] : R.boss;
+    const bk = run.region === "abime" ? R.bosses[(run.floor - 1) % R.bosses.length] : R.boss2 && S.prog[R.id] && S.prog[R.id].clears && rng.chance(.5) ? R.boss2 : R.boss;
     out.push({ key: pickFor(1), lvl });
     out.push({ key: bk, lvl: lvl + 1 });
     if (run.region === "abime" || R.lvl >= 9) out.push({ key: pickFor(4), lvl });
@@ -148,12 +150,25 @@ function givePetXp(id, v) {
   return up;
 }
 
+// équiper un objet du butin pendant l'expédition (l'ancien rejoint le butin ; annulé en cas de déroute)
+function runEquipTargets(it, run = S.run) { if (!run || !it) return []; return runParty().filter(h => !run.fallen.includes(h.id) && canEquip(h, it) && !(it.kind === "tr" && [h.gear.tr1, h.gear.tr2].some(x => x && x.key === it.key))); }
+function runEquip(h, it, run = S.run) {
+  const i = run.loot.indexOf(it); if (i < 0 || !runEquipTargets(it, run).includes(h)) return false;
+  const slot = it.kind === "wpn" ? "wpn" : it.kind === "arm" ? "arm" : !h.gear.tr1 ? "tr1" : !h.gear.tr2 ? "tr2" : "tr1";
+  const before = heroStats(h, relicHooks(run)).hp;
+  run.loot.splice(i, 1); const old = h.gear[slot]; h.gear[slot] = it; if (old) run.loot.push(old);
+  (run.swaps = run.swaps || []).push({ hid: h.id, slot, old: old ? old.id : null, nu: it.id });
+  const after = heroStats(h, relicHooks(run)).hp; if (h.hp != null) h.hp = clamp(Math.round(h.hp * after / before), 1, after);
+  if (it.tier >= 5) S.stats.tier5 = 1;
+  return true;
+}
 // ── fin d'expédition ──
 function endRun(outcome) {
   const run = S.run; if (!run) return null;
   const R = regionById(run.region);
   const res = { outcome, gold: run.gold, loot: run.loot.slice(), mats: Object.assign({}, run.mats), shards: run.shards, region: run.region, floor: run.floor, story: null, unlocks: [] };
-  if (outcome === "wipe") { res.gold = Math.round(run.gold * .5); res.loot = []; res.shards = 0; }
+  if (outcome === "wipe") { res.gold = Math.round(run.gold * .5); res.loot = []; res.shards = 0;
+    for (const w of (run.swaps || []).slice().reverse()) { const h = heroById(w.hid); if (!h || !h.gear[w.slot] || h.gear[w.slot].id !== w.nu) continue; h.gear[w.slot] = w.old ? run.loot.find(x => x.id === w.old) || h.gear[w.slot] : null; } }
   const before = regionsCleared();
   if (outcome === "victory" && run.region !== "abime") {
     const p = S.prog[run.region] = S.prog[run.region] || { clears: 0, best: 0 };

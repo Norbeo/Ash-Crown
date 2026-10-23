@@ -27,6 +27,7 @@ SCREENS.expe = {
     <h2 style="margin-top:14px">Ordre de marche</h2><p class="tiny dim" style="margin-top:-4px">Le rang 1 est en première ligne, face à l'ennemi. Touchez un héros pour l'ajouter ou le retirer, et une flèche pour changer son rang.</p>
     <div class="partyrow">${[3, 2, 1, 0].map(i => { const h = heroById(E.party[i]); return `<div class="card" style="text-align:center;padding:6px 3px" data-a="${h ? "unparty" : ""}" data-v="${i}"><div class="tiny gold">Rang ${i + 1}</div>${h ? canvasSlot("pt:" + h.id, 96, 120) + `<div class="tiny"><b>${esc(h.name.split(" ")[0])}</b></div><div class="tiny dim">${CLASSES[h.cls].n} ${h.lvl}</div>${isInjured(h) ? '<div class="tiny bad">Blessé (50 % PV)</div>' : ""}<div class="row" style="justify-content:center;gap:2px;margin-top:3px"><button class="btn ghost sm" data-a="mvParty" data-v="${i}:1" ${i >= 3 || !E.party[i + 1] ? "disabled" : ""}>◀</button><button class="btn ghost sm" data-a="mvParty" data-v="${i}:-1" ${i <= 0 ? "disabled" : ""}>▶</button></div>` : '<div class="empty" style="padding:40px 4px">vide</div>'}</div>`; }).join("")}</div>
     ${warn.length ? `<div class="small bad" style="text-align:center">${warn.join("<br>")}</div>` : ""}
+    ${synergyHTML(E.party.map(id => heroById(id).cls), S.heroes.filter(h => !E.party.includes(h.id)).map(h => h.cls))}
     <div class="row" style="gap:6px;margin-top:8px">${S.heroes.filter(h => !E.party.includes(h.id)).map(h => `<div class="card" style="padding:4px 8px" data-a="addParty" data-v="${h.id}"><div class="row" style="gap:6px;flex-wrap:nowrap">${canvasSlot("ro:" + h.id, 40, 40)}<div class="tiny"><b>${esc(h.name.split(" ")[0])}</b><br><span class="dim">${CLASSES[h.cls].n} ${h.lvl}${isInjured(h) ? ' · <span class="bad">blessé</span>' : ""}</span></div></div></div>`).join("")}<button class="btn ghost sm" data-a="autoParty">${ico("auto")}Composition auto</button></div>
     <h2 style="margin-top:14px">Compagnon</h2><div class="row">${S.pets.owned.map(id => `<div class="card ${E.pet === id ? "sel" : ""}" style="padding:4px 10px;text-align:center" data-a="pickPet" data-v="${id}">${canvasSlot("pe:" + id, 90, 64)}<div class="tiny"><b>${petName(id)}</b> niv ${petLvl(id)}</div></div>`).join("")}</div>
     <div class="stickybar"><span class="small dim">${ico("potion", "#e86a5a", 16)} ${potionMax() - (E.region === "abime" && (S.abyss.oaths || []).includes("jeune") ? 1 : 0)} potions</span><button class="btn main glow" data-a="launch" ${E.party.length ? "" : "disabled"}>${ico("map")}Partir</button></div></div>`;
@@ -70,22 +71,23 @@ SCREENS.map = {
     const run = S.run; if (!run) return "";
     const port = SC.w < SC.h, cols = run.map.length, av = availableNodes(run);
     const W = port ? Math.min(SC.w - 20, 440) : Math.min(SC.w - 30, 980), H = port ? Math.max(460, SC.h - 300) : Math.min(SC.h - 230, 420);
-    const pos = n => port ? [n.x * W, H - 30 - n.c * (H - 60) / (cols - 1)] : [30 + n.c * (W - 60) / (cols - 1), n.x * H];
-    let lines = "";
-    for (const col of run.map) for (const n of col) for (const j of n.links) { const m = run.map[n.c + 1][j]; const [x1, y1] = pos(n), [x2, y2] = pos(m); const hot = run.pos && run.pos.c === n.c && run.pos.i === n.i; lines += `<line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" stroke="${hot ? "#e8c878" : n.visited ? "#7a5a3a" : "#4a3a30"}" stroke-width="${hot ? 3 : 2}" stroke-dasharray="${n.visited || hot ? "" : "5 6"}" opacity="${hot ? 1 : .7}"/>`; }
-    const nodes = run.map.flat().map(n => { const [x, y] = pos(n), T = NODE_T[n.type], isAv = av.includes(n), cur = run.pos && run.pos.c === n.c && run.pos.i === n.i; return `<div class="node ${n.type === "boss" ? "boss" : ""} ${isAv ? "av" : ""} ${n.visited && !cur ? "done" : ""} ${cur ? "cur" : ""}" style="left:${x}px;top:${y}px;border-color:${isAv ? T.c : ""}" ${isAv ? `data-a="node" data-v="${n.c}:${n.i}"` : ""} title="${T.n}">${ico(T.ic, T.c)}</div>`; }).join("");
+    const pos = n => port ? [24 + n.x * (W - 48), H - 40 - n.c * (H - 92) / (cols - 1)] : [46 + n.c * (W - 98) / (cols - 1), 18 + n.x * (H - 36)];
+    UI.mapPos = pos; UI.mapWH = [W, H];
+    const nodes = run.map.flat().map(n => { const [x, y] = pos(n), T = NODE_T[n.type], isAv = av.includes(n), cur = run.pos && run.pos.c === n.c && run.pos.i === n.i, art = mapToken(n.type); return `<div class="node ${n.type === "boss" ? "boss" : ""} ${isAv ? "av" : ""} ${n.visited && !cur ? "done" : ""} ${cur ? "cur" : ""}" style="left:${x}px;top:${y}px;--nc:${T.c}" ${isAv ? `data-a="node" data-v="${n.c}:${n.i}"` : ""} title="${T.n}">${art ? `<img src="${art}" alt="${T.n}">` : ico(T.ic, T.c)}${isAv ? `<span class="nlab">${T.n}</span>` : ""}</div>`; }).join("");
+    const cp = run.pos ? run.map[run.pos.c][run.pos.i] : null, pawn = cp ? pos(cp) : null, pawnArt = mapToken("pawn");
     const party = runParty();
     return `<div class="wrap" style="padding-top:4px">
       <div class="panel" style="padding:8px 10px"><div class="row sp"><div class="row" style="gap:10px">
         <span class="tag" title="Lueur : sous 30, les ennemis frappent plus fort mais le butin est meilleur">${ico("torch", run.light < 30 ? "#ff5a3a" : "#ffb050")}<span style="width:70px" class="bar"><i style="width:${run.light}%;background:linear-gradient(#ffd08a,#c0601a)"></i></span>${Math.round(run.light)}</span>
-        <span class="tag">${ico("potion", "#e86a5a")}${run.potions}</span><span class="tag">${ico("coin", "#e8c060")}${fmt(run.gold)}</span><span class="tag">${ico("chest", "#c8a070")}${run.loot.length}</span>
+        <span class="tag">${ico("potion", "#e86a5a")}${run.potions}</span><span class="tag">${ico("coin", "#e8c060")}${fmt(run.gold)}</span><span class="tag" style="cursor:pointer" data-a="runBag" title="Butin : voir et équiper">${ico("chest", "#c8a070")}${run.loot.length}</span>
       </div><button class="btn ghost sm" data-a="retreat">${ico("flee")}Rentrer</button></div>
+      ${runSynergies(run).length ? `<div class="row" style="gap:4px;margin-top:6px">${runSynergies(run).map(k => `<span class="tag gold" style="cursor:pointer" data-a="synInfo" data-v="${k}">${ico("link", "#e8c878")}${SYNERGIES[k].n}</span>`).join("")}</div>` : ""}
       ${run.relics.length ? `<div class="row" style="gap:4px;margin-top:6px">${run.relics.map(k => `<span class="tag" style="cursor:pointer" data-a="relicInfo" data-v="${k}" title="${RELICS[k].d}">${ico("gem", ["#c8beaa", "#6ab0ff", "#c87aff"][RELICS[k].r])}${RELICS[k].n}</span>`).join("")}</div>` : ""}</div>
-      <div class="mapwrap" style="width:${W}px;height:${H}px;margin-top:8px"><svg width="${W}" height="${H}" style="position:absolute;inset:0">${lines}</svg>${nodes}</div>
+      <div class="mapwrap" style="width:${W}px;height:${H}px;margin-top:8px"><canvas data-cv="mapbg" width="${Math.round(W * Math.min(2, devicePixelRatio || 1))}" height="${Math.round(H * Math.min(2, devicePixelRatio || 1))}" style="position:absolute;inset:0;width:${W}px;height:${H}px"></canvas>${nodes}${pawn && pawnArt ? `<img class="pawn" src="${pawnArt}" alt="" style="left:${pawn[0]}px;top:${pawn[1]}px">` : ""}</div>
       <div class="row" style="justify-content:center;gap:6px;margin-top:6px;flex-wrap:nowrap">${party.map(h => { const mx = heroStats(h, relicHooks(run)).hp, hp = h.hp == null ? mx : h.hp, fallen = run.fallen.includes(h.id); return `<div class="panel" style="padding:4px;width:84px;text-align:center;${fallen ? "filter:grayscale(1) brightness(.5)" : ""}">${canvasSlot("mh:" + h.id, 64, 64)}<div class="tiny"><b>${esc(h.name.split(" ")[0])}</b></div><div class="bar" style="height:6px"><i style="width:${100 * hp / mx}%"></i></div><div class="tiny dim">${fallen ? "Tombé" : hp + "/" + mx}</div></div>`; }).join("")}</div>
       <p class="tiny dim" style="text-align:center">${run.region === "abime" ? "Chaque gardien vaincu ouvre un passage plus profond." : "Atteignez le gardien au bout du chemin."} Touchez une salle lumineuse pour avancer.</p></div>`;
   },
-  mount: () => { fillCanvases($("#view"), (c, id) => paintHero(c, heroById(id.split(":")[1]))); resumeNode(); tutoHint("map", "Choisissez votre chemin : <b>combats</b>, <b>mystères</b>, <b>trésors</b>, <b>feux de camp</b>… La lueur baisse à chaque salle."); },
+  mount: () => { fillCanvases($("#view"), (c, id) => id === "mapbg" ? paintMapBg(c, S.run, UI.mapWH[0], UI.mapWH[1], UI.mapPos) : paintHero(c, heroById(id.split(":")[1]))); resumeNode(); tutoHint("map", "Choisissez votre chemin : <b>combats</b>, <b>mystères</b>, <b>trésors</b>, <b>feux de camp</b>… La lueur baisse à chaque salle."); },
   resize: () => refresh(),
 };
 ACT.relicInfo = k => toast(`<b>${RELICS[k].n}</b><br><span class="small">${RELICS[k].d}</span>`);
@@ -164,13 +166,32 @@ function showShop(n) {
 }
 ACT.buy = i => { if (!shopBuy(S.run, UI.shopNode, +i)) return toast("Pas assez d'or.", "bad"); sfx("coin"); save(); renderHud(); showShop(UI.shopNode); };
 ACT.leaveShop = () => { UI.shopNode.done = 1; save(); closeModal(); refresh(); };
+// équipement du butin en cours d'expédition : boutons par héros, sans quitter la fenêtre ouverte
+function runEquipBtns(it) {
+  const run = S.run; if (!run || !run.loot.includes(it)) return "";
+  const hs = runEquipTargets(it); if (!hs.length) return "";
+  return `<div class="row runeq" style="gap:4px;margin-top:4px">${hs.map(h => { const cur = it.kind === "tr" ? null : h.gear[it.kind]; const up = cur ? (it.tier - cur.tier) * 2 + (it.rar - cur.rar) : 1; return `<button class="btn sm ${up > 0 ? "gold" : "ghost"}" data-a="runEquip" data-v="${it.id}:${h.id}">${ico("up", up > 0 ? "#8ad06a" : "#9a8c7a", 12)}Équiper ${esc(h.name.split(" ")[0])}</button>`; }).join("")}</div>`;
+}
+ACT.runEquip = (v, el, e) => {
+  e && e.stopPropagation(); const [id, hid] = v.split(":"); const run = S.run; if (!run) return;
+  const it = run.loot.find(x => x.id === id), h = heroById(hid); if (!it || !h) return;
+  const old = it.kind === "tr" ? null : h.gear[it.kind];
+  if (!runEquip(h, it)) return toast("Impossible d'équiper cet objet.", "bad");
+  sfx("forge"); save();
+  const row = el.closest(".runeq"); if (row) row.outerHTML = `<div class="tiny good" style="margin-top:4px">Équipé sur ${esc(h.name)}${old ? ` · ${gearName(old)} rangé dans le butin` : ""}</div>`;
+  if (UI.screen === "map" && $("#bagList")) ACT.runBag();
+};
+ACT.runBag = () => {
+  const run = S.run; if (!run) return;
+  modal(`<h2>${ico("chest", "#e8c878")} Butin de l'expédition</h2><p class="small dim">Rapporté au Bastion à la fin de l'expédition, ou perdu en cas de déroute. Vous pouvez l'équiper dès maintenant.</p><div class="col" id="bagList">${run.loot.length ? run.loot.map(i => `<div class="reward" style="align-items:flex-start">${slotHTML(i, "itemInfo", i.id)}<div style="flex:1;min-width:0"><b class="rar${i.rar}">${gearName(i)}</b><div class="tiny dim">${RARITY[i.rar].n}${i.cls ? " · " + CLASSES[i.cls].n : ""} — ${itemLine(i)}</div>${runEquipBtns(i)}</div></div>`).join("") : '<div class="empty small">Le sac est vide pour l\'instant.</div>'}</div>`, { wide: 1 });
+};
 function rewardModal(title, text, R, ups = [], onClose) {
   const it = R.loot || [];
   modal(`<h2>${ico("chest", "#e8c878")} ${title}</h2>${text ? `<p class="lore">${text}</p>` : ""}
   ${R.gold ? `<div class="reward">${ico("coin", "#e8c060", 22)}<b>+${R.gold} or</b></div>` : ""}
   ${R.xp ? `<div class="reward">${ico("star", "#e8c878", 22)}<span>+${R.xp} expérience pour chaque héros</span></div>` : ""}
   ${ups.map(h => `<div class="reward" style="color:var(--gold2)">${ico("up", "#e8c878", 22)}<b>${esc(h.name)}</b> passe niveau ${h.lvl} !${h.lvl === EVO_LVL ? " <span class='small'>(évolution possible)</span>" : ""}</div>`).join("")}
-  ${it.map(i => `<div class="reward">${slotHTML(i, "itemInfo", i.id)}<div><b class="rar${i.rar}">${gearName(i)}</b><div class="tiny dim">${RARITY[i.rar].n}${i.cls ? " · " + CLASSES[i.cls].n : ""} — ${itemLine(i)}</div></div></div>`).join("")}
+  ${it.map(i => `<div class="reward" style="align-items:flex-start">${slotHTML(i, "itemInfo", i.id)}<div style="flex:1;min-width:0"><b class="rar${i.rar}">${gearName(i)}</b><div class="tiny dim">${RARITY[i.rar].n}${i.cls ? " · " + CLASSES[i.cls].n : ""} — ${itemLine(i)}</div>${runEquipBtns(i)}</div></div>`).join("")}
   ${R.relic ? `<div class="reward">${ico("gem", "#c87aff", 22)}<div><b>Relique : ${RELICS[R.relic].n}</b><div class="tiny">${RELICS[R.relic].d}</div></div></div>` : ""}
   ${R.mats && (R.mats.fer || R.mats.essence || R.mats.cendre) ? `<div class="reward">${ico("iron", "#a8a8a8", 22)}<span>${[R.mats.fer && "+" + R.mats.fer + " ferraille", R.mats.essence && "+" + R.mats.essence + " essence", R.mats.cendre && "+" + R.mats.cendre + " cendre royale"].filter(Boolean).join(", ")}</span></div>` : ""}
   ${R.shards ? `<div class="reward">${ico("shard", "#c090ff", 22)}<b>+${R.shards} éclat${R.shards > 1 ? "s" : ""} de couronne</b></div>` : ""}

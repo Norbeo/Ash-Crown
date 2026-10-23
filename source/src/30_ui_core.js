@@ -118,6 +118,15 @@ function paintPet(c, id, evo) { const x = c.getContext("2d"); const sp = petSpri
 function paintMon(c, key) { const x = c.getContext("2d"); const big = (MONSTERS[key].sz || 1) > 1; const sp = monSprite(key, {}, 0, c.width / (big ? 330 : 250)); x.save(); x.translate(c.width / 2, 0); x.scale(-1, 1); x.drawImage(sp, -sp.ax, c.height - 6 - sp.ay); x.restore(); }
 function roleTag(role) { const R = ROLES[role]; return `<span class="tag" style="color:${R.c}">${ico(R.ic, R.c)}${R.n}</span>`; }
 function rankPips(use, at) { let s = '<span class="pips" title="Rangs">'; for (let r = 4; r >= 1; r--) s += `<i class="${use && use.includes(r) ? "y" : ""}"></i>`; s += "</span>"; if (at) { s += ' <span class="pips" title="Cibles">'; for (let r = 1; r <= 4; r++) s += `<i class="${at.includes(r) ? "t" : ""}"></i>`; s += "</span>"; } return s; }
+// synergies : actives (dorées) et à portée de main (une classe manque et elle est dans la caserne)
+function synergyNeedText(Y) { if (Y.tanks) return Y.tanks + " tanks"; if (Y.roles) return Y.roles.map(r => ROLES[r].n).join(" + "); return Y.need.map(g => g.map(c => CLASSES[c].n).join(" ou ")).join(" + "); }
+function synergyHTML(classes, roster) {
+  const act = activeSynergies(classes);
+  const near = roster ? Object.keys(SYNERGIES).filter(k => !act.includes(k) && SYNERGIES[k].need && SYNERGIES[k].need.filter(g => !g.some(c => classes.includes(c))).length === 1 && SYNERGIES[k].need.some(g => !g.some(c => classes.includes(c)) && g.some(c => roster.includes(c)))).slice(0, 3) : [];
+  if (!act.length && !near.length) return "";
+  return `<div class="syn">${act.map(k => `<div class="synr on" data-a="synInfo" data-v="${k}">${ico("link", "#e8c878", 14)}<b>${SYNERGIES[k].n}</b><span class="tiny">${SYNERGIES[k].d}</span></div>`).join("")}${near.map(k => `<div class="synr" data-a="synInfo" data-v="${k}">${ico("link", "#7a6a5a", 14)}<b>${SYNERGIES[k].n}</b><span class="tiny dim">Il manque : ${SYNERGIES[k].need.filter(g => !g.some(c => classes.includes(c))).map(g => g.map(c => CLASSES[c].n).join(" ou ")).join(", ")}</span></div>`).join("")}</div>`;
+}
+ACT.synInfo = k => { const Y = SYNERGIES[k]; toast(`<b>${Y.n}</b> <span class="tiny dim">(${synergyNeedText(Y)})</span><br><span class="small">${Y.d}</span>`); };
 // description automatique d'une compétence
 function skillText(sk, u) {
   const out = [], t = sk.t || "e";

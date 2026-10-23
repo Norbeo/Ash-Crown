@@ -9,6 +9,11 @@ RPG tactique dark fantasy médiéval, vanilla JS + Canvas 2D, PWA installable (m
 - Départ aléatoire : 4 héros tirés au sort (`START_SLOTS` : tank, soin, dégâts, dégâts/soutien — toutes classes possibles, 3 relances) et 3 compagnons proposés parmi ceux marqués `starter` (1 relance). Une classe déjà possédée reste recrutable à la Taverne (`classUnlocked`).
 - 18 compagnons (8 `starter` : loup, corbeau, chouette, molosse, renard, ours, cerf, vipère), évolution au niveau 10.
 - Icônes d'équipement peintes (`itemArt` dans 32_ui_hub.js) : arme dessinée, armure sur mannequin, bibelot en médaillon ; mises en cache en data URL.
+- Synergies de compagnie (`SYNERGIES` dans 03_items.js, 12 au total) : appliquées comme des reliques via `relicHooks` → `runSynergies(run)`. Affichées à la préparation d'expédition, sur la carte et dans les Archives.
+- Fiches détaillées : `heroSheet` / `petSheet` (33_ui_heroes.js), boutons Détails à la Taverne, à la Ménagerie et au départ.
+- Butin équipable en expédition : `runEquip` (06_run.js) ; l'ancien objet retourne au butin ; en cas de déroute les échanges sont annulés (`run.swaps`).
+- Carte d'expédition peinte (16_art_map.js) : parchemin, chemins à l'encre, jetons de salles en images (`mapToken`), fanion du groupe.
+- Chapitres 3 et 4 : nouveaux monstres (moine flagellant, thuriféraire, hallebardier d'os, sorcière des tourbières, pêcheur d'âmes), élites (Prieur sanglant, Ogre) et gardiens alternatifs (`boss2` : L'Abbé de Saint-Morne, La Reine du Sabbat), tirés une fois sur deux après la première victoire.
 - Combats longs : après le tour 14 les soins ennemis sont divisés par 2, après le tour 18 les héros gagnent +5 % de dégâts par tour (évite les enlisements).
 - 5 chapitres (Bourg, Forêt, Catacombes, Marais, Citadelle) + l'Abîme sans fin avec serments.
 - Cartes procédurales (combat, élite, mystère, trésor, camp, colporteur, gardien), 29 événements, 28 reliques, marche animée entre les salles.

@@ -181,6 +181,28 @@ ACT.adopt = id => { const r = adoptPet(id); if (r.err) return toast(r.err, "bad"
 ACT.evoPet = id => { const r = evolvePet(id); if (r.err) return toast(r.err, "bad"); sfx("ult"); toast(`${PETS[id].n} devient ${PETS[id].evo.n} !`, "epic"); save(); renderHud(); openBuilding("menagerie"); };
 // inventaire
 function findItem(id) { return S.inv.find(i => i.id === id) || S.heroes.flatMap(h => Object.values(h.gear)).find(i => i && i.id === id) || (S.run ? S.run.loot.find(i => i.id === id) : null); }
+// ── comparaison d'équipement : ce que l'objet change pour ce héros ──
+function gearSlotFor(h, it) { return it.kind === "tr" ? (!h.gear.tr1 ? "tr1" : !h.gear.tr2 ? "tr2" : "tr1") : it.kind; }
+function gearDelta(h, it, relicH = {}) {
+  const slot = gearSlotFor(h, it), old = h.gear[slot];
+  const a = heroStats(h, relicH); h.gear[slot] = it; const b = heroStats(h, relicH); h.gear[slot] = old;
+  const out = [], add = (n, d, fmt, k = 1) => { if (Math.abs(d) >= (fmt === "pct" ? .005 : .5)) out.push({ n, d, txt: (d > 0 ? "+" : "−") + (fmt === "pct" ? Math.round(Math.abs(d) * 100) + " %" : Math.round(Math.abs(d))), w: d * k }); };
+  add("Dégâts", (b.dmgLo + b.dmgHi - a.dmgLo - a.dmgHi) / 2, "n", 3); add("PV", b.hp - a.hp, "n", .6); add("Protection", b.prot - a.prot, "pct", 120);
+  add("Critique", b.crit - a.crit, "n", 1.2); add("Vitesse", b.spd - a.spd, "n", 3); add("Esquive", b.dodge - a.dodge, "n", .8); add("Précision", b.acc - a.acc, "n", .6);
+  add("Résistance", b.res - a.res, "n", .3); add("Soins", b.healPow - a.healPow, "pct", 60); add("Vol de vie", b.leech - a.leech, "pct", 80);
+  return { slot, old, list: out, score: out.reduce((s, x) => s + x.w, 0) + (it.kind === "tr" && !old ? 5 : 0) };
+}
+function deltaChips(D) {
+  if (!D.list.length) return `<span class="tiny dim">${D.old ? "Aucun changement de caractéristiques" : "Effet spécial du bibelot"}</span>`;
+  return D.list.map(x => `<span class="chip ${x.d > 0 ? "up" : "down"}">${x.n} ${x.txt}</span>`).join("");
+}
+function heroLabel(h) { return `<b>${esc(h.name.split(" ")[0])}</b> <span class="tag" style="color:${ROLES[CLASSES[h.cls].role].c}">${ico(ROLES[CLASSES[h.cls].role].ic, ROLES[CLASSES[h.cls].role].c, 12)}${heroTitle(h)}</span> <span class="tiny dim">niv ${h.lvl}</span>`; }
+// une ligne de choix : qui, ce qui est remplacé, les écarts, et le bouton
+function equipRow(h, it, act, v, relicH = {}) {
+  const D = gearDelta(h, it, relicH), good = D.score > 0;
+  return `<div class="eqrow ${good ? "better" : ""}"><div class="eqtop"><span class="eqwho">${heroLabel(h)}</span><button class="btn sm ${good ? "gold" : "ghost"}" data-a="${act}" data-v="${v}">${ico(good ? "up" : "swap", good ? "#8ad06a" : "#9a8c7a", 12)}Équiper</button></div>
+    <div class="eqcmp"><span class="tiny dim">${D.old ? `Remplace <span class="rar${D.old.rar}">${gearName(D.old)}</span>` : "Emplacement libre"}</span><span class="chips">${deltaChips(D)}</span></div></div>`;
+}
 // ── icônes d'équipement peintes : l'arme réelle, l'armure portée sur un mannequin, les bibelots en médaillon ciselé ──
 const ITEM_ART = {}, ITEM_WPN = { dagues: "dague", grimoire: "grimoire" };
 const TR_METAL = ["#b07a44", "#c8ccd4", "#e0b050", "#3a2a3a"];
@@ -203,11 +225,11 @@ function itemArt(it) {
   let cv;
   try {
     if (it.kind === "wpn") {
-      const src = mkCanvas(420, 420), x = src.getContext("2d"), wt = CLASSES[it.cls].wpn, type = ITEM_WPN[wt] || wt;
-      x.save(); x.translate(210, 210); x.scale(type === "grimoire" ? 3.2 : 1.6, type === "grimoire" ? 3.2 : 1.6);
-      const a = type === "grimoire" ? 2.6 : type === "luth" ? 1.9 : type === "encensoir" ? 2.95 : 2.36;
-      drawWeapon(x, type, it.tier, [0, 40], a, { t: 0, runeCol: it.rar >= 3 ? "#ffb04a" : null });
-      x.restore(); litPass(x, 420, 420); spritePost(src, 1.6, { rim: "#ffe0b0" });
+      const wt = CLASSES[it.cls].wpn, type = ITEM_WPN[wt] || wt;
+      const up = uprightWeapon(type, it.tier, { t: 0, runeCol: it.rar >= 3 ? "#ffb04a" : null }, type === "grimoire" ? 3.2 : 1.6);
+      const ang = type === "grimoire" ? -.25 : type === "luth" ? .55 : type === "encensoir" ? .2 : Math.PI / 4;
+      const src = rotatedCopy(up, ang), x = src.getContext("2d");
+      litPass(x, src.width, src.height); spritePost(src, 1.6, { rim: "#ffe0b0" });
       cv = cropDraw(src, W, 8);
     } else if (it.kind === "arm") {
       const src = mkCanvas(360, 420), x = src.getContext("2d");
@@ -268,5 +290,5 @@ function invList(filter) {
 ACT.itemInfo = id => { const it = findItem(id); if (!it) return; const c = it.kind !== "tr" ? upCost(it) : null; toast(`<b class="rar${it.rar}">${gearName(it)}</b><br><span class="small">${itemLine(it)}</span>${c ? `<br><span class="tiny dim">Amélioration : ${c.gold} or, ${c.fer} fer${c.essence ? ", " + c.essence + " ess." : ""}</span>` : ""}`); };
 ACT.upItem = id => { const it = findItem(id); const r = upgradeItem(it); if (!r || r.err) return toast((r && r.err) || "Impossible.", "bad"); sfx("forge"); toast(`${gearName(it)}`, "good"); save(); renderHud(); if (UI.bldOpen === "forge" && !$("#modal").hidden && !UI.heroOpen) openBuilding("forge", "inv"); else refresh(); };
 ACT.salv = id => { const it = findItem(id); if (!it) return; const go2 = () => { const r = salvageItem(it); sfx("forge"); toast(`Recyclé : +${r.fer} fer${r.essence ? `, +${r.essence} ess.` : ""}${r.cendre ? ", +1 cendre" : ""}, +${r.gold} or`); save(); renderHud(); openBuilding("forge", "inv"); }; if (it.rar >= 2) confirmBox(`Recycler <b class="rar${it.rar}">${gearName(it)}</b> ?`, go2); else go2(); };
-ACT.equipPick = id => { const it = findItem(id); const hs = S.heroes.filter(h => canEquip(h, it)); if (!hs.length) return toast("Aucun héros ne peut porter cet objet.", "bad"); modal(`<h2>Équiper ${gearName(it)}</h2><div class="col">${hs.map(h => { const cur = it.kind === "tr" ? null : h.gear[it.kind]; return `<div class="row card" data-a="equipTo" data-v="${it.id}:${h.id}">${canvasSlot("h:" + h.id, 48, 48)}<div style="flex:1"><b>${esc(h.name)}</b> <span class="tiny dim">${heroTitle(h)} niv ${h.lvl}</span>${cur ? `<div class="tiny dim">Actuel : <span class="rar${cur.rar}">${gearName(cur)}</span></div>` : ""}</div></div>`; }).join("")}</div>`, { mount: m => fillCanvases(m, (c, i) => paintHero(c, heroById(i.split(":")[1]))) }); };
+ACT.equipPick = id => { const it = findItem(id); const hs = S.heroes.filter(h => canEquip(h, it)); if (!hs.length) return toast("Aucun héros ne peut porter cet objet.", "bad"); modal(`<h2>Équiper ${gearName(it)}</h2><div class="row" style="gap:10px;margin-bottom:8px">${slotHTML(it, "itemInfo", it.id)}<div style="flex:1;min-width:0"><b class="rar${it.rar}">${gearName(it)}</b><div class="tiny dim">${itemLine(it)}</div></div></div><div class="col">${hs.sort((a, b) => gearDelta(b, it).score - gearDelta(a, it).score).map(h => equipRow(h, it, "equipTo", it.id + ":" + h.id)).join("")}</div>`, { mount: m => fillCanvases(m, (c, i) => paintHero(c, heroById(i.split(":")[1]))) }); };
 ACT.equipTo = v => { const [iid, hid] = v.split(":"); const it = findItem(iid), h = heroById(hid); if (!equip(h, it)) return toast("Impossible (deux fois le même bibelot ?).", "bad"); sfx("forge"); toast(`${esc(h.name)} : ${gearName(it)}`, "good"); save(); closeModal(); if (UI.screen === "hero") refresh(); else openBuilding("forge", "inv"); };

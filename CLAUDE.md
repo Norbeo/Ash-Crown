@@ -12,7 +12,9 @@ RPG tactique dark fantasy médiéval, vanilla JS + Canvas 2D, PWA installable (m
 - Synergies de compagnie (`SYNERGIES` dans 03_items.js, 12 au total) : appliquées comme des reliques via `relicHooks` → `runSynergies(run)`. Affichées à la préparation d'expédition, sur la carte et dans les Archives.
 - Fiches détaillées : `heroSheet` / `petSheet` (33_ui_heroes.js), boutons Détails à la Taverne, à la Ménagerie et au départ.
 - Butin équipable en expédition : `runEquip` (06_run.js) ; l'ancien objet retourne au butin ; en cas de déroute les échanges sont annulés (`run.swaps`).
-- Carte d'expédition peinte (16_art_map.js) : parchemin, chemins à l'encre, jetons de salles en images (`mapToken`), fanion du groupe.
+- Carte d'expédition (16_art_map.js) : calque transparent sur le décor animé de la région, chemins à l'encre claire, jetons de salles peints (`mapToken`), fanion du groupe.
+- Armes peintes : `uprightWeapon` dessine sans rotation du repère puis on fait pivoter l'image (`rotatedCopy`) ; pas de `filter` CSS sur les images peintes ; `color-scheme: dark` déclaré pour éviter l'inversion par le mode sombre forcé des navigateurs.
+- Comparaison d'équipement : `gearDelta` / `equipRow` (32_ui_hub.js) — écarts de caractéristiques en vert/rouge, nom + classe + niveau du héros.
 - Chapitres 3 et 4 : nouveaux monstres (moine flagellant, thuriféraire, hallebardier d'os, sorcière des tourbières, pêcheur d'âmes), élites (Prieur sanglant, Ogre) et gardiens alternatifs (`boss2` : L'Abbé de Saint-Morne, La Reine du Sabbat), tirés une fois sur deux après la première victoire.
 - Combats longs : après le tour 14 les soins ennemis sont divisés par 2, après le tour 18 les héros gagnent +5 % de dégâts par tour (évite les enlisements).
 - 5 chapitres (Bourg, Forêt, Catacombes, Marais, Citadelle) + l'Abîme sans fin avec serments.

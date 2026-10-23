@@ -1,6 +1,7 @@
 <!doctype html><html lang="fr"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no">
 <meta name="theme-color" content="#07060a">
+<meta name="color-scheme" content="dark">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
@@ -12,7 +13,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Cinzel+Decorative:wght@700;900&family=Cinzel:wght@500;700;900&family=Alegreya:ital,wght@0,400;0,600;0,800;1,400&display=swap" rel="stylesheet">
 <style>
-:root{--bg:#07060a;--ink:#0b0807;--pan:rgba(16,12,14,.92);--pan2:rgba(26,19,20,.95);--line:#3a2a22;--gold:#c9a24a;--gold2:#e8c878;--goldd:#7a5a2a;--blood:#a0201a;--ember:#ff7a2a;--txt:#e6dccb;--dim:#9a8c7a;--good:#8fd07a;--bad:#ff6a5a;--blue:#7ab0ff;--purple:#c090ff;
+:root{color-scheme:dark;--bg:#07060a;--ink:#0b0807;--pan:rgba(16,12,14,.92);--pan2:rgba(26,19,20,.95);--line:#3a2a22;--gold:#c9a24a;--gold2:#e8c878;--goldd:#7a5a2a;--blood:#a0201a;--ember:#ff7a2a;--txt:#e6dccb;--dim:#9a8c7a;--good:#8fd07a;--bad:#ff6a5a;--blue:#7ab0ff;--purple:#c090ff;
 --f-title:"Cinzel Decorative","Cinzel",serif;--f-head:"Cinzel",serif;--f-body:"Alegreya",Georgia,serif;--r:4px;--nav:64px}
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
 .ic{width:1.2em;height:1.2em;vertical-align:-.22em;flex:none;display:inline-block}
@@ -80,10 +81,16 @@ p{margin:6px 0;line-height:1.45}
 .rar0{color:#c8beaa}.rar1{color:#6ab0ff}.rar2{color:#c87aff}.rar3{color:#ffb848;text-shadow:0 0 8px #ff8a2a88}
 .slot{width:58px;height:58px;border-radius:4px;background:radial-gradient(#2a201c,#0e0a0a);border:1px solid #3a2a22;display:flex;align-items:center;justify-content:center;position:relative;cursor:pointer;box-shadow:inset 0 0 12px #000}
 .slot .ic{width:30px;height:30px}
+.eqrow{display:flex;flex-direction:column;gap:4px;padding:7px 9px;margin-top:6px;border:1px solid #3a2e24;border-left:3px solid #4a3a2a;border-radius:4px;background:#0f0b09}
+.eqrow.better{border-left-color:#7ab04a;background:linear-gradient(90deg,#16200e,#0f0b09 60%)}
+.eqtop{display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap}.eqwho{display:flex;align-items:center;gap:5px;flex-wrap:wrap;min-width:0}
+.eqcmp{display:flex;flex-direction:column;gap:3px}.chips{display:flex;flex-wrap:wrap;gap:4px}
+.chip{font-size:11px;line-height:1;padding:3px 6px;border-radius:3px;font-variant-numeric:tabular-nums;white-space:nowrap}
+.chip.up{color:#a8e07a;background:#1e2e12;border:1px solid #3a5a24}.chip.down{color:#f08a7a;background:#2e1410;border:1px solid #5a2a20}
 .syn{display:flex;flex-direction:column;gap:4px;margin-top:8px}
 .synr{display:flex;align-items:baseline;gap:6px;flex-wrap:wrap;padding:5px 9px;border:1px solid #3a2e24;border-radius:4px;background:#120e0c;cursor:pointer}
 .synr.on{border-color:#8a6a2a;background:linear-gradient(90deg,#2a1e10,#120e0c)}.synr .ic{align-self:center}
-.slot img.itimg{width:100%;height:100%;object-fit:contain;padding:2px;pointer-events:none;filter:drop-shadow(0 2px 2px #000a)}
+.slot img.itimg{width:100%;height:100%;object-fit:contain;padding:2px;pointer-events:none}
 .slot.r1{border-color:#3a6aaa;box-shadow:inset 0 0 12px #000,0 0 8px #3a6aaa55}.slot.r2{border-color:#8a4ac0;box-shadow:inset 0 0 12px #000,0 0 10px #8a4ac066}.slot.r3{border-color:#d0902a;box-shadow:inset 0 0 12px #000,0 0 14px #ffa03a88}
 .slot .tier{position:absolute;bottom:1px;right:3px;font-family:var(--f-head);font-size:10px;color:var(--gold2)}
 .slot .up{position:absolute;top:1px;left:3px;font-size:10px;color:var(--good);font-weight:800}
@@ -133,13 +140,14 @@ p{margin:6px 0;line-height:1.45}
 .mapwrap{position:relative;margin:0 auto}
 .node{position:absolute;transform:translate(-50%,-50%);width:52px;height:52px;border-radius:50%;display:flex;align-items:center;justify-content:center;cursor:default;transition:transform .2s,filter .2s;z-index:1}
 .node img{width:100%;height:100%;pointer-events:none}.node .ic{width:24px;height:24px}
-.node.av{cursor:pointer;animation:nodePulse 1.6s infinite;z-index:2}.node.av:hover{transform:translate(-50%,-50%) scale(1.12)}
-@keyframes nodePulse{0%,100%{filter:drop-shadow(0 0 3px var(--nc,#ffb04a)) drop-shadow(0 0 2px #fff6)}50%{filter:drop-shadow(0 0 12px var(--nc,#ffb04a)) drop-shadow(0 0 4px #fff8)}}
-.node.done{filter:grayscale(.85) brightness(.75) sepia(.35);opacity:.8}.node.cur{filter:drop-shadow(0 0 8px #fff8)}
+.node.av{cursor:pointer;z-index:2}.node.av:hover{transform:translate(-50%,-50%) scale(1.1)}
+.node.av::after{content:"";position:absolute;inset:-5px;border-radius:50%;border:2px solid var(--nc,#e8b04a);box-shadow:0 0 14px var(--nc,#e8b04a),inset 0 0 8px var(--nc,#e8b04a);animation:nodeRing 1.6s ease-in-out infinite;pointer-events:none}
+@keyframes nodeRing{0%,100%{opacity:.35;transform:scale(.96)}50%{opacity:1;transform:scale(1.04)}}
+.node.done img{opacity:.5}.node.done{filter:none}
 .node.boss{width:74px;height:74px}
-.node .nlab{position:absolute;top:100%;left:50%;transform:translateX(-50%);margin-top:1px;white-space:nowrap;font:italic 600 11px Georgia,serif;color:#3a2616;text-shadow:0 0 3px #e2d1aa,0 0 6px #e2d1aa;pointer-events:none}
+.node .nlab{position:absolute;top:100%;left:50%;transform:translateX(-50%);margin-top:1px;white-space:nowrap;font:italic 600 11px Georgia,serif;color:#f0dcb0;text-shadow:0 1px 2px #000,0 0 6px #000;pointer-events:none}
 .pawn{position:absolute;width:56px;height:56px;transform:translate(-30%,-92%);pointer-events:none;z-index:3;filter:drop-shadow(0 3px 3px #0008)}
-@media (prefers-reduced-motion:reduce){.node.av{animation:none;filter:drop-shadow(0 0 8px var(--nc,#ffb04a))}}
+@media (prefers-reduced-motion:reduce){.node.av::after{animation:none;opacity:.8}}
 .statline{display:flex;gap:6px;flex-wrap:wrap;align-items:center;justify-content:center}
 /* divers */
 .sep{height:1px;background:linear-gradient(90deg,transparent,#c9a24a55,transparent);margin:12px 0}
@@ -2732,7 +2740,7 @@ function drawWeapon(x, type, tier, hand, a, o = {}) {
     }
     case "grimoire": {
       // livre ouvert tenu à plat
-      x.rotate(-Math.PI / 2 + .3);
+      if (!o.noRot) x.rotate(-Math.PI / 2 + .3);
       const c = T >= 4 ? "#5a1a10" : "#4a2a1a";
       shade(x, P([[-14, -4, 1], [0, -1, 1], [14, -4, 1], [14, 6, 1], [0, 9, 1], [-14, 6, 1]], true), c, { d: 1.5 });
       shade(x, P([[-12, -5, 1], [-1, -2.5, 1], [-1, 6, 1], [-12, 4, 1]], true), "#e8dcc0", { ol: 1, d: .8 });
@@ -2833,7 +2841,7 @@ function drawWeapon(x, type, tier, hand, a, o = {}) {
       break;
     }
     case "luth": {
-      x.rotate(-1.15);
+      if (!o.noRot) x.rotate(-1.15);
       shade(x, seg([0, -6], [0, -44], 5, 4), MAT.dwood, { d: 1 });
       shade(x, P([[-3, -44], [3, -44], [6, -54, 1], [-2, -56, 1]], true), MAT.dwood, { d: 1 });
       const bc = T >= 4 ? "#3a1a2a" : T >= 3 ? "#5a2a1a" : MAT.wood;
@@ -2879,6 +2887,13 @@ function drawShield(x, kind, tier, hand, a, o = {}) {
   x.restore();
 }
 
+// arme dessinée droite (aucune rotation du repère), poignée en bas : sûr sur tous les moteurs, on fait ensuite pivoter l'image
+function uprightWeapon(type, tier, o = {}, sc = 1) {
+  const W = Math.ceil(240 * sc), H = Math.ceil(300 * sc), cv = mkCanvas(W, H), x = cv.getContext("2d");
+  x.save(); x.translate(W / 2, H - 70 * sc); x.scale(sc, sc); drawWeapon(x, type, tier, [0, 0], Math.PI, Object.assign({ noRot: 1 }, o)); x.restore();
+  return cv;
+}
+function rotatedCopy(src, ang, W, H) { W = H = Math.ceil(Math.hypot(src.width, src.height)); const cv = mkCanvas(W, H), x = cv.getContext("2d"); x.translate(W / 2, H / 2); x.rotate(ang); x.drawImage(src, -src.width / 2, -src.height / 2); return cv; }
 // ── tenues : pour chaque classe, l'apparence complète selon le palier d'armure (1 à 5) ──
 function outfit(L) {
   const T = clamp(L.tier || 1, 1, 5), W = clamp(L.wtier || T, 1, 5), C = CLASSES[L.cls] || CLASSES.templier, pal = C.pal;
@@ -3872,73 +3887,23 @@ const REGION_AMB = { bourg: "spores", foret: "lucioles", catacombes: "ames", mar
 const MAP_INK = "#3a2616";
 const TOKEN_ART = {};
 const TOKEN_BASE = { combat: "#6a6a6e", elite: "#7a1e16", event: "#4a3466", treasure: "#8a6a24", camp: "#6a3e1e", shop: "#2e5a44", boss: "#1a1214", pawn: null };
-// bord de parchemin déchiré
-function parchPath(W, H, rng, m = 6) {
-  const pts = [], step = 22;
-  for (let x = m; x < W - m; x += step) pts.push([x, m + rng() * 5 - 2]);
-  for (let y = m; y < H - m; y += step) pts.push([W - m - rng() * 5 + 2, y]);
-  for (let x = W - m; x > m; x -= step) pts.push([x, H - m - rng() * 5 + 2]);
-  for (let y = H - m; y > m; y -= step) pts.push([m + rng() * 5 - 2, y]);
-  return P(pts, true, .35);
-}
-// petits dessins de terrain propres à chaque chapitre
-function mapDoodle(x, kind, cx, cy, s, rng) {
-  x.save(); x.translate(cx, cy); x.scale(s, s); x.strokeStyle = rgba(MAP_INK, .38); x.fillStyle = rgba(MAP_INK, .12); x.lineWidth = 1.2; x.lineCap = x.lineJoin = "round";
-  const tri = (dx, h) => { x.beginPath(); x.moveTo(dx - 6, 0); x.lineTo(dx, -h); x.lineTo(dx + 6, 0); x.closePath(); x.fill(); x.stroke(); x.beginPath(); x.moveTo(dx, 0); x.lineTo(dx, 4); x.stroke(); };
-  if (kind === "foret") { tri(-7, 16); tri(4, 21); tri(13, 14); }
-  else if (kind === "bourg") { x.beginPath(); x.rect(-9, -10, 18, 10); x.moveTo(-11, -9); x.lineTo(0, -18); x.lineTo(11, -9); x.fill(); x.stroke(); x.beginPath(); x.rect(-2, -6, 4, 6); x.stroke(); }
-  else if (kind === "catacombes") { for (const dx of [-8, 8]) { x.beginPath(); x.moveTo(dx, 2); x.lineTo(dx, -14); x.moveTo(dx - 5, -9); x.lineTo(dx + 5, -9); x.stroke(); } x.beginPath(); x.arc(0, -4, 5, Math.PI, 0); x.lineTo(5, 2); x.lineTo(-5, 2); x.closePath(); x.fill(); x.stroke(); }
-  else if (kind === "marais") { for (let i = -1; i <= 1; i++) { x.beginPath(); x.moveTo(i * 6, 2); x.quadraticCurveTo(i * 6 + 2, -8, i * 6 + (i ? i * 4 : 1), -16); x.stroke(); } x.beginPath(); x.ellipse(0, 4, 14, 3, 0, 0, 7); x.stroke(); x.beginPath(); x.ellipse(2, 9, 9, 2, 0, 0, 7); x.stroke(); }
-  else if (kind === "citadelle") { x.beginPath(); x.rect(-6, -20, 12, 22); x.fill(); x.stroke(); x.beginPath(); for (let i = 0; i < 3; i++) x.rect(-6 + i * 4.5, -24, 3, 4); x.stroke(); x.beginPath(); x.moveTo(-14, 2); x.lineTo(-14, -8); x.lineTo(-6, -8); x.moveTo(6, -8); x.lineTo(14, -8); x.lineTo(14, 2); x.stroke(); }
-  else { x.beginPath(); for (let a = 0; a < 12; a += .3) { const r = a * 1.3; x.lineTo(Math.cos(a) * r, Math.sin(a) * r * .7); } x.stroke(); }
-  x.restore();
-}
-function compassRose(x, cx, cy, r) {
-  x.save(); x.translate(cx, cy); x.globalAlpha = .55;
-  x.strokeStyle = MAP_INK; x.lineWidth = 1; x.beginPath(); x.arc(0, 0, r * .72, 0, 7); x.stroke(); x.beginPath(); x.arc(0, 0, r * .6, 0, 7); x.stroke();
-  for (let i = 0; i < 8; i++) { const a = i * Math.PI / 4 - Math.PI / 2, L = i % 2 ? r * .6 : r; x.fillStyle = i % 2 ? "#8a6a3a" : (i === 0 ? "#7a1e16" : MAP_INK); x.beginPath(); x.moveTo(Math.cos(a) * L, Math.sin(a) * L); x.lineTo(Math.cos(a + .35) * r * .18, Math.sin(a + .35) * r * .18); x.lineTo(Math.cos(a - .35) * r * .18, Math.sin(a - .35) * r * .18); x.closePath(); x.fill(); }
-  x.fillStyle = MAP_INK; x.font = `bold ${Math.round(r * .42)}px Georgia, serif`; x.textAlign = "center"; x.fillText("N", 0, -r - 3);
-  x.restore();
-}
-// fond complet de la carte (le canvas fait W×H en pixels CSS, multiplié par la densité d'écran)
+// chemins de la carte, dessinés sur un calque transparent : le décor animé de la région reste visible dessous
 function paintMapBg(c, run, W, H, pos) {
   const x = c.getContext("2d"), k = c.width / W, rng = mkRng((run.seed || 7) * 13 + (run.floor || 0));
-  const R = regionById(run.region);
   x.save(); x.scale(k, k); x.clearRect(0, 0, W, H);
-  const edge = parchPath(W, H, rng);
-  // ombre portée du parchemin
-  x.save(); x.shadowColor = "rgba(0,0,0,.75)"; x.shadowBlur = 18; x.shadowOffsetY = 6; x.fillStyle = "#b8a070"; x.fill(edge); x.restore();
-  x.save(); x.clip(edge);
-  const g = x.createRadialGradient(W * .45, H * .42, Math.min(W, H) * .1, W / 2, H / 2, Math.max(W, H) * .72);
-  g.addColorStop(0, "#e2d1aa"); g.addColorStop(.55, "#cdb688"); g.addColorStop(1, "#8a6a40"); x.fillStyle = g; x.fillRect(0, 0, W, H);
-  x.fillStyle = rgba(R.accent || "#8a8a6a", .07); x.fillRect(0, 0, W, H);
-  // taches, fibres et pliures
-  for (let i = 0; i < 26; i++) { const cx = rng() * W, cy = rng() * H, r = 10 + rng() * 46; const sg = x.createRadialGradient(cx, cy, 0, cx, cy, r); sg.addColorStop(0, `rgba(110,70,30,${.05 + rng() * .08})`); sg.addColorStop(1, "rgba(110,70,30,0)"); x.fillStyle = sg; x.fillRect(cx - r, cy - r, r * 2, r * 2); }
-  x.strokeStyle = "rgba(90,60,30,.07)"; x.lineWidth = .7; for (let i = 0; i < 90; i++) { const px = rng() * W, py = rng() * H, a = rng() * 6.28, l = 6 + rng() * 18; x.beginPath(); x.moveTo(px, py); x.lineTo(px + Math.cos(a) * l, py + Math.sin(a) * l); x.stroke(); }
-  for (const f of [1 / 3, 2 / 3]) { const fx = W * f; const fg = x.createLinearGradient(fx - 6, 0, fx + 6, 0); fg.addColorStop(0, "rgba(255,240,210,0)"); fg.addColorStop(.45, "rgba(255,240,210,.18)"); fg.addColorStop(.55, "rgba(80,50,20,.16)"); fg.addColorStop(1, "rgba(80,50,20,0)"); x.fillStyle = fg; x.fillRect(fx - 6, 0, 12, H); }
-  // décor dessiné à l'encre, à l'écart des salles
-  const nodes = run.map.flat().map(pos);
-  for (let i = 0, n = 0; i < 80 && n < 16; i++) { const px = 20 + rng() * (W - 40), py = 24 + rng() * (H - 40); if (nodes.some(([a, b]) => Math.hypot(a - px, b - py) < 46)) continue; mapDoodle(x, run.region, px, py, .8 + rng() * .5, rng); n++; }
-  // chemins
   const cur = run.pos;
   const ink = (a, b, style) => {
-    const mx = (a[0] + b[0]) / 2 + (rng() - .5) * 26, my = (a[1] + b[1]) / 2 + (rng() - .5) * 26;
-    x.beginPath(); x.moveTo(a[0], a[1]); x.quadraticCurveTo(mx, my, b[0], b[1]);
-    if (style === "hot") { x.save(); x.shadowColor = "#ffb04a"; x.shadowBlur = 10; x.strokeStyle = "#a8701e"; x.lineWidth = 3.4; x.setLineDash([]); x.stroke(); x.restore(); }
-    else if (style === "done") { x.strokeStyle = "#6a1e14"; x.lineWidth = 3; x.setLineDash([]); x.stroke(); }
-    else { x.strokeStyle = rgba(MAP_INK, .55); x.lineWidth = 1.8; x.setLineDash([2, 7]); x.lineCap = "round"; x.stroke(); }
-    x.setLineDash([]);
+    const mx = (a[0] + b[0]) / 2 + (rng() - .5) * 22, my = (a[1] + b[1]) / 2 + (rng() - .5) * 22;
+    const path = new Path2D(); path.moveTo(a[0], a[1]); path.quadraticCurveTo(mx, my, b[0], b[1]);
+    x.lineCap = "round";
+    if (style === "hot") { x.save(); x.shadowColor = "#ffb04a"; x.shadowBlur = 12; x.strokeStyle = "rgba(20,10,4,.8)"; x.lineWidth = 6; x.stroke(path); x.restore(); x.strokeStyle = "#e8b04a"; x.lineWidth = 3; x.stroke(path); }
+    else if (style === "done") { x.strokeStyle = "rgba(10,4,2,.75)"; x.lineWidth = 6; x.stroke(path); x.strokeStyle = "#a83a24"; x.lineWidth = 3; x.stroke(path); }
+    else { x.strokeStyle = "rgba(10,6,4,.7)"; x.lineWidth = 4.5; x.setLineDash([1, 9]); x.stroke(path); x.strokeStyle = "rgba(230,205,160,.55)"; x.lineWidth = 2.2; x.stroke(path); x.setLineDash([]); }
   };
   for (const col of run.map) for (const n of col) for (const j of n.links) {
     const m = run.map[n.c + 1][j], from = cur && cur.c === n.c && cur.i === n.i;
     ink(pos(n), pos(m), n.visited && m.visited ? "done" : from ? "hot" : "");
   }
-  // titre calligraphié et rose des vents
-  compassRose(x, W - 34, 38, 20);
-  // bord brûlé
-  x.restore();
-  x.save(); x.clip(edge); x.shadowColor = "rgba(50,24,8,.9)"; x.shadowBlur = 22; x.lineWidth = 8; x.strokeStyle = "rgba(50,24,8,.55)"; x.stroke(edge); x.restore();
-  x.lineWidth = 1.6; x.strokeStyle = "rgba(50,28,12,.85)"; x.stroke(edge);
   x.restore();
 }
 // jeton peint d'une salle (cercle de pierre et objet), mis en cache en image
@@ -3958,7 +3923,7 @@ function mapToken(type) {
   }
   x.save(); x.translate(c, c); x.lineCap = x.lineJoin = "round";
   switch (type) {
-    case "combat": { for (const s of [-1, 1]) drawWeapon(x, "espadon", 2, [s * 15, 22], Math.PI + s * .62, {}); break; }
+    case "combat": { const sw = uprightWeapon("espadon", 2, {}, .62); x.save(); for (const s of [-1, 1]) { x.save(); x.rotate(s * .62); x.drawImage(sw, -sw.width / 2, -sw.height + 70 * .62 + 26); x.restore(); } x.restore(); break; }
     case "elite": {
       for (const s of [-1, 1]) { x.save(); x.rotate(s * .7); shade(x, seg([0, -26], [0, 26], 5, 5), MAT.bone, { ol: 1.6, d: 1 }); for (const e of [-26, 26]) shade(x, circ(0, e, 4.5), MAT.bone, { ol: 1.4, d: .8 }); x.restore(); }
       shade(x, skullPath(0, -2, 17), MAT.bone, { d: 2.5 }); x.fillStyle = INK; for (const dx of [-6, 6]) { x.beginPath(); x.ellipse(dx, -4, 4.4, 5, 0, 0, 7); x.fill(); }
@@ -4650,6 +4615,28 @@ ACT.adopt = id => { const r = adoptPet(id); if (r.err) return toast(r.err, "bad"
 ACT.evoPet = id => { const r = evolvePet(id); if (r.err) return toast(r.err, "bad"); sfx("ult"); toast(`${PETS[id].n} devient ${PETS[id].evo.n} !`, "epic"); save(); renderHud(); openBuilding("menagerie"); };
 // inventaire
 function findItem(id) { return S.inv.find(i => i.id === id) || S.heroes.flatMap(h => Object.values(h.gear)).find(i => i && i.id === id) || (S.run ? S.run.loot.find(i => i.id === id) : null); }
+// ── comparaison d'équipement : ce que l'objet change pour ce héros ──
+function gearSlotFor(h, it) { return it.kind === "tr" ? (!h.gear.tr1 ? "tr1" : !h.gear.tr2 ? "tr2" : "tr1") : it.kind; }
+function gearDelta(h, it, relicH = {}) {
+  const slot = gearSlotFor(h, it), old = h.gear[slot];
+  const a = heroStats(h, relicH); h.gear[slot] = it; const b = heroStats(h, relicH); h.gear[slot] = old;
+  const out = [], add = (n, d, fmt, k = 1) => { if (Math.abs(d) >= (fmt === "pct" ? .005 : .5)) out.push({ n, d, txt: (d > 0 ? "+" : "−") + (fmt === "pct" ? Math.round(Math.abs(d) * 100) + " %" : Math.round(Math.abs(d))), w: d * k }); };
+  add("Dégâts", (b.dmgLo + b.dmgHi - a.dmgLo - a.dmgHi) / 2, "n", 3); add("PV", b.hp - a.hp, "n", .6); add("Protection", b.prot - a.prot, "pct", 120);
+  add("Critique", b.crit - a.crit, "n", 1.2); add("Vitesse", b.spd - a.spd, "n", 3); add("Esquive", b.dodge - a.dodge, "n", .8); add("Précision", b.acc - a.acc, "n", .6);
+  add("Résistance", b.res - a.res, "n", .3); add("Soins", b.healPow - a.healPow, "pct", 60); add("Vol de vie", b.leech - a.leech, "pct", 80);
+  return { slot, old, list: out, score: out.reduce((s, x) => s + x.w, 0) + (it.kind === "tr" && !old ? 5 : 0) };
+}
+function deltaChips(D) {
+  if (!D.list.length) return `<span class="tiny dim">${D.old ? "Aucun changement de caractéristiques" : "Effet spécial du bibelot"}</span>`;
+  return D.list.map(x => `<span class="chip ${x.d > 0 ? "up" : "down"}">${x.n} ${x.txt}</span>`).join("");
+}
+function heroLabel(h) { return `<b>${esc(h.name.split(" ")[0])}</b> <span class="tag" style="color:${ROLES[CLASSES[h.cls].role].c}">${ico(ROLES[CLASSES[h.cls].role].ic, ROLES[CLASSES[h.cls].role].c, 12)}${heroTitle(h)}</span> <span class="tiny dim">niv ${h.lvl}</span>`; }
+// une ligne de choix : qui, ce qui est remplacé, les écarts, et le bouton
+function equipRow(h, it, act, v, relicH = {}) {
+  const D = gearDelta(h, it, relicH), good = D.score > 0;
+  return `<div class="eqrow ${good ? "better" : ""}"><div class="eqtop"><span class="eqwho">${heroLabel(h)}</span><button class="btn sm ${good ? "gold" : "ghost"}" data-a="${act}" data-v="${v}">${ico(good ? "up" : "swap", good ? "#8ad06a" : "#9a8c7a", 12)}Équiper</button></div>
+    <div class="eqcmp"><span class="tiny dim">${D.old ? `Remplace <span class="rar${D.old.rar}">${gearName(D.old)}</span>` : "Emplacement libre"}</span><span class="chips">${deltaChips(D)}</span></div></div>`;
+}
 // ── icônes d'équipement peintes : l'arme réelle, l'armure portée sur un mannequin, les bibelots en médaillon ciselé ──
 const ITEM_ART = {}, ITEM_WPN = { dagues: "dague", grimoire: "grimoire" };
 const TR_METAL = ["#b07a44", "#c8ccd4", "#e0b050", "#3a2a3a"];
@@ -4672,11 +4659,11 @@ function itemArt(it) {
   let cv;
   try {
     if (it.kind === "wpn") {
-      const src = mkCanvas(420, 420), x = src.getContext("2d"), wt = CLASSES[it.cls].wpn, type = ITEM_WPN[wt] || wt;
-      x.save(); x.translate(210, 210); x.scale(type === "grimoire" ? 3.2 : 1.6, type === "grimoire" ? 3.2 : 1.6);
-      const a = type === "grimoire" ? 2.6 : type === "luth" ? 1.9 : type === "encensoir" ? 2.95 : 2.36;
-      drawWeapon(x, type, it.tier, [0, 40], a, { t: 0, runeCol: it.rar >= 3 ? "#ffb04a" : null });
-      x.restore(); litPass(x, 420, 420); spritePost(src, 1.6, { rim: "#ffe0b0" });
+      const wt = CLASSES[it.cls].wpn, type = ITEM_WPN[wt] || wt;
+      const up = uprightWeapon(type, it.tier, { t: 0, runeCol: it.rar >= 3 ? "#ffb04a" : null }, type === "grimoire" ? 3.2 : 1.6);
+      const ang = type === "grimoire" ? -.25 : type === "luth" ? .55 : type === "encensoir" ? .2 : Math.PI / 4;
+      const src = rotatedCopy(up, ang), x = src.getContext("2d");
+      litPass(x, src.width, src.height); spritePost(src, 1.6, { rim: "#ffe0b0" });
       cv = cropDraw(src, W, 8);
     } else if (it.kind === "arm") {
       const src = mkCanvas(360, 420), x = src.getContext("2d");
@@ -4737,7 +4724,7 @@ function invList(filter) {
 ACT.itemInfo = id => { const it = findItem(id); if (!it) return; const c = it.kind !== "tr" ? upCost(it) : null; toast(`<b class="rar${it.rar}">${gearName(it)}</b><br><span class="small">${itemLine(it)}</span>${c ? `<br><span class="tiny dim">Amélioration : ${c.gold} or, ${c.fer} fer${c.essence ? ", " + c.essence + " ess." : ""}</span>` : ""}`); };
 ACT.upItem = id => { const it = findItem(id); const r = upgradeItem(it); if (!r || r.err) return toast((r && r.err) || "Impossible.", "bad"); sfx("forge"); toast(`${gearName(it)}`, "good"); save(); renderHud(); if (UI.bldOpen === "forge" && !$("#modal").hidden && !UI.heroOpen) openBuilding("forge", "inv"); else refresh(); };
 ACT.salv = id => { const it = findItem(id); if (!it) return; const go2 = () => { const r = salvageItem(it); sfx("forge"); toast(`Recyclé : +${r.fer} fer${r.essence ? `, +${r.essence} ess.` : ""}${r.cendre ? ", +1 cendre" : ""}, +${r.gold} or`); save(); renderHud(); openBuilding("forge", "inv"); }; if (it.rar >= 2) confirmBox(`Recycler <b class="rar${it.rar}">${gearName(it)}</b> ?`, go2); else go2(); };
-ACT.equipPick = id => { const it = findItem(id); const hs = S.heroes.filter(h => canEquip(h, it)); if (!hs.length) return toast("Aucun héros ne peut porter cet objet.", "bad"); modal(`<h2>Équiper ${gearName(it)}</h2><div class="col">${hs.map(h => { const cur = it.kind === "tr" ? null : h.gear[it.kind]; return `<div class="row card" data-a="equipTo" data-v="${it.id}:${h.id}">${canvasSlot("h:" + h.id, 48, 48)}<div style="flex:1"><b>${esc(h.name)}</b> <span class="tiny dim">${heroTitle(h)} niv ${h.lvl}</span>${cur ? `<div class="tiny dim">Actuel : <span class="rar${cur.rar}">${gearName(cur)}</span></div>` : ""}</div></div>`; }).join("")}</div>`, { mount: m => fillCanvases(m, (c, i) => paintHero(c, heroById(i.split(":")[1]))) }); };
+ACT.equipPick = id => { const it = findItem(id); const hs = S.heroes.filter(h => canEquip(h, it)); if (!hs.length) return toast("Aucun héros ne peut porter cet objet.", "bad"); modal(`<h2>Équiper ${gearName(it)}</h2><div class="row" style="gap:10px;margin-bottom:8px">${slotHTML(it, "itemInfo", it.id)}<div style="flex:1;min-width:0"><b class="rar${it.rar}">${gearName(it)}</b><div class="tiny dim">${itemLine(it)}</div></div></div><div class="col">${hs.sort((a, b) => gearDelta(b, it).score - gearDelta(a, it).score).map(h => equipRow(h, it, "equipTo", it.id + ":" + h.id)).join("")}</div>`, { mount: m => fillCanvases(m, (c, i) => paintHero(c, heroById(i.split(":")[1]))) }); };
 ACT.equipTo = v => { const [iid, hid] = v.split(":"); const it = findItem(iid), h = heroById(hid); if (!equip(h, it)) return toast("Impossible (deux fois le même bibelot ?).", "bad"); sfx("forge"); toast(`${esc(h.name)} : ${gearName(it)}`, "good"); save(); closeModal(); if (UI.screen === "hero") refresh(); else openBuilding("forge", "inv"); };
 /* ═══════════════════════ Héros : caserne et fiche ═══════════════════════ */
 SCREENS.heroes = {
@@ -4797,7 +4784,7 @@ ACT.gearSlot = v => {
   const items = S.inv.filter(it => it.kind === kind && canEquip(h, it)).sort((a, b) => b.rar - a.rar || b.tier - a.tier);
   const cur = h.gear[slot];
   modal(`<h2>${{ wpn: "Arme", arm: "Armure", tr: "Bibelot" }[kind]} — ${esc(h.name)}</h2>${cur ? `<div class="row card" style="cursor:default">${slotHTML(cur, "itemInfo", cur.id)}<div style="flex:1"><b class="rar${cur.rar}">${gearName(cur)}</b><div class="tiny">${itemLine(cur)}</div></div>${kind !== "tr" ? `<button class="btn sm" data-a="upItem" data-v="${cur.id}">${ico("up")}+1 · ${upCost(cur).gold} or</button>` : `<button class="btn ghost sm" data-a="unequip" data-v="${id}:${slot}">Retirer</button>`}</div>` : ""}
-  <h3 style="margin-top:10px">Inventaire</h3>${items.length ? items.map(it => `<div class="row card" data-a="equipTo" data-v="${it.id}:${h.id}">${slotHTML(it, "itemInfo", it.id)}<div style="flex:1"><b class="rar${it.rar}">${gearName(it)}</b><div class="tiny">${itemLine(it)}</div></div></div>`).join("") : '<div class="empty small">Rien à équiper ici. Forgez ou explorez.</div>'}`);
+  <h3 style="margin-top:10px">Inventaire</h3>${items.length ? items.map(it => `<div class="row card" data-a="equipTo" data-v="${it.id}:${h.id}" style="align-items:flex-start">${slotHTML(it, "itemInfo", it.id)}<div style="flex:1;min-width:0"><b class="rar${it.rar}">${gearName(it)}</b><div class="tiny dim">${itemLine(it)}</div><div class="chips" style="margin-top:4px">${deltaChips(gearDelta(h, it))}</div></div></div>`).join("") : '<div class="empty small">Rien à équiper ici. Forgez ou explorez.</div>'}`);
 };
 ACT.unequip = v => { const [id, slot] = v.split(":"); unequip(heroById(id), slot); save(); closeModal(); refresh(); };
 // ── fiches de consultation : héros à recruter ou à choisir, compagnons ──
@@ -5016,7 +5003,8 @@ ACT.leaveShop = () => { UI.shopNode.done = 1; save(); closeModal(); refresh(); }
 function runEquipBtns(it) {
   const run = S.run; if (!run || !run.loot.includes(it)) return "";
   const hs = runEquipTargets(it); if (!hs.length) return "";
-  return `<div class="row runeq" style="gap:4px;margin-top:4px">${hs.map(h => { const cur = it.kind === "tr" ? null : h.gear[it.kind]; const up = cur ? (it.tier - cur.tier) * 2 + (it.rar - cur.rar) : 1; return `<button class="btn sm ${up > 0 ? "gold" : "ghost"}" data-a="runEquip" data-v="${it.id}:${h.id}">${ico("up", up > 0 ? "#8ad06a" : "#9a8c7a", 12)}Équiper ${esc(h.name.split(" ")[0])}</button>`; }).join("")}</div>`;
+  const rh = relicHooks(run);
+  return `<div class="runeq">${hs.sort((a, b) => gearDelta(b, it, rh).score - gearDelta(a, it, rh).score).map(h => equipRow(h, it, "runEquip", it.id + ":" + h.id, rh)).join("")}</div>`;
 }
 ACT.runEquip = (v, el, e) => {
   e && e.stopPropagation(); const [id, hid] = v.split(":"); const run = S.run; if (!run) return;
@@ -5024,7 +5012,7 @@ ACT.runEquip = (v, el, e) => {
   const old = it.kind === "tr" ? null : h.gear[it.kind];
   if (!runEquip(h, it)) return toast("Impossible d'équiper cet objet.", "bad");
   sfx("forge"); save();
-  const row = el.closest(".runeq"); if (row) row.outerHTML = `<div class="tiny good" style="margin-top:4px">Équipé sur ${esc(h.name)}${old ? ` · ${gearName(old)} rangé dans le butin` : ""}</div>`;
+  const row = el.closest(".runeq"); if (row) row.outerHTML = `<div class="tiny good" style="margin-top:6px">${ico("up", "#8ad06a", 12)} Équipé sur ${esc(h.name)} (${heroTitle(h)})${old ? ` · ${gearName(old)} rangé dans le butin` : ""}</div>`;
   if (UI.screen === "map" && $("#bagList")) ACT.runBag();
 };
 ACT.runBag = () => {

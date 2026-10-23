@@ -106,7 +106,7 @@ function drawWeapon(x, type, tier, hand, a, o = {}) {
     }
     case "grimoire": {
       // livre ouvert tenu à plat
-      x.rotate(-Math.PI / 2 + .3);
+      if (!o.noRot) x.rotate(-Math.PI / 2 + .3);
       const c = T >= 4 ? "#5a1a10" : "#4a2a1a";
       shade(x, P([[-14, -4, 1], [0, -1, 1], [14, -4, 1], [14, 6, 1], [0, 9, 1], [-14, 6, 1]], true), c, { d: 1.5 });
       shade(x, P([[-12, -5, 1], [-1, -2.5, 1], [-1, 6, 1], [-12, 4, 1]], true), "#e8dcc0", { ol: 1, d: .8 });
@@ -207,7 +207,7 @@ function drawWeapon(x, type, tier, hand, a, o = {}) {
       break;
     }
     case "luth": {
-      x.rotate(-1.15);
+      if (!o.noRot) x.rotate(-1.15);
       shade(x, seg([0, -6], [0, -44], 5, 4), MAT.dwood, { d: 1 });
       shade(x, P([[-3, -44], [3, -44], [6, -54, 1], [-2, -56, 1]], true), MAT.dwood, { d: 1 });
       const bc = T >= 4 ? "#3a1a2a" : T >= 3 ? "#5a2a1a" : MAT.wood;
@@ -253,6 +253,13 @@ function drawShield(x, kind, tier, hand, a, o = {}) {
   x.restore();
 }
 
+// arme dessinée droite (aucune rotation du repère), poignée en bas : sûr sur tous les moteurs, on fait ensuite pivoter l'image
+function uprightWeapon(type, tier, o = {}, sc = 1) {
+  const W = Math.ceil(240 * sc), H = Math.ceil(300 * sc), cv = mkCanvas(W, H), x = cv.getContext("2d");
+  x.save(); x.translate(W / 2, H - 70 * sc); x.scale(sc, sc); drawWeapon(x, type, tier, [0, 0], Math.PI, Object.assign({ noRot: 1 }, o)); x.restore();
+  return cv;
+}
+function rotatedCopy(src, ang, W, H) { W = H = Math.ceil(Math.hypot(src.width, src.height)); const cv = mkCanvas(W, H), x = cv.getContext("2d"); x.translate(W / 2, H / 2); x.rotate(ang); x.drawImage(src, -src.width / 2, -src.height / 2); return cv; }
 // ── tenues : pour chaque classe, l'apparence complète selon le palier d'armure (1 à 5) ──
 function outfit(L) {
   const T = clamp(L.tier || 1, 1, 5), W = clamp(L.wtier || T, 1, 5), C = CLASSES[L.cls] || CLASSES.templier, pal = C.pal;

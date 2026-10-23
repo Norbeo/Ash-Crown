@@ -4,6 +4,7 @@ cd "$(dirname "$0")"
 OUT=/tmp/claude-0/cc/all.js
 cat src/0*.js src/1*.js src/2*.js src/3*.js > $OUT && node --check $OUT || exit 1
 PWAHEAD='<meta name="theme-color" content="#07060a">
+<meta name="color-scheme" content="dark">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">

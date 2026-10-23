@@ -170,7 +170,8 @@ ACT.leaveShop = () => { UI.shopNode.done = 1; save(); closeModal(); refresh(); }
 function runEquipBtns(it) {
   const run = S.run; if (!run || !run.loot.includes(it)) return "";
   const hs = runEquipTargets(it); if (!hs.length) return "";
-  return `<div class="row runeq" style="gap:4px;margin-top:4px">${hs.map(h => { const cur = it.kind === "tr" ? null : h.gear[it.kind]; const up = cur ? (it.tier - cur.tier) * 2 + (it.rar - cur.rar) : 1; return `<button class="btn sm ${up > 0 ? "gold" : "ghost"}" data-a="runEquip" data-v="${it.id}:${h.id}">${ico("up", up > 0 ? "#8ad06a" : "#9a8c7a", 12)}Équiper ${esc(h.name.split(" ")[0])}</button>`; }).join("")}</div>`;
+  const rh = relicHooks(run);
+  return `<div class="runeq">${hs.sort((a, b) => gearDelta(b, it, rh).score - gearDelta(a, it, rh).score).map(h => equipRow(h, it, "runEquip", it.id + ":" + h.id, rh)).join("")}</div>`;
 }
 ACT.runEquip = (v, el, e) => {
   e && e.stopPropagation(); const [id, hid] = v.split(":"); const run = S.run; if (!run) return;
@@ -178,7 +179,7 @@ ACT.runEquip = (v, el, e) => {
   const old = it.kind === "tr" ? null : h.gear[it.kind];
   if (!runEquip(h, it)) return toast("Impossible d'équiper cet objet.", "bad");
   sfx("forge"); save();
-  const row = el.closest(".runeq"); if (row) row.outerHTML = `<div class="tiny good" style="margin-top:4px">Équipé sur ${esc(h.name)}${old ? ` · ${gearName(old)} rangé dans le butin` : ""}</div>`;
+  const row = el.closest(".runeq"); if (row) row.outerHTML = `<div class="tiny good" style="margin-top:6px">${ico("up", "#8ad06a", 12)} Équipé sur ${esc(h.name)} (${heroTitle(h)})${old ? ` · ${gearName(old)} rangé dans le butin` : ""}</div>`;
   if (UI.screen === "map" && $("#bagList")) ACT.runBag();
 };
 ACT.runBag = () => {

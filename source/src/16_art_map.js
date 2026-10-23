@@ -2,73 +2,23 @@
 const MAP_INK = "#3a2616";
 const TOKEN_ART = {};
 const TOKEN_BASE = { combat: "#6a6a6e", elite: "#7a1e16", event: "#4a3466", treasure: "#8a6a24", camp: "#6a3e1e", shop: "#2e5a44", boss: "#1a1214", pawn: null };
-// bord de parchemin déchiré
-function parchPath(W, H, rng, m = 6) {
-  const pts = [], step = 22;
-  for (let x = m; x < W - m; x += step) pts.push([x, m + rng() * 5 - 2]);
-  for (let y = m; y < H - m; y += step) pts.push([W - m - rng() * 5 + 2, y]);
-  for (let x = W - m; x > m; x -= step) pts.push([x, H - m - rng() * 5 + 2]);
-  for (let y = H - m; y > m; y -= step) pts.push([m + rng() * 5 - 2, y]);
-  return P(pts, true, .35);
-}
-// petits dessins de terrain propres à chaque chapitre
-function mapDoodle(x, kind, cx, cy, s, rng) {
-  x.save(); x.translate(cx, cy); x.scale(s, s); x.strokeStyle = rgba(MAP_INK, .38); x.fillStyle = rgba(MAP_INK, .12); x.lineWidth = 1.2; x.lineCap = x.lineJoin = "round";
-  const tri = (dx, h) => { x.beginPath(); x.moveTo(dx - 6, 0); x.lineTo(dx, -h); x.lineTo(dx + 6, 0); x.closePath(); x.fill(); x.stroke(); x.beginPath(); x.moveTo(dx, 0); x.lineTo(dx, 4); x.stroke(); };
-  if (kind === "foret") { tri(-7, 16); tri(4, 21); tri(13, 14); }
-  else if (kind === "bourg") { x.beginPath(); x.rect(-9, -10, 18, 10); x.moveTo(-11, -9); x.lineTo(0, -18); x.lineTo(11, -9); x.fill(); x.stroke(); x.beginPath(); x.rect(-2, -6, 4, 6); x.stroke(); }
-  else if (kind === "catacombes") { for (const dx of [-8, 8]) { x.beginPath(); x.moveTo(dx, 2); x.lineTo(dx, -14); x.moveTo(dx - 5, -9); x.lineTo(dx + 5, -9); x.stroke(); } x.beginPath(); x.arc(0, -4, 5, Math.PI, 0); x.lineTo(5, 2); x.lineTo(-5, 2); x.closePath(); x.fill(); x.stroke(); }
-  else if (kind === "marais") { for (let i = -1; i <= 1; i++) { x.beginPath(); x.moveTo(i * 6, 2); x.quadraticCurveTo(i * 6 + 2, -8, i * 6 + (i ? i * 4 : 1), -16); x.stroke(); } x.beginPath(); x.ellipse(0, 4, 14, 3, 0, 0, 7); x.stroke(); x.beginPath(); x.ellipse(2, 9, 9, 2, 0, 0, 7); x.stroke(); }
-  else if (kind === "citadelle") { x.beginPath(); x.rect(-6, -20, 12, 22); x.fill(); x.stroke(); x.beginPath(); for (let i = 0; i < 3; i++) x.rect(-6 + i * 4.5, -24, 3, 4); x.stroke(); x.beginPath(); x.moveTo(-14, 2); x.lineTo(-14, -8); x.lineTo(-6, -8); x.moveTo(6, -8); x.lineTo(14, -8); x.lineTo(14, 2); x.stroke(); }
-  else { x.beginPath(); for (let a = 0; a < 12; a += .3) { const r = a * 1.3; x.lineTo(Math.cos(a) * r, Math.sin(a) * r * .7); } x.stroke(); }
-  x.restore();
-}
-function compassRose(x, cx, cy, r) {
-  x.save(); x.translate(cx, cy); x.globalAlpha = .55;
-  x.strokeStyle = MAP_INK; x.lineWidth = 1; x.beginPath(); x.arc(0, 0, r * .72, 0, 7); x.stroke(); x.beginPath(); x.arc(0, 0, r * .6, 0, 7); x.stroke();
-  for (let i = 0; i < 8; i++) { const a = i * Math.PI / 4 - Math.PI / 2, L = i % 2 ? r * .6 : r; x.fillStyle = i % 2 ? "#8a6a3a" : (i === 0 ? "#7a1e16" : MAP_INK); x.beginPath(); x.moveTo(Math.cos(a) * L, Math.sin(a) * L); x.lineTo(Math.cos(a + .35) * r * .18, Math.sin(a + .35) * r * .18); x.lineTo(Math.cos(a - .35) * r * .18, Math.sin(a - .35) * r * .18); x.closePath(); x.fill(); }
-  x.fillStyle = MAP_INK; x.font = `bold ${Math.round(r * .42)}px Georgia, serif`; x.textAlign = "center"; x.fillText("N", 0, -r - 3);
-  x.restore();
-}
-// fond complet de la carte (le canvas fait W×H en pixels CSS, multiplié par la densité d'écran)
+// chemins de la carte, dessinés sur un calque transparent : le décor animé de la région reste visible dessous
 function paintMapBg(c, run, W, H, pos) {
   const x = c.getContext("2d"), k = c.width / W, rng = mkRng((run.seed || 7) * 13 + (run.floor || 0));
-  const R = regionById(run.region);
   x.save(); x.scale(k, k); x.clearRect(0, 0, W, H);
-  const edge = parchPath(W, H, rng);
-  // ombre portée du parchemin
-  x.save(); x.shadowColor = "rgba(0,0,0,.75)"; x.shadowBlur = 18; x.shadowOffsetY = 6; x.fillStyle = "#b8a070"; x.fill(edge); x.restore();
-  x.save(); x.clip(edge);
-  const g = x.createRadialGradient(W * .45, H * .42, Math.min(W, H) * .1, W / 2, H / 2, Math.max(W, H) * .72);
-  g.addColorStop(0, "#e2d1aa"); g.addColorStop(.55, "#cdb688"); g.addColorStop(1, "#8a6a40"); x.fillStyle = g; x.fillRect(0, 0, W, H);
-  x.fillStyle = rgba(R.accent || "#8a8a6a", .07); x.fillRect(0, 0, W, H);
-  // taches, fibres et pliures
-  for (let i = 0; i < 26; i++) { const cx = rng() * W, cy = rng() * H, r = 10 + rng() * 46; const sg = x.createRadialGradient(cx, cy, 0, cx, cy, r); sg.addColorStop(0, `rgba(110,70,30,${.05 + rng() * .08})`); sg.addColorStop(1, "rgba(110,70,30,0)"); x.fillStyle = sg; x.fillRect(cx - r, cy - r, r * 2, r * 2); }
-  x.strokeStyle = "rgba(90,60,30,.07)"; x.lineWidth = .7; for (let i = 0; i < 90; i++) { const px = rng() * W, py = rng() * H, a = rng() * 6.28, l = 6 + rng() * 18; x.beginPath(); x.moveTo(px, py); x.lineTo(px + Math.cos(a) * l, py + Math.sin(a) * l); x.stroke(); }
-  for (const f of [1 / 3, 2 / 3]) { const fx = W * f; const fg = x.createLinearGradient(fx - 6, 0, fx + 6, 0); fg.addColorStop(0, "rgba(255,240,210,0)"); fg.addColorStop(.45, "rgba(255,240,210,.18)"); fg.addColorStop(.55, "rgba(80,50,20,.16)"); fg.addColorStop(1, "rgba(80,50,20,0)"); x.fillStyle = fg; x.fillRect(fx - 6, 0, 12, H); }
-  // décor dessiné à l'encre, à l'écart des salles
-  const nodes = run.map.flat().map(pos);
-  for (let i = 0, n = 0; i < 80 && n < 16; i++) { const px = 20 + rng() * (W - 40), py = 24 + rng() * (H - 40); if (nodes.some(([a, b]) => Math.hypot(a - px, b - py) < 46)) continue; mapDoodle(x, run.region, px, py, .8 + rng() * .5, rng); n++; }
-  // chemins
   const cur = run.pos;
   const ink = (a, b, style) => {
-    const mx = (a[0] + b[0]) / 2 + (rng() - .5) * 26, my = (a[1] + b[1]) / 2 + (rng() - .5) * 26;
-    x.beginPath(); x.moveTo(a[0], a[1]); x.quadraticCurveTo(mx, my, b[0], b[1]);
-    if (style === "hot") { x.save(); x.shadowColor = "#ffb04a"; x.shadowBlur = 10; x.strokeStyle = "#a8701e"; x.lineWidth = 3.4; x.setLineDash([]); x.stroke(); x.restore(); }
-    else if (style === "done") { x.strokeStyle = "#6a1e14"; x.lineWidth = 3; x.setLineDash([]); x.stroke(); }
-    else { x.strokeStyle = rgba(MAP_INK, .55); x.lineWidth = 1.8; x.setLineDash([2, 7]); x.lineCap = "round"; x.stroke(); }
-    x.setLineDash([]);
+    const mx = (a[0] + b[0]) / 2 + (rng() - .5) * 22, my = (a[1] + b[1]) / 2 + (rng() - .5) * 22;
+    const path = new Path2D(); path.moveTo(a[0], a[1]); path.quadraticCurveTo(mx, my, b[0], b[1]);
+    x.lineCap = "round";
+    if (style === "hot") { x.save(); x.shadowColor = "#ffb04a"; x.shadowBlur = 12; x.strokeStyle = "rgba(20,10,4,.8)"; x.lineWidth = 6; x.stroke(path); x.restore(); x.strokeStyle = "#e8b04a"; x.lineWidth = 3; x.stroke(path); }
+    else if (style === "done") { x.strokeStyle = "rgba(10,4,2,.75)"; x.lineWidth = 6; x.stroke(path); x.strokeStyle = "#a83a24"; x.lineWidth = 3; x.stroke(path); }
+    else { x.strokeStyle = "rgba(10,6,4,.7)"; x.lineWidth = 4.5; x.setLineDash([1, 9]); x.stroke(path); x.strokeStyle = "rgba(230,205,160,.55)"; x.lineWidth = 2.2; x.stroke(path); x.setLineDash([]); }
   };
   for (const col of run.map) for (const n of col) for (const j of n.links) {
     const m = run.map[n.c + 1][j], from = cur && cur.c === n.c && cur.i === n.i;
     ink(pos(n), pos(m), n.visited && m.visited ? "done" : from ? "hot" : "");
   }
-  // titre calligraphié et rose des vents
-  compassRose(x, W - 34, 38, 20);
-  // bord brûlé
-  x.restore();
-  x.save(); x.clip(edge); x.shadowColor = "rgba(50,24,8,.9)"; x.shadowBlur = 22; x.lineWidth = 8; x.strokeStyle = "rgba(50,24,8,.55)"; x.stroke(edge); x.restore();
-  x.lineWidth = 1.6; x.strokeStyle = "rgba(50,28,12,.85)"; x.stroke(edge);
   x.restore();
 }
 // jeton peint d'une salle (cercle de pierre et objet), mis en cache en image
@@ -88,7 +38,7 @@ function mapToken(type) {
   }
   x.save(); x.translate(c, c); x.lineCap = x.lineJoin = "round";
   switch (type) {
-    case "combat": { for (const s of [-1, 1]) drawWeapon(x, "espadon", 2, [s * 15, 22], Math.PI + s * .62, {}); break; }
+    case "combat": { const sw = uprightWeapon("espadon", 2, {}, .62); x.save(); for (const s of [-1, 1]) { x.save(); x.rotate(s * .62); x.drawImage(sw, -sw.width / 2, -sw.height + 70 * .62 + 26); x.restore(); } x.restore(); break; }
     case "elite": {
       for (const s of [-1, 1]) { x.save(); x.rotate(s * .7); shade(x, seg([0, -26], [0, 26], 5, 5), MAT.bone, { ol: 1.6, d: 1 }); for (const e of [-26, 26]) shade(x, circ(0, e, 4.5), MAT.bone, { ol: 1.4, d: .8 }); x.restore(); }
       shade(x, skullPath(0, -2, 17), MAT.bone, { d: 2.5 }); x.fillStyle = INK; for (const dx of [-6, 6]) { x.beginPath(); x.ellipse(dx, -4, 4.4, 5, 0, 0, 7); x.fill(); }

@@ -426,6 +426,13 @@ const TRAITS = {
   peureux: { n: "Peureux", good: 0, d: "Perd plus de résolution quand un allié tombe.", pas: [{ k: "fearful", v: 1 }] },
   hemophile: { n: "Hémophile", good: 0, d: "Les saignements subis durent 1 tour de plus.", pas: [{ k: "bleedTaken", v: 1 }] },
 };
-const NAMES_M = ["Aldric", "Bertrand", "Cassian", "Dagobert", "Edmond", "Fulbert", "Gauvain", "Hugues", "Isarn", "Josselin", "Lancelin", "Mathieu", "Oswald", "Perceval", "Raoul", "Sigismond", "Thibault", "Ulric", "Valéran", "Wolfram", "Anselme", "Brunon", "Corentin", "Évrard", "Gildas", "Héloïn", "Lothaire", "Morvan", "Odon", "Roland", "Tancrède", "Yvain"];
-const NAMES_F = ["Adélaïde", "Bérengère", "Clémence", "Douce", "Ermengarde", "Frédégonde", "Guenièvre", "Hildegarde", "Iseult", "Jehanne", "Liutgarde", "Mahaut", "Ombeline", "Pétronille", "Radegonde", "Sibylle", "Tiphaine", "Ursuline", "Viviane", "Ysolde", "Aliénor", "Bathilde", "Cunégonde", "Éléonore", "Gisèle", "Héloïse", "Morgane", "Oriane", "Rosamonde", "Solène", "Yseult", "Mélisende"];
-const SURNAMES = ["le Pieux", "Cœur-de-Fer", "la Balafrée", "Main-Rouge", "des Cendres", "le Muet", "Brise-Os", "l'Exilé", "la Grise", "Sombrelame", "le Borgne", "Sans-Terre", "la Veuve", "Croc-Noir", "du Gibet", "l'Errant", "Œil-de-Corbeau", "la Pâle", "Ferrevent", "le Damné"];
+const NAMES_M = ["Aldric", "Bertrand", "Cassian", "Dagobert", "Edmond", "Fulbert", "Gauvain", "Hugues", "Isarn", "Josselin", "Lancelin", "Mathieu", "Oswald", "Perceval", "Raoul", "Sigismond", "Thibault", "Ulric", "Valéran", "Wolfram", "Anselme", "Brunon", "Corentin", "Évrard", "Gildas", "Hubert", "Lothaire", "Morvan", "Odon", "Roland", "Tancrède", "Yvain"];
+const NAMES_F = ["Adélaïde", "Bérengère", "Clémence", "Douce", "Ermengarde", "Frédégonde", "Guenièvre", "Hildegarde", "Iseult", "Jehanne", "Liutgarde", "Mahaut", "Ombeline", "Pétronille", "Radegonde", "Sibylle", "Tiphaine", "Ursuline", "Viviane", "Ysolde", "Aliénor", "Bathilde", "Cunégonde", "Éléonore", "Gisèle", "Héloïse", "Morgane", "Oriane", "Rosamonde", "Solène", "Yseult", "Mélisende", "Odile", "Mathilde", "Agnès", "Blanche", "Aude", "Isabeau"];
+// surnoms : [masculin, féminin]
+const SURNAMES = [["le Pieux", "la Pieuse"], ["Cœur-de-Fer"], ["le Balafré", "la Balafrée"], ["Main-Rouge"], ["des Cendres"], ["le Muet", "la Muette"], ["Brise-Os"], ["l'Exilé", "l'Exilée"],
+  ["le Gris", "la Grise"], ["Sombrelame"], ["le Borgne", "la Borgne"], ["Sans-Terre"], ["le Veuf", "la Veuve"], ["Croc-Noir"], ["du Gibet"], ["l'Errant", "l'Errante"], ["Œil-de-Corbeau"],
+  ["le Pâle", "la Pâle"], ["Ferrevent"], ["le Damné", "la Damnée"], ["le Maudit", "la Maudite"], ["Mort-Vivant", "Morte-Vivante"], ["le Hardi", "la Hardie"], ["Lame-Grise"], ["le Silencieux", "la Silencieuse"], ["Cendrecœur"]];
+// sexe de chaque classe, fixé par son illustration (le nom suit toujours le portrait)
+const CLASS_FEMALE = new Set(["arbaletriere", "ombre", "pretresse", "sorciere"]);
+function surname(female) { const p = pick(SURNAMES); return female && p[1] ? p[1] : p[0]; }
+function heroName(female) { return pick(female ? NAMES_F : NAMES_M) + (chance(.45) ? " " + surname(female) : ""); }

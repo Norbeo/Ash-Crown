@@ -41,6 +41,8 @@ html,body{margin:0;height:100%;background:var(--bg);color:var(--txt);font-family
 .campparty{display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:6px;margin:8px 0 12px}.cph{display:flex;gap:8px;align-items:center;padding:4px 8px 4px 4px;background:#0006;border:1px solid #2a2018;border-radius:6px}.cph.dead{opacity:.45}.cph canvas{flex:none}
 .bar.hp i{background:linear-gradient(#e05a4a,#7a1a12)}.bar.hp i.gain{position:absolute;left:0;top:0;bottom:0;background:#6ac06a55;box-shadow:none}
 .btn.choice .fxs{display:flex;flex-wrap:wrap;gap:4px;margin-top:5px;justify-content:flex-start}.fx{font-size:11px;padding:1px 6px;border-radius:9px;background:#0008;border:1px solid #3a2e22;color:#b8a88a;font-weight:400;letter-spacing:0;text-transform:none}.fx.good{color:#9fd88a;border-color:#2e4a26}.fx.bad{color:#ff8a7a;border-color:#5a2420}.fx.risk{color:#e8c878;border-color:transparent;background:none;padding-left:0}
+.sumstats{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin:8px 0}.sumstat{display:flex;flex-direction:column;align-items:center;padding:6px;background:#0006;border:1px solid #2a2018;border-radius:6px}.sumstat b{font-size:18px;color:var(--gold2)}
+.sumheroes{display:grid;gap:6px;margin-top:8px}.sumhero{display:flex;gap:8px;align-items:center;padding:4px 8px 4px 4px;background:#0006;border:1px solid #2a2018;border-radius:6px}.sumhero.dead{opacity:.55}.sumhero canvas{flex:none}
 .ic.pic{object-fit:contain;transform:scale(1.18);pointer-events:none}#nav button .ic.pic{opacity:.75;filter:none}#nav button.on .ic.pic{opacity:1;filter:none;transform:translateY(-2px) scale(1.3)}
 #nav button.on::after{content:"";position:absolute;bottom:0;left:30%;right:30%;height:2px;background:linear-gradient(90deg,transparent,var(--ember),transparent);box-shadow:0 0 8px var(--ember)}
 #nav .badge{position:absolute;top:2px;right:28%;min-width:16px;height:16px;border-radius:8px;background:var(--blood);color:#fff;font-size:10px;line-height:16px;font-family:var(--f-body);box-shadow:0 0 8px #f00a;animation:pulse 1.6s infinite}
@@ -660,9 +662,16 @@ const TRAITS = {
   peureux: { n: "Peureux", good: 0, d: "Perd plus de résolution quand un allié tombe.", pas: [{ k: "fearful", v: 1 }] },
   hemophile: { n: "Hémophile", good: 0, d: "Les saignements subis durent 1 tour de plus.", pas: [{ k: "bleedTaken", v: 1 }] },
 };
-const NAMES_M = ["Aldric", "Bertrand", "Cassian", "Dagobert", "Edmond", "Fulbert", "Gauvain", "Hugues", "Isarn", "Josselin", "Lancelin", "Mathieu", "Oswald", "Perceval", "Raoul", "Sigismond", "Thibault", "Ulric", "Valéran", "Wolfram", "Anselme", "Brunon", "Corentin", "Évrard", "Gildas", "Héloïn", "Lothaire", "Morvan", "Odon", "Roland", "Tancrède", "Yvain"];
-const NAMES_F = ["Adélaïde", "Bérengère", "Clémence", "Douce", "Ermengarde", "Frédégonde", "Guenièvre", "Hildegarde", "Iseult", "Jehanne", "Liutgarde", "Mahaut", "Ombeline", "Pétronille", "Radegonde", "Sibylle", "Tiphaine", "Ursuline", "Viviane", "Ysolde", "Aliénor", "Bathilde", "Cunégonde", "Éléonore", "Gisèle", "Héloïse", "Morgane", "Oriane", "Rosamonde", "Solène", "Yseult", "Mélisende"];
-const SURNAMES = ["le Pieux", "Cœur-de-Fer", "la Balafrée", "Main-Rouge", "des Cendres", "le Muet", "Brise-Os", "l'Exilé", "la Grise", "Sombrelame", "le Borgne", "Sans-Terre", "la Veuve", "Croc-Noir", "du Gibet", "l'Errant", "Œil-de-Corbeau", "la Pâle", "Ferrevent", "le Damné"];
+const NAMES_M = ["Aldric", "Bertrand", "Cassian", "Dagobert", "Edmond", "Fulbert", "Gauvain", "Hugues", "Isarn", "Josselin", "Lancelin", "Mathieu", "Oswald", "Perceval", "Raoul", "Sigismond", "Thibault", "Ulric", "Valéran", "Wolfram", "Anselme", "Brunon", "Corentin", "Évrard", "Gildas", "Hubert", "Lothaire", "Morvan", "Odon", "Roland", "Tancrède", "Yvain"];
+const NAMES_F = ["Adélaïde", "Bérengère", "Clémence", "Douce", "Ermengarde", "Frédégonde", "Guenièvre", "Hildegarde", "Iseult", "Jehanne", "Liutgarde", "Mahaut", "Ombeline", "Pétronille", "Radegonde", "Sibylle", "Tiphaine", "Ursuline", "Viviane", "Ysolde", "Aliénor", "Bathilde", "Cunégonde", "Éléonore", "Gisèle", "Héloïse", "Morgane", "Oriane", "Rosamonde", "Solène", "Yseult", "Mélisende", "Odile", "Mathilde", "Agnès", "Blanche", "Aude", "Isabeau"];
+// surnoms : [masculin, féminin]
+const SURNAMES = [["le Pieux", "la Pieuse"], ["Cœur-de-Fer"], ["le Balafré", "la Balafrée"], ["Main-Rouge"], ["des Cendres"], ["le Muet", "la Muette"], ["Brise-Os"], ["l'Exilé", "l'Exilée"],
+  ["le Gris", "la Grise"], ["Sombrelame"], ["le Borgne", "la Borgne"], ["Sans-Terre"], ["le Veuf", "la Veuve"], ["Croc-Noir"], ["du Gibet"], ["l'Errant", "l'Errante"], ["Œil-de-Corbeau"],
+  ["le Pâle", "la Pâle"], ["Ferrevent"], ["le Damné", "la Damnée"], ["le Maudit", "la Maudite"], ["Mort-Vivant", "Morte-Vivante"], ["le Hardi", "la Hardie"], ["Lame-Grise"], ["le Silencieux", "la Silencieuse"], ["Cendrecœur"]];
+// sexe de chaque classe, fixé par son illustration (le nom suit toujours le portrait)
+const CLASS_FEMALE = new Set(["arbaletriere", "ombre", "pretresse", "sorciere"]);
+function surname(female) { const p = pick(SURNAMES); return female && p[1] ? p[1] : p[0]; }
+function heroName(female) { return pick(female ? NAMES_F : NAMES_M) + (chance(.45) ? " " + surname(female) : ""); }
 /* ═══════════════════════ Monde : compagnons, monstres, régions ═══════════════════════ */
 
 // ── Compagnons : ils agissent seuls à la fin de chaque tour ──
@@ -1238,8 +1247,8 @@ function newState(opts = {}) {
 const SKINS = ["#f0d2b4", "#e0b48c", "#c8946a", "#a87250", "#7a5034", "#e8c8a8"];
 const HAIRCOL = ["#1a1410", "#3a2414", "#6a3a1a", "#a06a30", "#c8a060", "#d8d0c0", "#7a2a14", "#2a2a30"];
 function makeHero(cls, opt = {}) {
-  const C = CLASSES[cls], female = opt.female != null ? opt.female : chance(.5);
-  const name = opt.name || (pick(female ? NAMES_F : NAMES_M) + (chance(.45) ? " " + pick(SURNAMES).replace(/^le |^la /, female ? "la " : "le ") : ""));
+  const C = CLASSES[cls], female = CLASS_FEMALE.has(cls);
+  const name = opt.name || heroName(female);
   const goods = Object.keys(TRAITS).filter(k => TRAITS[k].good), bads = Object.keys(TRAITS).filter(k => !TRAITS[k].good);
   const traits = opt.traits || (() => { const t = [pick(goods)]; if (chance(.35)) { let g = pick(goods); if (!t.includes(g)) t.push(g); } if (chance(.4)) t.push(pick(bads)); return t; })();
   const sk = Object.keys(C.skills);
@@ -1338,12 +1347,23 @@ function load() {
   if (!HASWIN) return null;
   try { const raw = localStorage.getItem(SAVE_KEY); if (!raw) return null; const s = JSON.parse(raw); return migrate(s); } catch (e) { return null; }
 }
+function fixHeroName(h) {
+  const f = CLASS_FEMALE.has(h.cls), [first, ...rest] = String(h.name).split(" "), sur = rest.join(" ");
+  const okFirst = (f ? NAMES_F : NAMES_M).includes(first) || !NAMES_F.concat(NAMES_M).includes(first);
+  const tail = x => x.replace(/^(le |la |l'|du |des )/, ""), pair = SURNAMES.find(p => p.some(x => tail(x) === tail(sur)));
+  const newFirst = okFirst ? first : (f ? NAMES_F : NAMES_M)[hashStr(h.id || first) % (f ? NAMES_F : NAMES_M).length];
+  const newSur = !sur ? "" : pair ? (f && pair[1] ? pair[1] : pair[0]) : sur.replace(/^(le|la) /, f ? "la " : "le ");
+  h.female = f; if (h.look && f) h.look.beard = -1;
+  h.name = newFirst + (newSur ? " " + newSur : "");
+}
 function migrate(s) {
   const base = newState();
   for (const k in base) if (s[k] === undefined) s[k] = base[k];
   for (const k in base.stats) if (s.stats[k] === undefined) s.stats[k] = 0;
   for (const k in base.bld) if (!s.bld[k]) s.bld[k] = 1;
   for (const k in base.opts) if (s.opts[k] === undefined) s.opts[k] = base.opts[k];
+  // le nom et le sexe suivent l'illustration de la classe (anciennes sauvegardes : héroïne dessinée en homme, surnom mal accordé…)
+  for (const h of (s.heroes || []).concat(s.recruits || [])) fixHeroName(h);
   return s;
 }
 const potionMax = () => 2 + (S ? S.bld.chapelle : 1);
@@ -1476,6 +1496,7 @@ function act(B, u, sk, tgt) {
   const ev = [], t = sk.t || "e";
   const rk = 1 + .1 * ((sk.rank || 1) - 1);
   ev.push({ k: "act", u: u.uid, sk: sk.n, ult: !!sk.isUlt, anim: skillAnim(u, sk), tgt: tgt && tgt.uid, t });
+  B.curSk = sk.n;
   if (sk.isUlt) u.ultV = 0; else { gainUlt(u, 18); if (sk.cd) u.cds[sk.id] = sk.cd + 1; }
   if (sk.selfDmg) { const d = Math.min(u.hp - 1, Math.round(u.hpMax * sk.selfDmg)); if (d > 0) { u.hp -= d; ev.push({ k: "hit", u: u.uid, dmg: d, self: 1 }); } }
   // cibles
@@ -1598,6 +1619,9 @@ function applyDamage(B, src, x, d, ev, o = {}) {
   if (d <= 0) return 0;
   const before = x.hp;
   if (!o.dot) ev.push({ k: "hit", u: x.uid, dmg: d, crit: !!o.crit, src: src && src.uid });
+  // statistiques du bilan d'expédition
+  if (src && src.side === "h" && x.side !== "h") { const T = B.tally || (B.tally = { dmg: {}, heal: {}, taken: {}, best: null }); const dd = Math.round(Math.min(d, x.hp)); T.dmg[src.hid] = (T.dmg[src.hid] || 0) + dd; if (!o.dot && (!T.best || d > T.best.v)) T.best = { v: Math.round(d), hid: src.hid, sk: B.curSk, vs: x.name, crit: !!o.crit }; }
+  if (x.side === "h") { const T = B.tally || (B.tally = { dmg: {}, heal: {}, taken: {}, best: null }); T.taken[x.hid] = (T.taken[x.hid] || 0) + Math.round(d); }
   x.hitSince = 1;
   if (x.side === "h") gainUlt(x, 8);
   if (x.side === "h" && x.agony) {
@@ -1635,6 +1659,7 @@ function healUnit(B, src, x, v, ev, o = {}) {
   h = Math.max(1, Math.round(h));
   const room = x.hpMax - x.hp, real = Math.min(room, h);
   x.hp += real;
+  if (src && src.side === "h" && real > 0) { const T = B.tally || (B.tally = { dmg: {}, heal: {}, taken: {}, best: null }); T.heal[src.hid] = (T.heal[src.hid] || 0) + real; }
   if (x.agony && x.hp > 0) { x.agony = false; ev.push({ k: "saved", u: x.uid }); }
   if (real > 0 || !o.regen) ev.push({ k: "heal", u: x.uid, v: real, regen: !!o.regen, leech: !!o.leech });
   if (src && src.hooks.overhealShield && h > real) addSt(B, src, x, { k: "shield", v: (h - real) * src.hooks.overhealShield, t: 2 }, ev);
@@ -1941,6 +1966,7 @@ function giveXp(h, v) {
   if (h.lvl >= MAX_LVL) return false;
   const mul = 1 + heroPassives(h).filter(p => p.k === "xp").reduce((a, p) => a + p.v, 0);
   h.xp += Math.round(v * mul); let up = false;
+  if (S && S.run && S.run.xpGain && S.run.party.includes(h.id)) S.run.xpGain[h.id] = (S.run.xpGain[h.id] || 0) + Math.round(v * mul);
   while (h.lvl < MAX_LVL && h.xp >= xpNeed(h.lvl)) { h.xp -= xpNeed(h.lvl); h.lvl++; up = true; if (h.lvl === APEX_LVL && h.evo) S.stats.apex++; S.stats.maxlvl = Math.max(S.stats.maxlvl, h.lvl >= MAX_LVL ? 1 : 0); }
   if (h.lvl >= MAX_LVL) h.xp = 0;
   return up;
@@ -1969,6 +1995,10 @@ function endRun(outcome) {
   const run = S.run; if (!run) return null;
   const R = regionById(run.region);
   const res = { outcome, gold: run.gold, loot: run.loot.slice(), mats: Object.assign({}, run.mats), shards: run.shards, region: run.region, floor: run.floor, story: null, unlocks: [] };
+  // bilan de l'expédition
+  const L = run.sum || { dmg: {}, heal: {}, taken: {}, kills: {}, best: null, foes: [], crits: 0 };
+  res.sum = { heroes: run.party.map(id => { const h = heroById(id); return h && { id, name: h.name, cls: h.cls, lvl: h.lvl, fallen: run.fallen.includes(id), dmg: L.dmg[id] || 0, heal: L.heal[id] || 0, taken: L.taken[id] || 0, kills: L.kills[id] || 0, xp: (run.xpGain || {})[id] || 0 }; }).filter(Boolean),
+    best: L.best, foes: L.foes, crits: L.crits, kills: run.kills, combats: run.combats, rooms: run.map.flat().filter(n => n.visited).length, relics: run.relics.slice(), light: Math.round(run.light), mins: Math.max(1, Math.round((Date.now() - run.startedAt) / 60000)) };
   if (outcome === "wipe") { res.gold = Math.round(run.gold * .5); res.loot = []; res.shards = 0;
     for (const w of (run.swaps || []).slice().reverse()) { const h = heroById(w.hid); if (!h || !h.gear[w.slot] || h.gear[w.slot].id !== w.nu) continue; h.gear[w.slot] = w.old ? run.loot.find(x => x.id === w.old) || h.gear[w.slot] : null; } }
   const before = regionsCleared();
@@ -2182,6 +2212,14 @@ function afterBattle(run, B) {
   const rh = relicHooks(run);
   if (rh.postHeal && B.over === "win") healParty(run, rh.postHeal);
   run.kills += B.kills; run.combats++;
+  // bilan : cumul par héros, plus beau coup, ennemis notables vaincus
+  const L = run.sum || (run.sum = { dmg: {}, heal: {}, taken: {}, kills: {}, best: null, foes: [], crits: 0 });
+  const T = B.tally || { dmg: {}, heal: {}, taken: {} };
+  for (const k of ["dmg", "heal", "taken"]) for (const id in T[k]) L[k][id] = (L[k][id] || 0) + T[k][id];
+  for (const u of [...B.heroes, ...B.fallen]) if (u.kills) L.kills[u.hid] = (L.kills[u.hid] || 0) + u.kills;
+  if (T.best && (!L.best || T.best.v > L.best.v)) L.best = T.best;
+  L.crits += B.crits || 0;
+  if (B.over === "win") for (const e of B.dead || []) if (e.boss || e.elite) L.foes.push({ name: e.name, boss: !!e.boss });
   S.stats.kills += B.kills; if (B.over === "win") S.stats.wins++;
   contractProgress("kills", B.kills); contractProgress("crits", B.crits); contractProgress("ults", B.ults || 0);
   contractProgress("impie", (B.dead || []).filter(e => e.tags.includes("impie")).length);
@@ -3717,6 +3755,22 @@ function finishRun(outcome) {
   for (const a of ach) setTimeout(() => toast(`${ico("trophy", "#e8c878")} Succès : <b>${a.n}</b>${a.gold ? ` +${a.gold} or` : ""}${a.shards ? ` +${a.shards} éclats` : ""}`, "epic"), 800);
   void fl;
 }
+// bilan d'expédition : chaque héros, le plus beau coup, les ennemis notables, les chiffres clés
+function runSummaryHTML(res) {
+  const M = res.sum, mx = Math.max(1, ...M.heroes.map(h => h.dmg)), bestH = M.best && M.heroes.find(h => h.id === M.best.hid);
+  const mvp = M.heroes.slice().sort((a, b) => (b.dmg + b.heal * 1.2) - (a.dmg + a.heal * 1.2))[0];
+  const stat = (ic, c, v, n) => `<div class="sumstat">${ico(ic, c, 20)}<b>${v}</b><span class="tiny dim">${n}</span></div>`;
+  return `<div class="sep"></div><h3 style="text-align:center">Bilan de l'expédition</h3>
+    <div class="sumstats">${stat("map", "#c8a070", M.rooms, "salles")}${stat("swords", "#ff7a5a", M.combats, "combats")}${stat("skull", "#d8ccb4", M.kills, "ennemis tués")}${stat("star", "#ffc04a", M.crits, "critiques")}${stat("torch", "#ffb050", M.light, "lueur finale")}${stat("hourglass", "#9ab8ff", M.mins + " min", "durée")}</div>
+    ${M.best ? `<div class="reward">${ico("flare", "#ff9a4a", 22)}<div><b>Plus beau coup : ${M.best.v} dégâts${M.best.crit ? " (critique)" : ""}</b><div class="tiny dim">${bestH ? esc(bestH.name) : "?"} — ${esc(M.best.sk || "attaque")} sur ${esc(M.best.vs || "un ennemi")}</div></div></div>` : ""}
+    ${M.foes.length ? `<div class="reward">${ico("crown", "#e8c878", 22)}<div><b>Ennemis redoutables vaincus</b><div class="tiny dim">${M.foes.map(f => esc(f.name) + (f.boss ? " (gardien)" : "")).join(" · ")}</div></div></div>` : ""}
+    ${M.relics.length ? `<div class="reward">${ico("gem", "#c87aff", 22)}<div><b>Reliques portées</b><div class="tiny dim">${M.relics.map(k => RELICS[k].n).join(" · ")}</div></div></div>` : ""}
+    <div class="sumheroes">${M.heroes.map(h => `<div class="sumhero ${h.fallen ? "dead" : ""}">${canvasSlot("h:" + h.id, 70, 80)}<div style="flex:1;min-width:0">
+      <div class="row sp" style="flex-wrap:nowrap"><b class="small">${esc(h.name)}</b>${h.fallen ? '<span class="tag bad">Tombé</span>' : mvp && h.id === mvp.id ? '<span class="tag gold">Héros de l\'expédition</span>' : ""}</div>
+      <div class="tiny dim">${CLASSES[h.cls].n} · niv ${h.lvl}${h.xp ? ` · +${h.xp} xp` : ""}</div>
+      <div class="bar" style="margin:3px 0"><i style="width:${100 * h.dmg / mx}%"></i></div>
+      <div class="tiny">${ico("sword", "#ff7a5a", 12)} ${fmt(h.dmg)} dégâts · ${ico("heal", "#8fe07a", 12)} ${fmt(h.heal)} soins · ${ico("shield", "#9ab8ff", 12)} ${fmt(h.taken)} reçus · ${ico("skull", "#d8ccb4", 12)} ${h.kills}</div></div></div>`).join("")}</div>`;
+}
 SCREENS.results = {
   noNav: 1, title: "Retour au Bastion",
   scene: res => backdrop(res && res.region ? res.region : "bastion", { dark: .6 }),
@@ -3730,10 +3784,11 @@ SCREENS.results = {
       ${res.mats.fer || res.mats.essence || res.mats.cendre ? `<div class="reward">${ico("iron", "#a8a8a8", 22)}${res.mats.fer} ferraille · ${res.mats.essence} essence${res.mats.cendre ? " · " + res.mats.cendre + " cendre royale" : ""}</div>` : ""}
       ${res.loot.map(i => `<div class="reward">${slotHTML(i, "itemInfo", i.id)}<div><b class="rar${i.rar}">${gearName(i)}</b><div class="tiny dim">${itemLine(i)}</div></div></div>`).join("")}
       ${res.unlocks.map(u => `<div class="reward" style="color:var(--gold2)">${ico("star", "#e8c878", 22)}<b>${u.k === "class" ? "Nouvelle classe à la Taverne : " + CLASSES[u.id].n : u.k === "pet" ? "Nouveau compagnon à la Ménagerie : " + PETS[u.id].n : "Nouvelle destination : " + regionById(u.id).n}</b></div>`).join("")}
+      ${res.sum ? runSummaryHTML(res) : ""}
       ${res.region === "abime" ? `<p class="small" style="text-align:center">Record de l'Abîme : <b>${S.abyss.best}</b></p>` : ""}
       <div class="row" style="justify-content:center;margin-top:12px"><button class="btn main" data-go="bastion">${ico("castle")}Au Bastion</button></div></div></div>`;
   },
-  mount: res => { sfx(res.outcome === "victory" ? "win" : res.outcome === "wipe" ? "lose" : "door"); musicPlay("bastion"); },
+  mount: res => { fillCanvases($("#view"), (c, id) => { const h = heroById(id.split(":")[1]); if (h) paintHero(c, h); }); sfx(res.outcome === "victory" ? "win" : res.outcome === "wipe" ? "lose" : "door"); musicPlay("bastion"); },
 };
 
 // reprise après rechargement : une salle entamée mais pas terminée est rejouée

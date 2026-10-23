@@ -152,6 +152,7 @@ function giveXp(h, v) {
   if (h.lvl >= MAX_LVL) return false;
   const mul = 1 + heroPassives(h).filter(p => p.k === "xp").reduce((a, p) => a + p.v, 0);
   h.xp += Math.round(v * mul); let up = false;
+  if (S && S.run && S.run.xpGain && S.run.party.includes(h.id)) S.run.xpGain[h.id] = (S.run.xpGain[h.id] || 0) + Math.round(v * mul);
   while (h.lvl < MAX_LVL && h.xp >= xpNeed(h.lvl)) { h.xp -= xpNeed(h.lvl); h.lvl++; up = true; if (h.lvl === APEX_LVL && h.evo) S.stats.apex++; S.stats.maxlvl = Math.max(S.stats.maxlvl, h.lvl >= MAX_LVL ? 1 : 0); }
   if (h.lvl >= MAX_LVL) h.xp = 0;
   return up;
@@ -180,6 +181,10 @@ function endRun(outcome) {
   const run = S.run; if (!run) return null;
   const R = regionById(run.region);
   const res = { outcome, gold: run.gold, loot: run.loot.slice(), mats: Object.assign({}, run.mats), shards: run.shards, region: run.region, floor: run.floor, story: null, unlocks: [] };
+  // bilan de l'expédition
+  const L = run.sum || { dmg: {}, heal: {}, taken: {}, kills: {}, best: null, foes: [], crits: 0 };
+  res.sum = { heroes: run.party.map(id => { const h = heroById(id); return h && { id, name: h.name, cls: h.cls, lvl: h.lvl, fallen: run.fallen.includes(id), dmg: L.dmg[id] || 0, heal: L.heal[id] || 0, taken: L.taken[id] || 0, kills: L.kills[id] || 0, xp: (run.xpGain || {})[id] || 0 }; }).filter(Boolean),
+    best: L.best, foes: L.foes, crits: L.crits, kills: run.kills, combats: run.combats, rooms: run.map.flat().filter(n => n.visited).length, relics: run.relics.slice(), light: Math.round(run.light), mins: Math.max(1, Math.round((Date.now() - run.startedAt) / 60000)) };
   if (outcome === "wipe") { res.gold = Math.round(run.gold * .5); res.loot = []; res.shards = 0;
     for (const w of (run.swaps || []).slice().reverse()) { const h = heroById(w.hid); if (!h || !h.gear[w.slot] || h.gear[w.slot].id !== w.nu) continue; h.gear[w.slot] = w.old ? run.loot.find(x => x.id === w.old) || h.gear[w.slot] : null; } }
   const before = regionsCleared();

@@ -123,6 +123,7 @@ function act(B, u, sk, tgt) {
   const ev = [], t = sk.t || "e";
   const rk = 1 + .1 * ((sk.rank || 1) - 1);
   ev.push({ k: "act", u: u.uid, sk: sk.n, ult: !!sk.isUlt, anim: skillAnim(u, sk), tgt: tgt && tgt.uid, t });
+  B.curSk = sk.n;
   if (sk.isUlt) u.ultV = 0; else { gainUlt(u, 18); if (sk.cd) u.cds[sk.id] = sk.cd + 1; }
   if (sk.selfDmg) { const d = Math.min(u.hp - 1, Math.round(u.hpMax * sk.selfDmg)); if (d > 0) { u.hp -= d; ev.push({ k: "hit", u: u.uid, dmg: d, self: 1 }); } }
   // cibles
@@ -245,6 +246,9 @@ function applyDamage(B, src, x, d, ev, o = {}) {
   if (d <= 0) return 0;
   const before = x.hp;
   if (!o.dot) ev.push({ k: "hit", u: x.uid, dmg: d, crit: !!o.crit, src: src && src.uid });
+  // statistiques du bilan d'expédition
+  if (src && src.side === "h" && x.side !== "h") { const T = B.tally || (B.tally = { dmg: {}, heal: {}, taken: {}, best: null }); const dd = Math.round(Math.min(d, x.hp)); T.dmg[src.hid] = (T.dmg[src.hid] || 0) + dd; if (!o.dot && (!T.best || d > T.best.v)) T.best = { v: Math.round(d), hid: src.hid, sk: B.curSk, vs: x.name, crit: !!o.crit }; }
+  if (x.side === "h") { const T = B.tally || (B.tally = { dmg: {}, heal: {}, taken: {}, best: null }); T.taken[x.hid] = (T.taken[x.hid] || 0) + Math.round(d); }
   x.hitSince = 1;
   if (x.side === "h") gainUlt(x, 8);
   if (x.side === "h" && x.agony) {
@@ -282,6 +286,7 @@ function healUnit(B, src, x, v, ev, o = {}) {
   h = Math.max(1, Math.round(h));
   const room = x.hpMax - x.hp, real = Math.min(room, h);
   x.hp += real;
+  if (src && src.side === "h" && real > 0) { const T = B.tally || (B.tally = { dmg: {}, heal: {}, taken: {}, best: null }); T.heal[src.hid] = (T.heal[src.hid] || 0) + real; }
   if (x.agony && x.hp > 0) { x.agony = false; ev.push({ k: "saved", u: x.uid }); }
   if (real > 0 || !o.regen) ev.push({ k: "heal", u: x.uid, v: real, regen: !!o.regen, leech: !!o.leech });
   if (src && src.hooks.overhealShield && h > real) addSt(B, src, x, { k: "shield", v: (h - real) * src.hooks.overhealShield, t: 2 }, ev);

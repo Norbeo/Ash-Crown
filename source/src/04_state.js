@@ -24,8 +24,8 @@ function newState(opts = {}) {
 const SKINS = ["#f0d2b4", "#e0b48c", "#c8946a", "#a87250", "#7a5034", "#e8c8a8"];
 const HAIRCOL = ["#1a1410", "#3a2414", "#6a3a1a", "#a06a30", "#c8a060", "#d8d0c0", "#7a2a14", "#2a2a30"];
 function makeHero(cls, opt = {}) {
-  const C = CLASSES[cls], female = opt.female != null ? opt.female : chance(.5);
-  const name = opt.name || (pick(female ? NAMES_F : NAMES_M) + (chance(.45) ? " " + pick(SURNAMES).replace(/^le |^la /, female ? "la " : "le ") : ""));
+  const C = CLASSES[cls], female = CLASS_FEMALE.has(cls);
+  const name = opt.name || heroName(female);
   const goods = Object.keys(TRAITS).filter(k => TRAITS[k].good), bads = Object.keys(TRAITS).filter(k => !TRAITS[k].good);
   const traits = opt.traits || (() => { const t = [pick(goods)]; if (chance(.35)) { let g = pick(goods); if (!t.includes(g)) t.push(g); } if (chance(.4)) t.push(pick(bads)); return t; })();
   const sk = Object.keys(C.skills);
@@ -124,12 +124,23 @@ function load() {
   if (!HASWIN) return null;
   try { const raw = localStorage.getItem(SAVE_KEY); if (!raw) return null; const s = JSON.parse(raw); return migrate(s); } catch (e) { return null; }
 }
+function fixHeroName(h) {
+  const f = CLASS_FEMALE.has(h.cls), [first, ...rest] = String(h.name).split(" "), sur = rest.join(" ");
+  const okFirst = (f ? NAMES_F : NAMES_M).includes(first) || !NAMES_F.concat(NAMES_M).includes(first);
+  const tail = x => x.replace(/^(le |la |l'|du |des )/, ""), pair = SURNAMES.find(p => p.some(x => tail(x) === tail(sur)));
+  const newFirst = okFirst ? first : (f ? NAMES_F : NAMES_M)[hashStr(h.id || first) % (f ? NAMES_F : NAMES_M).length];
+  const newSur = !sur ? "" : pair ? (f && pair[1] ? pair[1] : pair[0]) : sur.replace(/^(le|la) /, f ? "la " : "le ");
+  h.female = f; if (h.look && f) h.look.beard = -1;
+  h.name = newFirst + (newSur ? " " + newSur : "");
+}
 function migrate(s) {
   const base = newState();
   for (const k in base) if (s[k] === undefined) s[k] = base[k];
   for (const k in base.stats) if (s.stats[k] === undefined) s.stats[k] = 0;
   for (const k in base.bld) if (!s.bld[k]) s.bld[k] = 1;
   for (const k in base.opts) if (s.opts[k] === undefined) s.opts[k] = base.opts[k];
+  // le nom et le sexe suivent l'illustration de la classe (anciennes sauvegardes : héroïne dessinée en homme, surnom mal accordé…)
+  for (const h of (s.heroes || []).concat(s.recruits || [])) fixHeroName(h);
   return s;
 }
 const potionMax = () => 2 + (S ? S.bld.chapelle : 1);

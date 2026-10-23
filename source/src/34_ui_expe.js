@@ -213,6 +213,22 @@ function finishRun(outcome) {
   for (const a of ach) setTimeout(() => toast(`${ico("trophy", "#e8c878")} Succès : <b>${a.n}</b>${a.gold ? ` +${a.gold} or` : ""}${a.shards ? ` +${a.shards} éclats` : ""}`, "epic"), 800);
   void fl;
 }
+// bilan d'expédition : chaque héros, le plus beau coup, les ennemis notables, les chiffres clés
+function runSummaryHTML(res) {
+  const M = res.sum, mx = Math.max(1, ...M.heroes.map(h => h.dmg)), bestH = M.best && M.heroes.find(h => h.id === M.best.hid);
+  const mvp = M.heroes.slice().sort((a, b) => (b.dmg + b.heal * 1.2) - (a.dmg + a.heal * 1.2))[0];
+  const stat = (ic, c, v, n) => `<div class="sumstat">${ico(ic, c, 20)}<b>${v}</b><span class="tiny dim">${n}</span></div>`;
+  return `<div class="sep"></div><h3 style="text-align:center">Bilan de l'expédition</h3>
+    <div class="sumstats">${stat("map", "#c8a070", M.rooms, "salles")}${stat("swords", "#ff7a5a", M.combats, "combats")}${stat("skull", "#d8ccb4", M.kills, "ennemis tués")}${stat("star", "#ffc04a", M.crits, "critiques")}${stat("torch", "#ffb050", M.light, "lueur finale")}${stat("hourglass", "#9ab8ff", M.mins + " min", "durée")}</div>
+    ${M.best ? `<div class="reward">${ico("flare", "#ff9a4a", 22)}<div><b>Plus beau coup : ${M.best.v} dégâts${M.best.crit ? " (critique)" : ""}</b><div class="tiny dim">${bestH ? esc(bestH.name) : "?"} — ${esc(M.best.sk || "attaque")} sur ${esc(M.best.vs || "un ennemi")}</div></div></div>` : ""}
+    ${M.foes.length ? `<div class="reward">${ico("crown", "#e8c878", 22)}<div><b>Ennemis redoutables vaincus</b><div class="tiny dim">${M.foes.map(f => esc(f.name) + (f.boss ? " (gardien)" : "")).join(" · ")}</div></div></div>` : ""}
+    ${M.relics.length ? `<div class="reward">${ico("gem", "#c87aff", 22)}<div><b>Reliques portées</b><div class="tiny dim">${M.relics.map(k => RELICS[k].n).join(" · ")}</div></div></div>` : ""}
+    <div class="sumheroes">${M.heroes.map(h => `<div class="sumhero ${h.fallen ? "dead" : ""}">${canvasSlot("h:" + h.id, 70, 80)}<div style="flex:1;min-width:0">
+      <div class="row sp" style="flex-wrap:nowrap"><b class="small">${esc(h.name)}</b>${h.fallen ? '<span class="tag bad">Tombé</span>' : mvp && h.id === mvp.id ? '<span class="tag gold">Héros de l\'expédition</span>' : ""}</div>
+      <div class="tiny dim">${CLASSES[h.cls].n} · niv ${h.lvl}${h.xp ? ` · +${h.xp} xp` : ""}</div>
+      <div class="bar" style="margin:3px 0"><i style="width:${100 * h.dmg / mx}%"></i></div>
+      <div class="tiny">${ico("sword", "#ff7a5a", 12)} ${fmt(h.dmg)} dégâts · ${ico("heal", "#8fe07a", 12)} ${fmt(h.heal)} soins · ${ico("shield", "#9ab8ff", 12)} ${fmt(h.taken)} reçus · ${ico("skull", "#d8ccb4", 12)} ${h.kills}</div></div></div>`).join("")}</div>`;
+}
 SCREENS.results = {
   noNav: 1, title: "Retour au Bastion",
   scene: res => backdrop(res && res.region ? res.region : "bastion", { dark: .6 }),
@@ -226,10 +242,11 @@ SCREENS.results = {
       ${res.mats.fer || res.mats.essence || res.mats.cendre ? `<div class="reward">${ico("iron", "#a8a8a8", 22)}${res.mats.fer} ferraille · ${res.mats.essence} essence${res.mats.cendre ? " · " + res.mats.cendre + " cendre royale" : ""}</div>` : ""}
       ${res.loot.map(i => `<div class="reward">${slotHTML(i, "itemInfo", i.id)}<div><b class="rar${i.rar}">${gearName(i)}</b><div class="tiny dim">${itemLine(i)}</div></div></div>`).join("")}
       ${res.unlocks.map(u => `<div class="reward" style="color:var(--gold2)">${ico("star", "#e8c878", 22)}<b>${u.k === "class" ? "Nouvelle classe à la Taverne : " + CLASSES[u.id].n : u.k === "pet" ? "Nouveau compagnon à la Ménagerie : " + PETS[u.id].n : "Nouvelle destination : " + regionById(u.id).n}</b></div>`).join("")}
+      ${res.sum ? runSummaryHTML(res) : ""}
       ${res.region === "abime" ? `<p class="small" style="text-align:center">Record de l'Abîme : <b>${S.abyss.best}</b></p>` : ""}
       <div class="row" style="justify-content:center;margin-top:12px"><button class="btn main" data-go="bastion">${ico("castle")}Au Bastion</button></div></div></div>`;
   },
-  mount: res => { sfx(res.outcome === "victory" ? "win" : res.outcome === "wipe" ? "lose" : "door"); musicPlay("bastion"); },
+  mount: res => { fillCanvases($("#view"), (c, id) => { const h = heroById(id.split(":")[1]); if (h) paintHero(c, h); }); sfx(res.outcome === "victory" ? "win" : res.outcome === "wipe" ? "lose" : "door"); musicPlay("bastion"); },
 };
 
 // reprise après rechargement : une salle entamée mais pas terminée est rejouée

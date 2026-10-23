@@ -6,6 +6,7 @@ function glossaryHTML() {
     ["Ressources", ["or", "eclat", "ferraille", "essence", "cendre", "potion"]]];
   return `<p class="small dim">Touchez un mot souligné n'importe où dans le jeu pour retrouver ces explications.</p>${grp.map(([t, ks]) => `<h3 style="margin-top:14px">${t}</h3><div class="grid" style="--min:260px">${ks.map(k => { const G = GLOSS[k]; return `<div class="card" style="cursor:default"><b class="gold" style="display:flex;align-items:center;gap:6px">${ico(G.ic, (ST_INFO[k] || {}).c || "#e8c878", 18)}${G.n}</b><div class="small" style="margin-top:4px">${G.d}</div></div>`; }).join("")}</div>`).join("")}`;
 }
+ACT.optDiff = k => { if (S.run) return; S.opts.diff = k; save(); refresh(); toast("Difficulté : " + DIFFS[k].n); };
 SCREENS.codex = {
   title: "Les Archives", tab: "codex",
   scene: () => backdrop("catacombes", { dark: .6 }),
@@ -32,6 +33,7 @@ SCREENS.options = {
     <label class="row sp"><span>${ico("sound")} Effets sonores</span><input type="checkbox" data-opt="sound" ${S.opts.sound ? "checked" : ""}></label>
     <label class="row sp"><span>${ico("music")} Musique</span><input type="checkbox" data-opt="music" ${S.opts.music ? "checked" : ""}></label>
     <div class="row sp"><span>${ico("speed")} Vitesse des combats</span><span>${[1, 2, 3].map(v => `<button class="btn sm ${S.opts.speed === v ? "gold" : "ghost"}" data-a="optSpeed" data-v="${v}">×${v}</button>`).join(" ")}</span></div>
+    <div class="row sp"><span>${ico("skull")} Difficulté</span><span>${Object.keys(DIFFS).map(k => `<button class="btn sm ${S.opts.diff === k ? "gold" : "ghost"}" data-a="optDiff" data-v="${k}" ${S.run ? "disabled" : ""}>${DIFFS[k].n}</button>`).join(" ")}</span></div>${S.run ? '<div class="tiny dim" style="text-align:right">Changeable entre deux expéditions.</div>' : ""}
     <div class="row sp"><span>${ico("skull")} Mode</span><span class="gold">${S.opts.hardcore ? "Hardi (mort définitive)" : "Normal"}</span></div>
     <div class="sep"></div>
     <div class="row">${PWA.standalone ? `<span class="tag good">Appli installée</span>` : `<button class="btn" data-a="install">${ico("install")}Installer sur l'appareil</button>`}<button class="btn ghost" data-a="exportSave">${ico("scroll")}Exporter la sauvegarde</button><button class="btn ghost" data-a="importSave">Importer</button></div>

@@ -128,13 +128,24 @@ function synergyHTML(classes, roster) {
 }
 ACT.synInfo = k => { const Y = SYNERGIES[k]; toast(`<b>${Y.n}</b> <span class="tiny dim">(${synergyNeedText(Y)})</span><br><span class="small">${gl(Y.d)}</span>`); };
 // description automatique d'une compétence
+// valeurs chiffrées d'une compétence pour un héros (ou une unité de combat) : dégâts avant protection, soins
+function skillNums(sk, u) {
+  if (!u || u.side === "e") return null;
+  let lo, hi, hp, hpw, rank = sk.rank || (u.skr && sk.id && u.skr[sk.id]) || 1;
+  if (u.dmgLo != null) { lo = u.dmgLo; hi = u.dmgHi; hp = u.hpMax; hpw = u.healPow || 1; }
+  else { const st = heroStats(u, S && S.run ? relicHooks(S.run) : {}); lo = st.dmgLo; hi = st.dmgHi; hp = st.hp; hpw = st.healPow || 1; }
+  const rk = sk.isUlt ? 1 : 1 + .1 * (rank - 1), m = (sk.m || 0) * rk;
+  const team = S && S.run ? runParty().map(h => heroStats(h).hp) : (S ? S.heroes.slice(0, 4).map(h => heroStats(h).hp) : [hp]);
+  const avgHp = team.length ? team.reduce((a, b) => a + b, 0) / team.length : hp;
+  return { lo: Math.max(1, Math.round(lo * m)), hi: Math.max(1, Math.round(hi * m)), heal: Math.round(avgHp * (sk.heal || 0) * rk * hpw), self: Math.round(hp * (sk.healSelf || 0) * hpw) };
+}
 function skillText(sk, u) {
-  const out = [], t = sk.t || "e";
+  const out = [], t = sk.t || "e", N = skillNums(sk, u);
   const who = { e: "un ennemi", ae: "les ennemis visés", a: "un allié", aa: "tout le groupe", s: "soi-même" }[t] || "";
-  if (sk.m) out.push(`Dégâts ${Math.round(sk.m * 100)} %${sk.hits > 1 ? " × " + sk.hits : ""} sur ${who}`);
-  if (sk.heal && !sk.healAllies) out.push(`Soigne ${Math.round(sk.heal * 100)} % des PV ${t === "aa" ? "de tout le groupe" : t === "s" ? "de soi" : "d'un allié"}`);
-  if (sk.healAllies) out.push(`Soigne le groupe de ${Math.round(sk.heal * 100)} %`);
-  if (sk.healSelf) out.push(`Se soigne de ${Math.round(sk.healSelf * 100)} %`);
+  if (sk.m) out.push(`Dégâts ${Math.round(sk.m * 100)} %${N ? ` (<b class="num">${N.lo}–${N.hi}</b>)` : ""}${sk.hits > 1 ? " × " + sk.hits : ""} sur ${who}`);
+  if (sk.heal && !sk.healAllies) out.push(`Soigne ${Math.round(sk.heal * 100)} % des PV${N && N.heal ? ` (<b class="num heal">≈ ${N.heal} PV</b>)` : ""} ${t === "aa" ? "de tout le groupe" : t === "s" ? "de soi" : "d'un allié"}`);
+  if (sk.healAllies) out.push(`Soigne le groupe de ${Math.round(sk.heal * 100)} %${N && N.heal ? ` (<b class="num heal">≈ ${N.heal} PV chacun</b>)` : ""}`);
+  if (sk.healSelf) out.push(`Se soigne de ${Math.round(sk.healSelf * 100)} %${N && N.self ? ` (<b class="num heal">${N.self} PV</b>)` : ""}`);
   if (sk.leech) out.push(`Vol de vie ${Math.round(sk.leech * 100)} %`);
   if (sk.selfDmg) out.push(`Coûte ${Math.round(sk.selfDmg * 100)} % de ses PV`);
   const fx = (arr, pre) => { if (!arr) return; for (const f of arr) { const n = ST_INFO[f.k] ? ST_INFO[f.k].n : f.k; let s = n; if (f.v != null && ["dmgUp", "protUp", "protDn", "shield", "regen"].includes(f.k)) s += ` ${f.v > 0 ? "+" : ""}${Math.round(f.v * 100)} %`; else if (f.v != null && ["spdUp", "spdDn", "dodgeUp", "dodgeDn", "accDn", "accUp", "critUp"].includes(f.k)) s += ` ${f.v}`; if (f.t) s += ` (${f.t} t.)`; if (f.ch != null && f.ch < 1) s += ` ${Math.round(f.ch * 100)} %`; out.push(pre + s); } };

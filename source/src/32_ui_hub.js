@@ -38,7 +38,7 @@ SCREENS.bastion = {
     return `${L.map(b => { const hh = b.s * (b.k === "porte" ? 1.62 : b.k === "academie" ? 2.0 : b.k === "chapelle" ? 1.9 : 1.3); return `<button class="hot" style="left:${b.x}px;top:${b.y - off - hh}px;width:${b.s * 1.3}px;height:${hh}px" data-a="bld" data-v="${b.k}"><span class="lbl">${note(b.k) ? '<i class="dotn"></i>' : ""}${names[b.k]}${b.k !== "porte" ? ` <b>${"I II III IV V".split(" ")[S.bld[b.k] - 1]}</b>` : ""}</span></button>`; }).join("")}
     <div class="panel" style="position:absolute;left:10px;top:6px;width:min(300px,calc(100vw - 20px));padding:10px 12px" id="dailyp">
       <div class="row sp"><h3 style="margin:0">${ico("daily", "#e8c878", 16)} Défis du jour</h3><button class="btn ghost sm" data-a="toggleDaily">${UI.hideDaily ? "+" : "–"}</button></div>
-      ${UI.hideDaily ? "" : ct.map((c, i) => `<div style="margin-top:6px"><div class="row sp small"><span>${c.n}</span><span class="${c.p >= c.goal ? "good" : "dim"}">${c.p}/${c.goal}</span></div><div class="row" style="gap:6px"><div class="bar xp" style="flex:1"><i style="width:${100 * c.p / c.goal}%"></i></div>${c.claimed ? '<span class="tiny good">✓</span>' : c.p >= c.goal ? `<button class="btn gold sm" data-a="claimCt" data-v="${i}">+${c.gold}</button>` : `<span class="tiny dim">${c.gold} or</span>`}</div></div>`).join("") + `<div class="sep" style="margin:8px 0"></div><button class="btn ${S.daily.done ? "ghost off" : "main"} sm" style="width:100%" data-a="dailyRun">${ico("star")}${S.daily.done ? "Expédition du jour accomplie" : "Expédition du jour (+récompenses)"}</button>`}
+      ${UI.hideDaily ? "" : ct.map((c, i) => `<div style="margin-top:6px"><div class="row sp small"><span>${c.n}</span><span class="${c.p >= c.goal ? "good" : "dim"}">${c.p}/${c.goal}</span></div><div class="row" style="gap:6px"><div class="bar xp" style="flex:1"><i style="width:${100 * c.p / c.goal}%"></i></div>${c.claimed ? '<span class="tiny good">✓</span>' : c.p >= c.goal ? `<button class="btn gold sm" data-a="claimCt" data-v="${i}">+${c.gold}</button>` : `<span class="tiny dim">${c.gold} or</span>`}</div></div>`).join("") + `<div class="sep" style="margin:8px 0"></div><button class="btn ${S.daily.done ? "ghost off" : "main"} sm" style="width:100%" data-a="dailyRun">${ico("star")}${S.daily.done ? "Expédition du jour accomplie" : "Expédition du jour (+récompenses)"}</button>` + weekPanel()}
     </div>`;
   },
   mount: () => { tutoHint("bastion", "Touchez un bâtiment pour y entrer. <b>La Porte</b> mène aux expéditions."); },
@@ -46,6 +46,11 @@ SCREENS.bastion = {
 };
 ACT.toggleDaily = () => { UI.hideDaily = !UI.hideDaily; refresh(); };
 ACT.claimCt = i => { const c = S.daily.contracts[+i]; if (!c || c.claimed || c.p < c.goal) return; c.claimed = 1; S.gold += c.gold; sfx("coin"); toast(`+${c.gold} or`, "good"); save(); refresh(); };
+function weekPanel() {
+  if (!S.week) weekCheck(); const W = weekRule(); if (!W) return ""; const R = weekReward();
+  return `<div class="sep" style="margin:8px 0"></div><div class="small"><b class="gold">${ico("trophy", "#e8c878", 14)} Défi de la semaine : ${W.n}</b></div><div class="tiny" style="margin:2px 0 6px">${gl(W.d)} — ${regionById(S.week.region).n}. Victoire : +${R.gold} or, +${R.shards} éclats, +${R.essence} essence.</div><button class="btn ${S.week.done ? "ghost off" : "gold"} sm" style="width:100%" data-a="weekRun">${ico("trophy")}${S.week.done ? "Défi de la semaine relevé" : "Relever le défi"}</button>`;
+}
+ACT.weekRun = () => { if (!S.week || S.week.done) return; UI.expe = { region: S.week.region, week: 1 }; go("expe"); };
 ACT.dailyRun = () => { if (S.daily.done) return; const d = dailyRun(); UI.expe = { region: d.region, daily: d }; go("expe"); };
 function tutoHint(k, text) { if (S.tuto[k]) return; S.tuto[k] = 1; setTimeout(() => toast(`${ico("info", "#e8c878")} ${text}`), 700); }
 ACT.bld = k => { if (k === "porte") { sfx("door"); go("expe"); return; } sfx("open"); openBuilding(k); };

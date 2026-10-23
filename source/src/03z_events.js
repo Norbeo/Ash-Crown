@@ -120,3 +120,27 @@ const MORE_EVENTS = [
 ];
 // ajout au registre principal
 for (const [id, n, t, ch, reg] of MORE_EVENTS) EVENTS.push({ id, n, t, ch: ch.map(([cn, fx]) => ({ n: cn, fx })), reg });
+
+/* ── Événements en chaîne ──
+   Un choix pose un drapeau : flag (pour la suite de l'expédition) ou sflag (gardé dans la sauvegarde, pour une expédition future).
+   La suite exige need (drapeau d'expédition) ou sneed (drapeau de sauvegarde, consommé quand la suite survient). */
+const CHAIN_SETS = [ // [événement, n° du choix, drapeau, mémorisé dans la sauvegarde ?]
+  ["voleur_pris", 0, "voleur", 0], ["pelerin", 0, "pelerin", 0], ["chien_errant", 0, "chien", 0], ["camp_bandits", 1, "bandits", 0],
+  ["ecuyer", 0, "ecuyer", 0], ["bucher", 0, "sorciere", 1], ["bucher", 1, "sorciere", 1], ["mendiant", 1, "mendiant", 1],
+  ["cerf_blanc", 2, "cerf", 1], ["donjon_prison", 0, "prisonnier", 0], ["enfant", 0, "enfant", 1], ["herault", 0, "herault", 0],
+];
+for (const [id, ci, flag, save] of CHAIN_SETS) { const E = EVENTS.find(e => e.id === id); if (!E || !E.ch[ci]) continue; const f = E.ch[ci].fx; if (f.gamble) f.gamble[1] = Object.assign({}, f.gamble[1], save ? { sflag: flag } : { flag }); else Object.assign(f, save ? { sflag: flag } : { flag }); }
+const CHAIN_EVENTS = [
+  ["suite_voleur", "Le voleur tient parole", "Le voleur que vous avez libéré surgit d'une ruelle. « Je paie mes dettes. Et je sais où ils cachent le meilleur. »", [["Le suivre jusqu'à sa cache", { loot: 1, gold: 60 }], ["Lui demander de faire le guet", { light: 25, morale: 10 }]], { need: "voleur" }],
+  ["suite_pelerin", "Le fils du pèlerin", "Un jeune homme vous arrête. « Mon père m'a parlé de vous avant de mourir. Prenez ceci, c'était son vœu. »", [["Accepter l'héritage", { gold: 130 }], ["Lui laisser l'or, prendre sa bénédiction", { heal: .3, morale: 15 }]], { need: "pelerin" }],
+  ["suite_chien", "Le chien revient", "Le chien errant vous attendait. Il aboie, tourne sur lui-même et file entre les ruines.", [["Le suivre", { loot: 1, petXp: 80 }], ["L'adopter pour la nuit", { morale: 12, heal: .1 }]], { need: "chien" }],
+  ["suite_bandits", "Les brigands vous traquent", "Les brigands que vous avez volés ont suivi vos traces. Ils vous barrent la route, arbalètes pointées.", [["Se battre", { fight: 1, gold: 80 }], ["Rendre une part (60 or)", { cost: 60, morale: -5 }], ["Fuir par les fourrés", { hurt: .1, light: -15 }]], { need: "bandits" }],
+  ["suite_ecuyer", "L'écuyer et son chevalier", "L'écuyer a retrouvé son chevalier, mourant. Le vieil homme vous tend son épée. « Il saura la porter un jour. Vous, maintenant. »", [["Prendre l'épée", { loot: 1, xp: 40 }], ["Veiller le chevalier", { xp: 70, morale: 12 }]], { need: "ecuyer" }],
+  ["suite_sorciere", "La sorcière reconnaissante", "Une femme aux cheveux brûlés sort des roseaux. Celle que vous avez sauvée du bûcher. « Je n'oublie jamais un visage. »", [["Accepter son talisman", { relic: 1 }], ["Lui demander des soins", { heal: .5, cleanse: 1 }]], { sneed: "sorciere", reg: ["marais", "foret"] }],
+  ["suite_mendiant", "L'aveugle qui voit", "Le mendiant à qui vous aviez donné une potion vous attend, les yeux grands ouverts et clairs. « Je vois, maintenant. Et je vois votre route. »", [["Écouter sa prophétie", { buff: 1, morale: 15 }], ["Accepter son présent", { relic: 1 }]], { sneed: "mendiant", reg: ["catacombes", "marais", "citadelle"] }],
+  ["suite_cerf", "Le retour du cerf blanc", "Le cerf blanc que vous avez épargné se tient devant vous. Autour de lui, l'air est tiède et la peur s'en va.", [["S'approcher", { heal: .6, light: 30 }], ["S'incliner", { morale: 20, petXp: 100 }]], { sneed: "cerf" }],
+  ["suite_prisonnier", "Le prisonnier tient parole", "Le prisonnier des oubliettes vous montre une faille dans les murs. « Par ici, le gardien ne vous verra pas venir. »", [["Prendre son raccourci", { buff: 1, light: 20 }], ["Lui demander ses secrets", { xp: 80 }]], { need: "prisonnier" }],
+  ["suite_enfant", "L'enfant sans ombre", "La petite fille en blanc réapparaît, souriante. Elle tient à présent une ombre par la main. « Merci. »", [["Prendre sa main", { relic: 1, morale: 10 }], ["La laisser partir", { morale: 20, xp: 40 }]], { sneed: "enfant" }],
+  ["suite_herault", "L'armée du héraut", "Le héraut a rassemblé les morts de la garde royale. Ils mettent genou à terre devant vous.", [["Les mener au combat", { buff: 1, morale: 20 }], ["Les libérer de leur serment", { xp: 60, heal: .2 }]], { need: "herault", reg: ["citadelle"] }],
+];
+for (const [id, n, t, ch, o] of CHAIN_EVENTS) EVENTS.push(Object.assign({ id, n, t, ch: ch.map(([cn, fx]) => ({ n: cn, fx })), chain: 1 }, o));

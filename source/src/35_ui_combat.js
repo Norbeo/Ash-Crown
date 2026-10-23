@@ -50,7 +50,7 @@ SCREENS.combat = {
   scene: () => drawCombat,
   html: () => `<div class="ctop l" id="cb-tl"></div><div class="ctop" id="cb-tr"><button class="btn ghost sm" data-a="cbSpeed" title="Vitesse">${ico("speed")}<span id="cb-spd">×${CB.speed}</span></button><button class="btn ghost sm ${CB.auto ? "on" : ""}" data-a="cbAuto" title="Combat automatique">${ico("auto")}<span id="cb-auto">${CB.auto ? "Auto" : "Manuel"}</span></button><button class="btn ghost sm" data-a="cbFlee" id="cb-flee" title="Fuir">${ico("flee")}</button></div><div id="cbar"><div class="skdesc" id="cb-desc"></div><div class="skills" id="cb-skills"></div></div>`,
   mount: arg => startCombat(arg.node),
-  leave: () => { CB.B = null; CB.resolve = null; },
+  leave: () => { CB.B = null; CB.resolve = null; const c = $("#coach"); if (c) c.remove(); UI.coach = null; document.querySelectorAll(".coachon").forEach(e => e.classList.remove("coachon")); },
   resize: () => { if (CB.B) { CB.barH = $("#cbar") ? $("#cbar").offsetHeight + 6 : 150; cbLayout(); } },
 };
 async function startCombat(node) {
@@ -117,14 +117,36 @@ function playerChoice(u) {
     // présélection : première compétence utilisable
     const first = u.ultV >= 100 ? u.ult : u.skills.find(sk => canUse(CB.B, u, sk));
     if (first) selectSkill(first);
+    if (!S.tuto.coach) coachStart();
   });
 }
+// ── tutoriel guidé du premier combat ──
+const COACH = [
+  { t: "Vos héros et leurs rangs", d: "À gauche, vos quatre héros, du <b>rang 1</b> (au contact de l'ennemi) au <b>rang 4</b> (à l'arrière). Les tanks tiennent la ligne, les soigneurs et tireurs restent derrière.", gl: "rang", at: "tl" },
+  { t: "Les intentions ennemies", d: "L'icône au-dessus de chaque ennemi annonce ce qu'il prépare : épées pour une attaque, flammes pour une attaque de zone, cœur pour un soin… Frappez d'abord celui qui va faire le plus mal.", gl: "intention", at: "tr" },
+  { t: "Les compétences", d: "Choisissez une compétence en bas. Les <b>losanges</b> indiquent les rangs d'où elle se lance (bleu) et les rangs qu'elle touche (rouge). Les dégâts et soins chiffrés sont affichés. Touchez ensuite une cible en surbrillance.", el: "#cb-skills", at: "bottom" },
+  { t: "La résolution", d: "En haut à gauche, le moral du groupe. Coups critiques et ennemis tués la font monter : à 80, vos héros sont <b>exaltés</b> (+15 % de dégâts). Sous 20, ils sont <b>ébranlés</b>.", gl: "resolution", el: "#cb-tl", at: "tl" },
+  { t: "L'ultime", d: "Chaque héros remplit une jauge en agissant et en encaissant. Pleine, elle débloque sa compétence <b>ultime</b>, bien plus puissante.", gl: "ultime", el: "#cb-skills", at: "bottom" },
+  { t: "L'agonie", d: "À 0 PV, un héros n'est pas mort : il est <b>à l'agonie</b>. Le moindre soin le relève ; un nouveau coup peut l'achever. Les potions sont en bas à gauche.", gl: "agonie", at: "bottom" },
+];
+function coachStart() { if (UI.coach != null) return; UI.coach = 0; coachShow(); }
+function coachShow() {
+  let el = $("#coach"); const i = UI.coach, C = COACH[i];
+  if (!C) { if (el) el.remove(); UI.coach = null; S.tuto.coach = 1; save(); return; }
+  if (!el) { el = document.createElement("div"); el.id = "coach"; document.body.appendChild(el); }
+  document.querySelectorAll(".coachon").forEach(e => e.classList.remove("coachon"));
+  if (C.el) { const t = $(C.el); if (t) t.classList.add("coachon"); }
+  el.className = "panel frame at-" + C.at;
+  el.innerHTML = `<div class="row sp" style="flex-wrap:nowrap"><b class="gold">${ico("info", "#e8c878", 16)} ${C.t}</b><span class="tiny dim">${i + 1} / ${COACH.length}</span></div><p class="small" style="margin:6px 0">${C.d}</p><div class="row sp">${C.gl ? `<span class="tiny gl" data-tip="${C.gl}">En savoir plus</span>` : "<span></span>"}<span class="row" style="gap:6px"><button class="btn ghost sm" data-a="coachSkip">Passer</button><button class="btn main sm" data-a="coachNext">${i + 1 < COACH.length ? "Suivant" : "Au combat !"}</button></span></div>`;
+}
+ACT.coachNext = () => { UI.coach++; coachShow(); };
+ACT.coachSkip = () => { UI.coach = COACH.length; coachShow(); };
 function choose(a) { const r = CB.resolve; CB.resolve = null; CB.sel = null; if (r) r(a); }
 function selectSkill(sk) {
   const B = CB.B, u = CB.actor; if (!u || !canUse(B, u, sk)) return;
   CB.sel = { sk, tg: validTargets(B, u, sk) };
   const t = sk.t || "e";
-  $("#cb-desc").innerHTML = `<b class="gold">${sk.n}</b>${sk.isUlt ? ' <span class="tag" style="color:#ff9a4a">ULTIME</span>' : ""} ${sk.use ? rankPips(sk.use, t === "e" || t === "ae" ? sk.at : null) : ""}<br><span class="small">${skillText(sk)}</span><br><span class="tiny dim">${t === "e" || t === "a" ? "Touchez une cible en surbrillance." : "Touchez une cible en surbrillance (ou la compétence à nouveau) pour lancer."}</span>`;
+  $("#cb-desc").innerHTML = `<b class="gold">${sk.n}</b>${sk.isUlt ? ' <span class="tag" style="color:#ff9a4a">ULTIME</span>' : ""} ${sk.use ? rankPips(sk.use, t === "e" || t === "ae" ? sk.at : null) : ""}<br><span class="small">${skillText(sk, u)}</span><br><span class="tiny dim">${t === "e" || t === "a" ? "Touchez une cible en surbrillance." : "Touchez une cible en surbrillance (ou la compétence à nouveau) pour lancer."}</span>`;
   document.querySelectorAll("#cb-skills .sk").forEach(b => b.classList.toggle("on", b.dataset.v === sk.id));
 }
 ACT.cbSk = id => {

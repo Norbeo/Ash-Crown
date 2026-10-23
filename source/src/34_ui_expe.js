@@ -21,6 +21,7 @@ SCREENS.expe = {
     const warn = [!roles.includes("soin") && "Aucun soigneur : les blessures vont s'accumuler.", !roles.includes("tank") && "Aucun tank : vos héros fragiles seront exposés.", E.party.length < 4 && "Moins de 4 héros.", avgL < R.lvl - 1 && E.region !== "abime" && `Niveau conseillé : ${R.lvl}+ (votre groupe : ${avgL}).`].filter(Boolean);
     const regs = [...REGIONS, ABYSS];
     return `<div class="wrap"><h1>Préparer l'expédition</h1>
+    ${E.week && weekRule() ? `<div class="panel" style="padding:10px;margin-bottom:10px;border-color:#c9a24a"><b class="gold">${ico("trophy", "#e8c878", 14)} Défi de la semaine : ${weekRule().n}</b> <span class="small">— ${gl(weekRule().d)}</span> <button class="btn ghost sm" data-a="noWeek">Annuler</button>${weekPartyOk(E.party || []) ? `<div class="small bad" style="margin-top:4px">${weekPartyOk(E.party || [])}</div>` : ""}</div>` : ""}
     ${E.daily ? `<div class="panel" style="padding:10px;margin-bottom:10px;border-color:#c9a24a"><b class="gold">${ico("star", "#e8c878", 14)} Expédition du jour</b> <span class="small">— ${R.n}, reliques offertes : ${E.daily.relics.map(k => RELICS[k].n).join(", ")}. Récompenses +25 %.</span> <button class="btn ghost sm" data-a="noDaily">Annuler</button></div>` : ""}
     <h2>Destination</h2><div class="grid" style="--min:200px">${regs.map(r => { const un = regionUnlocked(r.id), p = S.prog[r.id]; return `<div class="card ${E.region === r.id ? "sel" : ""} ${un ? "" : "lock"}" data-a="${un && !E.daily ? "pickReg" : ""}" data-v="${r.id}" style="padding:0">${canvasSlot("reg:" + r.id, 280, 120)}<div style="padding:8px 10px"><div class="tiny dim">${r.sub}${r.id === "abime" ? ` · record ${S.abyss.best}` : ` · niv ${r.lvl}+`}</div><h3 style="margin:0">${r.n} ${!un ? ico("lock", "#9a8c7a", 14) : p && p.clears ? ico("crown", "#e8c878", 14) : ""}</h3><p class="tiny dim" style="margin:2px 0 0">${un ? r.d : "Terminez le chapitre précédent."}</p></div></div>`; }).join("")}</div>
     ${E.region === "abime" ? abyssOpts(E) : cleared && !E.daily ? `<div class="row" style="margin-top:8px"><span class="small">Menace :</span>${[0, 1, 2].map(t => `<button class="btn sm ${E.threat === t ? "gold" : "ghost"}" data-a="threat" data-v="${t}">${["I", "II", "III"][t]}</button>`).join("")}<span class="tiny dim">Ennemis +${E.threat * 2} niveaux, récompenses +${E.threat * 30} %</span></div>` : ""}
@@ -43,6 +44,7 @@ function abyssOpts(E) {
   ${oathOk ? `<div class="row" style="margin-top:4px">${Object.entries(OATHS).map(([k, O]) => `<button class="btn sm ${S.abyss.oaths.includes(k) ? "main" : "ghost"}" data-a="oath" data-v="${k}" title="${O.d}">${O.n}</button>`).join("")}</div><div class="tiny dim">${S.abyss.oaths.map(k => OATHS[k].d).join(" ")}</div>` : ""}</div>`;
 }
 ACT.toMap = () => go("map");
+ACT.noWeek = () => { UI.expe.week = null; refresh(); };
 ACT.noDaily = () => { UI.expe.daily = null; refresh(); };
 ACT.pickReg = v => { UI.expe.region = v; UI.expe.threat = 0; SC.draw = backdrop(v, { dark: .5 }); refresh(); };
 ACT.threat = v => { UI.expe.threat = +v; refresh(); };
@@ -56,9 +58,10 @@ ACT.pickPet = id => { UI.expe.pet = id; S.pet = id; refresh(); };
 ACT.launch = () => {
   const E = UI.expe; if (!E.party.length) return;
   const opt = { threat: E.region === "abime" ? 0 : E.threat, floor: E.region === "abime" ? E.floor : 1 };
+  if (E.week) { const err = weekPartyOk(E.party); if (err) return toast(err, "bad"); if (E.region !== S.week.region) E.week = null; else { opt.week = 1; opt.seed = S.week.seed; } }
   if (E.daily) { opt.relics = E.daily.relics; opt.seed = E.daily.seed; opt.daily = 1; }
   startRun(E.region, E.party, E.pet, opt);
-  E.daily = null; save(); sfx("door"); musicPlay("map");
+  E.daily = null; E.week = null; save(); sfx("door"); musicPlay("map");
   go("map");
   const R = regionById(S.run.region);
   setTimeout(() => toast(`<b>${R.n}</b><br><span class="small lore">${gl(R.d)}</span>`), 300);
@@ -242,6 +245,7 @@ SCREENS.results = {
       ${res.mats.fer || res.mats.essence || res.mats.cendre ? `<div class="reward">${ico("iron", "#a8a8a8", 22)}${res.mats.fer} ferraille · ${res.mats.essence} essence${res.mats.cendre ? " · " + res.mats.cendre + " cendre royale" : ""}</div>` : ""}
       ${res.loot.map(i => `<div class="reward">${slotHTML(i, "itemInfo", i.id)}<div><b class="rar${i.rar}">${gearName(i)}</b><div class="tiny dim">${itemLine(i)}</div></div></div>`).join("")}
       ${res.unlocks.map(u => `<div class="reward" style="color:var(--gold2)">${ico("star", "#e8c878", 22)}<b>${u.k === "class" ? "Nouvelle classe à la Taverne : " + CLASSES[u.id].n : u.k === "pet" ? "Nouveau compagnon à la Ménagerie : " + PETS[u.id].n : "Nouvelle destination : " + regionById(u.id).n}</b></div>`).join("")}
+      ${res.week ? `<div class="reward" style="color:var(--gold2)">${ico("trophy", "#e8c878", 22)}<b>Défi de la semaine relevé ! +${res.week.gold} or · +${res.week.shards} éclats · +${res.week.essence} essence</b></div>` : ""}
       ${res.sum ? runSummaryHTML(res) : ""}
       ${res.region === "abime" ? `<p class="small" style="text-align:center">Record de l'Abîme : <b>${S.abyss.best}</b></p>` : ""}
       <div class="row" style="justify-content:center;margin-top:12px"><button class="btn main" data-go="bastion">${ico("castle")}Au Bastion</button></div></div></div>`;

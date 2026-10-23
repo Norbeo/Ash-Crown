@@ -33,8 +33,8 @@ SCREENS.hero = {
       </div>
     </div>
     <h2 style="margin-top:14px">Compétences <span class="small dim" style="font-family:var(--f-body)">(${h.skills.length}/4 équipées — touchez pour équiper)</span></h2>
-    <div class="col">${pool.map(k => { const sk = skillDef(h, k), on = h.skills.includes(k), r = h.skr[k] || 1, c = skillUpCost(r); return `<div class="skl ${on ? "on" : ""}" data-a="toggleSk" data-v="${h.id}:${k}">${ico(sk.ic, on ? "#e8c878" : "#9a8c7a")}<div style="flex:1"><div class="row sp"><b>${sk.n}</b><span>${rankPips(sk.use, sk.t === "e" || sk.t === "ae" ? sk.at : null)}</span></div><div class="tiny">${skillText(sk)}</div><div class="row sp tiny" style="margin-top:3px"><span class="ranks">${[1, 2, 3, 4, 5].map(i => `<i class="${i <= r ? "u" : ""}"></i>`).join("")}</span>${r < 5 ? `<button class="btn ghost sm ${r >= skillRankMax() || !canPay(c) ? "off" : ""}" data-a="skUp" data-v="${h.id}:${k}" title="${r >= skillRankMax() ? "Salle des maîtres trop petite" : ""}">Rang ${r + 1} · ${c.gold} or${c.essence ? ` ${c.essence} ess.` : ""}</button>` : '<span class="gold">Maîtrisée</span>'}</div></div></div>`; }).join("")}</div>
-    <div class="skl" style="margin-top:8px;border-color:#a05a2a;cursor:default">${ico(ult.ic, "#ff9a4a")}<div><b>Ultime : ${ult.n}</b><div class="tiny">${skillText(ult)}</div><div class="tiny dim">La jauge d'ultime se remplit en agissant, en frappant et en encaissant.</div></div></div>
+    <div class="col">${pool.map(k => { const sk = skillDef(h, k), on = h.skills.includes(k), r = h.skr[k] || 1, c = skillUpCost(r); return `<div class="skl ${on ? "on" : ""}" data-a="toggleSk" data-v="${h.id}:${k}">${ico(sk.ic, on ? "#e8c878" : "#9a8c7a")}<div style="flex:1"><div class="row sp"><b>${sk.n}</b><span>${rankPips(sk.use, sk.t === "e" || sk.t === "ae" ? sk.at : null)}</span></div><div class="tiny">${skillText(Object.assign({ id: k }, sk), h)}</div><div class="row sp tiny" style="margin-top:3px"><span class="ranks">${[1, 2, 3, 4, 5].map(i => `<i class="${i <= r ? "u" : ""}"></i>`).join("")}</span>${r < 5 ? `<button class="btn ghost sm ${r >= skillRankMax() || !canPay(c) ? "off" : ""}" data-a="skUp" data-v="${h.id}:${k}" title="${r >= skillRankMax() ? "Salle des maîtres trop petite" : ""}">Rang ${r + 1} · ${c.gold} or${c.essence ? ` ${c.essence} ess.` : ""}</button>` : '<span class="gold">Maîtrisée</span>'}</div></div></div>`; }).join("")}</div>
+    <div class="skl" style="margin-top:8px;border-color:#a05a2a;cursor:default">${ico(ult.ic, "#ff9a4a")}<div><b>Ultime : ${ult.n}</b><div class="tiny">${skillText(Object.assign({ isUlt: 1 }, ult), h)}</div><div class="tiny dim">La jauge d'ultime se remplit en agissant, en frappant et en encaissant.</div></div></div>
     ${evoBlock}
     <div class="row" style="margin-top:14px;justify-content:space-between"><span class="tiny dim">${h.runs} expéditions · ${h.kills} victimes</span><button class="btn ghost sm" data-a="dismiss" data-v="${h.id}">Renvoyer</button></div></div>`;
   },
@@ -62,7 +62,7 @@ ACT.unequip = v => { const [id, slot] = v.split(":"); unequip(heroById(id), slot
 // ── fiches de consultation : héros à recruter ou à choisir, compagnons ──
 function heroSheetHTML(h, foot = "") {
   const C = CLASSES[h.cls], st = heroStats(h), ult = heroUlt(h);
-  const skl = (k, sk, on) => `<div class="skl ${on ? "on" : ""}" style="cursor:default">${ico(sk.ic, on ? "#e8c878" : "#9a8c7a")}<div style="flex:1;min-width:0"><div class="row sp"><b>${sk.n}</b><span>${rankPips(sk.use, sk.t === "e" || sk.t === "ae" ? sk.at : null)}</span></div><div class="tiny">${skillText(sk)}</div></div></div>`;
+  const skl = (k, sk, on) => `<div class="skl ${on ? "on" : ""}" style="cursor:default">${ico(sk.ic, on ? "#e8c878" : "#9a8c7a")}<div style="flex:1;min-width:0"><div class="row sp"><b>${sk.n}</b><span>${rankPips(sk.use, sk.t === "e" || sk.t === "ae" ? sk.at : null)}</span></div><div class="tiny">${skillText(Object.assign({ id: k }, sk), h)}</div></div></div>`;
   return `<div class="row" style="gap:12px;flex-wrap:wrap;align-items:flex-start">
     <div style="flex:0 0 auto;margin:0 auto;text-align:center">${canvasSlot("sheet", 150, 188)}</div>
     <div style="flex:1;min-width:220px">
@@ -75,7 +75,7 @@ function heroSheetHTML(h, foot = "") {
     </div></div>
     <h3 style="margin-top:12px">Compétences <span class="tiny dim" style="font-family:var(--f-body)">— en doré, les 4 équipées au départ</span></h3>
     <div class="col">${heroSkillPool(h).map(k => skl(k, skillDef(h, k), h.skills.includes(k))).join("")}</div>
-    <div class="skl" style="margin-top:6px;border-color:#a05a2a;cursor:default">${ico(ult.ic, "#ff9a4a")}<div><b>Ultime : ${ult.n}</b><div class="tiny">${skillText(ult)}</div></div></div>
+    <div class="skl" style="margin-top:6px;border-color:#a05a2a;cursor:default">${ico(ult.ic, "#ff9a4a")}<div><b>Ultime : ${ult.n}</b><div class="tiny">${skillText(Object.assign({ isUlt: 1 }, ult), h)}</div></div></div>
     ${h.evo ? "" : `<h3 style="margin-top:12px">Évolutions au niveau ${EVO_LVL}</h3><div class="grid" style="--min:220px">${Object.values(C.evos).map(E => `<div class="card" style="cursor:default"><b class="gold">${E.n}</b><p class="tiny lore" style="margin:2px 0">${gl(E.d)}</p><div class="tiny">${pasText(E.pas)}</div><div class="tiny dim" style="margin-top:3px">Compétences : ${Object.values(E.skills).map(s => s.n).join(", ")} · Ultime : ${E.ult.n}</div></div>`).join("")}</div>`}
     ${foot}`;
 }

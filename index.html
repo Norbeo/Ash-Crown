@@ -43,6 +43,11 @@ html,body{margin:0;height:100%;background:var(--bg);color:var(--txt);font-family
 .btn.choice .fxs{display:flex;flex-wrap:wrap;gap:4px;margin-top:5px;justify-content:flex-start}.fx{font-size:11px;padding:1px 6px;border-radius:9px;background:#0008;border:1px solid #3a2e22;color:#b8a88a;font-weight:400;letter-spacing:0;text-transform:none}.fx.good{color:#9fd88a;border-color:#2e4a26}.fx.bad{color:#ff8a7a;border-color:#5a2420}.fx.risk{color:#e8c878;border-color:transparent;background:none;padding-left:0}
 .sumstats{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin:8px 0}.sumstat{display:flex;flex-direction:column;align-items:center;padding:6px;background:#0006;border:1px solid #2a2018;border-radius:6px}.sumstat b{font-size:18px;color:var(--gold2)}
 .sumheroes{display:grid;gap:6px;margin-top:8px}.sumhero{display:flex;gap:8px;align-items:center;padding:4px 8px 4px 4px;background:#0006;border:1px solid #2a2018;border-radius:6px}.sumhero.dead{opacity:.55}.sumhero canvas{flex:none}
+.num{color:#ffb08a;font-weight:700}.num.heal{color:#9fe08a}
+#coach{position:fixed;z-index:80;width:min(380px,calc(100vw - 20px));padding:12px 14px;left:50%;transform:translateX(-50%);top:30%;box-shadow:0 8px 40px #000e;animation:fadein .3s}
+#coach.at-bottom{top:auto;bottom:calc(env(safe-area-inset-bottom) + 200px)}#coach.at-tl{top:90px}#coach.at-tr{top:90px}
+.coachon{outline:2px solid #e8c878;outline-offset:3px;border-radius:6px;box-shadow:0 0 18px #e8a03a88}
+@keyframes fadein{from{opacity:0;transform:translate(-50%,8px)}to{opacity:1;transform:translate(-50%,0)}}
 .ic.pic{object-fit:contain;transform:scale(1.18);pointer-events:none}#nav button .ic.pic{opacity:.75;filter:none}#nav button.on .ic.pic{opacity:1;filter:none;transform:translateY(-2px) scale(1.3)}
 #nav button.on::after{content:"";position:absolute;bottom:0;left:30%;right:30%;height:2px;background:linear-gradient(90deg,transparent,var(--ember),transparent);box-shadow:0 0 8px var(--ember)}
 #nav .badge{position:absolute;top:2px;right:28%;min-width:16px;height:16px;border-radius:8px;background:var(--blood);color:#fff;font-size:10px;line-height:16px;font-family:var(--f-body);box-shadow:0 0 8px #f00a;animation:pulse 1.6s infinite}
@@ -1221,6 +1226,30 @@ const MORE_EVENTS = [
 ];
 // ajout au registre principal
 for (const [id, n, t, ch, reg] of MORE_EVENTS) EVENTS.push({ id, n, t, ch: ch.map(([cn, fx]) => ({ n: cn, fx })), reg });
+
+/* ── Événements en chaîne ──
+   Un choix pose un drapeau : flag (pour la suite de l'expédition) ou sflag (gardé dans la sauvegarde, pour une expédition future).
+   La suite exige need (drapeau d'expédition) ou sneed (drapeau de sauvegarde, consommé quand la suite survient). */
+const CHAIN_SETS = [ // [événement, n° du choix, drapeau, mémorisé dans la sauvegarde ?]
+  ["voleur_pris", 0, "voleur", 0], ["pelerin", 0, "pelerin", 0], ["chien_errant", 0, "chien", 0], ["camp_bandits", 1, "bandits", 0],
+  ["ecuyer", 0, "ecuyer", 0], ["bucher", 0, "sorciere", 1], ["bucher", 1, "sorciere", 1], ["mendiant", 1, "mendiant", 1],
+  ["cerf_blanc", 2, "cerf", 1], ["donjon_prison", 0, "prisonnier", 0], ["enfant", 0, "enfant", 1], ["herault", 0, "herault", 0],
+];
+for (const [id, ci, flag, save] of CHAIN_SETS) { const E = EVENTS.find(e => e.id === id); if (!E || !E.ch[ci]) continue; const f = E.ch[ci].fx; if (f.gamble) f.gamble[1] = Object.assign({}, f.gamble[1], save ? { sflag: flag } : { flag }); else Object.assign(f, save ? { sflag: flag } : { flag }); }
+const CHAIN_EVENTS = [
+  ["suite_voleur", "Le voleur tient parole", "Le voleur que vous avez libéré surgit d'une ruelle. « Je paie mes dettes. Et je sais où ils cachent le meilleur. »", [["Le suivre jusqu'à sa cache", { loot: 1, gold: 60 }], ["Lui demander de faire le guet", { light: 25, morale: 10 }]], { need: "voleur" }],
+  ["suite_pelerin", "Le fils du pèlerin", "Un jeune homme vous arrête. « Mon père m'a parlé de vous avant de mourir. Prenez ceci, c'était son vœu. »", [["Accepter l'héritage", { gold: 130 }], ["Lui laisser l'or, prendre sa bénédiction", { heal: .3, morale: 15 }]], { need: "pelerin" }],
+  ["suite_chien", "Le chien revient", "Le chien errant vous attendait. Il aboie, tourne sur lui-même et file entre les ruines.", [["Le suivre", { loot: 1, petXp: 80 }], ["L'adopter pour la nuit", { morale: 12, heal: .1 }]], { need: "chien" }],
+  ["suite_bandits", "Les brigands vous traquent", "Les brigands que vous avez volés ont suivi vos traces. Ils vous barrent la route, arbalètes pointées.", [["Se battre", { fight: 1, gold: 80 }], ["Rendre une part (60 or)", { cost: 60, morale: -5 }], ["Fuir par les fourrés", { hurt: .1, light: -15 }]], { need: "bandits" }],
+  ["suite_ecuyer", "L'écuyer et son chevalier", "L'écuyer a retrouvé son chevalier, mourant. Le vieil homme vous tend son épée. « Il saura la porter un jour. Vous, maintenant. »", [["Prendre l'épée", { loot: 1, xp: 40 }], ["Veiller le chevalier", { xp: 70, morale: 12 }]], { need: "ecuyer" }],
+  ["suite_sorciere", "La sorcière reconnaissante", "Une femme aux cheveux brûlés sort des roseaux. Celle que vous avez sauvée du bûcher. « Je n'oublie jamais un visage. »", [["Accepter son talisman", { relic: 1 }], ["Lui demander des soins", { heal: .5, cleanse: 1 }]], { sneed: "sorciere", reg: ["marais", "foret"] }],
+  ["suite_mendiant", "L'aveugle qui voit", "Le mendiant à qui vous aviez donné une potion vous attend, les yeux grands ouverts et clairs. « Je vois, maintenant. Et je vois votre route. »", [["Écouter sa prophétie", { buff: 1, morale: 15 }], ["Accepter son présent", { relic: 1 }]], { sneed: "mendiant", reg: ["catacombes", "marais", "citadelle"] }],
+  ["suite_cerf", "Le retour du cerf blanc", "Le cerf blanc que vous avez épargné se tient devant vous. Autour de lui, l'air est tiède et la peur s'en va.", [["S'approcher", { heal: .6, light: 30 }], ["S'incliner", { morale: 20, petXp: 100 }]], { sneed: "cerf" }],
+  ["suite_prisonnier", "Le prisonnier tient parole", "Le prisonnier des oubliettes vous montre une faille dans les murs. « Par ici, le gardien ne vous verra pas venir. »", [["Prendre son raccourci", { buff: 1, light: 20 }], ["Lui demander ses secrets", { xp: 80 }]], { need: "prisonnier" }],
+  ["suite_enfant", "L'enfant sans ombre", "La petite fille en blanc réapparaît, souriante. Elle tient à présent une ombre par la main. « Merci. »", [["Prendre sa main", { relic: 1, morale: 10 }], ["La laisser partir", { morale: 20, xp: 40 }]], { sneed: "enfant" }],
+  ["suite_herault", "L'armée du héraut", "Le héraut a rassemblé les morts de la garde royale. Ils mettent genou à terre devant vous.", [["Les mener au combat", { buff: 1, morale: 20 }], ["Les libérer de leur serment", { xp: 60, heal: .2 }]], { need: "herault", reg: ["citadelle"] }],
+];
+for (const [id, n, t, ch, o] of CHAIN_EVENTS) EVENTS.push(Object.assign({ id, n, t, ch: ch.map(([cn, fx]) => ({ n: cn, fx })), chain: 1 }, o));
 /* ═══════════════════════ État du jeu, héros, objets, sauvegarde ═══════════════════════ */
 let S = null;
 
@@ -1238,7 +1267,8 @@ function newState(opts = {}) {
     abyss: { best: 0, oaths: [] },
     lastSeen: Date.now(), bank: 0,
     run: null, log: [],
-    opts: { sound: 1, music: 1, speed: 1, hardcore: !!opts.hardcore, auto: 0 },
+    flags: [],
+    opts: { sound: 1, music: 1, speed: 1, hardcore: !!opts.hardcore, auto: 0, diff: opts.diff || "normal" },
     tuto: {},
   };
 }
@@ -1366,6 +1396,13 @@ function migrate(s) {
   for (const h of (s.heroes || []).concat(s.recruits || [])) fixHeroName(h);
   return s;
 }
+// difficulté : ennemis (PV, dégâts) et récompenses (or, expérience)
+const DIFFS = {
+  facile: { n: "Facile", d: "Ennemis affaiblis (−25 % PV, −20 % dégâts). Pour découvrir l'histoire.", hp: .75, dmg: .8, gold: .9, xp: 1, ic: "heal" },
+  normal: { n: "Normal", d: "L'expérience prévue.", hp: 1, dmg: 1, gold: 1, xp: 1, ic: "sword" },
+  cauchemar: { n: "Cauchemar", d: "Ennemis redoutables (+30 % PV, +25 % dégâts) mais +35 % d'or et +20 % d'expérience.", hp: 1.3, dmg: 1.25, gold: 1.35, xp: 1.2, ic: "skull" },
+};
+const diffOf = () => DIFFS[(S && S.opts && S.opts.diff) || "normal"] || DIFFS.normal;
 const potionMax = () => 2 + (S ? S.bld.chapelle : 1);
 const rosterMax = () => 4 + S.bld.taverne * 2;
 const skillRankMax = () => S.bld.academie;
@@ -1862,11 +1899,12 @@ function startRun(regionId, partyIds, petId, opt = {}) {
   const seed = opt.seed || (Date.now() & 0x7fffffff);
   const rng = mkRng(seed);
   const abyss = regionId === "abime";
-  const oaths = abyss ? (opt.oaths || S.abyss.oaths || []).slice() : (opt.oaths || []);
+  const oaths = (abyss ? (opt.oaths || S.abyss.oaths || []).slice() : (opt.oaths || []).slice()).concat(opt.week && weekRule() ? (weekRule().oaths || []) : []);
   const run = { region: regionId, seed, party: partyIds.slice(), pet: petId, floor: abyss ? (opt.floor || 1) : 0, map: genMap(rng, abyss ? 6 : 9, { elite: oaths.includes("elite") }), pos: null,
     light: 100, relics: (opt.relics || []).slice(), potions: potionMax() - (oaths.includes("jeune") ? 1 : 0), gold: 0, loot: [], mats: { fer: 0, essence: 0, cendre: 0 }, shards: 0,
-    kills: 0, fallen: [], oaths, daily: !!opt.daily, threat: opt.threat || 0, startedAt: Date.now(), xpGain: {}, flawless: true, combats: 0, log: [] };
+    kills: 0, fallen: [], oaths, week: opt.week ? S.week.rule : null, daily: !!opt.daily, threat: opt.threat || 0, startedAt: Date.now(), xpGain: {}, flawless: true, combats: 0, log: [] };
   S.run = run;
+  if (run.week) { const W = weekRule(); if (W.light != null) run.light = W.light; if (W.potions != null) run.potions = W.potions === 0 ? 0 : run.potions * W.potions; }
   for (const id of partyIds) { const h = heroById(id); h.hp = isInjured(h) ? Math.round(heroStats(h).hp * .5) : null; }
   S.stats.runs++;
   return run;
@@ -1939,6 +1977,7 @@ function rewardFor(run, node, rng = RNG) {
   const t = node.type;
   if (t === "combat") { R.gold = (14 + lvl * 4.5) * (0.85 + rng() * .3); R.xp = 26 + lvl * 7; R.mats.fer = rng.chance(.6) ? 1 : 0; if (rng.chance(.22 + luck)) R.loot.push(lootGear(lvl, luck)); }
   if (t === "elite") { R.gold = (34 + lvl * 9) * (0.9 + rng() * .3); R.xp = 50 + lvl * 12; R.mats.fer = 2; R.mats.essence = 1; R.loot.push(lootGear(lvl + 2, .08 + luck)); if (rng.chance(.5)) R.relic = randRelic(run, rng, 1); }
+  if (t === "elite" && run.week && weekRule() && weekRule().eliteLoot) R.loot.push(lootGear(lvl + 2, .1));
   if (t === "treasure") { R.gold = (30 + lvl * 7) * (0.8 + rng() * .5); R.loot.push(lootGear(lvl + 1, .05 + luck)); R.mats.fer = 1; if (rng.chance(.4)) R.relic = randRelic(run, rng); }
   if (t === "boss") {
     const first = run.region !== "abime" && !(S.prog[run.region] && S.prog[run.region].clears);
@@ -1946,7 +1985,7 @@ function rewardFor(run, node, rng = RNG) {
     R.loot.push(lootGear(lvl + 3, .15)); if (rng.chance(.5)) R.loot.push(lootGear(lvl + 2, .1));
     R.shards = first ? 3 : 1 + (run.region === "abime" && run.floor % 3 === 0 ? 1 : 0) + Math.floor(run.oaths.length / 3); R.relic = randRelic(run, rng, 2);
   }
-  R.gold = Math.round(R.gold * goldM); R.xp = Math.round(R.xp * (1 + run.threat * .2)); R.petXp = Math.round(R.xp * .8);
+  R.gold = Math.round(R.gold * goldM * diffOf().gold); R.xp = Math.round(R.xp * (1 + run.threat * .2) * diffOf().xp); R.petXp = Math.round(R.xp * .8);
   return R;
 }
 function randRelic(run, rng = RNG, minR = 0) {
@@ -2027,6 +2066,7 @@ function endRun(outcome) {
   if (S.opts.hardcore) { const dead = S.heroes.filter(h => h.dead); S.stats.deaths += dead.length; S.graves = (S.graves || []).concat(dead.map(h => ({ name: h.name, cls: h.cls, lvl: h.lvl, at: Date.now() }))); S.heroes = S.heroes.filter(h => !h.dead); }
   if (run.flawless && outcome === "victory") S.stats.flawless++;
   if (run.daily && outcome === "victory") { S.daily.done = 1; S.stats.daily++; }
+  if (run.week && outcome === "victory" && S.week && !S.week.done) { const W = weekReward(); S.week.done = 1; res.week = W; S.gold += W.gold; S.shards += W.shards; S.mats.essence += W.essence; S.stats.weeks = (S.stats.weeks || 0) + 1; }
   S.stats.goldMax = Math.max(S.stats.goldMax, S.gold);
   S.run = null;
   refreshRecruits();
@@ -2060,6 +2100,32 @@ function dailyCheck() {
   return true;
 }
 function contractProgress(k, v = 1) { if (!S.daily || !S.daily.contracts) return; for (const c of S.daily.contracts) if (c.k === k && !c.claimed) c.p = Math.min(c.goal, c.p + v); }
+// ── défi de la semaine : une règle spéciale, une expédition, une grosse récompense ──
+const WEEK_RULES = [
+  { k: "sans_soin", n: "Sans soigneur", d: "Aucun soigneur dans le groupe. Les potions sont doublées.", noRole: "soin", potions: 2 },
+  { k: "penombre", n: "Pénombre", d: "La lueur commence à 50 et baisse deux fois plus vite.", light: 50, oaths: ["nuit"] },
+  { k: "jeune", n: "Le grand jeûne", d: "Aucune potion. Les camps soignent deux fois plus.", potions: 0, campX: 2 },
+  { k: "carnage", n: "Carnage", d: "Les ennemis frappent +25 % plus fort ; vos héros aussi (+25 % de dégâts).", oaths: ["sang"], heroDmg: .25 },
+  { k: "elite", n: "La traque", d: "La carte regorge d'élites. Chaque élite rapporte un objet de plus.", oaths: ["elite"], eliteLoot: 1 },
+  { k: "trio", n: "Les trois", d: "Trois héros seulement. Ils gagnent +20 % de PV.", maxParty: 3, heroHp: .2 },
+  { k: "fer", n: "Murailles de fer", d: "Les ennemis ont +20 % de PV et +10 % de protection.", oaths: ["fer", "pierre"] },
+  { k: "silence", n: "Le silence", d: "Les ultimes se chargent 30 % moins vite, mais la résolution commence à 70.", oaths: ["silence"], morale: 20 },
+];
+const weekKey = (d = new Date()) => { const t = new Date(Date.UTC(d.getFullYear(), d.getMonth(), d.getDate())); const day = (t.getUTCDay() + 6) % 7; t.setUTCDate(t.getUTCDate() - day + 3); const y = t.getUTCFullYear(), w1 = new Date(Date.UTC(y, 0, 4)); return y * 100 + 1 + Math.round(((t - w1) / 864e5 - 3 + ((w1.getUTCDay() + 6) % 7)) / 7); };
+function weekCheck() {
+  const k = weekKey(); if (S.week && S.week.key === k) return false;
+  const rng = mkRng(k * 17 + 5), open = REGIONS.filter(r => regionUnlocked(r.id));
+  S.week = { key: k, done: 0, rule: rng.pick(WEEK_RULES).k, region: rng.pick(open).id, seed: k * 53 + 11 };
+  return true;
+}
+const weekRule = () => S.week && WEEK_RULES.find(r => r.k === S.week.rule);
+function weekReward() { const l = regionById(S.week.region).lvl || 1; return { gold: 250 + l * 25, shards: 2, essence: 3 }; }
+function weekPartyOk(ids) {
+  const W = weekRule(); if (!W) return "";
+  if (W.maxParty && ids.length > W.maxParty) return `${W.maxParty} héros au maximum cette semaine.`;
+  if (W.noRole && ids.some(id => CLASSES[heroById(id).cls].role === W.noRole)) return "Pas de soigneur cette semaine.";
+  return "";
+}
 function dailyRun() {
   const rng = mkRng(S.daily.key * 31 + 7);
   const open = REGIONS.filter(r => regionUnlocked(r.id));
@@ -2087,8 +2153,12 @@ function enterNode(run, node) {
 }
 function pickEvent(run) {
   run.seenEv = run.seenEv || [];
-  const here = EVENTS.filter(e => !e.reg || e.reg.includes(run.region)), pool = here.filter(e => !run.seenEv.includes(e.id));
-  const e = pick(pool.length ? pool : here); run.seenEv.push(e.id); return e.id;
+  const fl = run.flags || [], sf = (S && S.flags) || [];
+  const ok = e => (!e.reg || e.reg.includes(run.region)) && (!e.need || fl.includes(e.need)) && (!e.sneed || sf.includes(e.sneed));
+  const here = EVENTS.filter(ok), pool = here.filter(e => !run.seenEv.includes(e.id));
+  const chains = pool.filter(e => e.chain); // une suite attendue a de bonnes chances d'arriver
+  const e = chains.length && chance(.6) ? pick(chains) : pick(pool.filter(e => !e.chain).length ? pool.filter(e => !e.chain) : here.filter(e => !e.chain));
+  if (e.sneed && S.flags) S.flags = S.flags.filter(f => f !== e.sneed); run.seenEv.push(e.id); return e.id;
 }
 // ce que fait un choix, en clair (affiché sous chaque choix avant de décider)
 function fxText(fx) {
@@ -2116,6 +2186,7 @@ function fxText(fx) {
     if (f.upgrade) o.push(["good", "Améliore une arme ou armure"]);
     if (f.curse) o.push(["bad", "Malédiction (ennemis +10 % dégâts)"]);
     if (f.fight) o.push(["bad", "Combat"]);
+    if (f.flag || f.sflag) o.push(["risk", "✦ Aura une suite"]);
     return o.map(([c, t]) => `<span class="fx ${c}">${t}</span>`).join("");
   };
   const rest = Object.assign({}, fx); delete rest.gamble;
@@ -2150,6 +2221,8 @@ function resolveEvent(run, evId, ci) {
     if (f.buff) { run.buff = (run.buff || 0) + 1; out.text.push("Une chaleur étrange : +20 % de dégâts au prochain combat."); }
     if (f.upgrade) { const its = party.flatMap(h => [h.gear.wpn, h.gear.arm]).filter(it => it && it.up < 10); if (its.length) { const it = pick(its); it.up++; out.text.push(gearName(it) + " est amélioré."); } }
     if (f.fight) { out.fight = true; out.text.push("Une embuscade !"); }
+    if (f.flag) { run.flags = (run.flags || []).concat(f.flag); out.text.push("<i>Ce geste aura peut-être une suite…</i>"); }
+    if (f.sflag) { S.flags = (S.flags || []).filter(x => x !== f.sflag).concat(f.sflag); out.text.push("<i>Quelqu'un se souviendra de vous…</i>"); }
   };
   if (fx.gamble) { const [p, a, b] = fx.gamble; const ok = chance(p); out.text.push(ok ? "La chance vous sourit." : "Mauvaise fortune…"); apply(ok ? a : b); }
   const rest = Object.assign({}, fx); delete rest.gamble; delete rest.cost; apply(rest);
@@ -2189,17 +2262,18 @@ const CAMP = [
   { k: "watch", n: "Veiller", d: "+35 lueur et +10 résolution au prochain combat." },
 ];
 function doCamp(run, k) {
-  if (k === "rest") healParty(run, .45);
+  if (k === "rest") healParty(run, .45 * (run.week && weekRule() && weekRule().campX || 1));
   if (k === "train") { const xp = 30 + runLevel(run, null) * 8; for (const h of runParty()) if (!run.fallen.includes(h.id)) giveXp(h, xp); }
   if (k === "watch") { run.light = clamp(run.light + 35, 0, 100); run.morale = clamp((run.morale || 0) + 10, -30, 30); }
 }
 // préparation et fin d'un combat
 function battleFor(run, node, enc) {
   const party = runParty().filter(h => !run.fallen.includes(h.id));
-  const mods = { hp: 1, dmg: 1 + (run.curse || 0) * .1, prot: 0, spd: 0 };
+  const D = diffOf(), mods = { hp: D.hp, dmg: D.dmg * (1 + (run.curse || 0) * .1), prot: 0, spd: 0 };
   if (run.region === "abime") { mods.hp *= 1 + run.floor * .04; mods.dmg *= 1 + run.floor * .025; }
   for (const o of run.oaths) { if (o === "sang") mods.dmg *= 1 + OATHS.sang.v; if (o === "fer") mods.hp *= 1 + OATHS.fer.v; if (o === "hate") mods.spd += OATHS.hate.v; if (o === "pierre") mods.prot += OATHS.pierre.v; }
   const rh = relicHooks(run);
+  if (run.week && weekRule()) { const W = weekRule(); if (W.heroDmg) rh.dmg = (rh.dmg || 0) + W.heroDmg; if (W.morale) rh.morale = (rh.morale || 0) + W.morale; if (W.heroHp) rh.hp = (rh.hp || 0) + W.heroHp; }
   if (run.buff) { rh.dmg = (rh.dmg || 0) + .2; }
   const B = newBattle(party, enc, { relicH: rh, pet: run.pet, light: run.light, mods, morale: (run.morale || 0) + S.bld.chapelle * 2, onLight: v => { run.light = clamp(run.light + v, 0, 100); B.light = run.light; } });
   B.node = node;
@@ -2322,7 +2396,7 @@ function newGame(petId, opt = {}) {
   list.sort((a, b) => CLASSES[a.cls].rk[0] - CLASSES[b.cls].rk[0]);
   for (const h of list) addHero(h);
   S.pets.owned = [petId]; S.pets.lvl[petId] = 1; S.pets.xp[petId] = 0; S.pet = petId;
-  S.potions = 0; refreshRecruits(); dailyCheck();
+  S.potions = 0; refreshRecruits(); dailyCheck(); weekCheck();
   return S;
 }
 /* ═══════════════════════ Rendu : encre et ombres portées (style gothique) ═══════════════════════
@@ -3118,13 +3192,24 @@ function synergyHTML(classes, roster) {
 }
 ACT.synInfo = k => { const Y = SYNERGIES[k]; toast(`<b>${Y.n}</b> <span class="tiny dim">(${synergyNeedText(Y)})</span><br><span class="small">${gl(Y.d)}</span>`); };
 // description automatique d'une compétence
+// valeurs chiffrées d'une compétence pour un héros (ou une unité de combat) : dégâts avant protection, soins
+function skillNums(sk, u) {
+  if (!u || u.side === "e") return null;
+  let lo, hi, hp, hpw, rank = sk.rank || (u.skr && sk.id && u.skr[sk.id]) || 1;
+  if (u.dmgLo != null) { lo = u.dmgLo; hi = u.dmgHi; hp = u.hpMax; hpw = u.healPow || 1; }
+  else { const st = heroStats(u, S && S.run ? relicHooks(S.run) : {}); lo = st.dmgLo; hi = st.dmgHi; hp = st.hp; hpw = st.healPow || 1; }
+  const rk = sk.isUlt ? 1 : 1 + .1 * (rank - 1), m = (sk.m || 0) * rk;
+  const team = S && S.run ? runParty().map(h => heroStats(h).hp) : (S ? S.heroes.slice(0, 4).map(h => heroStats(h).hp) : [hp]);
+  const avgHp = team.length ? team.reduce((a, b) => a + b, 0) / team.length : hp;
+  return { lo: Math.max(1, Math.round(lo * m)), hi: Math.max(1, Math.round(hi * m)), heal: Math.round(avgHp * (sk.heal || 0) * rk * hpw), self: Math.round(hp * (sk.healSelf || 0) * hpw) };
+}
 function skillText(sk, u) {
-  const out = [], t = sk.t || "e";
+  const out = [], t = sk.t || "e", N = skillNums(sk, u);
   const who = { e: "un ennemi", ae: "les ennemis visés", a: "un allié", aa: "tout le groupe", s: "soi-même" }[t] || "";
-  if (sk.m) out.push(`Dégâts ${Math.round(sk.m * 100)} %${sk.hits > 1 ? " × " + sk.hits : ""} sur ${who}`);
-  if (sk.heal && !sk.healAllies) out.push(`Soigne ${Math.round(sk.heal * 100)} % des PV ${t === "aa" ? "de tout le groupe" : t === "s" ? "de soi" : "d'un allié"}`);
-  if (sk.healAllies) out.push(`Soigne le groupe de ${Math.round(sk.heal * 100)} %`);
-  if (sk.healSelf) out.push(`Se soigne de ${Math.round(sk.healSelf * 100)} %`);
+  if (sk.m) out.push(`Dégâts ${Math.round(sk.m * 100)} %${N ? ` (<b class="num">${N.lo}–${N.hi}</b>)` : ""}${sk.hits > 1 ? " × " + sk.hits : ""} sur ${who}`);
+  if (sk.heal && !sk.healAllies) out.push(`Soigne ${Math.round(sk.heal * 100)} % des PV${N && N.heal ? ` (<b class="num heal">≈ ${N.heal} PV</b>)` : ""} ${t === "aa" ? "de tout le groupe" : t === "s" ? "de soi" : "d'un allié"}`);
+  if (sk.healAllies) out.push(`Soigne le groupe de ${Math.round(sk.heal * 100)} %${N && N.heal ? ` (<b class="num heal">≈ ${N.heal} PV chacun</b>)` : ""}`);
+  if (sk.healSelf) out.push(`Se soigne de ${Math.round(sk.healSelf * 100)} %${N && N.self ? ` (<b class="num heal">${N.self} PV</b>)` : ""}`);
   if (sk.leech) out.push(`Vol de vie ${Math.round(sk.leech * 100)} %`);
   if (sk.selfDmg) out.push(`Coûte ${Math.round(sk.selfDmg * 100)} % de ses PV`);
   const fx = (arr, pre) => { if (!arr) return; for (const f of arr) { const n = ST_INFO[f.k] ? ST_INFO[f.k].n : f.k; let s = n; if (f.v != null && ["dmgUp", "protUp", "protDn", "shield", "regen"].includes(f.k)) s += ` ${f.v > 0 ? "+" : ""}${Math.round(f.v * 100)} %`; else if (f.v != null && ["spdUp", "spdDn", "dodgeUp", "dodgeDn", "accDn", "accUp", "critUp"].includes(f.k)) s += ` ${f.v}`; if (f.t) s += ` (${f.t} t.)`; if (f.ch != null && f.ch < 1) s += ` ${Math.round(f.ch * 100)} %`; out.push(pre + s); } };
@@ -3161,8 +3246,9 @@ SCREENS.title = {
   },
   mount: () => { audioInit(); },
 };
-ACT.continue = () => { S = load(); if (!S) return; dailyCheck(); musicPlay("bastion"); const bank = idleBank(); if (S.run) go("map"); else go("bastion"); if (bank >= 10) toast(`${ico("furnace", "#ff9a3a")} La Fonderie a produit <b>${bank} or</b> en votre absence.`, "good"); };
-ACT.newgame = () => { const go2 = () => { NG.step = 0; NG.hard = false; NG.pets = rollStarterPets(3); NG.pet = NG.pets[0]; NG.petRolls = NG_PET_ROLLS; NG.cls = rollStartParty(); NG.heroes = NG.cls.map(c => makeHero(c)); NG.rolls = NG_ROLLS; go("newgame"); musicPlay("titre"); }; if (load()) confirmBox("Une partie existe déjà sur cet appareil. Elle sera <b>effacée</b>.", go2, { yes: "Recommencer" }); else go2(); };
+ACT.continue = () => { S = load(); if (!S) return; dailyCheck(); weekCheck(); musicPlay("bastion"); const bank = idleBank(); if (S.run) go("map"); else go("bastion"); if (bank >= 10) toast(`${ico("furnace", "#ff9a3a")} La Fonderie a produit <b>${bank} or</b> en votre absence.`, "good"); };
+ACT.ngDiff = k => { NG.diff = k; refresh(); };
+ACT.newgame = () => { const go2 = () => { NG.step = 0; NG.hard = false; NG.diff = NG.diff || "normal"; NG.pets = rollStarterPets(3); NG.pet = NG.pets[0]; NG.petRolls = NG_PET_ROLLS; NG.cls = rollStartParty(); NG.heroes = NG.cls.map(c => makeHero(c)); NG.rolls = NG_ROLLS; go("newgame"); musicPlay("titre"); }; if (load()) confirmBox("Une partie existe déjà sur cet appareil. Elle sera <b>effacée</b>.", go2, { yes: "Recommencer" }); else go2(); };
 ACT.install = async () => {
   if (PWA.prompt) { PWA.prompt.prompt(); try { await PWA.prompt.userChoice; } catch (e) { } PWA.prompt = null; refresh(); return; }
   let how;
@@ -3191,7 +3277,8 @@ SCREENS.newgame = {
     return `<div class="wrap"><h1 style="text-align:center;margin-top:10px">Votre compagnie</h1><p class="lore" style="text-align:center">Quatre âmes ont répondu à l'appel, au hasard des routes : un rempart, un soigneur et deux lames. Les autres viendront à la Taverne.</p>
       <div class="row" style="justify-content:center;gap:8px">${ngRollTag(NG.rolls)}<button class="btn ghost sm" data-a="ngRollAll" ${NG.rolls ? "" : "disabled"}>${ico("dice")}Tout relancer</button></div>
       <div class="grid ctr" style="--min:180px;margin-top:12px">${NG.heroes.map((h, i) => { const C = CLASSES[h.cls]; return `<div class="card" style="text-align:center">${canvasSlot("hero:" + i, 170, 212)}<h3>${esc(h.name)}</h3><div class="row" style="justify-content:center">${roleTag(C.role)}<span class="tag">${C.n}</span></div><p class="tiny lore" style="margin:4px 0">${C.lore}</p><p class="tiny dim">${h.traits.map(t => `<span class="${TRAITS[t].good ? "good" : "bad"}">${TRAITS[t].n}</span>`).join(" · ")}</p><div class="row" style="justify-content:center;gap:4px"><button class="btn ghost sm" data-a="ngInfo" data-v="${i}">${ico("info")}Détails</button><button class="btn ghost sm" data-a="ngReroll" data-v="${i}" ${NG.rolls ? "" : "disabled"}>${ico("dice")}Autre recrue</button></div></div>`; }).join("")}</div>
-      <div class="panel" style="padding:12px;margin-top:14px"><label class="row" style="cursor:pointer"><input type="checkbox" id="ng-hard" ${NG.hard ? "checked" : ""}> <b>Mode Hardi</b> <span class="small dim">— les héros tombés meurent pour de bon. Pour les vétérans.</span></label></div>
+      <div class="panel" style="padding:12px;margin-top:14px"><b>Difficulté</b><div class="grid" style="--min:170px;margin-top:6px">${Object.keys(DIFFS).map(k => `<button class="btn choice ${NG.diff === k ? "gold" : ""}" data-a="ngDiff" data-v="${k}" style="margin:0">${ico(DIFFS[k].ic)}<b>${DIFFS[k].n}</b><div class="tiny" style="font-weight:400">${DIFFS[k].d}</div></button>`).join("")}</div><div class="tiny dim" style="margin-top:4px">Modifiable plus tard dans les Options.</div></div>
+      <div class="panel" style="padding:12px;margin-top:8px"><label class="row" style="cursor:pointer"><input type="checkbox" id="ng-hard" ${NG.hard ? "checked" : ""}> <b>Mode Hardi</b> <span class="small dim">— les héros tombés meurent pour de bon. Pour les vétérans.</span></label></div>
       <div class="stickybar"><button class="btn ghost" data-a="ngBack">Retour</button><button class="btn main glow" data-a="ngStart">${ico("castle")}Entrer au Bastion</button></div></div>`;
   },
   mount: () => {
@@ -3209,7 +3296,7 @@ ACT.ngPetPick = k => { NG.pet = k; closeModal(); refresh(); };
 ACT.ngRollAll = () => { if (!NG.rolls) return; NG.rolls--; NG.cls = rollStartParty(); NG.heroes = NG.cls.map(c => makeHero(c)); sfx("coin"); refresh(); };
 ACT.ngPetRoll = () => { if (!NG.petRolls) return; NG.petRolls--; const old = NG.pets; let pool = PET_IDS.filter(p => PETS[p].starter && !old.includes(p)); RNG.shuffle(pool); NG.pets = pool.concat(RNG.shuffle(old.slice())).slice(0, 3); NG.pet = NG.pets[0]; sfx("coin"); refresh(); };
 ACT.ngStart = () => {
-  newGame(NG.pet, { hardcore: NG.hard, classes: NG.cls, heroes: NG.heroes });
+  newGame(NG.pet, { hardcore: NG.hard, diff: NG.diff, classes: NG.cls, heroes: NG.heroes });
   save(); sfx("bell"); musicPlay("bastion");
   go("bastion");
   setTimeout(() => modal(`<h2>${ico("castle")} Le Dernier Bastion</h2><p class="lore">Les murs tiennent encore. Pour combien de temps ?</p><p>Votre objectif : franchir la <b>Porte</b> pour mener des expéditions, rapporter or et équipement, puis faire grandir le Bastion.</p><ul class="small"><li><b>Combat</b> : chaque héros agit selon sa vitesse. Sa <b>position</b> (rangs 1 à 4) décide de ses compétences.</li><li>Les ennemis montrent leur <b>intention</b> au-dessus de leur tête : anticipez !</li><li>Un héros à 0 PV est <b>à l'agonie</b> : soignez-le vite.</li><li>Au niveau ${EVO_LVL}, chaque héros peut <b>évoluer</b> vers l'une de ses deux voies.</li></ul><div class="row" style="justify-content:flex-end"><button class="btn main" data-a="closeModal">Compris</button></div>`), 500);
@@ -3254,7 +3341,7 @@ SCREENS.bastion = {
     return `${L.map(b => { const hh = b.s * (b.k === "porte" ? 1.62 : b.k === "academie" ? 2.0 : b.k === "chapelle" ? 1.9 : 1.3); return `<button class="hot" style="left:${b.x}px;top:${b.y - off - hh}px;width:${b.s * 1.3}px;height:${hh}px" data-a="bld" data-v="${b.k}"><span class="lbl">${note(b.k) ? '<i class="dotn"></i>' : ""}${names[b.k]}${b.k !== "porte" ? ` <b>${"I II III IV V".split(" ")[S.bld[b.k] - 1]}</b>` : ""}</span></button>`; }).join("")}
     <div class="panel" style="position:absolute;left:10px;top:6px;width:min(300px,calc(100vw - 20px));padding:10px 12px" id="dailyp">
       <div class="row sp"><h3 style="margin:0">${ico("daily", "#e8c878", 16)} Défis du jour</h3><button class="btn ghost sm" data-a="toggleDaily">${UI.hideDaily ? "+" : "–"}</button></div>
-      ${UI.hideDaily ? "" : ct.map((c, i) => `<div style="margin-top:6px"><div class="row sp small"><span>${c.n}</span><span class="${c.p >= c.goal ? "good" : "dim"}">${c.p}/${c.goal}</span></div><div class="row" style="gap:6px"><div class="bar xp" style="flex:1"><i style="width:${100 * c.p / c.goal}%"></i></div>${c.claimed ? '<span class="tiny good">✓</span>' : c.p >= c.goal ? `<button class="btn gold sm" data-a="claimCt" data-v="${i}">+${c.gold}</button>` : `<span class="tiny dim">${c.gold} or</span>`}</div></div>`).join("") + `<div class="sep" style="margin:8px 0"></div><button class="btn ${S.daily.done ? "ghost off" : "main"} sm" style="width:100%" data-a="dailyRun">${ico("star")}${S.daily.done ? "Expédition du jour accomplie" : "Expédition du jour (+récompenses)"}</button>`}
+      ${UI.hideDaily ? "" : ct.map((c, i) => `<div style="margin-top:6px"><div class="row sp small"><span>${c.n}</span><span class="${c.p >= c.goal ? "good" : "dim"}">${c.p}/${c.goal}</span></div><div class="row" style="gap:6px"><div class="bar xp" style="flex:1"><i style="width:${100 * c.p / c.goal}%"></i></div>${c.claimed ? '<span class="tiny good">✓</span>' : c.p >= c.goal ? `<button class="btn gold sm" data-a="claimCt" data-v="${i}">+${c.gold}</button>` : `<span class="tiny dim">${c.gold} or</span>`}</div></div>`).join("") + `<div class="sep" style="margin:8px 0"></div><button class="btn ${S.daily.done ? "ghost off" : "main"} sm" style="width:100%" data-a="dailyRun">${ico("star")}${S.daily.done ? "Expédition du jour accomplie" : "Expédition du jour (+récompenses)"}</button>` + weekPanel()}
     </div>`;
   },
   mount: () => { tutoHint("bastion", "Touchez un bâtiment pour y entrer. <b>La Porte</b> mène aux expéditions."); },
@@ -3262,6 +3349,11 @@ SCREENS.bastion = {
 };
 ACT.toggleDaily = () => { UI.hideDaily = !UI.hideDaily; refresh(); };
 ACT.claimCt = i => { const c = S.daily.contracts[+i]; if (!c || c.claimed || c.p < c.goal) return; c.claimed = 1; S.gold += c.gold; sfx("coin"); toast(`+${c.gold} or`, "good"); save(); refresh(); };
+function weekPanel() {
+  if (!S.week) weekCheck(); const W = weekRule(); if (!W) return ""; const R = weekReward();
+  return `<div class="sep" style="margin:8px 0"></div><div class="small"><b class="gold">${ico("trophy", "#e8c878", 14)} Défi de la semaine : ${W.n}</b></div><div class="tiny" style="margin:2px 0 6px">${gl(W.d)} — ${regionById(S.week.region).n}. Victoire : +${R.gold} or, +${R.shards} éclats, +${R.essence} essence.</div><button class="btn ${S.week.done ? "ghost off" : "gold"} sm" style="width:100%" data-a="weekRun">${ico("trophy")}${S.week.done ? "Défi de la semaine relevé" : "Relever le défi"}</button>`;
+}
+ACT.weekRun = () => { if (!S.week || S.week.done) return; UI.expe = { region: S.week.region, week: 1 }; go("expe"); };
 ACT.dailyRun = () => { if (S.daily.done) return; const d = dailyRun(); UI.expe = { region: d.region, daily: d }; go("expe"); };
 function tutoHint(k, text) { if (S.tuto[k]) return; S.tuto[k] = 1; setTimeout(() => toast(`${ico("info", "#e8c878")} ${text}`), 700); }
 ACT.bld = k => { if (k === "porte") { sfx("door"); go("expe"); return; } sfx("open"); openBuilding(k); };
@@ -3470,8 +3562,8 @@ SCREENS.hero = {
       </div>
     </div>
     <h2 style="margin-top:14px">Compétences <span class="small dim" style="font-family:var(--f-body)">(${h.skills.length}/4 équipées — touchez pour équiper)</span></h2>
-    <div class="col">${pool.map(k => { const sk = skillDef(h, k), on = h.skills.includes(k), r = h.skr[k] || 1, c = skillUpCost(r); return `<div class="skl ${on ? "on" : ""}" data-a="toggleSk" data-v="${h.id}:${k}">${ico(sk.ic, on ? "#e8c878" : "#9a8c7a")}<div style="flex:1"><div class="row sp"><b>${sk.n}</b><span>${rankPips(sk.use, sk.t === "e" || sk.t === "ae" ? sk.at : null)}</span></div><div class="tiny">${skillText(sk)}</div><div class="row sp tiny" style="margin-top:3px"><span class="ranks">${[1, 2, 3, 4, 5].map(i => `<i class="${i <= r ? "u" : ""}"></i>`).join("")}</span>${r < 5 ? `<button class="btn ghost sm ${r >= skillRankMax() || !canPay(c) ? "off" : ""}" data-a="skUp" data-v="${h.id}:${k}" title="${r >= skillRankMax() ? "Salle des maîtres trop petite" : ""}">Rang ${r + 1} · ${c.gold} or${c.essence ? ` ${c.essence} ess.` : ""}</button>` : '<span class="gold">Maîtrisée</span>'}</div></div></div>`; }).join("")}</div>
-    <div class="skl" style="margin-top:8px;border-color:#a05a2a;cursor:default">${ico(ult.ic, "#ff9a4a")}<div><b>Ultime : ${ult.n}</b><div class="tiny">${skillText(ult)}</div><div class="tiny dim">La jauge d'ultime se remplit en agissant, en frappant et en encaissant.</div></div></div>
+    <div class="col">${pool.map(k => { const sk = skillDef(h, k), on = h.skills.includes(k), r = h.skr[k] || 1, c = skillUpCost(r); return `<div class="skl ${on ? "on" : ""}" data-a="toggleSk" data-v="${h.id}:${k}">${ico(sk.ic, on ? "#e8c878" : "#9a8c7a")}<div style="flex:1"><div class="row sp"><b>${sk.n}</b><span>${rankPips(sk.use, sk.t === "e" || sk.t === "ae" ? sk.at : null)}</span></div><div class="tiny">${skillText(Object.assign({ id: k }, sk), h)}</div><div class="row sp tiny" style="margin-top:3px"><span class="ranks">${[1, 2, 3, 4, 5].map(i => `<i class="${i <= r ? "u" : ""}"></i>`).join("")}</span>${r < 5 ? `<button class="btn ghost sm ${r >= skillRankMax() || !canPay(c) ? "off" : ""}" data-a="skUp" data-v="${h.id}:${k}" title="${r >= skillRankMax() ? "Salle des maîtres trop petite" : ""}">Rang ${r + 1} · ${c.gold} or${c.essence ? ` ${c.essence} ess.` : ""}</button>` : '<span class="gold">Maîtrisée</span>'}</div></div></div>`; }).join("")}</div>
+    <div class="skl" style="margin-top:8px;border-color:#a05a2a;cursor:default">${ico(ult.ic, "#ff9a4a")}<div><b>Ultime : ${ult.n}</b><div class="tiny">${skillText(Object.assign({ isUlt: 1 }, ult), h)}</div><div class="tiny dim">La jauge d'ultime se remplit en agissant, en frappant et en encaissant.</div></div></div>
     ${evoBlock}
     <div class="row" style="margin-top:14px;justify-content:space-between"><span class="tiny dim">${h.runs} expéditions · ${h.kills} victimes</span><button class="btn ghost sm" data-a="dismiss" data-v="${h.id}">Renvoyer</button></div></div>`;
   },
@@ -3499,7 +3591,7 @@ ACT.unequip = v => { const [id, slot] = v.split(":"); unequip(heroById(id), slot
 // ── fiches de consultation : héros à recruter ou à choisir, compagnons ──
 function heroSheetHTML(h, foot = "") {
   const C = CLASSES[h.cls], st = heroStats(h), ult = heroUlt(h);
-  const skl = (k, sk, on) => `<div class="skl ${on ? "on" : ""}" style="cursor:default">${ico(sk.ic, on ? "#e8c878" : "#9a8c7a")}<div style="flex:1;min-width:0"><div class="row sp"><b>${sk.n}</b><span>${rankPips(sk.use, sk.t === "e" || sk.t === "ae" ? sk.at : null)}</span></div><div class="tiny">${skillText(sk)}</div></div></div>`;
+  const skl = (k, sk, on) => `<div class="skl ${on ? "on" : ""}" style="cursor:default">${ico(sk.ic, on ? "#e8c878" : "#9a8c7a")}<div style="flex:1;min-width:0"><div class="row sp"><b>${sk.n}</b><span>${rankPips(sk.use, sk.t === "e" || sk.t === "ae" ? sk.at : null)}</span></div><div class="tiny">${skillText(Object.assign({ id: k }, sk), h)}</div></div></div>`;
   return `<div class="row" style="gap:12px;flex-wrap:wrap;align-items:flex-start">
     <div style="flex:0 0 auto;margin:0 auto;text-align:center">${canvasSlot("sheet", 150, 188)}</div>
     <div style="flex:1;min-width:220px">
@@ -3512,7 +3604,7 @@ function heroSheetHTML(h, foot = "") {
     </div></div>
     <h3 style="margin-top:12px">Compétences <span class="tiny dim" style="font-family:var(--f-body)">— en doré, les 4 équipées au départ</span></h3>
     <div class="col">${heroSkillPool(h).map(k => skl(k, skillDef(h, k), h.skills.includes(k))).join("")}</div>
-    <div class="skl" style="margin-top:6px;border-color:#a05a2a;cursor:default">${ico(ult.ic, "#ff9a4a")}<div><b>Ultime : ${ult.n}</b><div class="tiny">${skillText(ult)}</div></div></div>
+    <div class="skl" style="margin-top:6px;border-color:#a05a2a;cursor:default">${ico(ult.ic, "#ff9a4a")}<div><b>Ultime : ${ult.n}</b><div class="tiny">${skillText(Object.assign({ isUlt: 1 }, ult), h)}</div></div></div>
     ${h.evo ? "" : `<h3 style="margin-top:12px">Évolutions au niveau ${EVO_LVL}</h3><div class="grid" style="--min:220px">${Object.values(C.evos).map(E => `<div class="card" style="cursor:default"><b class="gold">${E.n}</b><p class="tiny lore" style="margin:2px 0">${gl(E.d)}</p><div class="tiny">${pasText(E.pas)}</div><div class="tiny dim" style="margin-top:3px">Compétences : ${Object.values(E.skills).map(s => s.n).join(", ")} · Ultime : ${E.ult.n}</div></div>`).join("")}</div>`}
     ${foot}`;
 }
@@ -3563,6 +3655,7 @@ SCREENS.expe = {
     const warn = [!roles.includes("soin") && "Aucun soigneur : les blessures vont s'accumuler.", !roles.includes("tank") && "Aucun tank : vos héros fragiles seront exposés.", E.party.length < 4 && "Moins de 4 héros.", avgL < R.lvl - 1 && E.region !== "abime" && `Niveau conseillé : ${R.lvl}+ (votre groupe : ${avgL}).`].filter(Boolean);
     const regs = [...REGIONS, ABYSS];
     return `<div class="wrap"><h1>Préparer l'expédition</h1>
+    ${E.week && weekRule() ? `<div class="panel" style="padding:10px;margin-bottom:10px;border-color:#c9a24a"><b class="gold">${ico("trophy", "#e8c878", 14)} Défi de la semaine : ${weekRule().n}</b> <span class="small">— ${gl(weekRule().d)}</span> <button class="btn ghost sm" data-a="noWeek">Annuler</button>${weekPartyOk(E.party || []) ? `<div class="small bad" style="margin-top:4px">${weekPartyOk(E.party || [])}</div>` : ""}</div>` : ""}
     ${E.daily ? `<div class="panel" style="padding:10px;margin-bottom:10px;border-color:#c9a24a"><b class="gold">${ico("star", "#e8c878", 14)} Expédition du jour</b> <span class="small">— ${R.n}, reliques offertes : ${E.daily.relics.map(k => RELICS[k].n).join(", ")}. Récompenses +25 %.</span> <button class="btn ghost sm" data-a="noDaily">Annuler</button></div>` : ""}
     <h2>Destination</h2><div class="grid" style="--min:200px">${regs.map(r => { const un = regionUnlocked(r.id), p = S.prog[r.id]; return `<div class="card ${E.region === r.id ? "sel" : ""} ${un ? "" : "lock"}" data-a="${un && !E.daily ? "pickReg" : ""}" data-v="${r.id}" style="padding:0">${canvasSlot("reg:" + r.id, 280, 120)}<div style="padding:8px 10px"><div class="tiny dim">${r.sub}${r.id === "abime" ? ` · record ${S.abyss.best}` : ` · niv ${r.lvl}+`}</div><h3 style="margin:0">${r.n} ${!un ? ico("lock", "#9a8c7a", 14) : p && p.clears ? ico("crown", "#e8c878", 14) : ""}</h3><p class="tiny dim" style="margin:2px 0 0">${un ? r.d : "Terminez le chapitre précédent."}</p></div></div>`; }).join("")}</div>
     ${E.region === "abime" ? abyssOpts(E) : cleared && !E.daily ? `<div class="row" style="margin-top:8px"><span class="small">Menace :</span>${[0, 1, 2].map(t => `<button class="btn sm ${E.threat === t ? "gold" : "ghost"}" data-a="threat" data-v="${t}">${["I", "II", "III"][t]}</button>`).join("")}<span class="tiny dim">Ennemis +${E.threat * 2} niveaux, récompenses +${E.threat * 30} %</span></div>` : ""}
@@ -3585,6 +3678,7 @@ function abyssOpts(E) {
   ${oathOk ? `<div class="row" style="margin-top:4px">${Object.entries(OATHS).map(([k, O]) => `<button class="btn sm ${S.abyss.oaths.includes(k) ? "main" : "ghost"}" data-a="oath" data-v="${k}" title="${O.d}">${O.n}</button>`).join("")}</div><div class="tiny dim">${S.abyss.oaths.map(k => OATHS[k].d).join(" ")}</div>` : ""}</div>`;
 }
 ACT.toMap = () => go("map");
+ACT.noWeek = () => { UI.expe.week = null; refresh(); };
 ACT.noDaily = () => { UI.expe.daily = null; refresh(); };
 ACT.pickReg = v => { UI.expe.region = v; UI.expe.threat = 0; SC.draw = backdrop(v, { dark: .5 }); refresh(); };
 ACT.threat = v => { UI.expe.threat = +v; refresh(); };
@@ -3598,9 +3692,10 @@ ACT.pickPet = id => { UI.expe.pet = id; S.pet = id; refresh(); };
 ACT.launch = () => {
   const E = UI.expe; if (!E.party.length) return;
   const opt = { threat: E.region === "abime" ? 0 : E.threat, floor: E.region === "abime" ? E.floor : 1 };
+  if (E.week) { const err = weekPartyOk(E.party); if (err) return toast(err, "bad"); if (E.region !== S.week.region) E.week = null; else { opt.week = 1; opt.seed = S.week.seed; } }
   if (E.daily) { opt.relics = E.daily.relics; opt.seed = E.daily.seed; opt.daily = 1; }
   startRun(E.region, E.party, E.pet, opt);
-  E.daily = null; save(); sfx("door"); musicPlay("map");
+  E.daily = null; E.week = null; save(); sfx("door"); musicPlay("map");
   go("map");
   const R = regionById(S.run.region);
   setTimeout(() => toast(`<b>${R.n}</b><br><span class="small lore">${gl(R.d)}</span>`), 300);
@@ -3784,6 +3879,7 @@ SCREENS.results = {
       ${res.mats.fer || res.mats.essence || res.mats.cendre ? `<div class="reward">${ico("iron", "#a8a8a8", 22)}${res.mats.fer} ferraille · ${res.mats.essence} essence${res.mats.cendre ? " · " + res.mats.cendre + " cendre royale" : ""}</div>` : ""}
       ${res.loot.map(i => `<div class="reward">${slotHTML(i, "itemInfo", i.id)}<div><b class="rar${i.rar}">${gearName(i)}</b><div class="tiny dim">${itemLine(i)}</div></div></div>`).join("")}
       ${res.unlocks.map(u => `<div class="reward" style="color:var(--gold2)">${ico("star", "#e8c878", 22)}<b>${u.k === "class" ? "Nouvelle classe à la Taverne : " + CLASSES[u.id].n : u.k === "pet" ? "Nouveau compagnon à la Ménagerie : " + PETS[u.id].n : "Nouvelle destination : " + regionById(u.id).n}</b></div>`).join("")}
+      ${res.week ? `<div class="reward" style="color:var(--gold2)">${ico("trophy", "#e8c878", 22)}<b>Défi de la semaine relevé ! +${res.week.gold} or · +${res.week.shards} éclats · +${res.week.essence} essence</b></div>` : ""}
       ${res.sum ? runSummaryHTML(res) : ""}
       ${res.region === "abime" ? `<p class="small" style="text-align:center">Record de l'Abîme : <b>${S.abyss.best}</b></p>` : ""}
       <div class="row" style="justify-content:center;margin-top:12px"><button class="btn main" data-go="bastion">${ico("castle")}Au Bastion</button></div></div></div>`;
@@ -3850,7 +3946,7 @@ SCREENS.combat = {
   scene: () => drawCombat,
   html: () => `<div class="ctop l" id="cb-tl"></div><div class="ctop" id="cb-tr"><button class="btn ghost sm" data-a="cbSpeed" title="Vitesse">${ico("speed")}<span id="cb-spd">×${CB.speed}</span></button><button class="btn ghost sm ${CB.auto ? "on" : ""}" data-a="cbAuto" title="Combat automatique">${ico("auto")}<span id="cb-auto">${CB.auto ? "Auto" : "Manuel"}</span></button><button class="btn ghost sm" data-a="cbFlee" id="cb-flee" title="Fuir">${ico("flee")}</button></div><div id="cbar"><div class="skdesc" id="cb-desc"></div><div class="skills" id="cb-skills"></div></div>`,
   mount: arg => startCombat(arg.node),
-  leave: () => { CB.B = null; CB.resolve = null; },
+  leave: () => { CB.B = null; CB.resolve = null; const c = $("#coach"); if (c) c.remove(); UI.coach = null; document.querySelectorAll(".coachon").forEach(e => e.classList.remove("coachon")); },
   resize: () => { if (CB.B) { CB.barH = $("#cbar") ? $("#cbar").offsetHeight + 6 : 150; cbLayout(); } },
 };
 async function startCombat(node) {
@@ -3917,14 +4013,36 @@ function playerChoice(u) {
     // présélection : première compétence utilisable
     const first = u.ultV >= 100 ? u.ult : u.skills.find(sk => canUse(CB.B, u, sk));
     if (first) selectSkill(first);
+    if (!S.tuto.coach) coachStart();
   });
 }
+// ── tutoriel guidé du premier combat ──
+const COACH = [
+  { t: "Vos héros et leurs rangs", d: "À gauche, vos quatre héros, du <b>rang 1</b> (au contact de l'ennemi) au <b>rang 4</b> (à l'arrière). Les tanks tiennent la ligne, les soigneurs et tireurs restent derrière.", gl: "rang", at: "tl" },
+  { t: "Les intentions ennemies", d: "L'icône au-dessus de chaque ennemi annonce ce qu'il prépare : épées pour une attaque, flammes pour une attaque de zone, cœur pour un soin… Frappez d'abord celui qui va faire le plus mal.", gl: "intention", at: "tr" },
+  { t: "Les compétences", d: "Choisissez une compétence en bas. Les <b>losanges</b> indiquent les rangs d'où elle se lance (bleu) et les rangs qu'elle touche (rouge). Les dégâts et soins chiffrés sont affichés. Touchez ensuite une cible en surbrillance.", el: "#cb-skills", at: "bottom" },
+  { t: "La résolution", d: "En haut à gauche, le moral du groupe. Coups critiques et ennemis tués la font monter : à 80, vos héros sont <b>exaltés</b> (+15 % de dégâts). Sous 20, ils sont <b>ébranlés</b>.", gl: "resolution", el: "#cb-tl", at: "tl" },
+  { t: "L'ultime", d: "Chaque héros remplit une jauge en agissant et en encaissant. Pleine, elle débloque sa compétence <b>ultime</b>, bien plus puissante.", gl: "ultime", el: "#cb-skills", at: "bottom" },
+  { t: "L'agonie", d: "À 0 PV, un héros n'est pas mort : il est <b>à l'agonie</b>. Le moindre soin le relève ; un nouveau coup peut l'achever. Les potions sont en bas à gauche.", gl: "agonie", at: "bottom" },
+];
+function coachStart() { if (UI.coach != null) return; UI.coach = 0; coachShow(); }
+function coachShow() {
+  let el = $("#coach"); const i = UI.coach, C = COACH[i];
+  if (!C) { if (el) el.remove(); UI.coach = null; S.tuto.coach = 1; save(); return; }
+  if (!el) { el = document.createElement("div"); el.id = "coach"; document.body.appendChild(el); }
+  document.querySelectorAll(".coachon").forEach(e => e.classList.remove("coachon"));
+  if (C.el) { const t = $(C.el); if (t) t.classList.add("coachon"); }
+  el.className = "panel frame at-" + C.at;
+  el.innerHTML = `<div class="row sp" style="flex-wrap:nowrap"><b class="gold">${ico("info", "#e8c878", 16)} ${C.t}</b><span class="tiny dim">${i + 1} / ${COACH.length}</span></div><p class="small" style="margin:6px 0">${C.d}</p><div class="row sp">${C.gl ? `<span class="tiny gl" data-tip="${C.gl}">En savoir plus</span>` : "<span></span>"}<span class="row" style="gap:6px"><button class="btn ghost sm" data-a="coachSkip">Passer</button><button class="btn main sm" data-a="coachNext">${i + 1 < COACH.length ? "Suivant" : "Au combat !"}</button></span></div>`;
+}
+ACT.coachNext = () => { UI.coach++; coachShow(); };
+ACT.coachSkip = () => { UI.coach = COACH.length; coachShow(); };
 function choose(a) { const r = CB.resolve; CB.resolve = null; CB.sel = null; if (r) r(a); }
 function selectSkill(sk) {
   const B = CB.B, u = CB.actor; if (!u || !canUse(B, u, sk)) return;
   CB.sel = { sk, tg: validTargets(B, u, sk) };
   const t = sk.t || "e";
-  $("#cb-desc").innerHTML = `<b class="gold">${sk.n}</b>${sk.isUlt ? ' <span class="tag" style="color:#ff9a4a">ULTIME</span>' : ""} ${sk.use ? rankPips(sk.use, t === "e" || t === "ae" ? sk.at : null) : ""}<br><span class="small">${skillText(sk)}</span><br><span class="tiny dim">${t === "e" || t === "a" ? "Touchez une cible en surbrillance." : "Touchez une cible en surbrillance (ou la compétence à nouveau) pour lancer."}</span>`;
+  $("#cb-desc").innerHTML = `<b class="gold">${sk.n}</b>${sk.isUlt ? ' <span class="tag" style="color:#ff9a4a">ULTIME</span>' : ""} ${sk.use ? rankPips(sk.use, t === "e" || t === "ae" ? sk.at : null) : ""}<br><span class="small">${skillText(sk, u)}</span><br><span class="tiny dim">${t === "e" || t === "a" ? "Touchez une cible en surbrillance." : "Touchez une cible en surbrillance (ou la compétence à nouveau) pour lancer."}</span>`;
   document.querySelectorAll("#cb-skills .sk").forEach(b => b.classList.toggle("on", b.dataset.v === sk.id));
 }
 ACT.cbSk = id => {
@@ -4235,6 +4353,7 @@ function glossaryHTML() {
     ["Ressources", ["or", "eclat", "ferraille", "essence", "cendre", "potion"]]];
   return `<p class="small dim">Touchez un mot souligné n'importe où dans le jeu pour retrouver ces explications.</p>${grp.map(([t, ks]) => `<h3 style="margin-top:14px">${t}</h3><div class="grid" style="--min:260px">${ks.map(k => { const G = GLOSS[k]; return `<div class="card" style="cursor:default"><b class="gold" style="display:flex;align-items:center;gap:6px">${ico(G.ic, (ST_INFO[k] || {}).c || "#e8c878", 18)}${G.n}</b><div class="small" style="margin-top:4px">${G.d}</div></div>`; }).join("")}</div>`).join("")}`;
 }
+ACT.optDiff = k => { if (S.run) return; S.opts.diff = k; save(); refresh(); toast("Difficulté : " + DIFFS[k].n); };
 SCREENS.codex = {
   title: "Les Archives", tab: "codex",
   scene: () => backdrop("catacombes", { dark: .6 }),
@@ -4261,6 +4380,7 @@ SCREENS.options = {
     <label class="row sp"><span>${ico("sound")} Effets sonores</span><input type="checkbox" data-opt="sound" ${S.opts.sound ? "checked" : ""}></label>
     <label class="row sp"><span>${ico("music")} Musique</span><input type="checkbox" data-opt="music" ${S.opts.music ? "checked" : ""}></label>
     <div class="row sp"><span>${ico("speed")} Vitesse des combats</span><span>${[1, 2, 3].map(v => `<button class="btn sm ${S.opts.speed === v ? "gold" : "ghost"}" data-a="optSpeed" data-v="${v}">×${v}</button>`).join(" ")}</span></div>
+    <div class="row sp"><span>${ico("skull")} Difficulté</span><span>${Object.keys(DIFFS).map(k => `<button class="btn sm ${S.opts.diff === k ? "gold" : "ghost"}" data-a="optDiff" data-v="${k}" ${S.run ? "disabled" : ""}>${DIFFS[k].n}</button>`).join(" ")}</span></div>${S.run ? '<div class="tiny dim" style="text-align:right">Changeable entre deux expéditions.</div>' : ""}
     <div class="row sp"><span>${ico("skull")} Mode</span><span class="gold">${S.opts.hardcore ? "Hardi (mort définitive)" : "Normal"}</span></div>
     <div class="sep"></div>
     <div class="row">${PWA.standalone ? `<span class="tag good">Appli installée</span>` : `<button class="btn" data-a="install">${ico("install")}Installer sur l'appareil</button>`}<button class="btn ghost" data-a="exportSave">${ico("scroll")}Exporter la sauvegarde</button><button class="btn ghost" data-a="importSave">Importer</button></div>

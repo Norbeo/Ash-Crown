@@ -1,10 +1,11 @@
 // Bots : simulent des carrières complètes pour trouver les bugs et équilibrer.  node test/sim.js [carrières] [expéditions] [graine]
 const fs = require("fs"), path = require("path");
-const SRC = ["00_util", "01_classes", "02_world", "03_items", "04_state", "05_combat", "06_run", "07_nodes", "08_meta"];
+const SRC = ["00_util", "01_classes", "02_world", "03_items", "03z_events", "04_state", "05_combat", "06_run", "07_nodes", "08_meta"];
 const code = SRC.map(f => fs.readFileSync(path.join(__dirname, "../src/" + f + ".js"), "utf8")).join("\n");
 const N = +process.argv[2] || 12, EXP = +process.argv[3] || 40, SEED = +process.argv[4] || 1;
 const VERB = process.argv.includes("-v");
-const out = new Function("N", "EXP", "SEED", "VERB", code + `
+const DIFF = (process.argv.find(a => a.startsWith("--diff=")) || "--diff=normal").slice(7);
+const out = new Function("N", "EXP", "SEED", "VERB", "DIFF", code + `
 RNG = mkRng(SEED);
 const T = { runs: 0, wins: 0, wipes: 0, retreats: 0, battles: 0, blost: 0, rounds: 0, falls: 0, errors: [], bossTry: {}, bossWin: {}, regionAt: {}, lvlAt: {}, abyss: [], gold: [], perClassFall: {}, perClassUse: {}, stalls: 0, potions: 0, nodeDeaths: {}, ft: {}, fw: {} };
 function partyFor() {
@@ -95,7 +96,7 @@ function hub() {
 const careers = [];
 for (let c = 0; c < N; c++) {
   try {
-    newGame(pick(PET_IDS.filter(p => PETS[p].starter)));
+    newGame(pick(PET_IDS.filter(p => PETS[p].starter)), { diff: DIFF });
     const rec = { cleared: [], lvlAt10: 0, lvlAt20: 0 };
     for (let e = 0; e < EXP; e++) {
       hub();
@@ -113,7 +114,7 @@ for (let c = 0; c < N; c++) {
   } catch (err) { T.errors.push(err.stack.split("\\n").slice(0, 4).join(" | ")); }
 }
 return { T, careers };
-`)(N, EXP, SEED, VERB);
+`)(N, EXP, SEED, VERB, DIFF);
 const { T, careers } = out;
 const avg = (a, f) => a.length ? (a.reduce((s, x) => s + f(x), 0) / a.length) : 0;
 console.log(`\n${N} carrières × ${EXP} expéditions`);

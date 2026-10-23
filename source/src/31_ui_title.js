@@ -22,8 +22,9 @@ SCREENS.title = {
   },
   mount: () => { audioInit(); },
 };
-ACT.continue = () => { S = load(); if (!S) return; dailyCheck(); musicPlay("bastion"); const bank = idleBank(); if (S.run) go("map"); else go("bastion"); if (bank >= 10) toast(`${ico("furnace", "#ff9a3a")} La Fonderie a produit <b>${bank} or</b> en votre absence.`, "good"); };
-ACT.newgame = () => { const go2 = () => { NG.step = 0; NG.hard = false; NG.pets = rollStarterPets(3); NG.pet = NG.pets[0]; NG.petRolls = NG_PET_ROLLS; NG.cls = rollStartParty(); NG.heroes = NG.cls.map(c => makeHero(c)); NG.rolls = NG_ROLLS; go("newgame"); musicPlay("titre"); }; if (load()) confirmBox("Une partie existe déjà sur cet appareil. Elle sera <b>effacée</b>.", go2, { yes: "Recommencer" }); else go2(); };
+ACT.continue = () => { S = load(); if (!S) return; dailyCheck(); weekCheck(); musicPlay("bastion"); const bank = idleBank(); if (S.run) go("map"); else go("bastion"); if (bank >= 10) toast(`${ico("furnace", "#ff9a3a")} La Fonderie a produit <b>${bank} or</b> en votre absence.`, "good"); };
+ACT.ngDiff = k => { NG.diff = k; refresh(); };
+ACT.newgame = () => { const go2 = () => { NG.step = 0; NG.hard = false; NG.diff = NG.diff || "normal"; NG.pets = rollStarterPets(3); NG.pet = NG.pets[0]; NG.petRolls = NG_PET_ROLLS; NG.cls = rollStartParty(); NG.heroes = NG.cls.map(c => makeHero(c)); NG.rolls = NG_ROLLS; go("newgame"); musicPlay("titre"); }; if (load()) confirmBox("Une partie existe déjà sur cet appareil. Elle sera <b>effacée</b>.", go2, { yes: "Recommencer" }); else go2(); };
 ACT.install = async () => {
   if (PWA.prompt) { PWA.prompt.prompt(); try { await PWA.prompt.userChoice; } catch (e) { } PWA.prompt = null; refresh(); return; }
   let how;
@@ -52,7 +53,8 @@ SCREENS.newgame = {
     return `<div class="wrap"><h1 style="text-align:center;margin-top:10px">Votre compagnie</h1><p class="lore" style="text-align:center">Quatre âmes ont répondu à l'appel, au hasard des routes : un rempart, un soigneur et deux lames. Les autres viendront à la Taverne.</p>
       <div class="row" style="justify-content:center;gap:8px">${ngRollTag(NG.rolls)}<button class="btn ghost sm" data-a="ngRollAll" ${NG.rolls ? "" : "disabled"}>${ico("dice")}Tout relancer</button></div>
       <div class="grid ctr" style="--min:180px;margin-top:12px">${NG.heroes.map((h, i) => { const C = CLASSES[h.cls]; return `<div class="card" style="text-align:center">${canvasSlot("hero:" + i, 170, 212)}<h3>${esc(h.name)}</h3><div class="row" style="justify-content:center">${roleTag(C.role)}<span class="tag">${C.n}</span></div><p class="tiny lore" style="margin:4px 0">${C.lore}</p><p class="tiny dim">${h.traits.map(t => `<span class="${TRAITS[t].good ? "good" : "bad"}">${TRAITS[t].n}</span>`).join(" · ")}</p><div class="row" style="justify-content:center;gap:4px"><button class="btn ghost sm" data-a="ngInfo" data-v="${i}">${ico("info")}Détails</button><button class="btn ghost sm" data-a="ngReroll" data-v="${i}" ${NG.rolls ? "" : "disabled"}>${ico("dice")}Autre recrue</button></div></div>`; }).join("")}</div>
-      <div class="panel" style="padding:12px;margin-top:14px"><label class="row" style="cursor:pointer"><input type="checkbox" id="ng-hard" ${NG.hard ? "checked" : ""}> <b>Mode Hardi</b> <span class="small dim">— les héros tombés meurent pour de bon. Pour les vétérans.</span></label></div>
+      <div class="panel" style="padding:12px;margin-top:14px"><b>Difficulté</b><div class="grid" style="--min:170px;margin-top:6px">${Object.keys(DIFFS).map(k => `<button class="btn choice ${NG.diff === k ? "gold" : ""}" data-a="ngDiff" data-v="${k}" style="margin:0">${ico(DIFFS[k].ic)}<b>${DIFFS[k].n}</b><div class="tiny" style="font-weight:400">${DIFFS[k].d}</div></button>`).join("")}</div><div class="tiny dim" style="margin-top:4px">Modifiable plus tard dans les Options.</div></div>
+      <div class="panel" style="padding:12px;margin-top:8px"><label class="row" style="cursor:pointer"><input type="checkbox" id="ng-hard" ${NG.hard ? "checked" : ""}> <b>Mode Hardi</b> <span class="small dim">— les héros tombés meurent pour de bon. Pour les vétérans.</span></label></div>
       <div class="stickybar"><button class="btn ghost" data-a="ngBack">Retour</button><button class="btn main glow" data-a="ngStart">${ico("castle")}Entrer au Bastion</button></div></div>`;
   },
   mount: () => {
@@ -70,7 +72,7 @@ ACT.ngPetPick = k => { NG.pet = k; closeModal(); refresh(); };
 ACT.ngRollAll = () => { if (!NG.rolls) return; NG.rolls--; NG.cls = rollStartParty(); NG.heroes = NG.cls.map(c => makeHero(c)); sfx("coin"); refresh(); };
 ACT.ngPetRoll = () => { if (!NG.petRolls) return; NG.petRolls--; const old = NG.pets; let pool = PET_IDS.filter(p => PETS[p].starter && !old.includes(p)); RNG.shuffle(pool); NG.pets = pool.concat(RNG.shuffle(old.slice())).slice(0, 3); NG.pet = NG.pets[0]; sfx("coin"); refresh(); };
 ACT.ngStart = () => {
-  newGame(NG.pet, { hardcore: NG.hard, classes: NG.cls, heroes: NG.heroes });
+  newGame(NG.pet, { hardcore: NG.hard, diff: NG.diff, classes: NG.cls, heroes: NG.heroes });
   save(); sfx("bell"); musicPlay("bastion");
   go("bastion");
   setTimeout(() => modal(`<h2>${ico("castle")} Le Dernier Bastion</h2><p class="lore">Les murs tiennent encore. Pour combien de temps ?</p><p>Votre objectif : franchir la <b>Porte</b> pour mener des expéditions, rapporter or et équipement, puis faire grandir le Bastion.</p><ul class="small"><li><b>Combat</b> : chaque héros agit selon sa vitesse. Sa <b>position</b> (rangs 1 à 4) décide de ses compétences.</li><li>Les ennemis montrent leur <b>intention</b> au-dessus de leur tête : anticipez !</li><li>Un héros à 0 PV est <b>à l'agonie</b> : soignez-le vite.</li><li>Au niveau ${EVO_LVL}, chaque héros peut <b>évoluer</b> vers l'une de ses deux voies.</li></ul><div class="row" style="justify-content:flex-end"><button class="btn main" data-a="closeModal">Compris</button></div>`), 500);

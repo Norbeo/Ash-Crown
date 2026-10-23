@@ -10,8 +10,12 @@ function enterNode(run, node) {
 }
 function pickEvent(run) {
   run.seenEv = run.seenEv || [];
-  const here = EVENTS.filter(e => !e.reg || e.reg.includes(run.region)), pool = here.filter(e => !run.seenEv.includes(e.id));
-  const e = pick(pool.length ? pool : here); run.seenEv.push(e.id); return e.id;
+  const fl = run.flags || [], sf = (S && S.flags) || [];
+  const ok = e => (!e.reg || e.reg.includes(run.region)) && (!e.need || fl.includes(e.need)) && (!e.sneed || sf.includes(e.sneed));
+  const here = EVENTS.filter(ok), pool = here.filter(e => !run.seenEv.includes(e.id));
+  const chains = pool.filter(e => e.chain); // une suite attendue a de bonnes chances d'arriver
+  const e = chains.length && chance(.6) ? pick(chains) : pick(pool.filter(e => !e.chain).length ? pool.filter(e => !e.chain) : here.filter(e => !e.chain));
+  if (e.sneed && S.flags) S.flags = S.flags.filter(f => f !== e.sneed); run.seenEv.push(e.id); return e.id;
 }
 // ce que fait un choix, en clair (affiché sous chaque choix avant de décider)
 function fxText(fx) {
@@ -39,6 +43,7 @@ function fxText(fx) {
     if (f.upgrade) o.push(["good", "Améliore une arme ou armure"]);
     if (f.curse) o.push(["bad", "Malédiction (ennemis +10 % dégâts)"]);
     if (f.fight) o.push(["bad", "Combat"]);
+    if (f.flag || f.sflag) o.push(["risk", "✦ Aura une suite"]);
     return o.map(([c, t]) => `<span class="fx ${c}">${t}</span>`).join("");
   };
   const rest = Object.assign({}, fx); delete rest.gamble;
@@ -73,6 +78,8 @@ function resolveEvent(run, evId, ci) {
     if (f.buff) { run.buff = (run.buff || 0) + 1; out.text.push("Une chaleur étrange : +20 % de dégâts au prochain combat."); }
     if (f.upgrade) { const its = party.flatMap(h => [h.gear.wpn, h.gear.arm]).filter(it => it && it.up < 10); if (its.length) { const it = pick(its); it.up++; out.text.push(gearName(it) + " est amélioré."); } }
     if (f.fight) { out.fight = true; out.text.push("Une embuscade !"); }
+    if (f.flag) { run.flags = (run.flags || []).concat(f.flag); out.text.push("<i>Ce geste aura peut-être une suite…</i>"); }
+    if (f.sflag) { S.flags = (S.flags || []).filter(x => x !== f.sflag).concat(f.sflag); out.text.push("<i>Quelqu'un se souviendra de vous…</i>"); }
   };
   if (fx.gamble) { const [p, a, b] = fx.gamble; const ok = chance(p); out.text.push(ok ? "La chance vous sourit." : "Mauvaise fortune…"); apply(ok ? a : b); }
   const rest = Object.assign({}, fx); delete rest.gamble; delete rest.cost; apply(rest);
@@ -112,17 +119,18 @@ const CAMP = [
   { k: "watch", n: "Veiller", d: "+35 lueur et +10 résolution au prochain combat." },
 ];
 function doCamp(run, k) {
-  if (k === "rest") healParty(run, .45);
+  if (k === "rest") healParty(run, .45 * (run.week && weekRule() && weekRule().campX || 1));
   if (k === "train") { const xp = 30 + runLevel(run, null) * 8; for (const h of runParty()) if (!run.fallen.includes(h.id)) giveXp(h, xp); }
   if (k === "watch") { run.light = clamp(run.light + 35, 0, 100); run.morale = clamp((run.morale || 0) + 10, -30, 30); }
 }
 // préparation et fin d'un combat
 function battleFor(run, node, enc) {
   const party = runParty().filter(h => !run.fallen.includes(h.id));
-  const mods = { hp: 1, dmg: 1 + (run.curse || 0) * .1, prot: 0, spd: 0 };
+  const D = diffOf(), mods = { hp: D.hp, dmg: D.dmg * (1 + (run.curse || 0) * .1), prot: 0, spd: 0 };
   if (run.region === "abime") { mods.hp *= 1 + run.floor * .04; mods.dmg *= 1 + run.floor * .025; }
   for (const o of run.oaths) { if (o === "sang") mods.dmg *= 1 + OATHS.sang.v; if (o === "fer") mods.hp *= 1 + OATHS.fer.v; if (o === "hate") mods.spd += OATHS.hate.v; if (o === "pierre") mods.prot += OATHS.pierre.v; }
   const rh = relicHooks(run);
+  if (run.week && weekRule()) { const W = weekRule(); if (W.heroDmg) rh.dmg = (rh.dmg || 0) + W.heroDmg; if (W.morale) rh.morale = (rh.morale || 0) + W.morale; if (W.heroHp) rh.hp = (rh.hp || 0) + W.heroHp; }
   if (run.buff) { rh.dmg = (rh.dmg || 0) + .2; }
   const B = newBattle(party, enc, { relicH: rh, pet: run.pet, light: run.light, mods, morale: (run.morale || 0) + S.bld.chapelle * 2, onLight: v => { run.light = clamp(run.light + v, 0, 100); B.light = run.light; } });
   B.node = node;

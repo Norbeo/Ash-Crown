@@ -48,11 +48,12 @@ function startRun(regionId, partyIds, petId, opt = {}) {
   const seed = opt.seed || (Date.now() & 0x7fffffff);
   const rng = mkRng(seed);
   const abyss = regionId === "abime";
-  const oaths = abyss ? (opt.oaths || S.abyss.oaths || []).slice() : (opt.oaths || []);
+  const oaths = (abyss ? (opt.oaths || S.abyss.oaths || []).slice() : (opt.oaths || []).slice()).concat(opt.week && weekRule() ? (weekRule().oaths || []) : []);
   const run = { region: regionId, seed, party: partyIds.slice(), pet: petId, floor: abyss ? (opt.floor || 1) : 0, map: genMap(rng, abyss ? 6 : 9, { elite: oaths.includes("elite") }), pos: null,
     light: 100, relics: (opt.relics || []).slice(), potions: potionMax() - (oaths.includes("jeune") ? 1 : 0), gold: 0, loot: [], mats: { fer: 0, essence: 0, cendre: 0 }, shards: 0,
-    kills: 0, fallen: [], oaths, daily: !!opt.daily, threat: opt.threat || 0, startedAt: Date.now(), xpGain: {}, flawless: true, combats: 0, log: [] };
+    kills: 0, fallen: [], oaths, week: opt.week ? S.week.rule : null, daily: !!opt.daily, threat: opt.threat || 0, startedAt: Date.now(), xpGain: {}, flawless: true, combats: 0, log: [] };
   S.run = run;
+  if (run.week) { const W = weekRule(); if (W.light != null) run.light = W.light; if (W.potions != null) run.potions = W.potions === 0 ? 0 : run.potions * W.potions; }
   for (const id of partyIds) { const h = heroById(id); h.hp = isInjured(h) ? Math.round(heroStats(h).hp * .5) : null; }
   S.stats.runs++;
   return run;
@@ -125,6 +126,7 @@ function rewardFor(run, node, rng = RNG) {
   const t = node.type;
   if (t === "combat") { R.gold = (14 + lvl * 4.5) * (0.85 + rng() * .3); R.xp = 26 + lvl * 7; R.mats.fer = rng.chance(.6) ? 1 : 0; if (rng.chance(.22 + luck)) R.loot.push(lootGear(lvl, luck)); }
   if (t === "elite") { R.gold = (34 + lvl * 9) * (0.9 + rng() * .3); R.xp = 50 + lvl * 12; R.mats.fer = 2; R.mats.essence = 1; R.loot.push(lootGear(lvl + 2, .08 + luck)); if (rng.chance(.5)) R.relic = randRelic(run, rng, 1); }
+  if (t === "elite" && run.week && weekRule() && weekRule().eliteLoot) R.loot.push(lootGear(lvl + 2, .1));
   if (t === "treasure") { R.gold = (30 + lvl * 7) * (0.8 + rng() * .5); R.loot.push(lootGear(lvl + 1, .05 + luck)); R.mats.fer = 1; if (rng.chance(.4)) R.relic = randRelic(run, rng); }
   if (t === "boss") {
     const first = run.region !== "abime" && !(S.prog[run.region] && S.prog[run.region].clears);
@@ -132,7 +134,7 @@ function rewardFor(run, node, rng = RNG) {
     R.loot.push(lootGear(lvl + 3, .15)); if (rng.chance(.5)) R.loot.push(lootGear(lvl + 2, .1));
     R.shards = first ? 3 : 1 + (run.region === "abime" && run.floor % 3 === 0 ? 1 : 0) + Math.floor(run.oaths.length / 3); R.relic = randRelic(run, rng, 2);
   }
-  R.gold = Math.round(R.gold * goldM); R.xp = Math.round(R.xp * (1 + run.threat * .2)); R.petXp = Math.round(R.xp * .8);
+  R.gold = Math.round(R.gold * goldM * diffOf().gold); R.xp = Math.round(R.xp * (1 + run.threat * .2) * diffOf().xp); R.petXp = Math.round(R.xp * .8);
   return R;
 }
 function randRelic(run, rng = RNG, minR = 0) {
@@ -213,6 +215,7 @@ function endRun(outcome) {
   if (S.opts.hardcore) { const dead = S.heroes.filter(h => h.dead); S.stats.deaths += dead.length; S.graves = (S.graves || []).concat(dead.map(h => ({ name: h.name, cls: h.cls, lvl: h.lvl, at: Date.now() }))); S.heroes = S.heroes.filter(h => !h.dead); }
   if (run.flawless && outcome === "victory") S.stats.flawless++;
   if (run.daily && outcome === "victory") { S.daily.done = 1; S.stats.daily++; }
+  if (run.week && outcome === "victory" && S.week && !S.week.done) { const W = weekReward(); S.week.done = 1; res.week = W; S.gold += W.gold; S.shards += W.shards; S.mats.essence += W.essence; S.stats.weeks = (S.stats.weeks || 0) + 1; }
   S.stats.goldMax = Math.max(S.stats.goldMax, S.gold);
   S.run = null;
   refreshRecruits();
@@ -246,6 +249,32 @@ function dailyCheck() {
   return true;
 }
 function contractProgress(k, v = 1) { if (!S.daily || !S.daily.contracts) return; for (const c of S.daily.contracts) if (c.k === k && !c.claimed) c.p = Math.min(c.goal, c.p + v); }
+// ── défi de la semaine : une règle spéciale, une expédition, une grosse récompense ──
+const WEEK_RULES = [
+  { k: "sans_soin", n: "Sans soigneur", d: "Aucun soigneur dans le groupe. Les potions sont doublées.", noRole: "soin", potions: 2 },
+  { k: "penombre", n: "Pénombre", d: "La lueur commence à 50 et baisse deux fois plus vite.", light: 50, oaths: ["nuit"] },
+  { k: "jeune", n: "Le grand jeûne", d: "Aucune potion. Les camps soignent deux fois plus.", potions: 0, campX: 2 },
+  { k: "carnage", n: "Carnage", d: "Les ennemis frappent +25 % plus fort ; vos héros aussi (+25 % de dégâts).", oaths: ["sang"], heroDmg: .25 },
+  { k: "elite", n: "La traque", d: "La carte regorge d'élites. Chaque élite rapporte un objet de plus.", oaths: ["elite"], eliteLoot: 1 },
+  { k: "trio", n: "Les trois", d: "Trois héros seulement. Ils gagnent +20 % de PV.", maxParty: 3, heroHp: .2 },
+  { k: "fer", n: "Murailles de fer", d: "Les ennemis ont +20 % de PV et +10 % de protection.", oaths: ["fer", "pierre"] },
+  { k: "silence", n: "Le silence", d: "Les ultimes se chargent 30 % moins vite, mais la résolution commence à 70.", oaths: ["silence"], morale: 20 },
+];
+const weekKey = (d = new Date()) => { const t = new Date(Date.UTC(d.getFullYear(), d.getMonth(), d.getDate())); const day = (t.getUTCDay() + 6) % 7; t.setUTCDate(t.getUTCDate() - day + 3); const y = t.getUTCFullYear(), w1 = new Date(Date.UTC(y, 0, 4)); return y * 100 + 1 + Math.round(((t - w1) / 864e5 - 3 + ((w1.getUTCDay() + 6) % 7)) / 7); };
+function weekCheck() {
+  const k = weekKey(); if (S.week && S.week.key === k) return false;
+  const rng = mkRng(k * 17 + 5), open = REGIONS.filter(r => regionUnlocked(r.id));
+  S.week = { key: k, done: 0, rule: rng.pick(WEEK_RULES).k, region: rng.pick(open).id, seed: k * 53 + 11 };
+  return true;
+}
+const weekRule = () => S.week && WEEK_RULES.find(r => r.k === S.week.rule);
+function weekReward() { const l = regionById(S.week.region).lvl || 1; return { gold: 250 + l * 25, shards: 2, essence: 3 }; }
+function weekPartyOk(ids) {
+  const W = weekRule(); if (!W) return "";
+  if (W.maxParty && ids.length > W.maxParty) return `${W.maxParty} héros au maximum cette semaine.`;
+  if (W.noRole && ids.some(id => CLASSES[heroById(id).cls].role === W.noRole)) return "Pas de soigneur cette semaine.";
+  return "";
+}
 function dailyRun() {
   const rng = mkRng(S.daily.key * 31 + 7);
   const open = REGIONS.filter(r => regionUnlocked(r.id));

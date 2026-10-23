@@ -15,7 +15,8 @@ function newState(opts = {}) {
     abyss: { best: 0, oaths: [] },
     lastSeen: Date.now(), bank: 0,
     run: null, log: [],
-    opts: { sound: 1, music: 1, speed: 1, hardcore: !!opts.hardcore, auto: 0 },
+    flags: [],
+    opts: { sound: 1, music: 1, speed: 1, hardcore: !!opts.hardcore, auto: 0, diff: opts.diff || "normal" },
     tuto: {},
   };
 }
@@ -143,6 +144,13 @@ function migrate(s) {
   for (const h of (s.heroes || []).concat(s.recruits || [])) fixHeroName(h);
   return s;
 }
+// difficulté : ennemis (PV, dégâts) et récompenses (or, expérience)
+const DIFFS = {
+  facile: { n: "Facile", d: "Ennemis affaiblis (−25 % PV, −20 % dégâts). Pour découvrir l'histoire.", hp: .75, dmg: .8, gold: .9, xp: 1, ic: "heal" },
+  normal: { n: "Normal", d: "L'expérience prévue.", hp: 1, dmg: 1, gold: 1, xp: 1, ic: "sword" },
+  cauchemar: { n: "Cauchemar", d: "Ennemis redoutables (+30 % PV, +25 % dégâts) mais +35 % d'or et +20 % d'expérience.", hp: 1.3, dmg: 1.25, gold: 1.35, xp: 1.2, ic: "skull" },
+};
+const diffOf = () => DIFFS[(S && S.opts && S.opts.diff) || "normal"] || DIFFS.normal;
 const potionMax = () => 2 + (S ? S.bld.chapelle : 1);
 const rosterMax = () => 4 + S.bld.taverne * 2;
 const skillRankMax = () => S.bld.academie;

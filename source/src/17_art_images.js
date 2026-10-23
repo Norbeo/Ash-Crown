@@ -87,12 +87,14 @@ function evoAura(L) {
   const i = Math.max(0, keys.indexOf(L.evo));
   return i === 0 ? (C.pal.trim || "#e8c060") : (["#8a7ae0", "#5ad0c0", "#e05a5a"][hashStr(L.cls) % 3]);
 }
-function heroArt(L) { const t = clamp(L.tier || 1, 1, 5); return artImg("hero_" + L.cls + "_t" + t) || artImg("hero_" + L.cls + "_t3"); }
+// illustration d'un héros : sa voie d'évolution si elle est peinte, sinon son palier d'armure
+function heroArtName(L) { if (L.evo && artHas("hero_" + L.cls + "_" + L.evo)) return "hero_" + L.cls + "_" + L.evo; const n = "hero_" + L.cls + "_t" + clamp(L.tier || 1, 1, 5); return artHas(n) ? n : "hero_" + L.cls + "_t3"; }
+function heroArt(L) { return artImg(heroArtName(L)) || (L.evo ? artImg("hero_" + L.cls + "_t" + clamp(L.tier || 1, 1, 5)) : null); }
 function heroImgSprite(L, pose, sc, o = {}) {
   const im = heroArt(L); if (!im) return null;
   const hurt = pose.lean < -.25 && pose.hx < 0, agony = pose.hy > 15;
-  const nm = "hero_" + L.cls + "_t" + clamp(L.tier || 1, 1, 5);
-  return imgSprite(im, { sc, h: 182, maxW: 260, top: ART_META[nm] || ART_META["hero_" + L.cls + "_t3"] || 0, flip: ART_FLIP.has("hero_" + L.cls + "_t" + clamp(L.tier || 1, 1, 5)), aura: evoAura(L), auraA: L.apex ? .45 : .28,
+  const nm = heroArtName(L), evoArt = nm.indexOf("_t") < 0 || !/_t\d$/.test(nm);
+  return imgSprite(im, { sc, h: 182, maxW: 260, top: ART_META[nm] || ART_META["hero_" + L.cls + "_t3"] || 0, flip: ART_FLIP.has(nm), aura: evoArt && !L.apex ? null : evoAura(L), auraA: L.apex ? .45 : .28,
     pose: Object.assign({}, pose, { agony, cast: pose.free || pose.aBs > 1.5 }), tint: o.tint || (agony ? "rgba(70,8,8,.38)" : hurt ? "rgba(160,20,20,.16)" : null) });
 }
 function monImgSprite(key, pose, sc) {

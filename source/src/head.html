@@ -23,6 +23,7 @@ html,body{margin:0;height:100%;background:var(--bg);color:var(--txt);font-family
 #nav button{flex:1;max-width:120px;display:flex;flex-direction:column;align-items:center;gap:2px;background:none;border:0;color:var(--dim);font-family:var(--f-head);font-size:11px;letter-spacing:.05em;padding:6px 2px;position:relative;cursor:pointer;transition:color .2s}
 #nav button .ic{width:26px;height:26px;transition:transform .25s,filter .25s}
 #nav button.on{color:var(--gold2)}#nav button.on .ic{filter:drop-shadow(0 0 6px #ff9a3a);transform:translateY(-2px) scale(1.08)}
+.ic.pic{object-fit:contain;transform:scale(1.18);pointer-events:none}#nav button .ic.pic{opacity:.75;filter:none}#nav button.on .ic.pic{opacity:1;filter:none;transform:translateY(-2px) scale(1.3)}
 #nav button.on::after{content:"";position:absolute;bottom:0;left:30%;right:30%;height:2px;background:linear-gradient(90deg,transparent,var(--ember),transparent);box-shadow:0 0 8px var(--ember)}
 #nav .badge{position:absolute;top:2px;right:28%;min-width:16px;height:16px;border-radius:8px;background:var(--blood);color:#fff;font-size:10px;line-height:16px;font-family:var(--f-body);box-shadow:0 0 8px #f00a;animation:pulse 1.6s infinite}
 @keyframes pulse{50%{transform:scale(1.15)}}

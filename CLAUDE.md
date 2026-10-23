@@ -8,12 +8,12 @@ RPG tactique dark fantasy médiéval, vanilla JS + Canvas 2D, PWA installable (m
 - 15 classes (3 tanks, 3 soin, 2 soutien, 7 dégâts), 2 évolutions chacune au niveau 5, apogée au niveau 12, niveau max 20. Armure visible sur 5 paliers. Nouvelles (oct. 2026) : Gardien des runes, Médecin de peste, Chasseur de sorcières, Hallebardier, Exorciste (armes : marteau, encensoir, rapière, hallebarde, croix).
 - Départ aléatoire : 4 héros tirés au sort (`START_SLOTS` : tank, soin, dégâts, dégâts/soutien — toutes classes possibles, 3 relances) et 3 compagnons proposés parmi ceux marqués `starter` (1 relance). Une classe déjà possédée reste recrutable à la Taverne (`classUnlocked`).
 - 18 compagnons (8 `starter` : loup, corbeau, chouette, molosse, renard, ours, cerf, vipère), évolution au niveau 10.
-- Icônes d'équipement peintes (`itemArt` dans 32_ui_hub.js) : arme dessinée, armure sur mannequin, bibelot en médaillon ; mises en cache en data URL.
+- Icônes d'équipement (`itemArt` dans 32_ui_hub.js) : arme peinte, buste du héros pour l'armure, bibelot peint ; mises en cache en data URL.
 - Synergies de compagnie (`SYNERGIES` dans 03_items.js, 12 au total) : appliquées comme des reliques via `relicHooks` → `runSynergies(run)`. Affichées à la préparation d'expédition, sur la carte et dans les Archives.
 - Fiches détaillées : `heroSheet` / `petSheet` (33_ui_heroes.js), boutons Détails à la Taverne, à la Ménagerie et au départ.
 - Butin équipable en expédition : `runEquip` (06_run.js) ; l'ancien objet retourne au butin ; en cas de déroute les échanges sont annulés (`run.swaps`).
 - Carte d'expédition (16_art_map.js) : calque transparent sur le décor animé de la région, chemins à l'encre claire, jetons de salles peints (`mapToken`), fanion du groupe.
-- Armes peintes : `uprightWeapon` dessine sans rotation du repère puis on fait pivoter l'image (`rotatedCopy`) ; pas de `filter` CSS sur les images peintes ; `color-scheme: dark` déclaré pour éviter l'inversion par le mode sombre forcé des navigateurs.
+- Images peintes : pas de `filter` CSS sur les images peintes ; `color-scheme: dark` déclaré pour éviter l'inversion par le mode sombre forcé des navigateurs.
 - Comparaison d'équipement : `gearDelta` / `equipRow` (32_ui_hub.js) — écarts de caractéristiques en vert/rouge, nom + classe + niveau du héros.
 - Chapitres 3 et 4 : nouveaux monstres (moine flagellant, thuriféraire, hallebardier d'os, sorcière des tourbières, pêcheur d'âmes), élites (Prieur sanglant, Ogre) et gardiens alternatifs (`boss2` : L'Abbé de Saint-Morne, La Reine du Sabbat), tirés une fois sur deux après la première victoire.
 - Combats longs : après le tour 14 les soins ennemis sont divisés par 2, après le tour 18 les héros gagnent +5 % de dégâts par tour (évite les enlisements).

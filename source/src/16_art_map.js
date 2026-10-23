@@ -1,6 +1,6 @@
 /* ═══════════════════════ Carte d'expédition : parchemin peint, chemins à l'encre, jetons de salles ═══════════════════════ */
 const MAP_INK = "#3a2616";
-const TOKEN_ART = {};
+
 // chemins de la carte, dessinés sur un calque transparent : le décor animé de la région reste visible dessous
 function paintMapBg(c, run, W, H, pos) {
   const x = c.getContext("2d"), k = c.width / W, rng = mkRng((run.seed || 7) * 13 + (run.floor || 0));
@@ -21,24 +21,7 @@ function paintMapBg(c, run, W, H, pos) {
   x.restore();
 }
 // jeton peint d'une salle (cercle de pierre et objet), mis en cache en image
-function mapToken(type) {
+function mapToken(type) { // jetons et fanion du groupe peints, servis tels quels
   if (!HASWIN) return "";
-  if (type !== "pawn") return artHas("map_" + type) ? "assets/map_" + type + ".webp" : ""; // jetons peints, servis tels quels
-  if (TOKEN_ART.pawn) return TOKEN_ART.pawn;
-  const S0 = 128, cv = document.createElement("canvas"); cv.width = cv.height = S0; const x = cv.getContext("2d"), c = S0 / 2;
-  x.save(); x.translate(c, c); x.lineCap = x.lineJoin = "round";
-  switch (type) {
-    case "pawn": { // fanion du groupe planté sur la carte
-      x.translate(-10, 6);
-      shade(x, seg([0, 50], [0, -50], 3.6, 3), MAT.dwood, { d: 1 });
-      shade(x, circ(0, -52, 4.2), MAT.gold, { ol: 1.2, d: .8 });
-      const fl = P([[2, -46, 1], [46, -38], [32, -26], [46, -14], [2, -10, 1]], true, .25); shade(x, fl, "#8a1a14", { grad: lgrad(x, 2, -46, 46, -10, [[0, "#a82a1a"], [1, "#5a0e0a"]]), d: 2 });
-      x.save(); x.clip(fl); x.strokeStyle = MAT.gold; x.lineWidth = 2; x.stroke(fl); x.restore(); x.lineWidth = 2.2; x.strokeStyle = INK; x.stroke(fl);
-      shade(x, poly([[16, -34], [22, -34], [22, -30], [26, -30], [26, -26], [22, -26], [22, -18], [16, -18], [16, -26], [12, -26], [12, -30], [16, -30]]), "#e8c878", { ol: 1, d: .5 });
-      x.fillStyle = "rgba(0,0,0,.35)"; x.beginPath(); x.ellipse(2, 52, 12, 4, 0, 0, 7); x.fill();
-      break;
-    }
-  }
-  x.restore();
-  return TOKEN_ART.pawn = cv.toDataURL();
+  const n = type === "pawn" ? "ui_pawn" : "map_" + type; return artHas(n) ? "assets/" + n + ".webp" : "";
 }

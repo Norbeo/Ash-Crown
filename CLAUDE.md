@@ -25,6 +25,14 @@ RPG tactique dark fantasy médiéval, vanilla JS + Canvas 2D, PWA installable (m
 - Icônes peintes d'armes `wpn_<type>` et de bibelots `tr_<clé>` (planches Canva découpées) dans `itemArt` ; jetons de carte peints `map_<type>` dans `mapToken` ; icône procédurale en attendant le chargement, puis remplacée (`ITEM_WAIT`).
 - Forge : bouton « Tout recycler l'inutile » (`ACT.salvAll`, `itemUseful`) — garde tout objet légendaire ou meilleur que ce que porte au moins un héros capable de l'équiper.
 - Élites et gardiens aléatoires : chaque salle d'élite/gardien tire parmi TOUS les élites (`ALL_ELITES`) / gardiens (`ALL_BOSSES`) du jeu, jamais deux fois de suite le même (`S.lastElite`/`S.lastBoss` par région) ; `monNorm` ramène PV/dégâts/protection à ceux du monstre prévu pour la région (`k.f` appliqué dans 05_combat).
+- Difficulté `S.opts.diff` (`DIFFS` dans 04_state : facile/normal/cauchemar, PV/dégâts ennemis, or/xp) ; choix au départ et dans les Options ; `node test/sim.js 10 25 7 --diff=cauchemar`.
+- Événements : 133 + 11 suites (`03z_events.js`). `fxText` affiche l'effet de chaque choix. Chaînes : `flag` (expédition) / `sflag` (sauvegarde `S.flags`), suites avec `need`/`sneed`, `reg` = régions.
+- Bilan d'expédition (`run.sum`, `B.tally` dans 05_combat, `runSummaryHTML`) ; défi de la semaine (`WEEK_RULES`, `S.week`, `weekPartyOk`) ; tutoriel guidé du premier combat (`COACH`, `S.tuto.coach`).
+- Compétences chiffrées : `skillNums` (dégâts avant protection, soins ≈ PV moyens du groupe) dans `skillText(sk, héros|unité)`.
+- Noms : sexe fixé par l'illustration de la classe (`CLASS_FEMALE`), surnoms accordés, migration `fixHeroName`.
+- Son : `source/audio/gen_audio.py` synthétise ambiances par région (`amb_<région>`) et bruitages (`fx_*`) en mp3 dans `source/sfx/` ; `ambPlay`, `sfx()` joue l'enregistrement, synthèse en repli.
+- Combat : élan avec traînée, estafilade (`f.slash`), silhouette blanche à l'impact (`whiteOf`), agonie assombrie et pulsante ; textes empilés par unité.
+- Évolutions peintes : `hero_<classe>_<voie>.webp` (prioritaires dans `heroArtName`) ; file Canva dans /tmp/claude-0/canva/QUEUE.md.
 - 5 chapitres (Bourg, Forêt, Catacombes, Marais, Citadelle) + l'Abîme sans fin avec serments.
 - Cartes procédurales (combat, élite, mystère, trésor, camp, colporteur, gardien), 29 événements, 28 reliques, marche animée entre les salles.
 - Bastion : taverne, forge, chapelle, salle des maîtres, ménagerie, fonderie (or hors ligne). Défis du jour, expédition du jour, 24 succès, archives.

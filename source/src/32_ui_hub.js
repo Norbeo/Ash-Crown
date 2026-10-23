@@ -6,6 +6,12 @@ function hubLayout(w, h) {
     : [P("academie", .33, .6, .78), P("menagerie", .67, .6, .78), P("chapelle", .1, .8), P("taverne", .27, .82), P("porte", .5, .78, 1.15), P("forge", .73, .82), P("fonderie", .9, .8)];
 }
 function drawBuilding(x, k, bx, by, s, lvl, t) {
+  const im = artImg("bld_" + k);
+  if (im) { // bâtiment peint : posé sur le sol, lueur qui grandit avec le niveau
+    const hh = s * (k === "porte" ? 1.62 : k === "academie" ? 2.0 : k === "chapelle" ? 1.9 : 1.3), sc = Math.min(hh / im.height, s * 1.7 / im.width), w = im.width * sc, h = im.height * sc;
+    if (lvl > 1) glow(x, bx, by - h * .35, w * (.45 + lvl * .06), "#ff9a4a", .05 + lvl * .03 + Math.sin(t * 2 + bx) * .015);
+    x.drawImage(im, bx - w / 2, by - h + s * .04, w, h); return;
+  }
   x.save(); x.translate(bx, by); const u = s / 100; x.scale(u, u);
   const win = (wx, wy, ww, wh, col = "#ffb050") => { const f = .75 + Math.sin(t * 3 + wx) * .1; glow(x, wx + ww / 2, wy + wh / 2, ww * 2.2, col, .35 * f); x.fillStyle = col; x.fillRect(wx, wy, ww, wh); x.strokeStyle = INK; x.lineWidth = 2; x.strokeRect(wx, wy, ww, wh); x.beginPath(); x.moveTo(wx + ww / 2, wy); x.lineTo(wx + ww / 2, wy + wh); x.stroke(); };
   const stone = "#1e1a1e", wood = "#22160e", roof = "#120c0e";
@@ -92,7 +98,7 @@ function drawBuilding(x, k, bx, by, s, lvl, t) {
 SCREENS.bastion = {
   title: "Le Bastion", tab: "bastion",
   scene: () => (x, t, dt) => {
-    backdrop("bastion", { align: .9 })(x, t, dt);
+    backdrop(artHas("bg_bastion2") ? "bastion2" : "bastion", { align: .9 })(x, t, dt);
     const L = hubLayout(SC.w, SC.h);
     // sol de la cour
     x.fillStyle = lgrad(x, 0, SC.h * .5, 0, SC.h, [[0, "rgba(10,8,10,0)"], [1, "rgba(10,8,10,.6)"]]); x.fillRect(0, SC.h * .5, SC.w, SC.h);
@@ -219,7 +225,8 @@ function cropDraw(src, W, pad) { // recadre au plus juste puis centre dans un ca
 }
 function itemArt(it) {
   if (!HASWIN || !it) return "";
-  const key = it.kind === "tr" ? "tr|" + it.key : [it.kind, it.cls, it.tier, it.rar].join("|");
+  const bust = it.kind === "arm" ? heroArt({ cls: it.cls, tier: it.tier }) : null;
+  const key = (it.kind === "tr" ? "tr|" + it.key : [it.kind, it.cls, it.tier, it.rar].join("|")) + (bust ? "|i" : "");
   if (ITEM_ART[key]) return ITEM_ART[key];
   const W = 112;
   let cv;
@@ -231,6 +238,12 @@ function itemArt(it) {
       const src = rotatedCopy(up, ang), x = src.getContext("2d");
       litPass(x, src.width, src.height); spritePost(src, 1.6, { rim: "#ffe0b0" });
       cv = cropDraw(src, W, 8);
+    } else if (it.kind === "arm" && bust) { // armure : buste de l'illustration du héros portant ce palier
+      const bh = Math.round(bust.height * .52), src = mkCanvas(bust.width, bh), x = src.getContext("2d");
+      x.drawImage(bust, 0, 0, bust.width, bh, 0, 0, bust.width, bh);
+      const fade = x.createLinearGradient(0, bh * .8, 0, bh); fade.addColorStop(0, "rgba(0,0,0,1)"); fade.addColorStop(1, "rgba(0,0,0,0)");
+      x.globalCompositeOperation = "destination-in"; x.fillStyle = fade; x.fillRect(0, 0, bust.width, bh); x.globalCompositeOperation = "source-over";
+      cv = cropDraw(src, W, 4);
     } else if (it.kind === "arm") {
       const src = mkCanvas(360, 420), x = src.getContext("2d");
       const sp = outfit({ cls: it.cls, tier: it.tier, wtier: it.tier, skin: "#8a6a50", hair: 0, hairCol: "#2a2018", beard: -1, scar: -1 });

@@ -431,6 +431,7 @@ function drawMonster(x, art, pose = {}, t = 0) {
   }
 }
 function monSprite(key, pose = {}, t = 0, sc = 1, o = {}) {
+  const A = monImgSprite(key, pose, sc); if (A) return A;
   const M = MONSTERS[key] || {}, big = (M.sz || 1) > 1;
   const W = Math.ceil((big ? 420 : 300) * sc), H = Math.ceil((big ? 420 : 320) * sc), cv = mkCanvas(W, H), x = cv.getContext("2d");
   x.save(); x.translate(W * .5, H - 22 * sc); x.scale(sc, sc); drawMonster(x, key, pose, t); x.restore();

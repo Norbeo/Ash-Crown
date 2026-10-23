@@ -114,6 +114,7 @@ quad = function (x, o, t) {
   return r;
 };
 function petSprite(id, o = {}, t = 0, sc = 1) {
+  const A = petImgSprite(id, o, sc); if (A) return A;
   const W = Math.ceil(220 * sc), H = Math.ceil(200 * sc), cv = mkCanvas(W, H), x = cv.getContext("2d");
   x.save(); x.translate(W * .5, H - 16 * sc); x.scale(sc, sc); drawPet(x, id, o, t); x.restore();
   litPass(x, W, H); spritePost(cv, sc, { rim: "#ffd8a0" });

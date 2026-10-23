@@ -112,7 +112,7 @@ function heroCanvas(h, size = 96, full = false) {
 }
 function canvasSlot(id, w, h) { return `<canvas data-cv="${id}" width="${w}" height="${h}" class="port"></canvas>`; }
 // les canvas sont remplis après insertion dans le DOM
-function fillCanvases(root, fn) { root.querySelectorAll("canvas[data-cv]").forEach(c => { try { fn(c, c.dataset.cv); } catch (e) { console.error(e); } }); }
+function fillCanvases(root, fn) { const r = ART_REPAINT.find(e => e[0] === root); if (r) r[1] = fn; else ART_REPAINT.push([root, fn]); root.querySelectorAll("canvas[data-cv]").forEach(c => { try { fn(c, c.dataset.cv); } catch (e) { console.error(e); } }); }
 function paintHero(c, h, full) { const sz = c.width; const src = heroCanvas(h, sz, full); c.height = src.height; c.getContext("2d").drawImage(src, 0, 0); }
 function paintPet(c, id, evo) { const x = c.getContext("2d"); const sp = petSprite(id, { evo }, 0, c.width / 160); x.drawImage(sp, c.width / 2 - sp.ax, c.height - 6 - sp.ay); }
 function paintMon(c, key) { const x = c.getContext("2d"); const big = (MONSTERS[key].sz || 1) > 1; const sp = monSprite(key, {}, 0, c.width / (big ? 330 : 250)); x.save(); x.translate(c.width / 2, 0); x.scale(-1, 1); x.drawImage(sp, -sp.ax, c.height - 6 - sp.ay); x.restore(); }

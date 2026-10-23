@@ -186,6 +186,7 @@ p{margin:6px 0;line-height:1.45}
 <div id="modal" hidden></div>
 <div id="toasts" aria-live="polite"></div>
 <script>window.CC_SW = 1;</script><script>
+window.ART_LIST=["bg_abime","bg_bastion","bg_bourg","bg_catacombes","bg_citadelle","bg_foret","bg_marais","bg_titre","hero_arbaletriere_t1","hero_arbaletriere_t2","hero_arbaletriere_t3","hero_arbaletriere_t4","hero_arbaletriere_t5","hero_berserker_t1","hero_berserker_t2","hero_berserker_t3","hero_berserker_t4","hero_berserker_t5","hero_chasseur_sorcieres_t1","hero_chasseur_sorcieres_t2","hero_chasseur_sorcieres_t3","hero_chasseur_sorcieres_t4","hero_chasseur_sorcieres_t5","hero_exorciste_t1","hero_exorciste_t2","hero_exorciste_t3","hero_exorciste_t4","hero_exorciste_t5","hero_gardien_runes_t1","hero_gardien_runes_t2","hero_gardien_runes_t3","hero_gardien_runes_t4","hero_gardien_runes_t5","hero_hallebardier_t1","hero_hallebardier_t2","hero_hallebardier_t3","hero_hallebardier_t4","hero_hallebardier_t5","hero_medecin_peste_t1","hero_medecin_peste_t2","hero_medecin_peste_t3","hero_medecin_peste_t4","hero_medecin_peste_t5","hero_menestrel_t1","hero_menestrel_t2","hero_menestrel_t3","hero_menestrel_t4","hero_menestrel_t5","hero_necromancien_t1","hero_necromancien_t2","hero_necromancien_t3","hero_necromancien_t4","hero_necromancien_t5","hero_ombre_t1","hero_ombre_t2","hero_ombre_t3","hero_ombre_t4","hero_ombre_t5","hero_pretresse_t1","hero_pretresse_t2","hero_pretresse_t3","hero_pretresse_t4","hero_pretresse_t5","hero_pyromancien_t1","hero_pyromancien_t2","hero_pyromancien_t3","hero_pyromancien_t4","hero_pyromancien_t5","hero_revenant_t1","hero_revenant_t2","hero_revenant_t3","hero_revenant_t4","hero_revenant_t5","hero_sorciere_t1","hero_sorciere_t2","hero_sorciere_t3","hero_sorciere_t4","hero_sorciere_t5","hero_templier_t1","hero_templier_t2","hero_templier_t3","hero_templier_t4","hero_templier_t5","mon_abbe","mon_alpha","mon_araignee","mon_archer","mon_archer_os","mon_boucher","mon_bourreau","mon_brigand","mon_charognard","mon_chevalier_dechu","mon_chevalier_os","mon_crapaud","mon_cultiste","mon_diablotin","mon_docteur","mon_dryade","mon_follet","mon_gargouille","mon_golem","mon_goule","mon_hallebardier_os","mon_horreur","mon_hydre","mon_inquisiteur","mon_liche","mon_loup","mon_mere_noyes","mon_mere_ronces","mon_moine_flagellant","mon_necrophage","mon_noye","mon_oeil","mon_ogre","mon_pecheur","mon_pendu","mon_pestifere","mon_prieur","mon_profond","mon_rat","mon_reine_sabbat","mon_roi","mon_sangsue","mon_sans_nom","mon_sorciere_marais","mon_spectre","mon_squelette","mon_thuriferaire","pet_araignee","pet_araignee_evo","pet_cerf","pet_cerf_evo","pet_chat_noir","pet_chat_noir_evo","pet_chauve_souris","pet_chauve_souris_evo","pet_chouette","pet_chouette_evo","pet_corbeau","pet_corbeau_evo","pet_crapaud","pet_crapaud_evo","pet_drake","pet_drake_evo","pet_feu_follet","pet_feu_follet_evo","pet_gargouille","pet_griffon","pet_griffon_evo","pet_loup","pet_loup_evo","pet_molosse","pet_molosse_evo","pet_ours","pet_ours_evo","pet_renard","pet_renard_evo","pet_salamandre","pet_salamandre_evo","pet_sanglier","pet_sanglier_evo","pet_vipere","pet_vipere_evo"];window.ART_FLIP=["hero_pretresse_t1","hero_pretresse_t2","hero_pretresse_t3","hero_pretresse_t4","hero_pretresse_t5","hero_sorciere_t1","hero_sorciere_t2","hero_sorciere_t3","hero_sorciere_t4","hero_sorciere_t5","hero_necromancien_t1","hero_necromancien_t2","hero_necromancien_t3","hero_necromancien_t4","hero_necromancien_t5","hero_exorciste_t1","hero_exorciste_t2","hero_exorciste_t3","hero_exorciste_t4","hero_exorciste_t5","mon_archer_os","mon_moine_flagellant","mon_spectre"];
 /* ═══════════════════════ Couronne de Cendres — utilitaires ═══════════════════════ */
 "use strict";
 const HASWIN = typeof window !== "undefined" && typeof document !== "undefined";
@@ -3163,6 +3164,7 @@ function litPass(x, w, h, o = {}) {
 }
 // rendu d'un héros dans un canvas à part (mis en cache par l'écran de combat)
 function heroSprite(L, pose = {}, t = 0, sc = 1, o = {}) {
+  const A = heroImgSprite(L, pose, sc, o); if (A) return A;
   const W = Math.ceil(280 * sc), H = Math.ceil(320 * sc), cv = mkCanvas(W, H), x = cv.getContext("2d");
   x.save(); x.translate(W * .46, H - 22 * sc); x.scale(sc, sc);
   drawHero(x, L, pose, t, o);
@@ -3625,6 +3627,7 @@ function drawMonster(x, art, pose = {}, t = 0) {
   }
 }
 function monSprite(key, pose = {}, t = 0, sc = 1, o = {}) {
+  const A = monImgSprite(key, pose, sc); if (A) return A;
   const M = MONSTERS[key] || {}, big = (M.sz || 1) > 1;
   const W = Math.ceil((big ? 420 : 300) * sc), H = Math.ceil((big ? 420 : 320) * sc), cv = mkCanvas(W, H), x = cv.getContext("2d");
   x.save(); x.translate(W * .5, H - 22 * sc); x.scale(sc, sc); drawMonster(x, key, pose, t); x.restore();
@@ -3747,6 +3750,7 @@ quad = function (x, o, t) {
   return r;
 };
 function petSprite(id, o = {}, t = 0, sc = 1) {
+  const A = petImgSprite(id, o, sc); if (A) return A;
   const W = Math.ceil(220 * sc), H = Math.ceil(200 * sc), cv = mkCanvas(W, H), x = cv.getContext("2d");
   x.save(); x.translate(W * .5, H - 16 * sc); x.scale(sc, sc); drawPet(x, id, o, t); x.restore();
   litPass(x, W, H); spritePost(cv, sc, { rim: "#ffd8a0" });
@@ -3779,6 +3783,8 @@ function candle(x, cx, cy, s = 1) { x.fillStyle = "#d8ccb0"; x.fillRect(cx - 2 *
 // décor d'une région : couches lointaine, moyenne, sol
 function paintRegion(id, w, h) {
   const key = id + w + "x" + h; if (BG_CACHE[key]) return BG_CACHE[key];
+  const A = regionArt(id, w, h); if (A) return BG_CACHE[key] = A;
+  if (id === "bastion2") return paintRegion("bastion", w, h);
   const cv = mkCanvas(w, h), x = cv.getContext("2d"), rng = mkRng(hashStr(id) + 7);
   const R = id === "bastion" || id === "titre" ? null : regionById(id) || REGIONS[0];
   const gy = h * .78; // ligne de sol
@@ -3984,6 +3990,109 @@ function mapToken(type) {
   }
   x.restore();
   return TOKEN_ART[type] = cv.toDataURL();
+}
+/* ═══════════════════════ Illustrations peintes (générées avec Canva) ═══════════════════════
+   Les images (assets/*.webp) remplacent le dessin procédural dès qu'elles sont chargées.
+   Tant qu'une image manque (hors ligne, chargement en cours, node), le dessin procédural sert de repli. */
+const PIC = { v: 0, img: {}, queue: [], busy: 0, done: 0, total: 0, timer: 0 };
+// liste des illustrations livrées (complétée par le build : window.ART_LIST)
+const ART_SET = new Set(typeof window !== "undefined" && window.ART_LIST ? window.ART_LIST : []);
+// images tournées vers la gauche à retourner (héros : face à droite ; monstres : face à droite avant le miroir du combat)
+const ART_FLIP = new Set(typeof window !== "undefined" && window.ART_FLIP ? window.ART_FLIP : []);
+function artHas(n) { return ART_SET.has(n); }
+function artImg(n) {
+  if (!ART_SET.has(n) || typeof Image === "undefined") return null;
+  let e = PIC.img[n];
+  if (!e) { e = PIC.img[n] = { ok: 0 }; PIC.queue.unshift(n); artPump(); }
+  return e.ok ? e.im : null;
+}
+function artPump() {
+  while (PIC.busy < 6 && PIC.queue.length) {
+    const n = PIC.queue.shift(), e = PIC.img[n] || (PIC.img[n] = { ok: 0 });
+    if (e.started) continue;
+    e.started = 1; PIC.busy++;
+    const im = new Image(); im.decoding = "async";
+    im.onload = () => { e.im = im; e.ok = 1; PIC.busy--; PIC.done++; artChanged(); artPump(); };
+    im.onerror = () => { e.fail = 1; PIC.busy--; PIC.done++; artPump(); };
+    im.src = "assets/" + n + ".webp";
+  }
+}
+// précharge tout en tâche de fond (après les images demandées par l'écran courant)
+function artPreload() { if (typeof Image === "undefined") return; PIC.total = ART_SET.size; for (const n of ART_SET) if (!PIC.img[n]) { PIC.img[n] = { ok: 0 }; PIC.queue.push(n); } artPump(); }
+const ART_REPAINT = [];
+// une image vient d'arriver : on vide les caches de sprites et on repeint les vignettes encore à l'écran
+function artChanged() {
+  PIC.v++;
+  if (PIC.timer) return;
+  PIC.timer = setTimeout(() => {
+    PIC.timer = 0;
+    for (const k in BG_CACHE) delete BG_CACHE[k];
+    if (typeof PORT_CACHE !== "undefined") for (const k in PORT_CACHE) delete PORT_CACHE[k];
+    if (typeof WALK_CACHE !== "undefined") for (const k in WALK_CACHE) delete WALK_CACHE[k];
+    if (typeof CB !== "undefined") { for (const id in CB.vis) if (CB.vis[id]) CB.vis[id].cache = {}; CB.petCache = null; }
+    if (typeof ICON_CACHE !== "undefined") for (const k in ICON_CACHE) delete ICON_CACHE[k];
+    for (let i = ART_REPAINT.length - 1; i >= 0; i--) {
+      const [root, fn] = ART_REPAINT[i];
+      if (!root.isConnected) { ART_REPAINT.splice(i, 1); continue; }
+      root.querySelectorAll("canvas[data-cv]").forEach(c => { try { c.getContext("2d").clearRect(0, 0, c.width, c.height); fn(c, c.dataset.cv); } catch (e) { console.error(e); } });
+    }
+  }, 120);
+}
+// hauteur (unités de dessin à l'échelle 1) et largeur max des illustrations de monstres
+const MON_H = { rat: 90, charognard: 125, loup: 120, araignee: 105, alpha: 165, follet: 105, sangsue: 135, crapaud: 125, oeil: 150, diablotin: 150, gargouille: 165, horreur: 230, golem: 255, hydre: 300, mere_ronces: 340, mere_noyes: 330, ogre: 275, boucher: 245, bourreau: 250, chevalier_os: 240, prieur: 240, chevalier_dechu: 230, docteur: 320, liche: 340, abbe: 340, reine_sabbat: 335, roi: 350, sans_nom: 360, necrophage: 175, pendu: 210, spectre: 215 };
+const PET_H = { chauve_souris: 95, feu_follet: 85, corbeau: 95, chouette: 100, vipere: 90, araignee: 80, salamandre: 70, crapaud: 80, chat_noir: 85, renard: 85, griffon: 120, drake: 120, gargouille: 95, ours: 105, sanglier: 100, cerf: 125, loup: 110, molosse: 105 };
+// sprite à partir d'une illustration : même convention que les sprites procéduraux (pieds en ax, ay)
+// pose : lean (penché, + = vers l'avant), hx/hy (décalage), atk (fente), hurt, agony, glow
+function imgSprite(im, o) {
+  const sc = o.sc || 1, fh = (o.h || 210) * sc, maxW = (o.maxW || 260) * sc;
+  let s = fh / im.height; if (im.width * s > maxW) s = maxW / im.width;
+  const iw = im.width * s, ih = im.height * s, pad = Math.ceil(Math.max(iw, ih) * .35 + 30 * sc);
+  const W = Math.ceil(iw + pad * 2), H = Math.ceil(ih + pad + 24 * sc), cv = mkCanvas(W, H), x = cv.getContext("2d");
+  const ax = W / 2, ay = H - 22 * sc, p = o.pose || {};
+  // aura d'évolution / d'apogée
+  if (o.aura) { const g = x.createRadialGradient(ax, ay - ih * .5, ih * .1, ax, ay - ih * .5, ih * .7); g.addColorStop(0, rgba(o.aura, o.auraA || .32)); g.addColorStop(1, rgba(o.aura, 0)); x.fillStyle = g; x.fillRect(0, 0, W, H); }
+  let rot = (p.lean || 0) * .32, dx = (p.hx || 0) * sc, dy = (p.hy || 0) * sc, sy = 1, sx = 1;
+  if (p.atk) { rot += .1; dx += 12 * sc; }
+  if (p.agony) { rot = .22; dy = 10 * sc; sy = .82; }
+  if (p.cast) { dy -= 4 * sc; sx = 1.02; }
+  x.save(); x.translate(ax + dx, ay + dy); x.rotate(rot); x.scale(sx * (o.flip ? -1 : 1), sy);
+  x.drawImage(im, -iw / 2, -ih, iw, ih);
+  x.restore();
+  if (o.tint) { x.save(); x.globalCompositeOperation = "source-atop"; x.fillStyle = o.tint; x.fillRect(0, 0, W, H); x.restore(); }
+  cv.ax = ax; cv.ay = ay; cv.sc = sc; cv.art = 1; return cv;
+}
+// couleur d'aura d'une évolution : première voie = teinte de la classe, seconde = contraste froid
+function evoAura(L) {
+  if (!L.evo) return null;
+  const C = CLASSES[L.cls]; const keys = C && C.evos ? Object.keys(C.evos) : [];
+  const i = Math.max(0, keys.indexOf(L.evo));
+  return i === 0 ? (C.pal.trim || "#e8c060") : (["#8a7ae0", "#5ad0c0", "#e05a5a"][hashStr(L.cls) % 3]);
+}
+function heroArt(L) { const t = clamp(L.tier || 1, 1, 5); return artImg("hero_" + L.cls + "_t" + t) || artImg("hero_" + L.cls + "_t3"); }
+function heroImgSprite(L, pose, sc, o = {}) {
+  const im = heroArt(L); if (!im) return null;
+  const hurt = pose.lean < -.25 && pose.hx < 0, agony = pose.hy > 15;
+  return imgSprite(im, { sc, h: 195, maxW: 122, flip: ART_FLIP.has("hero_" + L.cls + "_t" + clamp(L.tier || 1, 1, 5)), aura: evoAura(L), auraA: L.apex ? .45 : .28,
+    pose: Object.assign({}, pose, { agony, cast: pose.free || pose.aBs > 1.5 }), tint: o.tint || (hurt ? "rgba(160,20,20,.16)" : null) });
+}
+function monImgSprite(key, pose, sc) {
+  const M = MONSTERS[key] || {}, n = "mon_" + (M.art || key), im = artImg(n); if (!im) return null;
+  const big = (M.sz || 1) > 1, f = pose.fig || {};
+  return imgSprite(im, { sc, h: MON_H[M.art || key] || (M.elite ? 235 : 205), maxW: big ? 300 : (M.elite ? 175 : 140), flip: !ART_FLIP.has(n),
+    pose: { atk: pose.atk, lean: f.lean, hx: f.hx }, tint: f.lean < 0 ? "rgba(170,20,20,.16)" : null });
+}
+function petImgSprite(id, o, sc) {
+  const n = "pet_" + id + (o.evo ? "_evo" : ""), im = artImg(n) || artImg("pet_" + id); if (!im) return null;
+  return imgSprite(im, { sc, h: (PET_H[id] || 100) * (o.evo ? 1.25 : 1), maxW: o.evo ? 150 : 120, flip: ART_FLIP.has(n), pose: { atk: o.atk }, aura: o.evo ? "#e8c070" : null, auraA: .18 });
+}
+// fond de région peint : recadré en 16/9 (la ligne de sol reste dans le tiers bas)
+function regionArt(id, w, h) {
+  const im = artImg("bg_" + id); if (!im) return null;
+  const cv = mkCanvas(w, h), x = cv.getContext("2d");
+  const s = Math.max(w / im.width, h / im.height); x.drawImage(im, (w - im.width * s) / 2, (h - im.height * s) / 2, im.width * s, im.height * s);
+  // léger voile sombre pour que l'interface reste lisible
+  x.fillStyle = lgrad(x, 0, 0, 0, h, [[0, "rgba(5,4,8,.25)"], [.6, "rgba(5,4,8,0)"], [1, "rgba(5,4,8,.35)"]]); x.fillRect(0, 0, w, h);
+  return cv;
 }
 /* ═══════════════════════ Son : effets synthétisés et musique d'ambiance ═══════════════════════ */
 const SND = { ctx: null, master: null, music: null, sfx: null, noise: null, mTimer: null, mOn: false };
@@ -4320,7 +4429,7 @@ function heroCanvas(h, size = 96, full = false) {
 }
 function canvasSlot(id, w, h) { return `<canvas data-cv="${id}" width="${w}" height="${h}" class="port"></canvas>`; }
 // les canvas sont remplis après insertion dans le DOM
-function fillCanvases(root, fn) { root.querySelectorAll("canvas[data-cv]").forEach(c => { try { fn(c, c.dataset.cv); } catch (e) { console.error(e); } }); }
+function fillCanvases(root, fn) { const r = ART_REPAINT.find(e => e[0] === root); if (r) r[1] = fn; else ART_REPAINT.push([root, fn]); root.querySelectorAll("canvas[data-cv]").forEach(c => { try { fn(c, c.dataset.cv); } catch (e) { console.error(e); } }); }
 function paintHero(c, h, full) { const sz = c.width; const src = heroCanvas(h, sz, full); c.height = src.height; c.getContext("2d").drawImage(src, 0, 0); }
 function paintPet(c, id, evo) { const x = c.getContext("2d"); const sp = petSprite(id, { evo }, 0, c.width / 160); x.drawImage(sp, c.width / 2 - sp.ax, c.height - 6 - sp.ay); }
 function paintMon(c, key) { const x = c.getContext("2d"); const big = (MONSTERS[key].sz || 1) > 1; const sp = monSprite(key, {}, 0, c.width / (big ? 330 : 250)); x.save(); x.translate(c.width / 2, 0); x.scale(-1, 1); x.drawImage(sp, -sp.ax, c.height - 6 - sp.ay); x.restore(); }
@@ -4440,6 +4549,12 @@ function hubLayout(w, h) {
     : [P("academie", .33, .6, .78), P("menagerie", .67, .6, .78), P("chapelle", .1, .8), P("taverne", .27, .82), P("porte", .5, .78, 1.15), P("forge", .73, .82), P("fonderie", .9, .8)];
 }
 function drawBuilding(x, k, bx, by, s, lvl, t) {
+  const im = artImg("bld_" + k);
+  if (im) { // bâtiment peint : posé sur le sol, lueur qui grandit avec le niveau
+    const hh = s * (k === "porte" ? 1.62 : k === "academie" ? 2.0 : k === "chapelle" ? 1.9 : 1.3), sc = Math.min(hh / im.height, s * 1.7 / im.width), w = im.width * sc, h = im.height * sc;
+    if (lvl > 1) glow(x, bx, by - h * .35, w * (.45 + lvl * .06), "#ff9a4a", .05 + lvl * .03 + Math.sin(t * 2 + bx) * .015);
+    x.drawImage(im, bx - w / 2, by - h + s * .04, w, h); return;
+  }
   x.save(); x.translate(bx, by); const u = s / 100; x.scale(u, u);
   const win = (wx, wy, ww, wh, col = "#ffb050") => { const f = .75 + Math.sin(t * 3 + wx) * .1; glow(x, wx + ww / 2, wy + wh / 2, ww * 2.2, col, .35 * f); x.fillStyle = col; x.fillRect(wx, wy, ww, wh); x.strokeStyle = INK; x.lineWidth = 2; x.strokeRect(wx, wy, ww, wh); x.beginPath(); x.moveTo(wx + ww / 2, wy); x.lineTo(wx + ww / 2, wy + wh); x.stroke(); };
   const stone = "#1e1a1e", wood = "#22160e", roof = "#120c0e";
@@ -4526,7 +4641,7 @@ function drawBuilding(x, k, bx, by, s, lvl, t) {
 SCREENS.bastion = {
   title: "Le Bastion", tab: "bastion",
   scene: () => (x, t, dt) => {
-    backdrop("bastion", { align: .9 })(x, t, dt);
+    backdrop(artHas("bg_bastion2") ? "bastion2" : "bastion", { align: .9 })(x, t, dt);
     const L = hubLayout(SC.w, SC.h);
     // sol de la cour
     x.fillStyle = lgrad(x, 0, SC.h * .5, 0, SC.h, [[0, "rgba(10,8,10,0)"], [1, "rgba(10,8,10,.6)"]]); x.fillRect(0, SC.h * .5, SC.w, SC.h);
@@ -4653,7 +4768,8 @@ function cropDraw(src, W, pad) { // recadre au plus juste puis centre dans un ca
 }
 function itemArt(it) {
   if (!HASWIN || !it) return "";
-  const key = it.kind === "tr" ? "tr|" + it.key : [it.kind, it.cls, it.tier, it.rar].join("|");
+  const bust = it.kind === "arm" ? heroArt({ cls: it.cls, tier: it.tier }) : null;
+  const key = (it.kind === "tr" ? "tr|" + it.key : [it.kind, it.cls, it.tier, it.rar].join("|")) + (bust ? "|i" : "");
   if (ITEM_ART[key]) return ITEM_ART[key];
   const W = 112;
   let cv;
@@ -4665,6 +4781,12 @@ function itemArt(it) {
       const src = rotatedCopy(up, ang), x = src.getContext("2d");
       litPass(x, src.width, src.height); spritePost(src, 1.6, { rim: "#ffe0b0" });
       cv = cropDraw(src, W, 8);
+    } else if (it.kind === "arm" && bust) { // armure : buste de l'illustration du héros portant ce palier
+      const bh = Math.round(bust.height * .52), src = mkCanvas(bust.width, bh), x = src.getContext("2d");
+      x.drawImage(bust, 0, 0, bust.width, bh, 0, 0, bust.width, bh);
+      const fade = x.createLinearGradient(0, bh * .8, 0, bh); fade.addColorStop(0, "rgba(0,0,0,1)"); fade.addColorStop(1, "rgba(0,0,0,0)");
+      x.globalCompositeOperation = "destination-in"; x.fillStyle = fade; x.fillRect(0, 0, bust.width, bh); x.globalCompositeOperation = "source-over";
+      cv = cropDraw(src, W, 4);
     } else if (it.kind === "arm") {
       const src = mkCanvas(360, 420), x = src.getContext("2d");
       const sp = outfit({ cls: it.cls, tier: it.tier, wtier: it.tier, skin: "#8a6a50", hair: 0, hairCol: "#2a2018", beard: -1, scar: -1 });
@@ -5535,6 +5657,7 @@ ACT.importSave = () => { modal(`<h2>Importer</h2><textarea id="imp" style="width
 if (HASWIN) {
   const boot = () => {
     sceneInit(); uiEvents();
+    artImg("bg_titre"); artImg("bg_bastion"); setTimeout(artPreload, 300);
     if (window.CC_SW && "serviceWorker" in navigator) navigator.serviceWorker.register("sw.js").catch(() => { });
     go("title");
     document.addEventListener("pointerdown", () => { audioInit(); if (SND.ctx && SND.ctx.state === "suspended") SND.ctx.resume(); if (!SND.mOn && S) musicPlay(UI.screen === "combat" ? "combat" : "bastion"); else if (!SND.mOn) musicPlay("titre"); }, { once: false });

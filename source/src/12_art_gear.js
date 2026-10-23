@@ -529,6 +529,7 @@ function litPass(x, w, h, o = {}) {
 }
 // rendu d'un héros dans un canvas à part (mis en cache par l'écran de combat)
 function heroSprite(L, pose = {}, t = 0, sc = 1, o = {}) {
+  const A = heroImgSprite(L, pose, sc, o); if (A) return A;
   const W = Math.ceil(280 * sc), H = Math.ceil(320 * sc), cv = mkCanvas(W, H), x = cv.getContext("2d");
   x.save(); x.translate(W * .46, H - 22 * sc); x.scale(sc, sc);
   drawHero(x, L, pose, t, o);

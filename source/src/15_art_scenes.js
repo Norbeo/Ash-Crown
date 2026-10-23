@@ -25,6 +25,8 @@ function candle(x, cx, cy, s = 1) { x.fillStyle = "#d8ccb0"; x.fillRect(cx - 2 *
 // décor d'une région : couches lointaine, moyenne, sol
 function paintRegion(id, w, h) {
   const key = id + w + "x" + h; if (BG_CACHE[key]) return BG_CACHE[key];
+  const A = regionArt(id, w, h); if (A) return BG_CACHE[key] = A;
+  if (id === "bastion2") return paintRegion("bastion", w, h);
   const cv = mkCanvas(w, h), x = cv.getContext("2d"), rng = mkRng(hashStr(id) + 7);
   const R = id === "bastion" || id === "titre" ? null : regionById(id) || REGIONS[0];
   const gy = h * .78; // ligne de sol

@@ -47,6 +47,16 @@ function drawPet(x, id, o = {}, t = 0) {
       if (evo) { x.save(); x.globalCompositeOperation = "lighter"; glow(x, 0, -50, 70, "#ffd27a", .2); x.restore(); }
       return;
     }
+    case "renard": { const r = quad(x, { len: 52 * E, h: 30 * E, col: evo ? "#c86a2a" : "#b05a24", head: "fox", tail: "bushy", eye: evo ? "#9fe8ff" : "#ffd04a", fur: 1, atk, hs: .85 * E, legW: 6, claws: 1, ghost: evo ? "#9fe8ff" : null }, t);
+      if (evo) { const L = 52 * E, H = 30 * E, tx0 = -L * .38 - 4, ty0 = -H * .95; x.save(); x.globalCompositeOperation = "lighter"; for (let i = 0; i < 5; i++) { const sw = Math.sin(t * 3 + i) * 3; glow(x, tx0 - 18 - i * 3 + sw, ty0 + 2 - i * 5, 9, "#9fe8ff", .4); } glow(x, tx0 - 22, ty0 - 6, 22, "#7ad0ff", .2); x.restore(); }
+      return r; }
+    case "ours": return quad(x, { len: (evo ? 82 : 58) * (evo ? 1 : 1), h: (evo ? 54 : 38), col: evo ? "#4a3424" : "#6a4a34", head: "bear", eye: evo ? "#ff8a3a" : "#2a1a10", fur: 1, atk, hs: evo ? 1.25 : 1, legW: evo ? 13 : 10, hump: evo ? 10 : 6, claws: 1 }, t);
+    case "cerf": { quad(x, { len: 54 * E, h: 44 * E, col: evo ? "#f4f0e4" : "#d8c8a8", head: "deer", tail: "thin", eye: evo ? "#ffe8a0" : "#2a1a10", atk, hs: .9 * E, legW: 5, antlers: evo ? "#f0e0b0" : null, spots: !evo, glowA: evo ? "#ffe8a0" : null }, t);
+      if (evo) { x.save(); x.globalCompositeOperation = "lighter"; glow(x, 10, -60, 60, "#ffe8a0", .18); x.restore(); }
+      return; }
+    case "vipere": return snake(x, { col: evo ? "#4a5a3a" : "#6a6a5a", belly: evo ? "#c8b060" : "#a8a088", eye: evo ? "#ffe04a" : "#ff6a2a", s: E, atk, crest: evo ? "#8a1a1a" : null }, t);
+    case "araignee": return spider(x, { col: evo ? "#1a1418" : "#2a2420", mark: evo ? "#c02a6a" : "#8a1a1a", eye: evo ? "#ff3a8a" : "#ff3a2a", s: .62 * E, atk }, t);
+    case "gargouille": return gargoyle(x, { col: evo ? "#7a7a78" : "#6a6a68", s: .7 * E, atk }, t);
     case "drake": return lizard(x, { col: evo ? "#3a1a22" : "#4a2a3a", spots: evo ? "#ff6a2a" : "#ff8a5a", s: 1.15 * E, atk, wings: evo ? "#5a1a22" : "#5a3a4a", horns: 1, fire: evo || atk ? "#ff6a1a" : null, eye: "#ffb04a" }, t);
   }
 }
@@ -59,6 +69,49 @@ quadHead = function (x, h, o, t, atk) {
   shade(x, P([[h[0] + 8 * s, h[1] - 6 * s], [h[0] + 22 * s, h[1] - 1 * s], [h[0] + 18 * s, h[1] + 7 * s + atk * 4, 1], [h[0] + 9 * s, h[1] + 3 * s]], true, .35), "#d8a030", { d: 1.2 });
   glow(x, h[0] + 5 * s, h[1] - 4 * s, 6 * s, o.eye, .8); dot(x, h[0] + 5 * s, h[1] - 4 * s, 1.8 * s, INK);
   for (let i = 0; i < 3; i++) shade(x, P([[h[0] - 6 * s - i * 3 * s, h[1] - 6 * s], [h[0] - 16 * s - i * 4 * s, h[1] - 10 * s + i * 4 * s, 1], [h[0] - 4 * s - i * 3 * s, h[1] - 1 * s]], true, .3), col, { d: 1 });
+};
+// serpent : corps en S, tête dressée
+function snake(x, o, t) {
+  const col = o.col, s = o.s || 1, atk = o.atk || 0, pts = [];
+  for (let i = 0; i <= 14; i++) { const k = i / 14; pts.push([(-56 + k * 70) * s + atk * k * k * 30, (-6 - Math.sin(k * 5 + t * 2.4) * 6 * (1 - k * .5) - (k > .7 ? (k - .7) * 110 : 0)) * s]); }
+  for (let i = 0; i < pts.length - 1; i++) { const k = i / 14, w = (4 + Math.sin(k * Math.PI) * 9) * s; shade(x, seg(pts[i], pts[i + 1], w, w * .95), i % 2 ? col : lt(col, .08), { d: 2 }); }
+  x.save(); for (let i = 2; i < pts.length - 2; i += 2) { const p = pts[i]; for (let j = -1; j <= 1; j++) dot(x, p[0] + j * 2 * s, p[1] - 3 * s, 1.3 * s, rgba(dk(col, .5), .9)); } x.restore();
+  const h = pts[pts.length - 1];
+  const head = P([[h[0] - 8 * s, h[1] + 4 * s], [h[0] - 6 * s, h[1] - 6 * s], [h[0] + 8 * s, h[1] - 7 * s], [h[0] + 16 * s, h[1] - 2 * s], [h[0] + 15 * s, h[1] + 3 * s + atk * 4], [h[0] + 2 * s, h[1] + 6 * s]], true, .5);
+  shade(x, head, col, { d: 2.5 });
+  if (o.crest) for (let i = 0; i < 3; i++) shade(x, P([[h[0] - 6 * s - i * 4 * s, h[1] - 5 * s], [h[0] - 10 * s - i * 4 * s, h[1] - 14 * s, 1], [h[0] - 2 * s - i * 4 * s, h[1] - 6 * s]], true, .3), o.crest, { ol: 1, d: .6 });
+  glow(x, h[0] + 6 * s, h[1] - 3 * s, 6 * s, o.eye, .9); shade(x, ell(h[0] + 6 * s, h[1] - 3 * s, 2.2 * s, 1.6 * s), o.eye, { ol: 1, hi: .7 }); line(x, [[h[0] + 6 * s, h[1] - 4.4 * s], [h[0] + 6 * s, h[1] - 1.6 * s]], .9, INK);
+  if (atk > .1) { line(x, [[h[0] + 15 * s, h[1] + 1 * s], [h[0] + 24 * s, h[1] + 1 * s]], 1.2, "#c02a3a"); }
+}
+// têtes d'ours et de cerf, bois
+const _qh2 = quadHead;
+quadHead = function (x, h, o, t, atk) {
+  const s = o.hs || 1, col = o.col;
+  if (o.head === "bear") {
+    shade(x, P([[h[0] + 4 * s, h[1] + 4 * s], [h[0] + 18 * s, h[1] + 4 * s + atk * 6], [h[0] + 16 * s, h[1] + 9 * s + atk * 6, 1], [h[0] + 2 * s, h[1] + 10 * s]], true, .4), dk(col, .25), { d: 1.5 });
+    shade(x, P([[h[0] - 12 * s, h[1] + 6 * s], [h[0] - 11 * s, h[1] - 8 * s], [h[0] + 2 * s, h[1] - 12 * s], [h[0] + 12 * s, h[1] - 6 * s], [h[0] + 20 * s, h[1] - 1 * s], [h[0] + 20 * s, h[1] + 5 * s, 1], [h[0] + 4 * s, h[1] + 8 * s]], true, .5), col, { d: 2.8 });
+    shade(x, ell(h[0] + 15 * s, h[1] + 2 * s, 6 * s, 4.5 * s), lt(col, .2), { ol: 1, d: 1 }); shade(x, ell(h[0] + 20 * s, h[1] - .5 * s, 2.6 * s, 2 * s), INK, { ol: 0, flat: true });
+    for (const dx of [-8, -2]) { shade(x, circ(h[0] + dx * s, h[1] - 11 * s, 4.2 * s), dx < -4 ? dk(col, .2) : col, { d: 1.2 }); dot(x, h[0] + dx * s, h[1] - 11 * s, 1.8 * s, dk(col, .45)); }
+    glow(x, h[0] + 7 * s, h[1] - 4 * s, 5 * s, o.eye || "#2a1a10", .5); dot(x, h[0] + 7 * s, h[1] - 4 * s, 1.7 * s, o.eye && o.eye !== "#2a1a10" ? o.eye : INK);
+    if (atk > .2) for (let i = 0; i < 2; i++) shade(x, P([[h[0] + (10 + i * 5) * s, h[1] + 4 * s], [h[0] + (11 + i * 5) * s, h[1] + 8 * s, 1], [h[0] + (12 + i * 5) * s, h[1] + 4 * s]], true), "#f0e8d0", { ol: .6, flat: true });
+    return;
+  }
+  if (o.head === "deer") {
+    if (o.antlers) { x.save(); if (o.glowA) { x.globalCompositeOperation = "lighter"; glow(x, h[0] - 6 * s, h[1] - 26 * s, 26 * s, o.glowA, .35); x.restore(); x.save(); } for (const k of [1, 0]) { const c = k ? dk(o.antlers, .25) : o.antlers, bx = h[0] - 4 * s + (k ? -4 : 0) * s; const br = [[bx, h[1] - 8 * s], [bx - 6 * s, h[1] - 24 * s], [bx - 2 * s, h[1] - 38 * s], [bx - 10 * s, h[1] - 48 * s]]; line(x, br, 4.2 * s, INK, true); line(x, br, 2.4 * s, c, true); for (const [a, b] of [[1, [bx + 6 * s, h[1] - 30 * s]], [2, [bx + 6 * s, h[1] - 44 * s]], [2, [bx - 14 * s, h[1] - 36 * s]], [1, [bx - 16 * s, h[1] - 22 * s]]]) { line(x, [br[a], b], 3.6 * s, INK); line(x, [br[a], b], 1.8 * s, c); } } x.restore(); }
+    shade(x, P([[h[0] - 9 * s, h[1] + 3 * s], [h[0] - 8 * s, h[1] - 7 * s], [h[0] + 2 * s, h[1] - 8 * s], [h[0] + 16 * s, h[1] + 1 * s], [h[0] + 17 * s, h[1] + 5 * s, 1], [h[0] + 6 * s, h[1] + 7 * s]], true, .5), col, { d: 2.5 });
+    dot(x, h[0] + 16.5 * s, h[1] + 3 * s, 1.8 * s, INK);
+    for (const [dx, k] of [[-7, 1], [-3, 0]]) shade(x, P([[h[0] + dx * s, h[1] - 6 * s], [h[0] + (dx - 9) * s, h[1] - 14 * s, 1], [h[0] + (dx + 2) * s, h[1] - 9 * s]], true, .4), k ? dk(col, .2) : col, { d: 1 });
+    glow(x, h[0] + 4 * s, h[1] - 3 * s, 5 * s, o.eye, .5); shade(x, ell(h[0] + 4 * s, h[1] - 3 * s, 2.2 * s, 2.4 * s), o.eye === "#2a1a10" ? "#1a120c" : o.eye, { ol: 1, hi: .7 });
+    return;
+  }
+  return _qh2(x, h, o, t, atk);
+};
+// taches du faon (dessinées par-dessus le corps)
+const _quad0 = quad;
+quad = function (x, o, t) {
+  const r = _quad0(x, o, t);
+  if (o.spots) { const L = o.len || 70, H = o.h || 44; for (let i = 0; i < 9; i++) dot(x, -L * .3 + (i * 37 % 100) / 100 * L * .6, -H - 4 + (i * 53 % 100) / 100 * H * .3, 1.6, "rgba(255,250,235,.85)"); }
+  return r;
 };
 function petSprite(id, o = {}, t = 0, sc = 1) {
   const W = Math.ceil(220 * sc), H = Math.ceil(200 * sc), cv = mkCanvas(W, H), x = cv.getContext("2d");

@@ -66,6 +66,7 @@ p{margin:6px 0;line-height:1.45}
 @keyframes btnglow{50%{box-shadow:inset 0 1px 0 #ffffff30,0 0 30px #ff7a2aaa}}
 .row{display:flex;gap:8px;align-items:center;flex-wrap:wrap}.row.sp{justify-content:space-between}.col{display:flex;flex-direction:column;gap:8px}
 .grid{display:grid;gap:10px;grid-template-columns:repeat(auto-fill,minmax(var(--min,230px),1fr))}
+.grid.ctr{grid-template-columns:repeat(auto-fit,minmax(var(--min,230px),250px));justify-content:center}
 .card{background:var(--pan2);border:1px solid #2e221c;border-radius:4px;padding:10px;position:relative;transition:transform .2s,border-color .2s,box-shadow .2s;cursor:pointer;overflow:hidden}
 .card:hover{border-color:#7a5a2a;box-shadow:0 0 16px #ff6a2a22;transform:translateY(-2px)}
 .card.sel{border-color:var(--gold);box-shadow:0 0 0 1px var(--gold),0 0 22px #ffb04a44}
@@ -79,6 +80,7 @@ p{margin:6px 0;line-height:1.45}
 .rar0{color:#c8beaa}.rar1{color:#6ab0ff}.rar2{color:#c87aff}.rar3{color:#ffb848;text-shadow:0 0 8px #ff8a2a88}
 .slot{width:58px;height:58px;border-radius:4px;background:radial-gradient(#2a201c,#0e0a0a);border:1px solid #3a2a22;display:flex;align-items:center;justify-content:center;position:relative;cursor:pointer;box-shadow:inset 0 0 12px #000}
 .slot .ic{width:30px;height:30px}
+.slot img.itimg{width:100%;height:100%;object-fit:contain;padding:2px;pointer-events:none;filter:drop-shadow(0 2px 2px #000a)}
 .slot.r1{border-color:#3a6aaa;box-shadow:inset 0 0 12px #000,0 0 8px #3a6aaa55}.slot.r2{border-color:#8a4ac0;box-shadow:inset 0 0 12px #000,0 0 10px #8a4ac066}.slot.r3{border-color:#d0902a;box-shadow:inset 0 0 12px #000,0 0 14px #ffa03a88}
 .slot .tier{position:absolute;bottom:1px;right:3px;font-family:var(--f-head);font-size:10px;color:var(--gold2)}
 .slot .up{position:absolute;top:1px;left:3px;font-size:10px;color:var(--good);font-weight:800}
@@ -267,7 +269,7 @@ const CLASSES = {
   pretresse: {
     n: "Prêtresse de l'Aube", role: "soin", armor: "robe", wpn: "baton", rk: [3, 4], unlock: 0,
     lore: "Elle porte la dernière flamme du sanctuaire. Là où elle marche, la nuit recule.",
-    base: { hp: 25, dmg: [4, 7], prot: .05, spd: 4, crit: 2, dodge: 6 },
+    base: { hp: 26, dmg: [4, 8], prot: .05, spd: 4, crit: 3, dodge: 6 },
     pal: { cloth: "#d8d0bc", trim: "#d9b44a", metal: "#c9cfd6" },
     skills: {
       priere: { n: "Prière", ic: "heal", use: [2, 3, 4], t: "a", at: [1, 2, 3, 4], m: 0, heal: .3 },
@@ -315,14 +317,14 @@ const CLASSES = {
   menestrel: {
     n: "Ménestrel funèbre", role: "soutien", armor: "legere", wpn: "luth", rk: [2, 3, 4], unlock: 1,
     lore: "Il chante pour les morts depuis si longtemps que les vivants l'écoutent aussi.",
-    base: { hp: 27, dmg: [4, 8], prot: .05, spd: 6, crit: 4, dodge: 12 },
+    base: { hp: 28, dmg: [5, 9], prot: .05, spd: 6, crit: 5, dodge: 12 },
     pal: { cloth: "#4a2a4a", trim: "#c0a060", metal: "#8a8070" },
     skills: {
       hymne: { n: "Hymne guerrier", ic: "lute", use: [2, 3, 4], t: "aa", m: 0, afx: [{ k: "dmgUp", v: .2, t: 3 }], cd: 2, morale: 5 },
       complainte: { n: "Complainte", ic: "note", use: [2, 3, 4], t: "ae", at: [1, 2, 3, 4], m: 0, fx: [{ k: "weak", t: 2, ch: .8 }, { k: "spdDn", v: 2, t: 2, ch: .8 }] },
       berceuse: { n: "Berceuse", ic: "moon", use: [3, 4], t: "ae", at: [1, 2, 3], m: 0, fx: [{ k: "stun", t: 1, ch: .45 }], cd: 2 },
       vaillance: { n: "Air de vaillance", ic: "banner", use: [2, 3, 4], t: "aa", m: 0, heal: .07, morale: 12 },
-      dissonance: { n: "Dissonance", ic: "note", use: [1, 2, 3, 4], t: "e", at: [1, 2, 3, 4], m: .75, fx: [{ k: "mark", t: 2, ch: 1 }] },
+      dissonance: { n: "Dissonance", ic: "note", use: [1, 2, 3, 4], t: "e", at: [1, 2, 3, 4], m: .9, fx: [{ k: "mark", t: 2, ch: 1 }] },
       ballade: { n: "Ballade du vent", ic: "wind", use: [2, 3, 4], t: "aa", m: 0, afx: [{ k: "spdUp", v: 3, t: 3 }, { k: "dodgeUp", v: 10, t: 3 }] },
       couplet: { n: "Couplet moqueur", ic: "mask", use: [2, 3, 4], t: "e", at: [1, 2, 3, 4], m: .4, fx: [{ k: "vuln", t: 2, ch: 1 }, { k: "accDn", v: 15, t: 2, ch: 1 }] },
     },
@@ -435,12 +437,12 @@ const CLASSES = {
   necromancien: {
     n: "Nécromancien", role: "dps", armor: "robe", wpn: "faux", rk: [2, 3, 4], unlock: 2,
     lore: "Il parle aux morts. Ce qui l'inquiète, c'est qu'ils lui répondent.",
-    base: { hp: 25, dmg: [5, 9], prot: .05, spd: 4, crit: 4, dodge: 6 },
+    base: { hp: 27, dmg: [6, 10], prot: .05, spd: 4, crit: 5, dodge: 6 },
     pal: { cloth: "#1e2a24", trim: "#6ad0a0", metal: "#6a7068" },
     skills: {
-      drain: { n: "Drain de vie", ic: "drain", use: [2, 3, 4], t: "e", at: [1, 2, 3, 4], m: .9, leech: .5, tags: ["ombre"] },
+      drain: { n: "Drain de vie", ic: "drain", use: [2, 3, 4], t: "e", at: [1, 2, 3, 4], m: 1, leech: .5, tags: ["ombre"] },
       malediction: { n: "Malédiction", ic: "curse", use: [2, 3, 4], t: "e", at: [1, 2, 3, 4], m: .3, fx: [{ k: "vuln", t: 3, ch: 1 }, { k: "weak", t: 2, ch: .8 }] },
-      nuee_os: { n: "Nuée d'os", ic: "bones", use: [3, 4], t: "ae", at: [1, 2, 3, 4], m: .45 },
+      nuee_os: { n: "Nuée d'os", ic: "bones", use: [3, 4], t: "ae", at: [1, 2, 3, 4], m: .52 },
       os_garde: { n: "Ossements gardiens", ic: "bones", use: [2, 3, 4], t: "a", at: [1, 2, 3, 4], m: 0, fx: [{ k: "shield", v: .3, t: 2, ch: 1 }] },
       peste: { n: "Souffle de peste", ic: "skull", use: [2, 3, 4], t: "ae", at: [1, 2, 3], m: .2, fx: [{ k: "poison", v: .45, t: 3, ch: 1 }] },
       moisson: { n: "Moisson d'âmes", ic: "scythe", use: [1, 2, 3], t: "e", at: [1, 2], m: 1.1, bonus: { fallen: 1, x: .25 }, leech: .25 },
@@ -457,6 +459,129 @@ const CLASSES = {
     },
   },
 };
+// ── nouvelles classes ──
+Object.assign(CLASSES, {
+  gardien_runes: {
+    n: "Gardien des runes", role: "tank", armor: "lourde", wpn: "marteau", rk: [1, 2], unlock: 3,
+    lore: "Il a gravé ses serments dans la pierre et dans sa chair. Aucune des deux ne cède.",
+    base: { hp: 40, dmg: [6, 10], prot: .18, spd: 2, crit: 3, dodge: 2 },
+    pal: { cloth: "#2e3a48", trim: "#7ad0ff", metal: "#8a929a" },
+    skills: {
+      coup_runique: { n: "Coup runique", ic: "hammer", use: [1, 2], t: "e", at: [1, 2], m: 1.05, fx: [{ k: "stun", t: 1, ch: .3 }] },
+      peau_pierre: { n: "Peau de pierre", ic: "shield", use: [1, 2, 3], t: "s", m: 0, sfx: [{ k: "protUp", v: .35, t: 2 }, { k: "prov", t: 2 }] },
+      rune_garde: { n: "Rune de garde", ic: "guard", use: [1, 2, 3], t: "a", at: [1, 2, 3, 4], m: 0, fx: [{ k: "shield", v: .25, t: 2, ch: 1 }] },
+      seisme: { n: "Séisme", ic: "stun", use: [1, 2], t: "ae", at: [1, 2], m: .55, fx: [{ k: "stun", t: 1, ch: .35 }], cd: 2 },
+      marteau_lance: { n: "Marteau lancé", ic: "hammer", use: [1, 2, 3], t: "e", at: [2, 3, 4], m: .8, fx: [{ k: "spdDn", v: 3, t: 2, ch: 1 }] },
+      cercle_runes: { n: "Cercle de runes", ic: "wall", use: [1, 2, 3, 4], t: "aa", m: 0, afx: [{ k: "shield", v: .1, t: 2 }, { k: "protUp", v: .08, t: 2 }], cd: 2, morale: 4 },
+      echo_tonnerre: { n: "Écho du tonnerre", ic: "riposte", use: [1, 2], t: "s", m: 0, sfx: [{ k: "riposte", v: .7, t: 2 }, { k: "thorns", v: .3, t: 2 }] },
+    },
+    ult: { n: "Mur de runes", ic: "wall", t: "aa", m: 0, afx: [{ k: "shield", v: .35, t: 3 }], sfx: [{ k: "prov", t: 2 }, { k: "protUp", v: .2, t: 3 }], morale: 10, fx_anim: "holy" },
+    evos: {
+      thane_pierre: { n: "Thane de pierre", d: "La montagne a pris sa place. Rien ne passe.", pas: [{ k: "stat", s: "prot", v: .1 }, { k: "stat", s: "hp", v: .15 }, { k: "shieldPow", v: .3 }],
+        skills: { montagne: { n: "Montagne", ic: "wall", use: [1, 2], t: "s", m: 0, sfx: [{ k: "protUp", v: .4, t: 3 }, { k: "prov", t: 3 }, { k: "shield", v: .2, t: 2 }], cd: 2 }, eboulis: { n: "Éboulis", ic: "stun", use: [1, 2], t: "ae", at: [1, 2, 3], m: .7, fx: [{ k: "stun", t: 1, ch: .4 }] } },
+        ult: { n: "Cœur de montagne", ic: "wall", t: "aa", m: 0, afx: [{ k: "shield", v: .5, t: 3 }, { k: "protUp", v: .2, t: 3 }], sfx: [{ k: "prov", t: 3 }], morale: 12, fx_anim: "holy" } },
+      forge_tonnerre: { n: "Forge-tonnerre", d: "Ses runes appellent la foudre, et la foudre répond.", pas: [{ k: "stat", s: "dmg", v: .25 }, { k: "stat", s: "crit", v: 5 }, { k: "aoeDmg", v: .15 }],
+        skills: { eclair: { n: "Éclair runique", ic: "flare", use: [1, 2, 3], t: "e", at: [1, 2, 3, 4], m: 1.2, fx: [{ k: "stun", t: 1, ch: .35 }] }, tempete: { n: "Tempête de runes", ic: "rain", use: [1, 2, 3], t: "ae", at: [1, 2, 3, 4], m: .6, fx: [{ k: "accDn", v: 10, t: 2, ch: 1 }] } },
+        ult: { n: "Colère du ciel", ic: "flare", t: "ae", at: [1, 2, 3, 4], m: 1.4, fx: [{ k: "stun", t: 1, ch: .5 }], morale: 8, fx_anim: "fire" } },
+    },
+  },
+  medecin_peste: {
+    n: "Médecin de peste", role: "soin", armor: "legere", wpn: "encensoir", rk: [2, 3, 4], unlock: 1,
+    lore: "Sous le masque, personne n'a jamais vu son visage. Il soigne ce que les prêtres ont abandonné.",
+    base: { hp: 26, dmg: [4, 8], prot: .05, spd: 5, crit: 3, dodge: 8 },
+    pal: { cloth: "#2a2622", trim: "#b8a070", metal: "#8a8070" },
+    skills: {
+      remede: { n: "Remède", ic: "flask", use: [2, 3, 4], t: "a", at: [1, 2, 3, 4], m: 0, heal: .27 },
+      fumigation: { n: "Fumigation", ic: "smoke", use: [2, 3, 4], t: "aa", m: 0, heal: .1, cleanse: true, cd: 2 },
+      scalpel: { n: "Scalpel", ic: "dagger", use: [1, 2, 3], t: "e", at: [1, 2, 3], m: .8, fx: [{ k: "bleed", v: .4, t: 3, ch: 1 }] },
+      miasme: { n: "Miasme", ic: "skull", use: [2, 3, 4], t: "ae", at: [1, 2, 3, 4], m: .25, fx: [{ k: "poison", v: .35, t: 3, ch: 1 }] },
+      suture: { n: "Suture", ic: "heal", use: [2, 3, 4], t: "a", at: [1, 2, 3, 4], m: 0, heal: .15, fx: [{ k: "regen", v: .07, t: 3, ch: 1 }, { k: "protUp", v: .1, t: 2, ch: 1 }] },
+      sangsues: { n: "Sangsues", ic: "drain", use: [2, 3, 4], t: "a", at: [1, 2, 3, 4], m: 0, heal: .12, cleanse: true },
+      quarantaine: { n: "Quarantaine", ic: "eye", use: [2, 3, 4], t: "e", at: [1, 2, 3, 4], m: 0, fx: [{ k: "weak", t: 2, ch: .9 }, { k: "accDn", v: 10, t: 2, ch: 1 }] },
+    },
+    ult: { n: "Remède miracle", ic: "flask", t: "aa", m: 0, heal: .45, cleanse: true, revive: .3, afx: [{ k: "regen", v: .06, t: 3 }], morale: 12, fx_anim: "nature" },
+    evos: {
+      chirurgien: { n: "Chirurgien", d: "Ses mains sont sûres, ses lames propres. Il arrache les blessés à la tombe.", pas: [{ k: "stat", s: "healPow", v: .3 }, { k: "overhealShield", v: .4 }],
+        skills: { operation: { n: "Opération", ic: "heal", use: [2, 3, 4], t: "a", at: [1, 2, 3, 4], m: 0, heal: .5, cleanse: true, cd: 2 }, garrot: { n: "Garrot", ic: "chain", use: [2, 3, 4], t: "a", at: [1, 2, 3, 4], m: 0, fx: [{ k: "shield", v: .2, t: 2, ch: 1 }, { k: "regen", v: .08, t: 3, ch: 1 }] } },
+        ult: { n: "Résurrection", ic: "heal", t: "aa", m: 0, heal: .6, cleanse: true, revive: .5, morale: 15, fx_anim: "holy" } },
+      apothicaire: { n: "Apothicaire noir", d: "Il a compris que le poison et le remède ne diffèrent que par la dose.", pas: [{ k: "dotPow", v: .4 }, { k: "stat", s: "dmg", v: .15 }, { k: "debuffPow", v: .15 }],
+        skills: { bubons: { n: "Peste bubonique", ic: "skull", use: [2, 3, 4], t: "ae", at: [1, 2, 3, 4], m: .35, fx: [{ k: "poison", v: .45, t: 3, ch: 1 }, { k: "vuln", t: 2, ch: .6 }] }, elixir: { n: "Élixir corrosif", ic: "flask", use: [2, 3, 4], t: "e", at: [1, 2, 3, 4], m: .5, det: "poison", detX: 1.5 } },
+        ult: { n: "Grande Peste", ic: "skull", t: "ae", at: [1, 2, 3, 4], m: .7, fx: [{ k: "poison", v: .9, t: 3, ch: 1 }, { k: "weak", t: 2, ch: 1 }], morale: 8, fx_anim: "poison" } },
+    },
+  },
+  chasseur_sorcieres: {
+    n: "Chasseur de sorcières", role: "dps", armor: "moyenne", wpn: "rapiere", rk: [1, 2, 3], unlock: 3,
+    lore: "Une lame d'argent, une chaîne bénite et une liste de noms qui ne raccourcit jamais.",
+    base: { hp: 28, dmg: [6, 11], prot: .06, spd: 6, crit: 8, dodge: 10 },
+    pal: { cloth: "#2a2420", trim: "#c0a060", metal: "#a0a8b0" },
+    skills: {
+      estoc: { n: "Estoc", ic: "sword", use: [1, 2, 3], t: "e", at: [1, 2], m: 1.05, bonus: { tag: "impie", x: 1.4 }, tags: ["sacré"] },
+      chaine_argent: { n: "Chaîne d'argent", ic: "chain", use: [1, 2, 3], t: "e", at: [2, 3, 4], m: .5, pull: 1, fx: [{ k: "stun", t: 1, ch: .5 }] },
+      eau_benite: { n: "Eau bénite", ic: "flask", use: [2, 3], t: "ae", at: [1, 2, 3], m: .45, bonus: { tag: "impie", x: 1.6 }, fx: [{ k: "burn", v: .3, t: 2, ch: 1 }], tags: ["sacré"] },
+      marque_bucher: { n: "Marque du bûcher", ic: "mark", use: [1, 2, 3, 4], t: "e", at: [1, 2, 3, 4], m: .2, fx: [{ k: "mark", t: 3, ch: 1 }, { k: "vuln", t: 2, ch: .9 }] },
+      fente: { n: "Fente", ic: "charge", use: [2, 3], t: "e", at: [1, 2], m: .95, mv: 1, cr: 10 },
+      pas_cote: { n: "Pas de côté", ic: "back", use: [1, 2, 3], t: "s", m: 0, sfx: [{ k: "dodgeUp", v: 20, t: 2 }, { k: "critUp", v: 15, t: 2 }], mv: -1 },
+      sentence: { n: "Sentence", ic: "skull", use: [1, 2], t: "e", at: [1, 2, 3], m: .8, bonus: { low: .4, x: 2 }, cd: 1 },
+    },
+    ult: { n: "Bûcher des hérétiques", ic: "fire", t: "ae", at: [1, 2, 3, 4], m: 1.1, bonus: { tag: "impie", x: 1.5 }, fx: [{ k: "burn", v: .5, t: 3, ch: 1 }], morale: 8, fx_anim: "fire" },
+    evos: {
+      purificateur: { n: "Purificateur", d: "Le feu ne ment pas. Il ne laisse que ce qui est pur.", pas: [{ k: "tagDmg", tag: "impie", v: .3 }, { k: "burnPow", v: .3 }, { k: "stat", s: "dmg", v: .1 }],
+        skills: { feu_purif: { n: "Feu purificateur", ic: "flames", use: [1, 2, 3], t: "ae", at: [1, 2, 3, 4], m: .6, fx: [{ k: "burn", v: .45, t: 3, ch: 1 }], cd: 1, tags: ["feu", "sacré"] }, exorcisme_lame: { n: "Lame exorciste", ic: "sword", use: [1, 2, 3], t: "e", at: [1, 2, 3], m: 1.3, bonus: { tag: "impie", x: 1.8 }, tags: ["sacré"] } },
+        ult: { n: "Jugement des flammes", ic: "fire", t: "ae", at: [1, 2, 3, 4], m: 1.5, bonus: { tag: "impie", x: 1.4 }, fx: [{ k: "burn", v: .6, t: 3, ch: 1 }], morale: 8, fx_anim: "fire" } },
+      traqueur: { n: "Traqueur", d: "Il n'oublie aucune proie. Elle finit toujours par tomber.", pas: [{ k: "markDmg", v: .3 }, { k: "stat", s: "crit", v: 8 }, { k: "execute", v: .25 }],
+        skills: { traque: { n: "Traque", ic: "eye", use: [1, 2, 3, 4], t: "e", at: [1, 2, 3, 4], m: 0, fx: [{ k: "mark", t: 3, ch: 1 }], sfx: [{ k: "critUp", v: 25, t: 2 }] }, coup_arret: { n: "Coup d'arrêt", ic: "sword", use: [1, 2, 3], t: "e", at: [1, 2, 3], m: 1.5, cr: 15, bonus: { st: "mark", x: 1.5 }, cd: 1 } },
+        ult: { n: "Mise à mort", ic: "skull", t: "e", at: [1, 2, 3, 4], m: 3.2, cr: 40, bonus: { low: .5, x: 1.5 }, morale: 10, fx_anim: "shadow" } },
+    },
+  },
+  hallebardier: {
+    n: "Hallebardier", role: "dps", armor: "lourde", wpn: "hallebarde", rk: [1, 2, 3], unlock: 2,
+    lore: "Un ancien de la garde du roi. Sa hallebarde tient trois hommes à distance, et les tue tous.",
+    base: { hp: 32, dmg: [7, 12], prot: .12, spd: 3, crit: 5, dodge: 3 },
+    pal: { cloth: "#6a4a14", trim: "#c0a040", metal: "#9aa3ad" },
+    skills: {
+      taille: { n: "Taille", ic: "axe", use: [1, 2], t: "e", at: [1, 2], m: 1.15 },
+      estoc_long: { n: "Estoc de hallebarde", ic: "pierce", use: [2, 3], t: "e", at: [1, 2, 3], m: 1, cr: 5 },
+      fauche: { n: "Fauche", ic: "scythe", use: [1, 2], t: "ae", at: [1, 2], m: .7, fx: [{ k: "bleed", v: .3, t: 2, ch: 1 }] },
+      crochet: { n: "Crochet", ic: "chain", use: [1, 2, 3], t: "e", at: [2, 3], m: .6, pull: 1, fx: [{ k: "protDn", v: .1, t: 2, ch: 1 }] },
+      herse: { n: "Herse de piques", ic: "wall", use: [1, 2], t: "s", m: 0, sfx: [{ k: "riposte", v: .8, t: 2 }, { k: "protUp", v: .1, t: 2 }] },
+      bec_corbin: { n: "Bec-de-corbin", ic: "hammer", use: [1, 2], t: "e", at: [1, 2], m: .9, fx: [{ k: "stun", t: 1, ch: .55 }, { k: "protDn", v: .15, t: 2, ch: 1 }] },
+      repousser: { n: "Repousser", ic: "charge", use: [1, 2], t: "e", at: [1], m: .7, push: 1, fx: [{ k: "weak", t: 2, ch: .8 }] },
+    },
+    ult: { n: "Mur de piques", ic: "wall", t: "ae", at: [1, 2, 3], m: 1.2, fx: [{ k: "bleed", v: .4, t: 3, ch: 1 }], sfx: [{ k: "riposte", v: 1, t: 2 }], morale: 10, fx_anim: "blood" },
+    evos: {
+      lansquenet: { n: "Lansquenet", d: "Mercenaire sans maître. Il fauche les rangs comme les blés.", pas: [{ k: "stat", s: "dmg", v: .25 }, { k: "aoeDmg", v: .2 }, { k: "stat", s: "crit", v: 4 }],
+        skills: { moulinet: { n: "Moulinet", ic: "whirl", use: [1, 2], t: "ae", at: [1, 2, 3], m: .75 }, coup_boucher: { n: "Coup du boucher", ic: "axe", use: [1, 2], t: "e", at: [1, 2], m: 1.6, cd: 1 } },
+        ult: { n: "Charge des piques", ic: "charge", t: "ae", at: [1, 2, 3, 4], m: 1.6, fx: [{ k: "bleed", v: .4, t: 3, ch: 1 }], morale: 10, fx_anim: "blood" } },
+      garde_roi: { n: "Garde du roi", d: "Le roi est mort. Sa garde, elle, n'a jamais quitté son poste.", pas: [{ k: "stat", s: "prot", v: .1 }, { k: "stat", s: "hp", v: .15 }, { k: "guardProt", v: .15 }],
+        skills: { sous_hallebarde: { n: "Sous ma hallebarde", ic: "guard", use: [1, 2, 3], t: "a", at: [2, 3, 4], m: 0, guard: 3, sfx: [{ k: "protUp", v: .15, t: 3 }] }, rempart_acier: { n: "Rempart d'acier", ic: "shield", use: [1, 2], t: "s", m: 0, sfx: [{ k: "prov", t: 2 }, { k: "protUp", v: .35, t: 2 }, { k: "riposte", v: .6, t: 2 }] } },
+        ult: { n: "Le roi est protégé", ic: "crown", t: "aa", m: 0, afx: [{ k: "shield", v: .35, t: 3 }], sfx: [{ k: "prov", t: 3 }, { k: "riposte", v: 1, t: 3 }], morale: 12, fx_anim: "holy" } },
+    },
+  },
+  exorciste: {
+    n: "Exorciste", role: "soutien", armor: "robe", wpn: "croix", rk: [2, 3, 4], unlock: 4,
+    lore: "Il a regardé le démon dans les yeux et a récité jusqu'au bout. Depuis, il ne dort plus.",
+    base: { hp: 25, dmg: [5, 8], prot: .04, spd: 5, crit: 3, dodge: 7 },
+    pal: { cloth: "#1a1a1e", trim: "#d8d0c0", metal: "#c9cfd6" },
+    skills: {
+      exhortation: { n: "Exhortation", ic: "banner", use: [2, 3, 4], t: "aa", m: 0, afx: [{ k: "dmgUp", v: .15, t: 2 }, { k: "accUp", v: 10, t: 2 }], morale: 6, cd: 1 },
+      rite: { n: "Rite d'exorcisme", ic: "ray", use: [2, 3, 4], t: "e", at: [1, 2, 3, 4], m: .7, bonus: { tag: "impie", x: 2 }, fx: [{ k: "stun", t: 1, ch: .3 }], tags: ["sacré"] },
+      benir_armes: { n: "Bénir les armes", ic: "bless", use: [2, 3, 4], t: "a", at: [1, 2, 3, 4], m: 0, fx: [{ k: "dmgUp", v: .3, t: 3, ch: 1 }, { k: "critUp", v: 10, t: 3, ch: 1 }] },
+      aspersion: { n: "Aspersion", ic: "cleanse", use: [2, 3, 4], t: "aa", m: 0, heal: .06, cleanse: true, cd: 1 },
+      anatheme: { n: "Anathème", ic: "curse", use: [2, 3, 4], t: "ae", at: [1, 2, 3, 4], m: .15, fx: [{ k: "weak", t: 2, ch: .85 }, { k: "vuln", t: 2, ch: .6 }] },
+      litanie: { n: "Litanie", ic: "bell", use: [2, 3, 4], t: "aa", m: 0, afx: [{ k: "protUp", v: .12, t: 2 }, { k: "regen", v: .04, t: 2 }], morale: 4, cd: 2 },
+      condamnation: { n: "Condamnation", ic: "mark", use: [2, 3, 4], t: "e", at: [1, 2, 3, 4], m: 0, fx: [{ k: "mark", t: 3, ch: 1 }, { k: "spdDn", v: 3, t: 2, ch: 1 }] },
+    },
+    ult: { n: "Rite majeur", ic: "sun", t: "aa", m: 0, heal: .25, cleanse: true, afx: [{ k: "dmgUp", v: .35, t: 3 }, { k: "protUp", v: .15, t: 3 }], efx: [{ k: "weak", t: 2 }], morale: 22, fx_anim: "holy" },
+    evos: {
+      confesseur: { n: "Confesseur", d: "Il écoute les péchés du groupe et leur rend la force d'avancer.", pas: [{ k: "buffPow", v: .3 }, { k: "moralePow", v: .5 }, { k: "stat", s: "healPow", v: .2 }],
+        skills: { absolution: { n: "Absolution", ic: "heal", use: [2, 3, 4], t: "a", at: [1, 2, 3, 4], m: 0, heal: .35, cleanse: true, fx: [{ k: "regen", v: .06, t: 2, ch: 1 }] }, penitence: { n: "Pénitence partagée", ic: "banner", use: [2, 3, 4], t: "aa", m: 0, afx: [{ k: "critUp", v: 15, t: 2 }, { k: "dmgUp", v: .15, t: 2 }], morale: 6 } },
+        ult: { n: "Grâce", ic: "sun", t: "aa", m: 0, heal: .5, revive: .3, afx: [{ k: "dmgUp", v: .4, t: 3 }], morale: 25, fx_anim: "holy" } },
+      penitent: { n: "Pénitent", d: "Sa chair paie pour les fautes du monde. Sa croix frappe pour elles.", pas: [{ k: "lowHpDmg", v: .35 }, { k: "stat", s: "dmg", v: .3 }, { k: "stat", s: "hp", v: .1 }],
+        skills: { flagellation: { n: "Flagellation", ic: "blood", use: [1, 2, 3, 4], t: "s", m: 0, selfDmg: .12, sfx: [{ k: "dmgUp", v: .5, t: 3 }, { k: "critUp", v: 15, t: 3 }] }, croix_fer: { n: "Croix de fer", ic: "mace", use: [1, 2, 3], t: "e", at: [1, 2], m: 1.3, bonus: { tag: "impie", x: 1.5 }, tags: ["sacré"] } },
+        ult: { n: "Calvaire", ic: "sun", t: "ae", at: [1, 2, 3, 4], m: 1.3, heal: .15, healAllies: true, bonus: { tag: "impie", x: 1.5 }, morale: 12, fx_anim: "holy" } },
+    },
+  },
+});
 const CLASS_IDS = Object.keys(CLASSES);
 const EVO_LVL = 5, APEX_LVL = 12, MAX_LVL = 20;
 // paliers d'apogée (niveau 12) : un bonus par évolution
@@ -481,6 +606,16 @@ const APEX = {
   demoniste: { n: "Prince des enfers", pas: [{ k: "stat", s: "leech", v: .1 }, { k: "stat", s: "dmg", v: .2 }] },
   liche: { n: "Liche-roi", pas: [{ k: "stat", s: "dmg", v: .2 }, { k: "dotPow", v: .3 }] },
   maitre_tombes: { n: "Seigneur des ossuaires", pas: [{ k: "petDmg", v: .5 }, { k: "shieldPow", v: .4 }] },
+  thane_pierre: { n: "Roi sous la montagne", pas: [{ k: "stat", s: "prot", v: .08 }, { k: "shieldPow", v: .3 }] },
+  forge_tonnerre: { n: "Marteau des cieux", pas: [{ k: "stat", s: "dmg", v: .15 }, { k: "aoeDmg", v: .15 }] },
+  chirurgien: { n: "Maître-barbier", pas: [{ k: "stat", s: "healPow", v: .25 }, { k: "overhealShield", v: .4 }] },
+  apothicaire: { n: "Seigneur de la peste", pas: [{ k: "dotPow", v: .4 }, { k: "debuffPow", v: .15 }] },
+  purificateur: { n: "Grand Purificateur", pas: [{ k: "tagDmg", tag: "impie", v: .3 }, { k: "burnPow", v: .3 }] },
+  traqueur: { n: "Fléau des sorcières", pas: [{ k: "markDmg", v: .3 }, { k: "stat", s: "crit", v: 8 }] },
+  lansquenet: { n: "Capitaine des lansquenets", pas: [{ k: "stat", s: "dmg", v: .15 }, { k: "aoeDmg", v: .15 }] },
+  garde_roi: { n: "Dernier garde du roi", pas: [{ k: "stat", s: "prot", v: .08 }, { k: "guardProt", v: .15 }] },
+  confesseur: { n: "Grand Confesseur", pas: [{ k: "buffPow", v: .3 }, { k: "moralePow", v: .3 }] },
+  penitent: { n: "Saint Pénitent", pas: [{ k: "lowHpDmg", v: .25 }, { k: "stat", s: "dmg", v: .2 }] },
 };
 // traits aléatoires des recrues : ce qui rend chaque héros unique
 const TRAITS = {
@@ -507,16 +642,16 @@ const SURNAMES = ["le Pieux", "Cœur-de-Fer", "la Balafrée", "Main-Rouge", "des
 
 // ── Compagnons : ils agissent seuls à la fin de chaque tour ──
 const PETS = {
-  loup: { n: "Loup des cendres", role: "dps", starter: 1, d: "Fidèle et féroce, il traque ce qui saigne.", col: "#5a5550",
+  loup: { n: "Loup des cendres", role: "dps", starter: 1, cost: 400, d: "Fidèle et féroce, il traque ce qui saigne.", col: "#5a5550",
     sk: [{ n: "Morsure", m: .9, t: "e", at: [1, 2], fx: [{ k: "bleed", v: .4, t: 3, ch: .8 }] }, { n: "Hurlement de meute", t: "aa", afx: [{ k: "dmgUp", v: .12, t: 2 }], every: 3 }],
     evo: { n: "Fenrir des cendres", d: "Un loup géant aux yeux de braise.", sk: { n: "Curée de Fenrir", m: 1.3, t: "ae", at: [1, 2], fx: [{ k: "bleed", v: .5, t: 3, ch: 1 }] } } },
-  corbeau: { n: "Corbeau de mauvais augure", role: "soutien", starter: 1, d: "Il désigne les condamnés. Ses présages ne mentent jamais.", col: "#1c1c22",
+  corbeau: { n: "Corbeau de mauvais augure", role: "soutien", starter: 1, cost: 400, d: "Il désigne les condamnés. Ses présages ne mentent jamais.", col: "#1c1c22",
     sk: [{ n: "Œil arraché", m: .5, t: "e", at: [1, 2, 3, 4], fx: [{ k: "mark", t: 2, ch: 1 }, { k: "accDn", v: 10, t: 2, ch: 1 }] }, { n: "Funeste présage", t: "ae", at: [1, 2, 3, 4], fx: [{ k: "vuln", t: 2, ch: .7 }], every: 3 }],
     evo: { n: "Corbeau d'Odin", d: "Il voit le passé et l'avenir. Surtout la fin.", sk: { n: "Nuée de présages", m: .5, t: "ae", at: [1, 2, 3, 4], fx: [{ k: "mark", t: 2, ch: 1 }, { k: "vuln", t: 2, ch: 1 }] } } },
-  chouette: { n: "Chouette blanche", role: "soin", starter: 1, d: "Un esprit du sanctuaire, venu veiller sur les vivants.", col: "#e8e4d8",
+  chouette: { n: "Chouette blanche", role: "soin", starter: 1, cost: 400, d: "Un esprit du sanctuaire, venu veiller sur les vivants.", col: "#e8e4d8",
     sk: [{ n: "Plume apaisante", t: "low", heal: .14 }, { n: "Vent sacré", t: "aa", heal: .06, cleanse1: true, every: 3 }],
     evo: { n: "Grand-duc de l'Aube", d: "Ses ailes brillent comme un vitrail.", sk: { n: "Ailes de lumière", t: "aa", heal: .14, cleanse1: true } } },
-  molosse: { n: "Molosse spectral", role: "tank", starter: 1, d: "Le chien de garde d'un seigneur mort. Il garde toujours.", col: "#6a8aa0",
+  molosse: { n: "Molosse spectral", role: "tank", starter: 1, cost: 400, d: "Le chien de garde d'un seigneur mort. Il garde toujours.", col: "#6a8aa0",
     sk: [{ n: "Garde spectrale", t: "low", shield: .18 }, { n: "Morsure glacée", m: .7, t: "e", at: [1, 2], fx: [{ k: "spdDn", v: 3, t: 2, ch: 1 }], every: 2 }],
     evo: { n: "Cerbère pâle", d: "Trois têtes, trois fois plus de vigilance.", sk: { n: "Triple garde", t: "aa", shield: .14 } } },
   chat_noir: { n: "Chat noir", role: "soutien", unlock: 1, cost: 600, d: "Il porte malheur… à vos ennemis. Et il trouve toujours de l'or.", col: "#141418", gold: .15,
@@ -543,6 +678,24 @@ const PETS = {
   drake: { n: "Drakonnet de cendre", role: "dps", unlock: 5, cost: 3200, d: "Un jeune dragon. Loyal jusqu'à la mort, et au-delà.", col: "#4a2a3a",
     sk: [{ n: "Souffle de cendre", m: .5, t: "ae", at: [1, 2, 3], fx: [{ k: "burn", v: .4, t: 3, ch: 1 }] }, { n: "Écailles", t: "aa", afx: [{ k: "protUp", v: .1, t: 2 }], every: 3 }],
     evo: { n: "Dragon de cendre", d: "Ses ailes portent l'ombre du Roi.", sk: { n: "Souffle infernal", m: .9, t: "ae", at: [1, 2, 3, 4], fx: [{ k: "burn", v: .6, t: 3, ch: 1 }] } } },
+  renard: { n: "Renard des cendres", role: "soutien", starter: 1, cost: 400, d: "Rusé comme le diable. Il égare l'ennemi et montre les failles.", col: "#b05a24",
+    sk: [{ n: "Morsure vive", m: .6, t: "e", at: [1, 2, 3], fx: [{ k: "mark", t: 2, ch: 1 }] }, { n: "Ruse", t: "aa", afx: [{ k: "dodgeUp", v: 10, t: 2 }, { k: "critUp", v: 8, t: 2 }], every: 3 }],
+    evo: { n: "Renard à neuf queues", d: "Ses queues brûlent d'un feu froid qui trompe les yeux.", sk: { n: "Feu trompeur", m: .5, t: "ae", at: [1, 2, 3, 4], fx: [{ k: "accDn", v: 15, t: 2, ch: 1 }, { k: "mark", t: 2, ch: .6 }] } } },
+  ours: { n: "Ourson des cavernes", role: "tank", starter: 1, cost: 400, d: "Encore petit, déjà plus large qu'un homme. Il se dresse devant les blessés.", col: "#5a4030",
+    sk: [{ n: "Dos rond", t: "low", shield: .16 }, { n: "Coup de patte", m: .8, t: "e", at: [1, 2], fx: [{ k: "weak", t: 2, ch: .6 }], every: 2 }],
+    evo: { n: "Ours des cavernes", d: "Une montagne de muscles et de griffes.", sk: { n: "Rugissement", t: "aa", shield: .12, afx: [{ k: "protUp", v: .1, t: 2 }] } } },
+  cerf: { n: "Faon blanc", role: "soin", starter: 1, cost: 400, d: "On dit qu'il naît là où un saint est mort. L'herbe repousse sous ses pas.", col: "#e8e0d0",
+    sk: [{ n: "Souffle tiède", t: "low", heal: .11, regen: .05 }, { n: "Clairière", t: "aa", heal: .05, every: 3 }],
+    evo: { n: "Cerf-roi", d: "Ses bois portent la lumière de l'aube.", sk: { n: "Bois de lumière", t: "aa", heal: .12, cleanse1: true } } },
+  vipere: { n: "Vipère cendrée", role: "dps", starter: 1, cost: 400, d: "Elle dort dans la cendre chaude. Son venin ronge lentement.", col: "#6a6a5a",
+    sk: [{ n: "Crochets", m: .55, t: "e", at: [1, 2, 3, 4], fx: [{ k: "poison", v: .55, t: 3, ch: 1 }] }, { n: "Sifflement", t: "ae", at: [1, 2], fx: [{ k: "spdDn", v: 2, t: 2, ch: .8 }], every: 3 }],
+    evo: { n: "Basilic", d: "Son regard fige le sang dans les veines.", sk: { n: "Regard pétrifiant", m: .5, t: "ae", at: [1, 2, 3, 4], fx: [{ k: "poison", v: .5, t: 3, ch: 1 }, { k: "stun", t: 1, ch: .25 }] } } },
+  araignee: { n: "Tisseuse", role: "soutien", unlock: 3, cost: 1600, d: "Une araignée grosse comme un chat. Ses toiles collent même aux ombres.", col: "#2a2420",
+    sk: [{ n: "Toile", t: "e", at: [1, 2, 3, 4], fx: [{ k: "spdDn", v: 3, t: 2, ch: 1 }, { k: "dodgeDn", v: 10, t: 2, ch: 1 }] }, { n: "Morsure", m: .6, t: "e", at: [1, 2], fx: [{ k: "poison", v: .4, t: 3, ch: 1 }], every: 2 }],
+    evo: { n: "Reine-tisseuse", d: "Le marais entier est sa toile.", sk: { n: "Cocon", m: .3, t: "ae", at: [1, 2, 3, 4], fx: [{ k: "stun", t: 1, ch: .3 }, { k: "spdDn", v: 3, t: 2, ch: 1 }] } } },
+  gargouille: { n: "Gargouillon", role: "tank", unlock: 4, cost: 2400, d: "Tombé d'une cathédrale en ruine. La pierre arrête les coups qui vous sont destinés.", col: "#6a6a68",
+    sk: [{ n: "Peau de pierre", t: "low", shield: .2 }, { n: "Griffes de granit", m: .9, t: "e", at: [1, 2], fx: [{ k: "protDn", v: .1, t: 2, ch: 1 }], every: 2 }],
+    evo: { n: "Gargouille de cathédrale", d: "Ses ailes de pierre couvrent tout le groupe.", sk: { n: "Ailes de pierre", t: "aa", shield: .15, afx: [{ k: "protUp", v: .08, t: 2 }] } } },
 };
 const PET_IDS = Object.keys(PETS);
 const PET_EVO_LVL = 10;
@@ -685,6 +838,11 @@ const GEAR_NAMES = {
   arbaletriere: { wpn: ["Arbalète de chasse", "Arbalète de rempart", "Arbalète à cric", "Arbalète de siège", "Baliste de poing"], arm: ["Gambison de milice", "Brigandine", "Cuirasse de garde", "Armure du rempart", "Plates de la Capitaine"] },
   pyromancien: { wpn: ["Carnet brûlé", "Grimoire de flammes", "Tome du brasier", "Codex infernal", "Livre du Soleil noir"], arm: ["Robe roussie", "Robe d'apprenti", "Robe de mage", "Manteau du brasier", "Parure de l'Archimage"] },
   necromancien: { wpn: ["Faux de fossoyeur", "Faux d'os", "Faux funéraire", "Moissonneuse d'âmes", "Faux de la Liche"], arm: ["Linceul", "Robe de fossoyeur", "Robe d'ossuaire", "Manteau des tombes", "Parure du Seigneur des morts"] },
+  gardien_runes: { wpn: ["Maillet de carrier", "Marteau gravé", "Marteau runique", "Marteau du tonnerre", "Marteau des Ancêtres"], arm: ["Peaux et mailles", "Broigne de pierre", "Plates runiques", "Armure du Thane", "Carapace des Ancêtres"] },
+  medecin_peste: { wpn: ["Encensoir de cuivre", "Encensoir de fer", "Encensoir d'argent", "Encensoir du lazaret", "Encensoir de la Grande Peste"], arm: ["Manteau ciré", "Manteau de lazaret", "Habit de docteur", "Manteau du barbier", "Parure du Fléau"] },
+  chasseur_sorcieres: { wpn: ["Épée de milice", "Rapière", "Rapière d'argent", "Lame du tribunal", "Lame du Dernier Bûcher"], arm: ["Pourpoint de cuir", "Brigandine noire", "Cuirasse du tribunal", "Armure du Saint-Office", "Parure du Grand Chasseur"] },
+  hallebardier: { wpn: ["Fourche de guerre", "Vouge", "Hallebarde", "Hallebarde de la garde", "Hallebarde du Roi"], arm: ["Gambison de piquier", "Haubert de milice", "Demi-armure", "Plates de la garde", "Armure du Garde royal"] },
+  exorciste: { wpn: ["Croix de bois", "Croix de fer", "Croix d'argent", "Croix reliquaire", "Croix de l'Exorciste"], arm: ["Soutane usée", "Soutane noire", "Habit de chapelain", "Chasuble brodée", "Parure du Saint-Siège"] },
 };
 // bonus de base par palier
 const WPN_DMG = [0, .0, .18, .38, .62, .9];
@@ -842,7 +1000,7 @@ const ACHIEVEMENTS = [
   { id: "apex", n: "Apogée", d: "Faire atteindre l'apogée (niveau 12) à un héros.", k: "apex", v: 1, shards: 1 },
   { id: "legende", n: "Légende", d: "Faire atteindre le niveau 20 à un héros.", k: "maxlvl", v: 1, shards: 3 },
   { id: "armee", n: "Une petite armée", d: "Avoir 10 héros.", k: "roster", v: 10, gold: 300 },
-  { id: "toutes_classes", n: "Toutes les voies", d: "Recruter les 10 classes.", k: "classes", v: 10, shards: 2 },
+  { id: "toutes_classes", n: "Toutes les voies", d: `Recruter les ${CLASS_IDS.length} classes.`, k: "classes", v: CLASS_IDS.length, shards: 2 },
   { id: "forge_t5", n: "Acier royal", d: "Forger un équipement de palier V.", k: "tier5", v: 1, shards: 2 },
   { id: "legendaire", n: "Trésor des rois", d: "Obtenir un objet légendaire.", k: "legend", v: 1, gold: 400 },
   { id: "menagerie", n: "Dresseur", d: "Posséder 6 compagnons.", k: "pets", v: 6, gold: 500 },
@@ -1178,7 +1336,7 @@ function act(B, u, sk, tgt) {
 function skillAnim(u, sk) {
   const t = sk.t || "e";
   if (t === "a" || t === "aa" || t === "s" || t === "allies" || t === "self") return sk.heal || sk.healSelf ? "heal" : "buff";
-  if (u.side === "h") { const w = CLASSES[u.cls].wpn; if (w === "arbalete") return "shoot"; if (["grimoire", "baton", "luth"].includes(w) || (w === "faux" && !sk.at?.every(r => r <= 2)) || (w === "faucille" && !(sk.use || []).includes(1))) return "cast"; return sk.mv > 0 ? "leap" : "melee"; }
+  if (u.side === "h") { const w = CLASSES[u.cls].wpn; if (w === "arbalete") return "shoot"; if (["grimoire", "baton", "luth", "croix"].includes(w) || (w === "encensoir" && !(sk.use || []).includes(1)) || (w === "faux" && !sk.at?.every(r => r <= 2)) || (w === "faucille" && !(sk.use || []).includes(1))) return "cast"; return sk.mv > 0 ? "leap" : "melee"; }
   const M = MONSTERS[u.key]; if (M && M.rk.every(r => r >= 3)) return /Flèche|Volée|Carreau/.test(sk.n) ? "shoot" : "cast";
   return t === "ae" && !(sk.at || []).every(r => r <= 2) ? "cast" : "melee";
 }
@@ -1201,6 +1359,7 @@ function strike(B, u, x, sk, mult, ev) {
   if (hk.lowHpDmg && u.hp / u.hpMax < .5) mod += hk.lowHpDmg;
   if (hk.vsTag && x.tags.includes(hk.vsTag)) mod += hk.vsTagV;
   if (hk.execute && hpr < .4) mod += hk.execute;
+  if (u.side === "h" && B.round > 18) mod += (B.round - 18) * .05; // acharnement : les héros finissent par percer toute défense
   if (hasSt(x, "mark")) mod += .15 + (hk.markDmg || 0) + (u.side === "h" ? B.relicH.markDmg || 0 : 0);
   if (hasSt(x, "vuln")) mod += .25;
   if (u.side === "h") { if (B.relicH.vsImpie && x.tags.includes("impie")) mod += B.relicH.vsImpie; if (B.relicH.darkDmg && B.light < 50) mod += B.relicH.darkDmg; if (B.morale >= 80) mod += .15; if (B.morale <= 20) mod -= .15; if (B.light < 30) mod += .05; }
@@ -1281,6 +1440,7 @@ function reviveFallen(B, frac, ev) {
 function healUnit(B, src, x, v, ev, o = {}) {
   if (!alive(x)) return;
   let h = v * (src && !o.leech ? src.healPow : 1) * (1 + (x.hooks.healTaken || 0));
+  if (x.side !== "h" && B.round > 14) h *= .5; // la rage consume aussi les forces de l'ennemi
   h = Math.max(1, Math.round(h));
   const room = x.hpMax - x.hp, real = Math.min(room, h);
   x.hp += real;
@@ -1443,7 +1603,7 @@ const NODE_T = {
 };
 
 function regionsCleared() { return REGIONS.filter(r => S.prog[r.id] && S.prog[r.id].clears > 0).length; }
-function classUnlocked(c) { return CLASSES[c].unlock <= regionsCleared(); }
+function classUnlocked(c) { return CLASSES[c].unlock <= regionsCleared() || !!(S.seen && S.seen.classes[c]); }
 function petUnlocked(id) { return PETS[id].starter || (PETS[id].unlock || 0) <= regionsCleared(); }
 function regionUnlocked(id) { if (id === "abime") return regionsCleared() >= 1; const i = REGIONS.findIndex(r => r.id === id); return i === 0 || (S.prog[REGIONS[i - 1].id] && S.prog[REGIONS[i - 1].id].clears > 0); }
 
@@ -1856,11 +2016,20 @@ function upgradeBld(k) { const c = bldCost(k); if (!c) return { err: "Niveau max
 function adoptPet(id) { const P = PETS[id]; if (S.pets.owned.includes(id)) return { err: "Déjà adopté." }; if (!petUnlocked(id)) return { err: "Pas encore disponible." }; const c = P.cost || 0; if (S.pets.owned.length - 1 >= S.bld.menagerie + 1) return { err: "Agrandissez la Ménagerie." }; if (S.gold < c) return { err: "Pas assez d'or." }; S.gold -= c; S.pets.owned.push(id); S.pets.lvl[id] = Math.max(1, Math.round(petLvl(S.pet || id) * .6)); S.pets.xp[id] = 0; checkAchievements(); return { ok: 1 }; }
 const PET_EVO_COST = { gold: 600, essence: 4, shards: 1 };
 function evolvePet(id) { if (petEvolved(id) || petLvl(id) < PET_EVO_LVL) return { err: "Niveau 10 requis." }; if (!pay(PET_EVO_COST)) return { err: "Il faut 600 or, 4 essences et 1 éclat." }; S.pets.evo[id] = 1; S.stats.petEvo++; checkAchievements(); return { ok: 1 }; }
-// nouvelle partie : 4 héros de départ et un compagnon au choix
-const START_CLASSES = ["templier", "berserker", "arbaletriere", "pretresse"];
+// nouvelle partie : 4 héros tirés au sort (un tank, un soigneur, deux autres) et un compagnon parmi trois proposés
+const START_SLOTS = [["tank"], ["soin"], ["dps"], ["dps", "soutien"]];
+function rollStartClass(slot, taken = []) {
+  const pool = CLASS_IDS.filter(c => START_SLOTS[slot].includes(CLASSES[c].role) && !taken.includes(c));
+  return pick(pool.length ? pool : CLASS_IDS.filter(c => !taken.includes(c)));
+}
+function rollStartParty() { const out = []; for (let i = 0; i < START_SLOTS.length; i++) out.push(rollStartClass(i, out)); return out; }
+function rollStarterPets(n = 3) { const pool = PET_IDS.filter(p => PETS[p].starter); RNG.shuffle(pool); return pool.slice(0, n); }
 function newGame(petId, opt = {}) {
   S = newState(opt);
-  for (const c of opt.classes || START_CLASSES) addHero(opt.heroes && opt.heroes[c] ? opt.heroes[c] : makeHero(c));
+  const cls = opt.classes || rollStartParty();
+  const list = cls.map((c, i) => opt.heroes && opt.heroes[i] && opt.heroes[i].cls === c ? opt.heroes[i] : makeHero(c));
+  list.sort((a, b) => CLASSES[a.cls].rk[0] - CLASSES[b.cls].rk[0]);
+  for (const h of list) addHero(h);
   S.pets.owned = [petId]; S.pets.lvl[petId] = 1; S.pets.xp[petId] = 0; S.pet = petId;
   S.potions = 0; refreshRecruits(); dailyCheck();
   return S;
@@ -2208,7 +2377,7 @@ function drawHead(x, S, sp, t, evt) {
   if (MON_HEAD[k.type] && k.full) { MON_HEAD[k.type](x, hx, hy, 13.5, k, sp, t, S); return; }
   // cheveux arrière (longs)
   const hairCol = sp.hairCol;
-  const covered = ["greathelm", "crusader", "skullhelm", "hood", "cowl", "bearhood", "sallet_c"].includes(k.type);
+  const covered = ["greathelm", "crusader", "skullhelm", "hood", "cowl", "bearhood", "sallet_c", "beak"].includes(k.type);
   if (!covered && sp.hair >= 3 && k.type !== "kettle_c") hairBack(x, hx, hy, r, sp.hair, hairCol, t);
   // cou
   shade(x, seg([S.neck[0] - 1, S.neck[1] + 4], [hx - 1, hy + 6], 9, 8), dk(skin, .12), { d: 1.5 });
@@ -2229,7 +2398,7 @@ function drawHead(x, S, sp, t, evt) {
     shade(x, ell(hx - 2, hy + 1, 2.6, 3.8), dk(skin, .08), { ol: 1.2, d: 1 });
   }
   // barbe
-  if (sp.beard >= 0 && !["greathelm", "crusader", "skullhelm", "cowl"].includes(k.type)) beard(x, hx, hy, r, sp.beard, hairCol);
+  if (sp.beard >= 0 && !["greathelm", "crusader", "skullhelm", "cowl", "beak"].includes(k.type)) beard(x, hx, hy, r, sp.beard, hairCol);
   // cheveux avant
   if (!covered) hairFront(x, hx, hy, r, sp.hair, hairCol, k.type);
   if (k.type) helm(x, hx, hy, r, k, sp, t);
@@ -2362,6 +2531,27 @@ function helm(x, hx, hy, r, k, sp, t) {
       if (k.gem) { dot(x, hx + r * .07, hy - r * 1.45, 2.2, k.gem); glow(x, hx + r * .07, hy - r * 1.45, 9, k.gem, .55); }
       break;
     }
+    case "beak": {
+      // masque de médecin de peste : capuche, masque de cuir, bec et verres ronds
+      const back = P([[hx - r * 1.4, hy + r * 1.35, 1], [hx - r * 1.35, hy - r * .4], [hx - r * .6, hy - r * 1.3], [hx + r * .5, hy - r * 1.3], [hx + r * 1.15, hy - r * .5], [hx + r * 1.1, hy + r * .9], [hx + r * .3, hy + r * 1.4, 1]], true, .45);
+      shade(x, back, c, { d: 3 });
+      const mk = k.mask || "#c8b898";
+      const face = P([[hx - r * .1, hy - r * .95], [hx + r * .75, hy - r * .85], [hx + r * 1.12, hy - r * .2], [hx + r * 1.05, hy + r * .7], [hx + r * .4, hy + r * 1.05, 1], [hx - r * .15, hy + r * .5]], true, .45);
+      shade(x, face, mk, { grad: lgrad(x, hx, hy - r, hx + r, hy + r, [[0, lt(mk, .12)], [1, dk(mk, .3)]]), d: 2 });
+      const beak = P([[hx + r * .85, hy - r * .15], [hx + r * 1.7, hy + r * .05], [hx + r * 2.55, hy + r * .55, 1], [hx + r * 2.6, hy + r * .72, 1], [hx + r * 1.6, hy + r * .78], [hx + r * .95, hy + r * .75]], true, .45);
+      shade(x, beak, mk, { grad: lgrad(x, hx + r, hy - r * .2, hx + r * 2.4, hy + r * .8, [[0, lt(mk, .1)], [1, dk(mk, .35)]]), d: 2 });
+      line(x, [[hx + r * .95, hy + r * .3], [hx + r * 2.5, hy + r * .64]], 1, rgba(INK, .5), true);
+      for (let i = 0; i < 3; i++) dot(x, hx + r * (1.1 + i * .35), hy + r * (.02 + i * .1), .9, MAT.brass);
+      const gc = k.glass || "#6a7a7a";
+      shade(x, circ(hx + r * .55, hy - r * .3, r * .32), MAT.brass, { ol: 1.4, d: 1 });
+      glow(x, hx + r * .55, hy - r * .3, r * .6, gc, .7); shade(x, circ(hx + r * .55, hy - r * .3, r * .22), gc, { ol: 1, hi: .8 });
+      if (k.hat) {
+        shade(x, P([[hx - r * .9, hy - r * .9], [hx - r * .75, hy - r * 1.8], [hx + r * .5, hy - r * 1.9], [hx + r * .85, hy - r * 1.05]], true, .4), c, { d: 2 });
+        shade(x, P([[hx - r * 2.0, hy - r * .75, 1], [hx - r * .3, hy - r * 1.15], [hx + r * 1.9, hy - r * 1.1, 1], [hx + r * .5, hy - r * .78], [hx - r * 1.2, hy - r * .6]], true, .5), dk(c, .08), { d: 1.5 });
+        line(x, [[hx - r * .85, hy - r * 1.1], [hx + r * .8, hy - r * 1.2]], 2, k.band || "#6a5a3a");
+      }
+      break;
+    }
     case "crown": { crest(); break; }
     case "bandana": { shade(x, P([[hx - r * 1.05, hy - r * .1], [hx - r * .8, hy - r * .95], [hx + r * .3, hy - r * 1.15], [hx + r * .95, hy - r * .6], [hx + r * .95, hy - r * .35, 1], [hx - r * .5, hy - r * .4], [hx - r * 1.4, hy + r * .5, 1]], true, .5), c); break; }
     default: if (MON_HEAD[k.type]) MON_HEAD[k.type](x, hx, hy, r, k, sp, t); break;
@@ -2486,6 +2676,86 @@ function drawWeapon(x, type, tier, hand, a, o = {}) {
       if (T >= 4) line(x, [[-14, 6], [0, 9], [14, 6]], 1.6, MAT.gold);
       break;
     }
+    case "marteau": {
+      handle(T <= 1 ? 30 : 34, 4.8, T <= 2 ? MAT.wood : MAT.dleather);
+      if (T >= 3) for (let i = 0; i < 3; i++) dot(x, 0, -4 - i * 8, 1.2, trim);
+      const top = T <= 1 ? -32 : -36, hw = 12 + T * 1.5, hh = 14 + T;
+      if (T <= 1) { // maillet de pierre lié de cuir
+        shade(x, P([[-hw, top - 2], [hw, top], [hw + 1, top - hh, 1], [-hw - 1, top - hh + 2, 1]], true, .6), "#7a766e", { grad: lgrad(x, -hw, top - hh, hw, top, [[0, "#9a968c"], [1, "#55524c"]]), d: 2 });
+        for (const k of [-.45, .45]) line(x, [[k * hw * 2, top + 1], [k * hw * 2, top - hh]], 2.2, MAT.leather);
+        break;
+      }
+      const st = T >= 5 ? "#cfd6de" : steel;
+      const head = P([[-hw, top], [hw, top], [hw + 2, top - 3, 1], [hw + 2, top - hh + 3, 1], [hw, top - hh], [-hw, top - hh], [-hw - 2, top - hh + 3, 1], [-hw - 2, top - 3, 1]], true, .3);
+      shade(x, head, st, { grad: mg(st, -hw, top - hh, hw, top), d: 2.5 });
+      shade(x, P([[-hw - 1, top - 2], [-hw - 1, top - hh + 2], [-hw - 6, top - hh / 2 - 2], [-hw - 6, top - hh / 2 + 2]], true), dk(st, .2), { d: 1 });
+      line(x, [[-hw + 2, top - hh + 2], [hw - 2, top - hh + 2]], 1, rgba(lt(st, .6), .7));
+      if (T >= 3) { const rc = rune || (T >= 4 ? "#ffd27a" : "#7ad0ff"); x.save(); x.globalCompositeOperation = "lighter"; glow(x, 0, top - hh / 2, 12 + T * 2, rc, T >= 4 ? .55 : .35); x.restore(); x.strokeStyle = rc; x.lineWidth = 1.4; x.beginPath(); x.moveTo(-5, top - 3); x.lineTo(-5, top - hh + 3); x.moveTo(-5, top - hh / 2); x.lineTo(1, top - hh + 3); x.moveTo(3, top - 3); x.lineTo(7, top - hh / 2); x.lineTo(3, top - hh + 3); x.stroke(); }
+      if (T >= 4) { line(x, [[-hw, top - 1.5], [hw, top - 1.5]], 2, MAT.gold); line(x, [[-hw, top - hh + 1.5], [hw, top - hh + 1.5]], 2, MAT.gold); }
+      break;
+    }
+    case "encensoir": {
+      // poignée, chaîne pendante, encensoir ajouré qui fume
+      shade(x, seg([0, 6], [0, -6], 4, 4), MAT.dleather, { d: 1 });
+      const mc = T >= 4 ? MAT.gold : T >= 3 ? MAT.silver : T >= 2 ? MAT.iron : MAT.brass;
+      const sw = Math.sin((o.t || 0) * 2.2) * 3, L = 26 + T * 2;
+      for (let i = 0; i < 6; i++) { const a0 = [sw * i / 6, -6 - i * L / 6], a1 = [sw * (i + 1) / 6, -6 - (i + 1) * L / 6]; x.strokeStyle = INK; x.lineWidth = 2.6; x.beginPath(); x.ellipse((a0[0] + a1[0]) / 2, (a0[1] + a1[1]) / 2, 1.6, L / 12 + .6, 0, 0, 7); x.stroke(); x.strokeStyle = mc; x.lineWidth = 1.2; x.stroke(); }
+      const c = [sw, -6 - L - 9], r = 8 + T * .6;
+      shade(x, P([[c[0] - r * .45, c[1] + r * .9], [c[0] + r * .45, c[1] + r * .9], [c[0] + r * .2, c[1] + r * 1.3]], true), dk(mc, .2), { ol: 1.2, d: .5 });
+      shade(x, circ(c[0], c[1], r), mc, { grad: mg(mc, c[0] - r, c[1] - r, c[0] + r, c[1] + r), d: 2.5 });
+      for (let i = 0; i < 5; i++) { const a = -1.2 + i * .6; dot(x, c[0] + Math.cos(a) * r * .55, c[1] + Math.sin(a) * r * .55, 1.3, INK); }
+      line(x, [[c[0] - r, c[1]], [c[0] + r, c[1]]], 1.2, dk(mc, .4));
+      shade(x, P([[c[0] - 3, c[1] - r + 1], [c[0] + 3, c[1] - r + 1], [c[0], c[1] - r - 5, 1]], true), mc, { ol: 1, d: .5 });
+      const smoke = T >= 5 ? "#9fe8a0" : T >= 4 ? "#d8e8c0" : "#a8a8a0";
+      x.save(); x.globalCompositeOperation = T >= 4 ? "lighter" : "source-over";
+      for (let i = 0; i < 4; i++) { const k = ((o.t || 0) * .6 + i / 4) % 1; glow(x, c[0] + Math.sin(k * 7 + i) * 6, c[1] - r - 4 - k * 20, 6 + k * 9, smoke, (1 - k) * (T >= 4 ? .5 : .35)); }
+      if (T >= 3) glow(x, c[0], c[1], r * 1.6, T >= 5 ? "#7ad08a" : "#ffb04a", .45);
+      x.restore();
+      break;
+    }
+    case "rapiere": {
+      shade(x, seg([0, 9], [0, -6], 3.6, 3.6), T >= 3 ? MAT.dleather : MAT.leather, { d: 1 });
+      shade(x, circ(0, 11, 3.2), trim, { ol: 1.2, d: 1 });
+      // garde à branches
+      x.strokeStyle = INK; x.lineWidth = 3.4; x.beginPath(); x.moveTo(-11, -7); x.lineTo(11, -7); x.moveTo(0, -7); x.bezierCurveTo(9, -6, 9, 6, 1, 9); x.moveTo(-1, -7); x.bezierCurveTo(-9, -12, -7, 2, -1, 5); x.stroke();
+      x.strokeStyle = trim; x.lineWidth = 1.6; x.stroke();
+      if (T >= 3) { shade(x, ell(0, -9, 6, 2.6), trim, { ol: 1.1, d: .8 }); }
+      const L = 60 + T * 5, st = T >= 3 ? "#d4dae2" : steel;
+      shade(x, P([[-2, -9, 1], [2, -9, 1], [1.4, -L + 4], [0, -L, 1], [-1.4, -L + 4]], true, .2), st, { grad: lgrad(x, -2, 0, 2, 0, [[0, lt(st, .45)], [.5, st], [1, dk(st, .4)]]), ol: 1.6, d: 1 });
+      if (T >= 4) { x.save(); x.globalCompositeOperation = "lighter"; for (let i = 0; i < 3; i++) glow(x, 0, -20 - i * 14, 6, T >= 5 ? "#fff0b0" : "#c8d8ff", .45); x.restore(); }
+      if (T >= 3) shade(x, circ(0, -7, 1.8), T >= 4 ? "#a0e8ff" : MAT.gold, { ol: .8 });
+      break;
+    }
+    case "hallebarde": {
+      const top = -96 - T * 3;
+      shade(x, seg([0, 40], [0, top + 10], 4.6, 4.2), T >= 3 ? MAT.dwood : MAT.wood, { d: 1.2 });
+      if (T >= 2) for (let i = 0; i < 2; i++) line(x, [[-2.4, top + 22 + i * 4], [2.4, top + 22 + i * 4]], 1.8, trim);
+      if (T >= 4) for (let i = 0; i < 3; i++) shade(x, P([[1, top + 30 + i * 6], [9, top + 33 + i * 6], [1, top + 36 + i * 6]], true), T >= 5 ? "#f0e8d0" : "#8a1a1a", { ol: .8, d: .5 }); // franges
+      const st = T >= 5 ? "#d8dee6" : steel, ah = T <= 1 ? 0 : 1;
+      // pique
+      shade(x, P([[-3, top + 12, 1], [3, top + 12, 1], [2.4, top - 8], [0, top - 18 - T * 2, 1], [-2.4, top - 8]], true, .2), st, { grad: lgrad(x, -3, 0, 3, 0, [[0, lt(st, .4)], [.5, st], [1, dk(st, .45)]]), d: 1 });
+      if (ah) { // lame de hache et bec
+        shade(x, P([[2, top + 20], [2, top + 2], [12, top - 2], [18 + T, top + 6, 1], [17 + T, top + 18, 1], [12, top + 24], [2, top + 22]], true, .35), st, { grad: mg(st, 2, top - 2, 20, top + 24), d: 2 });
+        line(x, [[16 + T, top + 4], [16 + T, top + 18]], 1.2, rgba("#ffffff", .5), true);
+        shade(x, P([[-2, top + 16], [-2, top + 8], [-12, top + 6], [-17, top + 16, 1]], true, .2), dk(st, .1), { d: 1.2 });
+        if (T >= 4) { line(x, [[4, top + 4], [4, top + 20]], 1.6, MAT.gold); }
+        if (rune) { x.save(); x.globalCompositeOperation = "lighter"; glow(x, 10, top + 10, 16, rune, .45); x.restore(); }
+      } else shade(x, P([[-2, top + 14], [-8, top + 6, 1], [-2, top + 6]], true), MAT.iron, { ol: 1, d: .5 }); // fourche
+      break;
+    }
+    case "croix": {
+      const top = -82 - T * 4;
+      shade(x, seg([0, 38], [0, top + 6], 4.4, 4), T >= 3 ? "#2a2018" : MAT.wood, { d: 1.2 });
+      const mc = T >= 4 ? MAT.gold : T >= 3 ? MAT.silver : T >= 2 ? MAT.iron : MAT.wood;
+      const cw = 3.4 + T * .3, arm = 10 + T, c = [0, top - 6];
+      const cross = poly([[-cw, c[1] + 16], [cw, c[1] + 16], [cw, c[1] + cw], [arm, c[1] + cw], [arm, c[1] - cw], [cw, c[1] - cw], [cw, c[1] - 16 - T], [-cw, c[1] - 16 - T], [-cw, c[1] - cw], [-arm, c[1] - cw], [-arm, c[1] + cw], [-cw, c[1] + cw]]);
+      if (T >= 4) { x.save(); x.globalCompositeOperation = "lighter"; glow(x, c[0], c[1], 22 + T * 3, T >= 5 ? "#fff4c0" : "#ffd27a", .5); x.restore(); }
+      shade(x, cross, mc, { grad: T >= 2 ? mg(mc, -arm, c[1] - 16, arm, c[1] + 16) : null, d: 2 });
+      if (T >= 3) { for (const p of [[0, c[1] - 14 - T], [arm - 1, c[1]], [-arm + 1, c[1]]]) shade(x, circ(p[0], p[1], 2), mc, { ol: 1, d: .6 }); }
+      if (T >= 3) { shade(x, circ(c[0], c[1], 3.2), T >= 5 ? "#9fe8ff" : "#c02a3a", { ol: 1, hi: .7 }); }
+      if (T >= 2) { line(x, [[0, c[1] + 16], [-4, c[1] + 30], [-2, c[1] + 40]], 1, "#c8c0a8"); shade(x, circ(-2, c[1] + 41, 1.6), "#c8c0a8", { ol: .8 }); }
+      break;
+    }
     default: if (MON_WPN[type]) MON_WPN[type](x, T, o); break;
     case "orbe": {
       const fc = o.fire || "#ff7a2a";
@@ -2520,6 +2790,14 @@ function drawShield(x, kind, tier, hand, a, o = {}) {
     for (let i = -2; i <= 2; i++) line(x, [[i * 7, -18 + Math.abs(i) * 2], [i * 7, 18 - Math.abs(i) * 2]], 1, rgba(INK, .45));
     x.strokeStyle = MAT.iron; x.lineWidth = 3; x.beginPath(); x.arc(0, 0, 17.5, 0, Math.PI * 2); x.stroke();
     shade(x, circ(0, 0, 5.5), MAT.iron, { d: 1.5 });
+  } else if (kind === "rune") {
+    const st = T >= 5 ? "#c8d0d8" : T >= 4 ? "#8a929a" : MAT.dsteel, rc = o.rune || "#7ad0ff";
+    shade(x, circ(0, 0, 21), MAT.dwood, { grad: lgrad(x, -21, -21, 21, 21, [[0, lt(MAT.dwood, .25)], [1, dk(MAT.dwood, .4)]]), d: 4 });
+    x.strokeStyle = st; x.lineWidth = 4; x.beginPath(); x.arc(0, 0, 19, 0, Math.PI * 2); x.stroke();
+    for (let i = 0; i < 8; i++) { const a = i * Math.PI / 4; dot(x, Math.cos(a) * 19, Math.sin(a) * 19, 1.3, T >= 4 ? MAT.gold : MAT.brass); }
+    shade(x, circ(0, 0, 7), st, { grad: metalGrad(x, st, -7, -7, 7, 7), d: 1.5 });
+    x.save(); x.globalCompositeOperation = "lighter"; glow(x, 0, 0, 16 + T * 3, rc, .25 + T * .07); x.restore();
+    x.strokeStyle = rc; x.lineWidth = 1.5; for (let i = 0; i < 4; i++) { const a = i * Math.PI / 2 + .4; x.beginPath(); x.moveTo(Math.cos(a) * 10, Math.sin(a) * 10); x.lineTo(Math.cos(a) * 15, Math.sin(a) * 15); x.lineTo(Math.cos(a + .25) * 13, Math.sin(a + .25) * 13); x.stroke(); }
   } else {
     const p = P([[-18, -24, 1], [18, -24, 1], [18, 0], [10, 18], [0, 28, 1], [-10, 18], [-18, 0]], true, .45);
     const face = T >= 5 ? "#e8e4d8" : T >= 3 ? MAT.steel : o.col || "#6b1f1f";
@@ -2665,11 +2943,70 @@ function outfit(L) {
       sp.eyeGlow = T >= 3 ? "#6ad0a0" : null; if (T >= 5) sp.aura = "#6ad0a0";
       break;
     }
+    case "gardien_runes": {
+      sp.bulk = 1.14; sp.shield = 1; sp.shieldKind = "rune"; if (sp.beard < 0 && !L.female) sp.beard = 2;
+      const rc = ev === "forge_tonnerre" ? "#ffd27a" : "#7ad0ff"; sp.runeCol = rc;
+      const fur = T >= 4 ? "#5a4a3a" : "#7a6650", m = T >= 5 ? "#c0c8d0" : T >= 4 ? "#7a828c" : MAT.dsteel;
+      if (T === 1) { sp.torso = { mat: "gambeson", col: "#6a5a48" }; sp.skirt = { type: "fur", col: fur, len: .4 }; sp.mantle = { col: fur, fur: 1 }; sp.legs = { col: "#4a3a2a", type: "wrap" }; sp.boots = { col: MAT.leather, cuff: fur }; sp.arms = { col: "#6a5a48", bracer: MAT.leather }; sp.belt = { col: MAT.dleather }; sp.headgear = {}; }
+      if (T === 2) { sp.torso = { mat: "chain", col: MAT.iron }; sp.skirt = { type: "kilt", col: "#3a3a40", len: .45 }; sp.mantle = { col: fur, fur: 1 }; sp.legs = { col: MAT.iron, type: "greave", metal: MAT.iron }; sp.boots = { col: MAT.leather, cuff: fur, high: 1 }; sp.arms = { col: MAT.iron, chain: 1, bracer: MAT.iron, bracerMetal: 1 }; sp.belt = { col: MAT.dleather, buckle: MAT.iron }; sp.headgear = { type: "nasal", col: MAT.iron }; }
+      if (T >= 3) { sp.torso = { mat: "plate", col: m, trim: gold ? MAT.gold : null, rune: rc }; sp.skirt = { type: "tassets", col: m, trim: gold ? MAT.gold : null }; sp.mantle = { col: fur, fur: 1, trim: gold ? MAT.gold : null }; sp.arms = { col: MAT.iron, chain: 1, rerebrace: m, bracer: m, bracerMetal: 1, glove: m, gloveMetal: 1, gold }; sp.legs = { col: MAT.iron, type: "plate", metal: m, gold }; sp.boots = { type: "sabaton", metal: m }; sp.shoulders = { type: T >= 4 ? "ornate" : "plate", col: m, trim: gold ? MAT.gold : null, gem: T >= 4 ? rc : null, size: 1.15 }; sp.belt = { col: MAT.dleather, buckle: gold ? MAT.gold : MAT.brass }; sp.headgear = { type: "nasal", col: m, trim: gold ? MAT.gold : null, crown: T >= 5 ? MAT.gold : null, gem: T >= 5 ? rc : null }; if (T >= 4) sp.cape = { col: "#2a3440", len: .8, trim: gold ? MAT.gold : null }; if (T >= 5) sp.aura = rc; }
+      if (ev === "thane_pierre" && sp.cape) sp.cape.col = "#3a3a3e";
+      break;
+    }
+    case "medecin_peste": {
+      sp.bulk = .98;
+      const bl = ev === "apothicaire" ? "#1e2218" : T >= 4 ? "#1c1a18" : "#2a2622";
+      sp.torso = { mat: "leather", col: bl, buckle: T >= 2 ? MAT.brass : null, vials: T >= 3 ? ["#7ad04a", "#c0a040", "#4ac0d0"].slice(0, T - 1) : null, straps: T >= 2 ? [[[-12, -50], [12, -30]]] : null };
+      sp.skirt = { type: "robe", col: dk(bl, .05), len: T >= 2 ? .9 : .75, trim: T >= 4 ? (gold ? MAT.gold : "#8a7a5a") : null };
+      sp.arms = { col: bl, glove: T >= 2 ? "#3a2a1e" : MAT.leather, bracer: T >= 3 ? MAT.dleather : null }; sp.legs = { col: "#2a2420" }; sp.boots = { col: "#1e1a16", high: 1 };
+      sp.belt = { col: MAT.dleather, buckle: MAT.brass, pouch: MAT.leather };
+      sp.headgear = { type: "beak", col: T === 1 ? "#5a4a3a" : "#1e1a18", mask: T >= 4 ? "#e8dcc0" : T >= 2 ? "#c8b898" : "#a89878", glass: T >= 3 ? (ev === "apothicaire" ? "#9fe86a" : "#ffb04a") : "#6a7a7a", hat: T >= 2, band: gold ? MAT.gold : "#6a5a3a" };
+      if (T >= 3) sp.mantle = { col: T >= 4 ? "#14120f" : "#24201c", trim: gold ? MAT.gold : null };
+      if (T >= 4) sp.cape = { col: "#151310", len: .95, tatter: T >= 5 ? 0 : 1 };
+      sp.eyeGlow = T >= 3 ? sp.headgear.glass : null; if (T >= 5) sp.aura = ev === "apothicaire" ? "#7ad04a" : "#ffd27a";
+      break;
+    }
+    case "chasseur_sorcieres": {
+      sp.bulk = 1;
+      const bl = ev === "purificateur" ? "#3a1a10" : "#22201e", sil = gold ? MAT.gold : MAT.silver, m = T >= 5 ? "#d8dce4" : T >= 4 ? "#a8b0b8" : MAT.steel;
+      if (T <= 2) sp.torso = { mat: T === 1 ? "leather" : "brig", col: T === 1 ? "#4a3a28" : bl, stud: MAT.silver, buckle: MAT.brass, straps: [[[-12, -56], [12, -30]]] };
+      else sp.torso = { mat: "plate", col: m, trim: sil, cross: T >= 4 ? sil : null };
+      sp.skirt = { type: "coat", col: T === 1 ? "#3a3026" : bl, len: T >= 3 ? .62 : .45, trim: T >= 3 ? sil : null };
+      sp.arms = { col: T === 1 ? "#4a3a28" : bl, bracer: T >= 2 ? (T >= 4 ? m : MAT.leather) : null, bracerMetal: T >= 4, glove: "#2a221a" }; sp.legs = { col: "#2a2622" }; sp.boots = { col: "#1e1a16", high: 1, cuff: T >= 2 ? "#4a3a28" : null };
+      sp.belt = { col: MAT.dleather, buckle: sil, pouch: MAT.leather };
+      sp.headgear = { type: "hat", col: T >= 4 ? "#141210" : "#2a2420", band: sil, plume: T >= 5 ? "#e8e0d0" : null };
+      if (T >= 3) sp.mantle = { col: "#1a1816", trim: T >= 4 ? sil : null };
+      if (T >= 4) sp.cape = { col: "#1a1614", len: .85, trim: T >= 5 ? sil : null };
+      if (T >= 5) sp.aura = ev === "purificateur" ? "#ff8a3a" : "#ffe8a0";
+      break;
+    }
+    case "hallebardier": {
+      sp.bulk = 1.06;
+      const yl = ev === "lansquenet" ? "#a02a2a" : ev === "garde_roi" ? "#2a3a6a" : "#6a4a14", m = T >= 5 ? "#e0dcd0" : T >= 4 ? "#b8c0c8" : MAT.steel;
+      if (T === 1) { sp.torso = { mat: "gambeson", col: "#8a7a52" }; sp.skirt = { type: "coat", col: "#6a5a3a", len: .35 }; sp.arms = { col: "#8a7a52" }; sp.legs = { col: "#3a3028", type: "wrap" }; sp.boots = { col: MAT.leather }; sp.headgear = { type: "kettle", col: MAT.iron }; sp.belt = { col: MAT.dleather }; }
+      if (T === 2) { sp.torso = { mat: "chain", col: MAT.iron }; sp.skirt = { type: "tabard", col: yl, len: .5, trim: "#1a1a1a", w: 1.1 }; sp.arms = { col: MAT.iron, chain: 1, glove: MAT.leather }; sp.legs = { col: "#2a2a2a", type: "greave", metal: MAT.iron }; sp.boots = { col: MAT.leather }; sp.shoulders = { type: "plate", col: MAT.iron }; sp.headgear = { type: "kettle", col: MAT.steel, trim: "#c0a040" }; sp.belt = { col: MAT.dleather, buckle: MAT.brass }; }
+      if (T >= 3) { sp.torso = { mat: "plate", col: m, trim: gold ? MAT.gold : null }; sp.skirt = { type: "tabard", col: yl, len: .55, trim: gold ? MAT.gold : "#1a1a1a", w: 1.1 }; sp.arms = { col: yl, rerebrace: m, bracer: m, bracerMetal: 1, glove: m, gloveMetal: 1, gold }; sp.legs = { col: "#2a2a2a", type: "plate", metal: m, gold }; sp.boots = { type: "sabaton", metal: m }; sp.shoulders = { type: T >= 4 ? "ornate" : "plate", col: m, trim: gold ? MAT.gold : null }; sp.belt = { col: MAT.dleather, buckle: gold ? MAT.gold : MAT.brass }; sp.headgear = ev === "lansquenet" && T >= 4 ? { type: "hat", col: yl, band: MAT.gold, plume: "#e8e0d0" } : { type: "sallet", col: m, visor: T >= 4, trim: gold ? MAT.gold : null, plume: T >= 4 ? (T >= 5 ? "#e8e0d0" : yl) : null }; if (T >= 4) sp.cape = { col: yl, len: .75, trim: gold ? MAT.gold : null }; if (T >= 5) sp.aura = "#ffd27a"; }
+      break;
+    }
+    case "exorciste": {
+      sp.bulk = .95;
+      const bk = ev === "penitent" ? "#2a1612" : "#16161a", wh = "#e8e2d4", gl = gold ? MAT.gold : MAT.silver;
+      sp.torso = { mat: "cloth", col: T === 1 ? "#3a3634" : bk, collar: wh, cross: T >= 2 ? gl : "#8a7a5a" };
+      sp.skirt = { type: "robe", col: T === 1 ? "#34302e" : bk, len: .97, trim: T >= 2 ? (T >= 4 ? gl : wh) : null };
+      sp.arms = { col: T === 1 ? "#3a3634" : bk, bell: T >= 3 }; sp.legs = { col: "#141416" }; sp.boots = { col: "#141416" };
+      sp.belt = { col: T >= 3 ? "#4a1a4a" : MAT.rope, buckle: gl };
+      sp.headgear = T === 1 ? {} : T === 2 ? { type: "cap", col: bk } : T === 3 ? { type: "hood", col: bk, trim: wh } : T === 4 ? { type: "hat", col: "#0e0e10", band: MAT.gold } : { type: "mitre", col: "#1a1a1e", trim: MAT.gold, gem: "#9fe8ff" };
+      if (T >= 3) sp.mantle = { col: ev === "penitent" ? "#5a1a14" : "#4a1a4a", trim: gl };
+      if (T >= 4) sp.cape = { col: "#101012", len: .95, trim: gl };
+      if (ev === "penitent" && T >= 3) { sp.arms.bareFore = 1; sp.paint = null; }
+      if (T >= 5) { sp.halo = "#e8f0ff"; sp.aura = "#c8d8ff"; }
+      break;
+    }
   }
   if (L.apex && !sp.aura) sp.aura = ac || "#ffd27a";
   return sp;
 }
-const EVO_ACCENT = { bastion: "#4a5a8a", inquisiteur: "#8a2a10", spectre: "#3a6a7a", seigneur_sang: "#7a1018", sainte: "#d9b44a", martyre: "#a02a2a", druidesse: "#4a8a3a", sorciere_noire: "#5a2a5a", heraut: "#c0902a", chantre: "#2a1a2a", ecorcheur: "#8a1a1a", chef_guerre: "#2a4a8a", assassin: "#2a2a3a", ombre_sang: "#a01a2a", tireuse_elite: "#2a3a5a", chasseresse: "#4a5a2a", archimage: "#e08a30", demoniste: "#5a1a4a", liche: "#2a4a4a", maitre_tombes: "#4a4a3a" };
+const EVO_ACCENT = { thane_pierre: "#6a7078", forge_tonnerre: "#2a4a7a", chirurgien: "#6a6050", apothicaire: "#3a4a1a", purificateur: "#8a3a10", traqueur: "#2a2a30", lansquenet: "#a02a2a", garde_roi: "#2a3a6a", confesseur: "#4a1a4a", penitent: "#5a1a14", bastion: "#4a5a8a", inquisiteur: "#8a2a10", spectre: "#3a6a7a", seigneur_sang: "#7a1018", sainte: "#d9b44a", martyre: "#a02a2a", druidesse: "#4a8a3a", sorciere_noire: "#5a2a5a", heraut: "#c0902a", chantre: "#2a1a2a", ecorcheur: "#8a1a1a", chef_guerre: "#2a4a8a", assassin: "#2a2a3a", ombre_sang: "#a01a2a", tireuse_elite: "#2a3a5a", chasseresse: "#4a5a2a", archimage: "#e08a30", demoniste: "#5a1a4a", liche: "#2a4a4a", maitre_tombes: "#4a4a3a" };
 
 // poses de garde selon l'arme
 const STANCE = {
@@ -2683,6 +3020,11 @@ const STANCE = {
   arbalete: { aFs: 1.3, aFe: .25, aBs: 1.15, aBe: .3, wa: 1.57, twoH: 1 },
   grimoire: { aFs: .6, aFe: 1.25, aBs: .7, aBe: .9, wa: 2.2 },
   faux: { aFs: .5, aFe: 1.0, aBs: .9, aBe: .45, wa: 3.0, twoH: 1 },
+  marteau: { aFs: .45, aFe: 1.4, aBs: .85, aBe: .55, wa: 2.7 },
+  encensoir: { aFs: .1, aFe: .9, aBs: .5, aBe: .8, wa: 2.9 },
+  rapiere: { aFs: .75, aFe: .95, aBs: .45, aBe: 1.1, wa: 1.9 },
+  hallebarde: { aFs: .5, aFe: 1.0, aBs: .9, aBe: .45, wa: 3.0, twoH: 1 },
+  croix: { aFs: .3, aFe: .95, aBs: -.15, aBe: .35, wa: 3.1 },
 };
 function heroLook(h) {
   const wt = h.gear && h.gear.wpn ? h.gear.wpn.tier : 1, at = h.gear && h.gear.arm ? h.gear.arm.tier : 1;
@@ -2721,7 +3063,7 @@ function drawFigure(x, sp, B0, pose = {}, t = 0, o = {}) {
   if (!sp.float) drawLeg(x, S, "F", sp);
   drawSkirt(x, S, sp, t);
   drawBelt(x, S, sp);
-  if (sp.shield) drawShield(x, wt >= 2 ? "heater" : "round", wt, add2(S.haB, [10, 4]), -.08 + (p.shieldA || 0), { col: (sp.skirt && sp.skirt.col) || "#6b1f1f" });
+  if (sp.shield) drawShield(x, sp.shieldKind || (wt >= 2 ? "heater" : "round"), wt, add2(S.haB, [10, 4]), -.08 + (p.shieldA || 0), { col: (sp.skirt && sp.skirt.col) || "#6b1f1f", rune: sp.runeCol });
   drawHead(x, S, sp, t);
   drawArm(x, S, "F", sp, sp.wpn === "luth" ? null : weapon);
   if (sp.wpn === "luth") weapon();
@@ -3248,6 +3590,16 @@ function drawPet(x, id, o = {}, t = 0) {
       if (evo) { x.save(); x.globalCompositeOperation = "lighter"; glow(x, 0, -50, 70, "#ffd27a", .2); x.restore(); }
       return;
     }
+    case "renard": { const r = quad(x, { len: 52 * E, h: 30 * E, col: evo ? "#c86a2a" : "#b05a24", head: "fox", tail: "bushy", eye: evo ? "#9fe8ff" : "#ffd04a", fur: 1, atk, hs: .85 * E, legW: 6, claws: 1, ghost: evo ? "#9fe8ff" : null }, t);
+      if (evo) { const L = 52 * E, H = 30 * E, tx0 = -L * .38 - 4, ty0 = -H * .95; x.save(); x.globalCompositeOperation = "lighter"; for (let i = 0; i < 5; i++) { const sw = Math.sin(t * 3 + i) * 3; glow(x, tx0 - 18 - i * 3 + sw, ty0 + 2 - i * 5, 9, "#9fe8ff", .4); } glow(x, tx0 - 22, ty0 - 6, 22, "#7ad0ff", .2); x.restore(); }
+      return r; }
+    case "ours": return quad(x, { len: (evo ? 82 : 58) * (evo ? 1 : 1), h: (evo ? 54 : 38), col: evo ? "#4a3424" : "#6a4a34", head: "bear", eye: evo ? "#ff8a3a" : "#2a1a10", fur: 1, atk, hs: evo ? 1.25 : 1, legW: evo ? 13 : 10, hump: evo ? 10 : 6, claws: 1 }, t);
+    case "cerf": { quad(x, { len: 54 * E, h: 44 * E, col: evo ? "#f4f0e4" : "#d8c8a8", head: "deer", tail: "thin", eye: evo ? "#ffe8a0" : "#2a1a10", atk, hs: .9 * E, legW: 5, antlers: evo ? "#f0e0b0" : null, spots: !evo, glowA: evo ? "#ffe8a0" : null }, t);
+      if (evo) { x.save(); x.globalCompositeOperation = "lighter"; glow(x, 10, -60, 60, "#ffe8a0", .18); x.restore(); }
+      return; }
+    case "vipere": return snake(x, { col: evo ? "#4a5a3a" : "#6a6a5a", belly: evo ? "#c8b060" : "#a8a088", eye: evo ? "#ffe04a" : "#ff6a2a", s: E, atk, crest: evo ? "#8a1a1a" : null }, t);
+    case "araignee": return spider(x, { col: evo ? "#1a1418" : "#2a2420", mark: evo ? "#c02a6a" : "#8a1a1a", eye: evo ? "#ff3a8a" : "#ff3a2a", s: .62 * E, atk }, t);
+    case "gargouille": return gargoyle(x, { col: evo ? "#7a7a78" : "#6a6a68", s: .7 * E, atk }, t);
     case "drake": return lizard(x, { col: evo ? "#3a1a22" : "#4a2a3a", spots: evo ? "#ff6a2a" : "#ff8a5a", s: 1.15 * E, atk, wings: evo ? "#5a1a22" : "#5a3a4a", horns: 1, fire: evo || atk ? "#ff6a1a" : null, eye: "#ffb04a" }, t);
   }
 }
@@ -3260,6 +3612,49 @@ quadHead = function (x, h, o, t, atk) {
   shade(x, P([[h[0] + 8 * s, h[1] - 6 * s], [h[0] + 22 * s, h[1] - 1 * s], [h[0] + 18 * s, h[1] + 7 * s + atk * 4, 1], [h[0] + 9 * s, h[1] + 3 * s]], true, .35), "#d8a030", { d: 1.2 });
   glow(x, h[0] + 5 * s, h[1] - 4 * s, 6 * s, o.eye, .8); dot(x, h[0] + 5 * s, h[1] - 4 * s, 1.8 * s, INK);
   for (let i = 0; i < 3; i++) shade(x, P([[h[0] - 6 * s - i * 3 * s, h[1] - 6 * s], [h[0] - 16 * s - i * 4 * s, h[1] - 10 * s + i * 4 * s, 1], [h[0] - 4 * s - i * 3 * s, h[1] - 1 * s]], true, .3), col, { d: 1 });
+};
+// serpent : corps en S, tête dressée
+function snake(x, o, t) {
+  const col = o.col, s = o.s || 1, atk = o.atk || 0, pts = [];
+  for (let i = 0; i <= 14; i++) { const k = i / 14; pts.push([(-56 + k * 70) * s + atk * k * k * 30, (-6 - Math.sin(k * 5 + t * 2.4) * 6 * (1 - k * .5) - (k > .7 ? (k - .7) * 110 : 0)) * s]); }
+  for (let i = 0; i < pts.length - 1; i++) { const k = i / 14, w = (4 + Math.sin(k * Math.PI) * 9) * s; shade(x, seg(pts[i], pts[i + 1], w, w * .95), i % 2 ? col : lt(col, .08), { d: 2 }); }
+  x.save(); for (let i = 2; i < pts.length - 2; i += 2) { const p = pts[i]; for (let j = -1; j <= 1; j++) dot(x, p[0] + j * 2 * s, p[1] - 3 * s, 1.3 * s, rgba(dk(col, .5), .9)); } x.restore();
+  const h = pts[pts.length - 1];
+  const head = P([[h[0] - 8 * s, h[1] + 4 * s], [h[0] - 6 * s, h[1] - 6 * s], [h[0] + 8 * s, h[1] - 7 * s], [h[0] + 16 * s, h[1] - 2 * s], [h[0] + 15 * s, h[1] + 3 * s + atk * 4], [h[0] + 2 * s, h[1] + 6 * s]], true, .5);
+  shade(x, head, col, { d: 2.5 });
+  if (o.crest) for (let i = 0; i < 3; i++) shade(x, P([[h[0] - 6 * s - i * 4 * s, h[1] - 5 * s], [h[0] - 10 * s - i * 4 * s, h[1] - 14 * s, 1], [h[0] - 2 * s - i * 4 * s, h[1] - 6 * s]], true, .3), o.crest, { ol: 1, d: .6 });
+  glow(x, h[0] + 6 * s, h[1] - 3 * s, 6 * s, o.eye, .9); shade(x, ell(h[0] + 6 * s, h[1] - 3 * s, 2.2 * s, 1.6 * s), o.eye, { ol: 1, hi: .7 }); line(x, [[h[0] + 6 * s, h[1] - 4.4 * s], [h[0] + 6 * s, h[1] - 1.6 * s]], .9, INK);
+  if (atk > .1) { line(x, [[h[0] + 15 * s, h[1] + 1 * s], [h[0] + 24 * s, h[1] + 1 * s]], 1.2, "#c02a3a"); }
+}
+// têtes d'ours et de cerf, bois
+const _qh2 = quadHead;
+quadHead = function (x, h, o, t, atk) {
+  const s = o.hs || 1, col = o.col;
+  if (o.head === "bear") {
+    shade(x, P([[h[0] + 4 * s, h[1] + 4 * s], [h[0] + 18 * s, h[1] + 4 * s + atk * 6], [h[0] + 16 * s, h[1] + 9 * s + atk * 6, 1], [h[0] + 2 * s, h[1] + 10 * s]], true, .4), dk(col, .25), { d: 1.5 });
+    shade(x, P([[h[0] - 12 * s, h[1] + 6 * s], [h[0] - 11 * s, h[1] - 8 * s], [h[0] + 2 * s, h[1] - 12 * s], [h[0] + 12 * s, h[1] - 6 * s], [h[0] + 20 * s, h[1] - 1 * s], [h[0] + 20 * s, h[1] + 5 * s, 1], [h[0] + 4 * s, h[1] + 8 * s]], true, .5), col, { d: 2.8 });
+    shade(x, ell(h[0] + 15 * s, h[1] + 2 * s, 6 * s, 4.5 * s), lt(col, .2), { ol: 1, d: 1 }); shade(x, ell(h[0] + 20 * s, h[1] - .5 * s, 2.6 * s, 2 * s), INK, { ol: 0, flat: true });
+    for (const dx of [-8, -2]) { shade(x, circ(h[0] + dx * s, h[1] - 11 * s, 4.2 * s), dx < -4 ? dk(col, .2) : col, { d: 1.2 }); dot(x, h[0] + dx * s, h[1] - 11 * s, 1.8 * s, dk(col, .45)); }
+    glow(x, h[0] + 7 * s, h[1] - 4 * s, 5 * s, o.eye || "#2a1a10", .5); dot(x, h[0] + 7 * s, h[1] - 4 * s, 1.7 * s, o.eye && o.eye !== "#2a1a10" ? o.eye : INK);
+    if (atk > .2) for (let i = 0; i < 2; i++) shade(x, P([[h[0] + (10 + i * 5) * s, h[1] + 4 * s], [h[0] + (11 + i * 5) * s, h[1] + 8 * s, 1], [h[0] + (12 + i * 5) * s, h[1] + 4 * s]], true), "#f0e8d0", { ol: .6, flat: true });
+    return;
+  }
+  if (o.head === "deer") {
+    if (o.antlers) { x.save(); if (o.glowA) { x.globalCompositeOperation = "lighter"; glow(x, h[0] - 6 * s, h[1] - 26 * s, 26 * s, o.glowA, .35); x.restore(); x.save(); } for (const k of [1, 0]) { const c = k ? dk(o.antlers, .25) : o.antlers, bx = h[0] - 4 * s + (k ? -4 : 0) * s; const br = [[bx, h[1] - 8 * s], [bx - 6 * s, h[1] - 24 * s], [bx - 2 * s, h[1] - 38 * s], [bx - 10 * s, h[1] - 48 * s]]; line(x, br, 4.2 * s, INK, true); line(x, br, 2.4 * s, c, true); for (const [a, b] of [[1, [bx + 6 * s, h[1] - 30 * s]], [2, [bx + 6 * s, h[1] - 44 * s]], [2, [bx - 14 * s, h[1] - 36 * s]], [1, [bx - 16 * s, h[1] - 22 * s]]]) { line(x, [br[a], b], 3.6 * s, INK); line(x, [br[a], b], 1.8 * s, c); } } x.restore(); }
+    shade(x, P([[h[0] - 9 * s, h[1] + 3 * s], [h[0] - 8 * s, h[1] - 7 * s], [h[0] + 2 * s, h[1] - 8 * s], [h[0] + 16 * s, h[1] + 1 * s], [h[0] + 17 * s, h[1] + 5 * s, 1], [h[0] + 6 * s, h[1] + 7 * s]], true, .5), col, { d: 2.5 });
+    dot(x, h[0] + 16.5 * s, h[1] + 3 * s, 1.8 * s, INK);
+    for (const [dx, k] of [[-7, 1], [-3, 0]]) shade(x, P([[h[0] + dx * s, h[1] - 6 * s], [h[0] + (dx - 9) * s, h[1] - 14 * s, 1], [h[0] + (dx + 2) * s, h[1] - 9 * s]], true, .4), k ? dk(col, .2) : col, { d: 1 });
+    glow(x, h[0] + 4 * s, h[1] - 3 * s, 5 * s, o.eye, .5); shade(x, ell(h[0] + 4 * s, h[1] - 3 * s, 2.2 * s, 2.4 * s), o.eye === "#2a1a10" ? "#1a120c" : o.eye, { ol: 1, hi: .7 });
+    return;
+  }
+  return _qh2(x, h, o, t, atk);
+};
+// taches du faon (dessinées par-dessus le corps)
+const _quad0 = quad;
+quad = function (x, o, t) {
+  const r = _quad0(x, o, t);
+  if (o.spots) { const L = o.len || 70, H = o.h || 44; for (let i = 0; i < 9; i++) dot(x, -L * .3 + (i * 37 % 100) / 100 * L * .6, -H - 4 + (i * 53 % 100) / 100 * H * .3, 1.6, "rgba(255,250,235,.85)"); }
+  return r;
 };
 function petSprite(id, o = {}, t = 0, sc = 1) {
   const W = Math.ceil(220 * sc), H = Math.ceil(200 * sc), cv = mkCanvas(W, H), x = cv.getContext("2d");
@@ -3772,7 +4167,7 @@ SCREENS.title = {
     const has = !!load();
     return `<div class="titlebox">
       <div class="logo">Couronne<br>de Cendres<small>LE DERNIER BASTION</small></div>
-      <p class="lore" style="max-width:460px;margin:6px 0 14px">Un royaume maudit. Une couronne brisée. Dix héros perdus, et vous pour les mener dans l'ombre.</p>
+      <p class="lore" style="max-width:460px;margin:6px 0 14px">Un royaume maudit. Une couronne brisée. Des héros perdus, et vous pour les mener dans l'ombre.</p>
       ${has ? `<button class="btn main glow" data-a="continue">${ico("castle")}Continuer</button>` : ""}
       <button class="btn ${has ? "" : "main glow"}" data-a="newgame">${ico("plus")}Nouvelle partie</button>
       ${PWA.standalone ? "" : `<button class="btn ghost" data-a="install">${ico("install")}Installer l'appli</button>`}
@@ -3782,7 +4177,7 @@ SCREENS.title = {
   mount: () => { audioInit(); },
 };
 ACT.continue = () => { S = load(); if (!S) return; dailyCheck(); musicPlay("bastion"); const bank = idleBank(); if (S.run) go("map"); else go("bastion"); if (bank >= 10) toast(`${ico("furnace", "#ff9a3a")} La Fonderie a produit <b>${bank} or</b> en votre absence.`, "good"); };
-ACT.newgame = () => { const go2 = () => { NG.step = 0; NG.pet = "loup"; NG.hard = false; NG.heroes = {}; for (const c of START_CLASSES) NG.heroes[c] = makeHero(c); go("newgame"); musicPlay("titre"); }; if (load()) confirmBox("Une partie existe déjà sur cet appareil. Elle sera <b>effacée</b>.", go2, { yes: "Recommencer" }); else go2(); };
+ACT.newgame = () => { const go2 = () => { NG.step = 0; NG.hard = false; NG.pets = rollStarterPets(3); NG.pet = NG.pets[0]; NG.petRolls = NG_PET_ROLLS; NG.cls = rollStartParty(); NG.heroes = NG.cls.map(c => makeHero(c)); NG.rolls = NG_ROLLS; go("newgame"); musicPlay("titre"); }; if (load()) confirmBox("Une partie existe déjà sur cet appareil. Elle sera <b>effacée</b>.", go2, { yes: "Recommencer" }); else go2(); };
 ACT.install = async () => {
   if (PWA.prompt) { PWA.prompt.prompt(); try { await PWA.prompt.userChoice; } catch (e) { } PWA.prompt = null; refresh(); return; }
   let how;
@@ -3793,34 +4188,40 @@ ACT.install = async () => {
   modal(`<h2>${ico("install", "#e8c878")} Installer le jeu</h2>${how}<p class="small dim">Une fois installé, le jeu s'ouvre en plein écran depuis l'écran d'accueil et fonctionne hors connexion. Votre sauvegarde reste sur l'appareil.</p>`);
 };
 
-const NG = { step: 0, pet: "loup", hard: false, heroes: {} };
+const NG = { step: 0, pet: "loup", pets: [], petRolls: 0, hard: false, cls: [], heroes: [], rolls: 0 };
+const NG_ROLLS = 3, NG_PET_ROLLS = 1;
+const ngRollTag = n => `<span class="tag ${n ? "gold" : ""}">${ico("dice", n ? "#e8c878" : "#7a6a5a", 13)} ${n} relance${n > 1 ? "s" : ""}</span>`;
 SCREENS.newgame = {
   noHud: 1, noNav: 1,
   scene: () => backdrop("titre", { dark: .35, align: .6 }),
   html: () => {
     if (NG.step === 0) return `<div style="min-height:100%;display:flex;align-items:center;justify-content:center;padding:20px" data-a="ngNext"><div class="storybox">${STORY.intro.map((l, i) => `<p style="animation:fade 1.2s ${i * 1.4}s both">${l}</p>`).join("")}<p class="tiny dim" style="animation:fade 1s 4.4s both;font-style:normal;margin-top:24px">Touchez pour continuer</p></div></div>`;
     if (NG.step === 1) {
-      const pets = PET_IDS.filter(k => PETS[k].starter);
-      return `<div class="wrap"><h1 style="text-align:center;margin-top:10px">Votre premier compagnon</h1><p class="lore" style="text-align:center">Une bête vous a suivi jusqu'aux portes du Bastion. Elle combattra à vos côtés, gagnera en puissance et pourra évoluer.</p>
-      <div class="grid" style="--min:200px;margin-top:12px">${pets.map(k => { const P = PETS[k]; return `<div class="card ${NG.pet === k ? "sel" : ""}" data-a="ngPet" data-v="${k}" style="text-align:center">${canvasSlot("pet:" + k, 200, 150)}<h3>${P.n}</h3>${roleTag(P.role)}<p class="small dim">${P.d}</p><p class="tiny">${P.sk.map(s => "<b>" + s.n + "</b>").join(" · ")}</p></div>`; }).join("")}</div>
+      const pets = NG.pets;
+      return `<div class="wrap"><h1 style="text-align:center;margin-top:10px">Votre premier compagnon</h1><p class="lore" style="text-align:center">Trois bêtes ont suivi vos traces jusqu'aux portes du Bastion. Une seule vous accompagnera : elle combattra à vos côtés, gagnera en puissance et pourra évoluer.</p>
+      <div class="row" style="justify-content:center;gap:8px">${ngRollTag(NG.petRolls)}<button class="btn ghost sm" data-a="ngPetRoll" ${NG.petRolls ? "" : "disabled"}>${ico("dice")}Autres bêtes</button></div>
+      <div class="grid ctr" style="--min:200px;margin-top:12px">${pets.map(k => { const P = PETS[k]; return `<div class="card ${NG.pet === k ? "sel" : ""}" data-a="ngPet" data-v="${k}" style="text-align:center">${canvasSlot("pet:" + k, 200, 150)}<h3>${P.n}</h3>${roleTag(P.role)}<p class="small dim">${P.d}</p><p class="tiny">${P.sk.map(s => "<b>" + s.n + "</b>").join(" · ")}</p></div>`; }).join("")}</div>
       <div class="stickybar"><button class="btn main glow" data-a="ngNext">Choisir ${PETS[NG.pet].n}</button></div></div>`;
     }
-    return `<div class="wrap"><h1 style="text-align:center;margin-top:10px">Votre compagnie</h1><p class="lore" style="text-align:center">Quatre âmes ont répondu à l'appel. Un mur, une lame, un arc et une prière. Les autres viendront à la Taverne.</p>
-      <div class="grid" style="--min:180px;margin-top:12px">${START_CLASSES.map(c => { const h = NG.heroes[c], C = CLASSES[c]; return `<div class="card" style="text-align:center">${canvasSlot("hero:" + c, 170, 212)}<h3>${esc(h.name)}</h3><div class="row" style="justify-content:center">${roleTag(C.role)}<span class="tag">${C.n}</span></div><p class="tiny dim">${h.traits.map(t => `<span class="${TRAITS[t].good ? "good" : "bad"}">${TRAITS[t].n}</span>`).join(" · ")}</p><button class="btn ghost sm" data-a="ngReroll" data-v="${c}">${ico("dice")}Autre recrue</button></div>`; }).join("")}</div>
+    return `<div class="wrap"><h1 style="text-align:center;margin-top:10px">Votre compagnie</h1><p class="lore" style="text-align:center">Quatre âmes ont répondu à l'appel, au hasard des routes : un rempart, un soigneur et deux lames. Les autres viendront à la Taverne.</p>
+      <div class="row" style="justify-content:center;gap:8px">${ngRollTag(NG.rolls)}<button class="btn ghost sm" data-a="ngRollAll" ${NG.rolls ? "" : "disabled"}>${ico("dice")}Tout relancer</button></div>
+      <div class="grid ctr" style="--min:180px;margin-top:12px">${NG.heroes.map((h, i) => { const C = CLASSES[h.cls]; return `<div class="card" style="text-align:center">${canvasSlot("hero:" + i, 170, 212)}<h3>${esc(h.name)}</h3><div class="row" style="justify-content:center">${roleTag(C.role)}<span class="tag">${C.n}</span></div><p class="tiny lore" style="margin:4px 0">${C.lore}</p><p class="tiny dim">${h.traits.map(t => `<span class="${TRAITS[t].good ? "good" : "bad"}">${TRAITS[t].n}</span>`).join(" · ")}</p><button class="btn ghost sm" data-a="ngReroll" data-v="${i}" ${NG.rolls ? "" : "disabled"}>${ico("dice")}Autre recrue</button></div>`; }).join("")}</div>
       <div class="panel" style="padding:12px;margin-top:14px"><label class="row" style="cursor:pointer"><input type="checkbox" id="ng-hard" ${NG.hard ? "checked" : ""}> <b>Mode Hardi</b> <span class="small dim">— les héros tombés meurent pour de bon. Pour les vétérans.</span></label></div>
       <div class="stickybar"><button class="btn ghost" data-a="ngBack">Retour</button><button class="btn main glow" data-a="ngStart">${ico("castle")}Entrer au Bastion</button></div></div>`;
   },
   mount: () => {
-    fillCanvases($("#view"), (c, id) => { const [k, v] = id.split(":"); if (k === "pet") paintPet(c, v, 0); if (k === "hero") paintHero(c, NG.heroes[v], true); });
+    fillCanvases($("#view"), (c, id) => { const [k, v] = id.split(":"); if (k === "pet") paintPet(c, v, 0); if (k === "hero") paintHero(c, NG.heroes[+v], true); });
     const hb = $("#ng-hard"); if (hb) hb.onchange = () => NG.hard = hb.checked;
   },
 };
 ACT.ngNext = () => { NG.step++; refresh(); };
 ACT.ngBack = () => { NG.step = 1; refresh(); };
 ACT.ngPet = v => { NG.pet = v; refresh(); };
-ACT.ngReroll = c => { NG.heroes[c] = makeHero(c); refresh(); };
+ACT.ngReroll = i => { if (!NG.rolls) return; i = +i; NG.rolls--; const c = rollStartClass(i, NG.cls.filter((_, j) => j !== i).concat(NG.cls[i])); NG.cls[i] = c; NG.heroes[i] = makeHero(c); sfx("coin"); refresh(); };
+ACT.ngRollAll = () => { if (!NG.rolls) return; NG.rolls--; NG.cls = rollStartParty(); NG.heroes = NG.cls.map(c => makeHero(c)); sfx("coin"); refresh(); };
+ACT.ngPetRoll = () => { if (!NG.petRolls) return; NG.petRolls--; const old = NG.pets; let pool = PET_IDS.filter(p => PETS[p].starter && !old.includes(p)); RNG.shuffle(pool); NG.pets = pool.concat(RNG.shuffle(old.slice())).slice(0, 3); NG.pet = NG.pets[0]; sfx("coin"); refresh(); };
 ACT.ngStart = () => {
-  newGame(NG.pet, { hardcore: NG.hard, heroes: NG.heroes });
+  newGame(NG.pet, { hardcore: NG.hard, classes: NG.cls, heroes: NG.heroes });
   save(); sfx("bell"); musicPlay("bastion");
   go("bastion");
   setTimeout(() => modal(`<h2>${ico("castle")} Le Dernier Bastion</h2><p class="lore">Les murs tiennent encore. Pour combien de temps ?</p><p>Votre objectif : franchir la <b>Porte</b> pour mener des expéditions, rapporter or et équipement, puis faire grandir le Bastion.</p><ul class="small"><li><b>Combat</b> : chaque héros agit selon sa vitesse. Sa <b>position</b> (rangs 1 à 4) décide de ses compétences.</li><li>Les ennemis montrent leur <b>intention</b> au-dessus de leur tête : anticipez !</li><li>Un héros à 0 PV est <b>à l'agonie</b> : soignez-le vite.</li><li>Au niveau ${EVO_LVL}, chaque héros peut <b>évoluer</b> vers l'une de ses deux voies.</li></ul><div class="row" style="justify-content:flex-end"><button class="btn main" data-a="closeModal">Compris</button></div>`), 500);
@@ -3961,7 +4362,7 @@ function openBuilding(k, tab) {
   if (k === "taverne") {
     body = `<p class="lore">Une odeur de bière tiède et de sang séché. Des âmes perdues attendent un capitaine.</p><p class="small">Caserne : <b>${S.heroes.length}/${rosterMax()}</b> héros.</p>
     <div class="grid" style="--min:170px">${S.recruits.map((h, i) => { const C = CLASSES[h.cls], c = recruitPrice(i); return `<div class="card" style="text-align:center">${canvasSlot("r:" + i, 150, 188)}<h3 style="margin:2px 0">${esc(h.name)}</h3><div class="row" style="justify-content:center;gap:4px">${roleTag(C.role)}<span class="tag">${h.evo ? CLASSES[h.cls].evos[h.evo].n : C.n} · niv ${h.lvl}</span></div><p class="tiny" style="min-height:30px">${h.traits.map(t => `<span class="${TRAITS[t].good ? "good" : "bad"}" title="${TRAITS[t].d}">${TRAITS[t].n}</span>`).join(" · ")}</p><button class="btn ${c === 0 ? "main" : ""} sm" data-a="recruit" data-v="${i}">${c === 0 ? "Gratuit" : c + " " + ico("coin", "#e8c060")}</button></div>`; }).join("") || '<div class="empty">Plus personne. Revenez après une expédition.</div>'}</div>
-    <div class="row" style="margin-top:10px"><button class="btn ghost sm" data-a="reroll">${ico("dice")}Nouvelles recrues (${40 + S.bld.taverne * 20} or)</button><span class="small dim">Les recrues changent après chaque expédition. Classes débloquées : ${CLASS_IDS.filter(classUnlocked).length}/10.</span></div>`;
+    <div class="row" style="margin-top:10px"><button class="btn ghost sm" data-a="reroll">${ico("dice")}Nouvelles recrues (${40 + S.bld.taverne * 20} or)</button><span class="small dim">Les recrues changent après chaque expédition. Classes débloquées : ${CLASS_IDS.filter(classUnlocked).length}/${CLASS_IDS.length}.</span></div>`;
   }
   if (k === "forge") {
     const tabs = ["craft", "inv"]; const tb = tabs.includes(UI.bldTab) ? UI.bldTab : "craft";
@@ -4008,7 +4409,74 @@ ACT.adopt = id => { const r = adoptPet(id); if (r.err) return toast(r.err, "bad"
 ACT.evoPet = id => { const r = evolvePet(id); if (r.err) return toast(r.err, "bad"); sfx("ult"); toast(`${PETS[id].n} devient ${PETS[id].evo.n} !`, "epic"); save(); renderHud(); openBuilding("menagerie"); };
 // inventaire
 function findItem(id) { return S.inv.find(i => i.id === id) || S.heroes.flatMap(h => Object.values(h.gear)).find(i => i && i.id === id) || (S.run ? S.run.loot.find(i => i.id === id) : null); }
-function itemIcon(it) { return it.kind === "wpn" ? { masse: "mace", espadon: "sword", baton: "sun", faucille: "scythe", luth: "lute", hache: "axe", dagues: "dagger", arbalete: "bolt", grimoire: "book", faux: "scythe" }[CLASSES[it.cls].wpn] : it.kind === "arm" ? "armor" : TRINKETS[it.key].ic; }
+// ── icônes d'équipement peintes : l'arme réelle, l'armure portée sur un mannequin, les bibelots en médaillon ciselé ──
+const ITEM_ART = {}, ITEM_WPN = { dagues: "dague", grimoire: "grimoire" };
+const TR_METAL = ["#b07a44", "#c8ccd4", "#e0b050", "#3a2a3a"];
+function cropDraw(src, W, pad) { // recadre au plus juste puis centre dans un carré W×W
+  const w = src.width, h = src.height, d = src.getContext("2d").getImageData(0, 0, w, h).data;
+  let x0 = w, y0 = h, x1 = 0, y1 = 0;
+  for (let y = 0; y < h; y += 2) for (let x = 0; x < w; x += 2) if (d[(y * w + x) * 4 + 3] > 24) { if (x < x0) x0 = x; if (x > x1) x1 = x; if (y < y0) y0 = y; if (y > y1) y1 = y; }
+  const out = document.createElement("canvas"); out.width = out.height = W; const o = out.getContext("2d");
+  if (x1 <= x0) return out;
+  const bw = x1 - x0 + 2, bh = y1 - y0 + 2, sc = Math.min((W - pad * 2) / bw, (W - pad * 2) / bh);
+  o.imageSmoothingQuality = "high";
+  o.drawImage(src, x0, y0, bw, bh, (W - bw * sc) / 2, (W - bh * sc) / 2, bw * sc, bh * sc);
+  return out;
+}
+function itemArt(it) {
+  if (!HASWIN || !it) return "";
+  const key = it.kind === "tr" ? "tr|" + it.key : [it.kind, it.cls, it.tier, it.rar].join("|");
+  if (ITEM_ART[key]) return ITEM_ART[key];
+  const W = 112;
+  let cv;
+  try {
+    if (it.kind === "wpn") {
+      const src = mkCanvas(420, 420), x = src.getContext("2d"), wt = CLASSES[it.cls].wpn, type = ITEM_WPN[wt] || wt;
+      x.save(); x.translate(210, 210); x.scale(type === "grimoire" ? 3.2 : 1.6, type === "grimoire" ? 3.2 : 1.6);
+      const a = type === "grimoire" ? 2.6 : type === "luth" ? 1.9 : type === "encensoir" ? 2.95 : 2.36;
+      drawWeapon(x, type, it.tier, [0, 40], a, { t: 0, runeCol: it.rar >= 3 ? "#ffb04a" : null });
+      x.restore(); litPass(x, 420, 420); spritePost(src, 1.6, { rim: "#ffe0b0" });
+      cv = cropDraw(src, W, 8);
+    } else if (it.kind === "arm") {
+      const src = mkCanvas(360, 420), x = src.getContext("2d");
+      const sp = outfit({ cls: it.cls, tier: it.tier, wtier: it.tier, skin: "#8a6a50", hair: 0, hairCol: "#2a2018", beard: -1, scar: -1 });
+      sp.wpn = null; sp.shield = 0; sp.quiver = 0; sp.offhand = null; sp.halo = null;
+      x.save(); x.translate(180, 400); x.scale(1.9, 1.9);
+      drawFigure(x, sp, { h: 1, w: 1, female: false }, { aFs: .12, aFe: .15, aBs: -.1, aBe: .1, lFh: .15, lFk: -.05, lBh: -.12, lBk: -.02 }, 0, {});
+      x.restore();
+      // on ne garde que le buste (du sommet au milieu des cuisses)
+      const d = x.getImageData(0, 0, 360, 420).data; let top = 420; for (let y = 0; y < 420 && top === 420; y += 2) for (let xx = 0; xx < 360; xx += 3) if (d[(y * 360 + xx) * 4 + 3] > 24) { top = y; break; }
+      const cut = top + (400 - top) * .5;
+      const fade = x.createLinearGradient(0, cut - 26, 0, cut); fade.addColorStop(0, "rgba(0,0,0,1)"); fade.addColorStop(1, "rgba(0,0,0,0)");
+      x.globalCompositeOperation = "destination-in"; x.fillStyle = fade; x.fillRect(0, 0, 360, 420); x.globalCompositeOperation = "source-over";
+      litPass(x, 360, 420); spritePost(src, 1.9, { rim: "#cfe0ff" });
+      cv = cropDraw(src, W, 6);
+    } else {
+      const T = TRINKETS[it.key], ic = IC[T.ic] || IC.gem, m = TR_METAL[it.rar] || TR_METAL[0];
+      cv = document.createElement("canvas"); cv.width = cv.height = W; const x = cv.getContext("2d"), c = W / 2, R = W * .36;
+      // anneau et chaînette
+      x.lineWidth = 5; x.strokeStyle = INK; x.beginPath(); x.arc(c, c - R - 6, 7, 0, 7); x.stroke(); x.lineWidth = 2.6; x.strokeStyle = it.rar >= 3 ? "#8a6a8a" : m; x.stroke();
+      // médaillon
+      const disc = circ(c, c + 4, R), mg = x.createLinearGradient(c - R, c - R, c + R, c + R + 8);
+      mg.addColorStop(0, lt(m, .45)); mg.addColorStop(.45, m); mg.addColorStop(1, dk(m, .55));
+      x.save(); x.shadowColor = "rgba(0,0,0,.7)"; x.shadowBlur = 8; x.shadowOffsetY = 3; x.fillStyle = mg; x.fill(disc); x.restore();
+      x.lineWidth = 3; x.strokeStyle = INK; x.stroke(disc);
+      x.lineWidth = 2; x.strokeStyle = rgba(lt(m, .5), .7); x.beginPath(); x.arc(c, c + 4, R - 5, Math.PI * .9, Math.PI * 1.6); x.stroke();
+      x.lineWidth = 1.4; x.strokeStyle = rgba(dk(m, .6), .9); x.beginPath(); x.arc(c, c + 4, R - 5, 0, 7); x.stroke();
+      if (it.rar >= 2) { x.save(); x.globalCompositeOperation = "lighter"; const g = x.createRadialGradient(c, c + 4, 2, c, c + 4, R); g.addColorStop(0, it.rar >= 3 ? "rgba(255,120,40,.55)" : "rgba(200,120,255,.35)"); g.addColorStop(1, "rgba(0,0,0,0)"); x.fillStyle = g; x.fill(disc); x.restore(); }
+      // motif gravé : creux sombre puis arête claire
+      const p = new Path2D(ic), s = R * 1.25 / 24;
+      x.save(); x.translate(c - 12 * s, c + 4 - 12 * s); x.scale(s, s); x.lineCap = x.lineJoin = "round";
+      x.lineWidth = 3.4; x.strokeStyle = rgba(INK, .85); x.stroke(p);
+      x.translate(-.5, -.5); x.lineWidth = 1.6; x.strokeStyle = it.rar >= 3 ? "#ffb04a" : lt(m, .55); x.stroke(p);
+      x.restore();
+    }
+    // éclat de rareté discret
+    if (it.rar >= 1 && it.kind !== "tr") { const x = cv.getContext("2d"); x.save(); x.globalCompositeOperation = "destination-over"; const g = x.createRadialGradient(W / 2, W / 2, 4, W / 2, W / 2, W / 2); g.addColorStop(0, RARITY[it.rar].c + "50"); g.addColorStop(1, "#0000"); x.fillStyle = g; x.fillRect(0, 0, W, W); x.restore(); }
+    return ITEM_ART[key] = cv.toDataURL();
+  } catch (e) { return ITEM_ART[key] = ""; }
+}
+function itemIcon(it) { return it.kind === "wpn" ? { masse: "mace", espadon: "sword", baton: "sun", faucille: "scythe", luth: "lute", hache: "axe", dagues: "dagger", arbalete: "bolt", grimoire: "book", faux: "scythe", marteau: "hammer", encensoir: "flask", rapiere: "sword", hallebarde: "axe", croix: "bless" }[CLASSES[it.cls].wpn] : it.kind === "arm" ? "armor" : TRINKETS[it.key].ic; }
 function paintItem(c, it) { if (!it) return; const x = c.getContext("2d"); const g = x.createRadialGradient(c.width / 2, c.height / 2, 2, c.width / 2, c.height / 2, c.width / 2); g.addColorStop(0, RARITY[it.rar].c + "55"); g.addColorStop(1, "#0000"); x.fillStyle = g; x.fillRect(0, 0, c.width, c.height); }
 function itemLine(it) {
   if (!it) return "";
@@ -4017,9 +4485,9 @@ function itemLine(it) {
   if (it.kind === "arm") stats.push(`+${Math.round((ARM_HP[it.tier] * (1 + .07 * it.up) + it.up * .025) * 100)} % PV`, `+${Math.round(ARM_PROT[it.tier] * 100)} % protection`);
   if (it.kind === "tr") stats.push(TRINKETS[it.key].d);
   for (const f of it.aff || []) { const A = AFFIXES[f.k]; stats.push(`+${A.fmt === "pct" ? Math.round(f.v * 100) + " %" : f.v} ${A.n}`); }
-  return stats.join(" · ");
+  return stats.filter(t => !/^\+0 %/.test(t)).join(" · ") || "Équipement de base";
 }
-function slotHTML(it, act, v, extra = "") { if (!it) return `<div class="slot" data-a="${act}" data-v="${v}">${ico("plus", "#5a4a3a")}</div>`; return `<div class="slot r${it.rar}" data-a="${act}" data-v="${v}" title="${esc(gearName(it))}">${ico(itemIcon(it), RARITY[it.rar].c)}${it.kind !== "tr" ? `<span class="tier">${"I II III IV V".split(" ")[it.tier - 1]}</span>` : ""}${it.up ? `<span class="up">+${it.up}</span>` : ""}${extra}</div>`; }
+function slotHTML(it, act, v, extra = "") { if (!it) return `<div class="slot" data-a="${act}" data-v="${v}">${ico("plus", "#5a4a3a")}</div>`; return `<div class="slot r${it.rar}" data-a="${act}" data-v="${v}" title="${esc(gearName(it))}">${(() => { const a = itemArt(it); return a ? `<img class="itimg" src="${a}" alt="">` : ico(itemIcon(it), RARITY[it.rar].c); })()}${it.kind !== "tr" ? `<span class="tier">${"I II III IV V".split(" ")[it.tier - 1]}</span>` : ""}${it.up ? `<span class="up">+${it.up}</span>` : ""}${extra}</div>`; }
 function invList(filter) {
   const items = S.inv.filter(filter || (() => true)).sort((a, b) => b.rar - a.rar || b.tier - a.tier);
   if (!items.length) return '<div class="empty">Inventaire vide. Explorez pour trouver du butin, ou forgez.</div>';
@@ -4380,7 +4848,7 @@ async function combatLoop() {
   const B = CB.B;
   while (B && !B.over && CB.B === B) {
     startRound(B); cbTopLeft();
-    if (B.rageMsg === 1) { B.rageMsg = 2; await showBanner("Rage !", "Les ennemis frappent de plus en plus fort", "#ff3a2a", 1100); }
+    if (B.rageMsg === 1) { B.rageMsg = 2; await showBanner("Rage !", "Les ennemis frappent plus fort, mais se soignent moins", "#ff3a2a", 1100); }
     let u;
     while (!B.over && CB.B === B && (u = nextActor(B))) {
       CB.actor = u; cbTopLeft();
@@ -4494,7 +4962,7 @@ function burst(x, y, col, n = 14, o = {}) { for (let i = 0; i < n; i++) { const 
 const ANIM_COL = { holy: "#ffe08a", fire: "#ff7a2a", shadow: "#9a6aff", blood: "#d02a2a", nature: "#8ad06a", poison: "#9ad04a", music: "#c9a0ff", arrows: "#e8e0c8" };
 function skillColor(u, name) {
   if (u.side === "e") { const M = MONSTERS[u.key]; if (/feu|Bûcher|Flamme|Boule|lave|ardent|Couronne/i.test(name)) return "#ff7a2a"; if (/peste|Vomi|Poison|Bave|Crachat|Pollen|Brume/i.test(name)) return "#9ad04a"; if (M && M.tags.includes("impie")) return "#9a6aff"; return "#d84a3a"; }
-  const C = CLASSES[u.cls]; return { templier: "#ffe08a", revenant: "#7af0e0", pretresse: "#ffe8a0", sorciere: "#8ad06a", menestrel: "#c9a0ff", berserker: "#ff5a3a", ombre: "#a06aff", arbaletriere: "#e8e0c8", pyromancien: "#ff7a2a", necromancien: "#6ad0a0" }[u.cls] || "#ffffff";
+  const C = CLASSES[u.cls]; return { templier: "#ffe08a", revenant: "#7af0e0", pretresse: "#ffe8a0", sorciere: "#8ad06a", menestrel: "#c9a0ff", berserker: "#ff5a3a", ombre: "#a06aff", arbaletriere: "#e8e0c8", pyromancien: "#ff7a2a", necromancien: "#6ad0a0", gardien_runes: "#7ad0ff", medecin_peste: "#9fe86a", chasseur_sorcieres: "#ffe8a0", hallebardier: "#e8d8a0", exorciste: "#e8f0ff" }[u.cls] || "#ffffff";
 }
 async function playEvents(ev) {
   const B = CB.B; if (!B) return;
@@ -4518,7 +4986,7 @@ async function playEvents(ev) {
           for (const t of targetsAfter(ev, i)) projectile(v, V(t), "bolt", srcCol);
           await wait(220);
         } else if (e.anim === "cast") {
-          v.pose = u.side === "h" ? "cast" : "strike"; v.pt = .6; sfx(/feu|flamme|Météore|Embras|Combust|Bûcher/i.test(e.sk) ? "fire" : u.side === "h" && ["pretresse", "templier"].includes(u.cls) ? "holy" : "dark");
+          v.pose = u.side === "h" ? "cast" : "strike"; v.pt = .6; sfx(/feu|flamme|Météore|Embras|Combust|Bûcher/i.test(e.sk) ? "fire" : u.side === "h" && ["pretresse", "templier", "exorciste", "chasseur_sorcieres"].includes(u.cls) ? "holy" : "dark");
           glowAt(v, srcCol, 1); for (const t of targetsAfter(ev, i)) projectile(v, V(t), "orb", srcCol);
           await wait(300);
         } else if (e.anim === "heal" || e.anim === "buff" || e.anim === "potion") {
@@ -4746,7 +5214,7 @@ SCREENS.codex = {
     if (tab === "records") { const s = S.stats; body = `<div class="panel" style="padding:14px"><div class="statgrid"><div>Expéditions <b>${s.runs}</b></div><div>Victoires en combat <b>${s.wins}</b></div><div>Ennemis tués <b>${fmt(s.kills)}</b></div><div>Gardiens vaincus <b>${REGIONS.reduce((a, r) => a + (s["boss_" + r.id] || 0), 0)}</b></div><div>Record de l'Abîme <b>${S.abyss.best}</b></div><div>Évolutions <b>${s.evos}</b></div><div>Objets forgés <b>${s.crafts}</b></div><div>Expéditions du jour <b>${s.daily}</b></div><div>Mode <b>${S.opts.hardcore ? "Hardi" : "Normal"}</b></div></div>${S.graves && S.graves.length ? `<div class="sep"></div><h3>${ico("skull", "#c8b8a0", 16)} Le cimetière</h3>${S.graves.slice(-20).reverse().map(g => `<div class="small">${esc(g.name)} — ${CLASSES[g.cls].n}, niveau ${g.lvl}</div>`).join("")}` : ""}</div>`; }
     return `<div class="wrap"><h1>Les Archives</h1><div class="tabs">${T.map(([k, ic, n]) => `<button class="btn sm ${tab === k ? "on" : ""}" data-a="codexTab" data-v="${k}">${ico(ic)}${n}</button>`).join("")}</div>${body}</div>`;
   },
-  mount: () => fillCanvases($("#view"), (c, id) => { const [k, v] = id.split(":"); if (k === "cl") { const x = c.getContext("2d"); const sp = heroSprite({ cls: v, tier: 3, wtier: 3, skin: SKINS[2], hair: 2, hairCol: HAIRCOL[2], beard: 0, female: ["pretresse", "sorciere", "ombre", "arbaletriere"].includes(v) }, {}, 0, c.width / 230 * 1.2); x.drawImage(sp, c.width / 2 - sp.ax, c.height - 4 - sp.ay); } if (k === "mo") paintMon(c, v); }),
+  mount: () => fillCanvases($("#view"), (c, id) => { const [k, v] = id.split(":"); if (k === "cl") { const x = c.getContext("2d"); const sp = heroSprite({ cls: v, tier: 3, wtier: 3, skin: SKINS[2], hair: 2, hairCol: HAIRCOL[2], beard: 0, female: ["pretresse", "sorciere", "ombre", "arbaletriere", "chasseur_sorcieres"].includes(v) }, {}, 0, c.width / 230 * 1.2); x.drawImage(sp, c.width / 2 - sp.ax, c.height - 4 - sp.ay); } if (k === "mo") paintMon(c, v); }),
 };
 ACT.codexTab = v => { UI.codexTab = v; refresh(); };
 SCREENS.options = {

@@ -18,6 +18,11 @@ const GEAR_NAMES = {
   arbaletriere: { wpn: ["Arbalète de chasse", "Arbalète de rempart", "Arbalète à cric", "Arbalète de siège", "Baliste de poing"], arm: ["Gambison de milice", "Brigandine", "Cuirasse de garde", "Armure du rempart", "Plates de la Capitaine"] },
   pyromancien: { wpn: ["Carnet brûlé", "Grimoire de flammes", "Tome du brasier", "Codex infernal", "Livre du Soleil noir"], arm: ["Robe roussie", "Robe d'apprenti", "Robe de mage", "Manteau du brasier", "Parure de l'Archimage"] },
   necromancien: { wpn: ["Faux de fossoyeur", "Faux d'os", "Faux funéraire", "Moissonneuse d'âmes", "Faux de la Liche"], arm: ["Linceul", "Robe de fossoyeur", "Robe d'ossuaire", "Manteau des tombes", "Parure du Seigneur des morts"] },
+  gardien_runes: { wpn: ["Maillet de carrier", "Marteau gravé", "Marteau runique", "Marteau du tonnerre", "Marteau des Ancêtres"], arm: ["Peaux et mailles", "Broigne de pierre", "Plates runiques", "Armure du Thane", "Carapace des Ancêtres"] },
+  medecin_peste: { wpn: ["Encensoir de cuivre", "Encensoir de fer", "Encensoir d'argent", "Encensoir du lazaret", "Encensoir de la Grande Peste"], arm: ["Manteau ciré", "Manteau de lazaret", "Habit de docteur", "Manteau du barbier", "Parure du Fléau"] },
+  chasseur_sorcieres: { wpn: ["Épée de milice", "Rapière", "Rapière d'argent", "Lame du tribunal", "Lame du Dernier Bûcher"], arm: ["Pourpoint de cuir", "Brigandine noire", "Cuirasse du tribunal", "Armure du Saint-Office", "Parure du Grand Chasseur"] },
+  hallebardier: { wpn: ["Fourche de guerre", "Vouge", "Hallebarde", "Hallebarde de la garde", "Hallebarde du Roi"], arm: ["Gambison de piquier", "Haubert de milice", "Demi-armure", "Plates de la garde", "Armure du Garde royal"] },
+  exorciste: { wpn: ["Croix de bois", "Croix de fer", "Croix d'argent", "Croix reliquaire", "Croix de l'Exorciste"], arm: ["Soutane usée", "Soutane noire", "Habit de chapelain", "Chasuble brodée", "Parure du Saint-Siège"] },
 };
 // bonus de base par palier
 const WPN_DMG = [0, .0, .18, .38, .62, .9];
@@ -175,7 +180,7 @@ const ACHIEVEMENTS = [
   { id: "apex", n: "Apogée", d: "Faire atteindre l'apogée (niveau 12) à un héros.", k: "apex", v: 1, shards: 1 },
   { id: "legende", n: "Légende", d: "Faire atteindre le niveau 20 à un héros.", k: "maxlvl", v: 1, shards: 3 },
   { id: "armee", n: "Une petite armée", d: "Avoir 10 héros.", k: "roster", v: 10, gold: 300 },
-  { id: "toutes_classes", n: "Toutes les voies", d: "Recruter les 10 classes.", k: "classes", v: 10, shards: 2 },
+  { id: "toutes_classes", n: "Toutes les voies", d: `Recruter les ${CLASS_IDS.length} classes.`, k: "classes", v: CLASS_IDS.length, shards: 2 },
   { id: "forge_t5", n: "Acier royal", d: "Forger un équipement de palier V.", k: "tier5", v: 1, shards: 2 },
   { id: "legendaire", n: "Trésor des rois", d: "Obtenir un objet légendaire.", k: "legend", v: 1, gold: 400 },
   { id: "menagerie", n: "Dresseur", d: "Posséder 6 compagnons.", k: "pets", v: 6, gold: 500 },

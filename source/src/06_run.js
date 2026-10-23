@@ -5,7 +5,7 @@ const NODE_T = {
 };
 
 function regionsCleared() { return REGIONS.filter(r => S.prog[r.id] && S.prog[r.id].clears > 0).length; }
-function classUnlocked(c) { return CLASSES[c].unlock <= regionsCleared(); }
+function classUnlocked(c) { return CLASSES[c].unlock <= regionsCleared() || !!(S.seen && S.seen.classes[c]); }
 function petUnlocked(id) { return PETS[id].starter || (PETS[id].unlock || 0) <= regionsCleared(); }
 function regionUnlocked(id) { if (id === "abime") return regionsCleared() >= 1; const i = REGIONS.findIndex(r => r.id === id); return i === 0 || (S.prog[REGIONS[i - 1].id] && S.prog[REGIONS[i - 1].id].clears > 0); }
 

@@ -48,11 +48,20 @@ function upgradeBld(k) { const c = bldCost(k); if (!c) return { err: "Niveau max
 function adoptPet(id) { const P = PETS[id]; if (S.pets.owned.includes(id)) return { err: "Déjà adopté." }; if (!petUnlocked(id)) return { err: "Pas encore disponible." }; const c = P.cost || 0; if (S.pets.owned.length - 1 >= S.bld.menagerie + 1) return { err: "Agrandissez la Ménagerie." }; if (S.gold < c) return { err: "Pas assez d'or." }; S.gold -= c; S.pets.owned.push(id); S.pets.lvl[id] = Math.max(1, Math.round(petLvl(S.pet || id) * .6)); S.pets.xp[id] = 0; checkAchievements(); return { ok: 1 }; }
 const PET_EVO_COST = { gold: 600, essence: 4, shards: 1 };
 function evolvePet(id) { if (petEvolved(id) || petLvl(id) < PET_EVO_LVL) return { err: "Niveau 10 requis." }; if (!pay(PET_EVO_COST)) return { err: "Il faut 600 or, 4 essences et 1 éclat." }; S.pets.evo[id] = 1; S.stats.petEvo++; checkAchievements(); return { ok: 1 }; }
-// nouvelle partie : 4 héros de départ et un compagnon au choix
-const START_CLASSES = ["templier", "berserker", "arbaletriere", "pretresse"];
+// nouvelle partie : 4 héros tirés au sort (un tank, un soigneur, deux autres) et un compagnon parmi trois proposés
+const START_SLOTS = [["tank"], ["soin"], ["dps"], ["dps", "soutien"]];
+function rollStartClass(slot, taken = []) {
+  const pool = CLASS_IDS.filter(c => START_SLOTS[slot].includes(CLASSES[c].role) && !taken.includes(c));
+  return pick(pool.length ? pool : CLASS_IDS.filter(c => !taken.includes(c)));
+}
+function rollStartParty() { const out = []; for (let i = 0; i < START_SLOTS.length; i++) out.push(rollStartClass(i, out)); return out; }
+function rollStarterPets(n = 3) { const pool = PET_IDS.filter(p => PETS[p].starter); RNG.shuffle(pool); return pool.slice(0, n); }
 function newGame(petId, opt = {}) {
   S = newState(opt);
-  for (const c of opt.classes || START_CLASSES) addHero(opt.heroes && opt.heroes[c] ? opt.heroes[c] : makeHero(c));
+  const cls = opt.classes || rollStartParty();
+  const list = cls.map((c, i) => opt.heroes && opt.heroes[i] && opt.heroes[i].cls === c ? opt.heroes[i] : makeHero(c));
+  list.sort((a, b) => CLASSES[a.cls].rk[0] - CLASSES[b.cls].rk[0]);
+  for (const h of list) addHero(h);
   S.pets.owned = [petId]; S.pets.lvl[petId] = 1; S.pets.xp[petId] = 0; S.pet = petId;
   S.potions = 0; refreshRecruits(); dailyCheck();
   return S;

@@ -3,7 +3,7 @@
 RPG tactique dark fantasy médiéval, jouable dans le navigateur et installable sur téléphone (PWA).
 
 - **Jouer** : https://norbeo.github.io/Ash-Crown/
-- 10 classes (tanks, soigneurs, dégâts), 20 évolutions, 12 compagnons, 5 chapitres et l'Abîme sans fin.
+- 15 classes (tanks, soigneurs, soutiens, dégâts), 30 évolutions, 18 compagnons, 5 chapitres et l'Abîme sans fin. Compagnie et compagnon de départ tirés au sort.
 
 ## Structure
 - À la racine : le jeu prêt à servir (`index.html`, `sw.js`, `manifest.webmanifest`, icônes).

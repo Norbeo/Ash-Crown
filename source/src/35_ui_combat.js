@@ -74,7 +74,7 @@ async function combatLoop() {
   const B = CB.B;
   while (B && !B.over && CB.B === B) {
     startRound(B); cbTopLeft();
-    if (B.rageMsg === 1) { B.rageMsg = 2; await showBanner("Rage !", "Les ennemis frappent de plus en plus fort", "#ff3a2a", 1100); }
+    if (B.rageMsg === 1) { B.rageMsg = 2; await showBanner("Rage !", "Les ennemis frappent plus fort, mais se soignent moins", "#ff3a2a", 1100); }
     let u;
     while (!B.over && CB.B === B && (u = nextActor(B))) {
       CB.actor = u; cbTopLeft();
@@ -188,7 +188,7 @@ function burst(x, y, col, n = 14, o = {}) { for (let i = 0; i < n; i++) { const 
 const ANIM_COL = { holy: "#ffe08a", fire: "#ff7a2a", shadow: "#9a6aff", blood: "#d02a2a", nature: "#8ad06a", poison: "#9ad04a", music: "#c9a0ff", arrows: "#e8e0c8" };
 function skillColor(u, name) {
   if (u.side === "e") { const M = MONSTERS[u.key]; if (/feu|Bûcher|Flamme|Boule|lave|ardent|Couronne/i.test(name)) return "#ff7a2a"; if (/peste|Vomi|Poison|Bave|Crachat|Pollen|Brume/i.test(name)) return "#9ad04a"; if (M && M.tags.includes("impie")) return "#9a6aff"; return "#d84a3a"; }
-  const C = CLASSES[u.cls]; return { templier: "#ffe08a", revenant: "#7af0e0", pretresse: "#ffe8a0", sorciere: "#8ad06a", menestrel: "#c9a0ff", berserker: "#ff5a3a", ombre: "#a06aff", arbaletriere: "#e8e0c8", pyromancien: "#ff7a2a", necromancien: "#6ad0a0" }[u.cls] || "#ffffff";
+  const C = CLASSES[u.cls]; return { templier: "#ffe08a", revenant: "#7af0e0", pretresse: "#ffe8a0", sorciere: "#8ad06a", menestrel: "#c9a0ff", berserker: "#ff5a3a", ombre: "#a06aff", arbaletriere: "#e8e0c8", pyromancien: "#ff7a2a", necromancien: "#6ad0a0", gardien_runes: "#7ad0ff", medecin_peste: "#9fe86a", chasseur_sorcieres: "#ffe8a0", hallebardier: "#e8d8a0", exorciste: "#e8f0ff" }[u.cls] || "#ffffff";
 }
 async function playEvents(ev) {
   const B = CB.B; if (!B) return;
@@ -212,7 +212,7 @@ async function playEvents(ev) {
           for (const t of targetsAfter(ev, i)) projectile(v, V(t), "bolt", srcCol);
           await wait(220);
         } else if (e.anim === "cast") {
-          v.pose = u.side === "h" ? "cast" : "strike"; v.pt = .6; sfx(/feu|flamme|Météore|Embras|Combust|Bûcher/i.test(e.sk) ? "fire" : u.side === "h" && ["pretresse", "templier"].includes(u.cls) ? "holy" : "dark");
+          v.pose = u.side === "h" ? "cast" : "strike"; v.pt = .6; sfx(/feu|flamme|Météore|Embras|Combust|Bûcher/i.test(e.sk) ? "fire" : u.side === "h" && ["pretresse", "templier", "exorciste", "chasseur_sorcieres"].includes(u.cls) ? "holy" : "dark");
           glowAt(v, srcCol, 1); for (const t of targetsAfter(ev, i)) projectile(v, V(t), "orb", srcCol);
           await wait(300);
         } else if (e.anim === "heal" || e.anim === "buff" || e.anim === "potion") {

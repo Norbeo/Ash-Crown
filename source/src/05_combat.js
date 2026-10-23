@@ -174,7 +174,7 @@ function act(B, u, sk, tgt) {
 function skillAnim(u, sk) {
   const t = sk.t || "e";
   if (t === "a" || t === "aa" || t === "s" || t === "allies" || t === "self") return sk.heal || sk.healSelf ? "heal" : "buff";
-  if (u.side === "h") { const w = CLASSES[u.cls].wpn; if (w === "arbalete") return "shoot"; if (["grimoire", "baton", "luth"].includes(w) || (w === "faux" && !sk.at?.every(r => r <= 2)) || (w === "faucille" && !(sk.use || []).includes(1))) return "cast"; return sk.mv > 0 ? "leap" : "melee"; }
+  if (u.side === "h") { const w = CLASSES[u.cls].wpn; if (w === "arbalete") return "shoot"; if (["grimoire", "baton", "luth", "croix"].includes(w) || (w === "encensoir" && !(sk.use || []).includes(1)) || (w === "faux" && !sk.at?.every(r => r <= 2)) || (w === "faucille" && !(sk.use || []).includes(1))) return "cast"; return sk.mv > 0 ? "leap" : "melee"; }
   const M = MONSTERS[u.key]; if (M && M.rk.every(r => r >= 3)) return /Flèche|Volée|Carreau/.test(sk.n) ? "shoot" : "cast";
   return t === "ae" && !(sk.at || []).every(r => r <= 2) ? "cast" : "melee";
 }
@@ -197,6 +197,7 @@ function strike(B, u, x, sk, mult, ev) {
   if (hk.lowHpDmg && u.hp / u.hpMax < .5) mod += hk.lowHpDmg;
   if (hk.vsTag && x.tags.includes(hk.vsTag)) mod += hk.vsTagV;
   if (hk.execute && hpr < .4) mod += hk.execute;
+  if (u.side === "h" && B.round > 18) mod += (B.round - 18) * .05; // acharnement : les héros finissent par percer toute défense
   if (hasSt(x, "mark")) mod += .15 + (hk.markDmg || 0) + (u.side === "h" ? B.relicH.markDmg || 0 : 0);
   if (hasSt(x, "vuln")) mod += .25;
   if (u.side === "h") { if (B.relicH.vsImpie && x.tags.includes("impie")) mod += B.relicH.vsImpie; if (B.relicH.darkDmg && B.light < 50) mod += B.relicH.darkDmg; if (B.morale >= 80) mod += .15; if (B.morale <= 20) mod -= .15; if (B.light < 30) mod += .05; }
@@ -277,6 +278,7 @@ function reviveFallen(B, frac, ev) {
 function healUnit(B, src, x, v, ev, o = {}) {
   if (!alive(x)) return;
   let h = v * (src && !o.leech ? src.healPow : 1) * (1 + (x.hooks.healTaken || 0));
+  if (x.side !== "h" && B.round > 14) h *= .5; // la rage consume aussi les forces de l'ennemi
   h = Math.max(1, Math.round(h));
   const room = x.hpMax - x.hp, real = Math.min(room, h);
   x.hp += real;

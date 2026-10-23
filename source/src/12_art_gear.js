@@ -116,6 +116,86 @@ function drawWeapon(x, type, tier, hand, a, o = {}) {
       if (T >= 4) line(x, [[-14, 6], [0, 9], [14, 6]], 1.6, MAT.gold);
       break;
     }
+    case "marteau": {
+      handle(T <= 1 ? 30 : 34, 4.8, T <= 2 ? MAT.wood : MAT.dleather);
+      if (T >= 3) for (let i = 0; i < 3; i++) dot(x, 0, -4 - i * 8, 1.2, trim);
+      const top = T <= 1 ? -32 : -36, hw = 12 + T * 1.5, hh = 14 + T;
+      if (T <= 1) { // maillet de pierre lié de cuir
+        shade(x, P([[-hw, top - 2], [hw, top], [hw + 1, top - hh, 1], [-hw - 1, top - hh + 2, 1]], true, .6), "#7a766e", { grad: lgrad(x, -hw, top - hh, hw, top, [[0, "#9a968c"], [1, "#55524c"]]), d: 2 });
+        for (const k of [-.45, .45]) line(x, [[k * hw * 2, top + 1], [k * hw * 2, top - hh]], 2.2, MAT.leather);
+        break;
+      }
+      const st = T >= 5 ? "#cfd6de" : steel;
+      const head = P([[-hw, top], [hw, top], [hw + 2, top - 3, 1], [hw + 2, top - hh + 3, 1], [hw, top - hh], [-hw, top - hh], [-hw - 2, top - hh + 3, 1], [-hw - 2, top - 3, 1]], true, .3);
+      shade(x, head, st, { grad: mg(st, -hw, top - hh, hw, top), d: 2.5 });
+      shade(x, P([[-hw - 1, top - 2], [-hw - 1, top - hh + 2], [-hw - 6, top - hh / 2 - 2], [-hw - 6, top - hh / 2 + 2]], true), dk(st, .2), { d: 1 });
+      line(x, [[-hw + 2, top - hh + 2], [hw - 2, top - hh + 2]], 1, rgba(lt(st, .6), .7));
+      if (T >= 3) { const rc = rune || (T >= 4 ? "#ffd27a" : "#7ad0ff"); x.save(); x.globalCompositeOperation = "lighter"; glow(x, 0, top - hh / 2, 12 + T * 2, rc, T >= 4 ? .55 : .35); x.restore(); x.strokeStyle = rc; x.lineWidth = 1.4; x.beginPath(); x.moveTo(-5, top - 3); x.lineTo(-5, top - hh + 3); x.moveTo(-5, top - hh / 2); x.lineTo(1, top - hh + 3); x.moveTo(3, top - 3); x.lineTo(7, top - hh / 2); x.lineTo(3, top - hh + 3); x.stroke(); }
+      if (T >= 4) { line(x, [[-hw, top - 1.5], [hw, top - 1.5]], 2, MAT.gold); line(x, [[-hw, top - hh + 1.5], [hw, top - hh + 1.5]], 2, MAT.gold); }
+      break;
+    }
+    case "encensoir": {
+      // poignée, chaîne pendante, encensoir ajouré qui fume
+      shade(x, seg([0, 6], [0, -6], 4, 4), MAT.dleather, { d: 1 });
+      const mc = T >= 4 ? MAT.gold : T >= 3 ? MAT.silver : T >= 2 ? MAT.iron : MAT.brass;
+      const sw = Math.sin((o.t || 0) * 2.2) * 3, L = 26 + T * 2;
+      for (let i = 0; i < 6; i++) { const a0 = [sw * i / 6, -6 - i * L / 6], a1 = [sw * (i + 1) / 6, -6 - (i + 1) * L / 6]; x.strokeStyle = INK; x.lineWidth = 2.6; x.beginPath(); x.ellipse((a0[0] + a1[0]) / 2, (a0[1] + a1[1]) / 2, 1.6, L / 12 + .6, 0, 0, 7); x.stroke(); x.strokeStyle = mc; x.lineWidth = 1.2; x.stroke(); }
+      const c = [sw, -6 - L - 9], r = 8 + T * .6;
+      shade(x, P([[c[0] - r * .45, c[1] + r * .9], [c[0] + r * .45, c[1] + r * .9], [c[0] + r * .2, c[1] + r * 1.3]], true), dk(mc, .2), { ol: 1.2, d: .5 });
+      shade(x, circ(c[0], c[1], r), mc, { grad: mg(mc, c[0] - r, c[1] - r, c[0] + r, c[1] + r), d: 2.5 });
+      for (let i = 0; i < 5; i++) { const a = -1.2 + i * .6; dot(x, c[0] + Math.cos(a) * r * .55, c[1] + Math.sin(a) * r * .55, 1.3, INK); }
+      line(x, [[c[0] - r, c[1]], [c[0] + r, c[1]]], 1.2, dk(mc, .4));
+      shade(x, P([[c[0] - 3, c[1] - r + 1], [c[0] + 3, c[1] - r + 1], [c[0], c[1] - r - 5, 1]], true), mc, { ol: 1, d: .5 });
+      const smoke = T >= 5 ? "#9fe8a0" : T >= 4 ? "#d8e8c0" : "#a8a8a0";
+      x.save(); x.globalCompositeOperation = T >= 4 ? "lighter" : "source-over";
+      for (let i = 0; i < 4; i++) { const k = ((o.t || 0) * .6 + i / 4) % 1; glow(x, c[0] + Math.sin(k * 7 + i) * 6, c[1] - r - 4 - k * 20, 6 + k * 9, smoke, (1 - k) * (T >= 4 ? .5 : .35)); }
+      if (T >= 3) glow(x, c[0], c[1], r * 1.6, T >= 5 ? "#7ad08a" : "#ffb04a", .45);
+      x.restore();
+      break;
+    }
+    case "rapiere": {
+      shade(x, seg([0, 9], [0, -6], 3.6, 3.6), T >= 3 ? MAT.dleather : MAT.leather, { d: 1 });
+      shade(x, circ(0, 11, 3.2), trim, { ol: 1.2, d: 1 });
+      // garde à branches
+      x.strokeStyle = INK; x.lineWidth = 3.4; x.beginPath(); x.moveTo(-11, -7); x.lineTo(11, -7); x.moveTo(0, -7); x.bezierCurveTo(9, -6, 9, 6, 1, 9); x.moveTo(-1, -7); x.bezierCurveTo(-9, -12, -7, 2, -1, 5); x.stroke();
+      x.strokeStyle = trim; x.lineWidth = 1.6; x.stroke();
+      if (T >= 3) { shade(x, ell(0, -9, 6, 2.6), trim, { ol: 1.1, d: .8 }); }
+      const L = 60 + T * 5, st = T >= 3 ? "#d4dae2" : steel;
+      shade(x, P([[-2, -9, 1], [2, -9, 1], [1.4, -L + 4], [0, -L, 1], [-1.4, -L + 4]], true, .2), st, { grad: lgrad(x, -2, 0, 2, 0, [[0, lt(st, .45)], [.5, st], [1, dk(st, .4)]]), ol: 1.6, d: 1 });
+      if (T >= 4) { x.save(); x.globalCompositeOperation = "lighter"; for (let i = 0; i < 3; i++) glow(x, 0, -20 - i * 14, 6, T >= 5 ? "#fff0b0" : "#c8d8ff", .45); x.restore(); }
+      if (T >= 3) shade(x, circ(0, -7, 1.8), T >= 4 ? "#a0e8ff" : MAT.gold, { ol: .8 });
+      break;
+    }
+    case "hallebarde": {
+      const top = -96 - T * 3;
+      shade(x, seg([0, 40], [0, top + 10], 4.6, 4.2), T >= 3 ? MAT.dwood : MAT.wood, { d: 1.2 });
+      if (T >= 2) for (let i = 0; i < 2; i++) line(x, [[-2.4, top + 22 + i * 4], [2.4, top + 22 + i * 4]], 1.8, trim);
+      if (T >= 4) for (let i = 0; i < 3; i++) shade(x, P([[1, top + 30 + i * 6], [9, top + 33 + i * 6], [1, top + 36 + i * 6]], true), T >= 5 ? "#f0e8d0" : "#8a1a1a", { ol: .8, d: .5 }); // franges
+      const st = T >= 5 ? "#d8dee6" : steel, ah = T <= 1 ? 0 : 1;
+      // pique
+      shade(x, P([[-3, top + 12, 1], [3, top + 12, 1], [2.4, top - 8], [0, top - 18 - T * 2, 1], [-2.4, top - 8]], true, .2), st, { grad: lgrad(x, -3, 0, 3, 0, [[0, lt(st, .4)], [.5, st], [1, dk(st, .45)]]), d: 1 });
+      if (ah) { // lame de hache et bec
+        shade(x, P([[2, top + 20], [2, top + 2], [12, top - 2], [18 + T, top + 6, 1], [17 + T, top + 18, 1], [12, top + 24], [2, top + 22]], true, .35), st, { grad: mg(st, 2, top - 2, 20, top + 24), d: 2 });
+        line(x, [[16 + T, top + 4], [16 + T, top + 18]], 1.2, rgba("#ffffff", .5), true);
+        shade(x, P([[-2, top + 16], [-2, top + 8], [-12, top + 6], [-17, top + 16, 1]], true, .2), dk(st, .1), { d: 1.2 });
+        if (T >= 4) { line(x, [[4, top + 4], [4, top + 20]], 1.6, MAT.gold); }
+        if (rune) { x.save(); x.globalCompositeOperation = "lighter"; glow(x, 10, top + 10, 16, rune, .45); x.restore(); }
+      } else shade(x, P([[-2, top + 14], [-8, top + 6, 1], [-2, top + 6]], true), MAT.iron, { ol: 1, d: .5 }); // fourche
+      break;
+    }
+    case "croix": {
+      const top = -82 - T * 4;
+      shade(x, seg([0, 38], [0, top + 6], 4.4, 4), T >= 3 ? "#2a2018" : MAT.wood, { d: 1.2 });
+      const mc = T >= 4 ? MAT.gold : T >= 3 ? MAT.silver : T >= 2 ? MAT.iron : MAT.wood;
+      const cw = 3.4 + T * .3, arm = 10 + T, c = [0, top - 6];
+      const cross = poly([[-cw, c[1] + 16], [cw, c[1] + 16], [cw, c[1] + cw], [arm, c[1] + cw], [arm, c[1] - cw], [cw, c[1] - cw], [cw, c[1] - 16 - T], [-cw, c[1] - 16 - T], [-cw, c[1] - cw], [-arm, c[1] - cw], [-arm, c[1] + cw], [-cw, c[1] + cw]]);
+      if (T >= 4) { x.save(); x.globalCompositeOperation = "lighter"; glow(x, c[0], c[1], 22 + T * 3, T >= 5 ? "#fff4c0" : "#ffd27a", .5); x.restore(); }
+      shade(x, cross, mc, { grad: T >= 2 ? mg(mc, -arm, c[1] - 16, arm, c[1] + 16) : null, d: 2 });
+      if (T >= 3) { for (const p of [[0, c[1] - 14 - T], [arm - 1, c[1]], [-arm + 1, c[1]]]) shade(x, circ(p[0], p[1], 2), mc, { ol: 1, d: .6 }); }
+      if (T >= 3) { shade(x, circ(c[0], c[1], 3.2), T >= 5 ? "#9fe8ff" : "#c02a3a", { ol: 1, hi: .7 }); }
+      if (T >= 2) { line(x, [[0, c[1] + 16], [-4, c[1] + 30], [-2, c[1] + 40]], 1, "#c8c0a8"); shade(x, circ(-2, c[1] + 41, 1.6), "#c8c0a8", { ol: .8 }); }
+      break;
+    }
     default: if (MON_WPN[type]) MON_WPN[type](x, T, o); break;
     case "orbe": {
       const fc = o.fire || "#ff7a2a";
@@ -150,6 +230,14 @@ function drawShield(x, kind, tier, hand, a, o = {}) {
     for (let i = -2; i <= 2; i++) line(x, [[i * 7, -18 + Math.abs(i) * 2], [i * 7, 18 - Math.abs(i) * 2]], 1, rgba(INK, .45));
     x.strokeStyle = MAT.iron; x.lineWidth = 3; x.beginPath(); x.arc(0, 0, 17.5, 0, Math.PI * 2); x.stroke();
     shade(x, circ(0, 0, 5.5), MAT.iron, { d: 1.5 });
+  } else if (kind === "rune") {
+    const st = T >= 5 ? "#c8d0d8" : T >= 4 ? "#8a929a" : MAT.dsteel, rc = o.rune || "#7ad0ff";
+    shade(x, circ(0, 0, 21), MAT.dwood, { grad: lgrad(x, -21, -21, 21, 21, [[0, lt(MAT.dwood, .25)], [1, dk(MAT.dwood, .4)]]), d: 4 });
+    x.strokeStyle = st; x.lineWidth = 4; x.beginPath(); x.arc(0, 0, 19, 0, Math.PI * 2); x.stroke();
+    for (let i = 0; i < 8; i++) { const a = i * Math.PI / 4; dot(x, Math.cos(a) * 19, Math.sin(a) * 19, 1.3, T >= 4 ? MAT.gold : MAT.brass); }
+    shade(x, circ(0, 0, 7), st, { grad: metalGrad(x, st, -7, -7, 7, 7), d: 1.5 });
+    x.save(); x.globalCompositeOperation = "lighter"; glow(x, 0, 0, 16 + T * 3, rc, .25 + T * .07); x.restore();
+    x.strokeStyle = rc; x.lineWidth = 1.5; for (let i = 0; i < 4; i++) { const a = i * Math.PI / 2 + .4; x.beginPath(); x.moveTo(Math.cos(a) * 10, Math.sin(a) * 10); x.lineTo(Math.cos(a) * 15, Math.sin(a) * 15); x.lineTo(Math.cos(a + .25) * 13, Math.sin(a + .25) * 13); x.stroke(); }
   } else {
     const p = P([[-18, -24, 1], [18, -24, 1], [18, 0], [10, 18], [0, 28, 1], [-10, 18], [-18, 0]], true, .45);
     const face = T >= 5 ? "#e8e4d8" : T >= 3 ? MAT.steel : o.col || "#6b1f1f";
@@ -295,11 +383,70 @@ function outfit(L) {
       sp.eyeGlow = T >= 3 ? "#6ad0a0" : null; if (T >= 5) sp.aura = "#6ad0a0";
       break;
     }
+    case "gardien_runes": {
+      sp.bulk = 1.14; sp.shield = 1; sp.shieldKind = "rune"; if (sp.beard < 0 && !L.female) sp.beard = 2;
+      const rc = ev === "forge_tonnerre" ? "#ffd27a" : "#7ad0ff"; sp.runeCol = rc;
+      const fur = T >= 4 ? "#5a4a3a" : "#7a6650", m = T >= 5 ? "#c0c8d0" : T >= 4 ? "#7a828c" : MAT.dsteel;
+      if (T === 1) { sp.torso = { mat: "gambeson", col: "#6a5a48" }; sp.skirt = { type: "fur", col: fur, len: .4 }; sp.mantle = { col: fur, fur: 1 }; sp.legs = { col: "#4a3a2a", type: "wrap" }; sp.boots = { col: MAT.leather, cuff: fur }; sp.arms = { col: "#6a5a48", bracer: MAT.leather }; sp.belt = { col: MAT.dleather }; sp.headgear = {}; }
+      if (T === 2) { sp.torso = { mat: "chain", col: MAT.iron }; sp.skirt = { type: "kilt", col: "#3a3a40", len: .45 }; sp.mantle = { col: fur, fur: 1 }; sp.legs = { col: MAT.iron, type: "greave", metal: MAT.iron }; sp.boots = { col: MAT.leather, cuff: fur, high: 1 }; sp.arms = { col: MAT.iron, chain: 1, bracer: MAT.iron, bracerMetal: 1 }; sp.belt = { col: MAT.dleather, buckle: MAT.iron }; sp.headgear = { type: "nasal", col: MAT.iron }; }
+      if (T >= 3) { sp.torso = { mat: "plate", col: m, trim: gold ? MAT.gold : null, rune: rc }; sp.skirt = { type: "tassets", col: m, trim: gold ? MAT.gold : null }; sp.mantle = { col: fur, fur: 1, trim: gold ? MAT.gold : null }; sp.arms = { col: MAT.iron, chain: 1, rerebrace: m, bracer: m, bracerMetal: 1, glove: m, gloveMetal: 1, gold }; sp.legs = { col: MAT.iron, type: "plate", metal: m, gold }; sp.boots = { type: "sabaton", metal: m }; sp.shoulders = { type: T >= 4 ? "ornate" : "plate", col: m, trim: gold ? MAT.gold : null, gem: T >= 4 ? rc : null, size: 1.15 }; sp.belt = { col: MAT.dleather, buckle: gold ? MAT.gold : MAT.brass }; sp.headgear = { type: "nasal", col: m, trim: gold ? MAT.gold : null, crown: T >= 5 ? MAT.gold : null, gem: T >= 5 ? rc : null }; if (T >= 4) sp.cape = { col: "#2a3440", len: .8, trim: gold ? MAT.gold : null }; if (T >= 5) sp.aura = rc; }
+      if (ev === "thane_pierre" && sp.cape) sp.cape.col = "#3a3a3e";
+      break;
+    }
+    case "medecin_peste": {
+      sp.bulk = .98;
+      const bl = ev === "apothicaire" ? "#1e2218" : T >= 4 ? "#1c1a18" : "#2a2622";
+      sp.torso = { mat: "leather", col: bl, buckle: T >= 2 ? MAT.brass : null, vials: T >= 3 ? ["#7ad04a", "#c0a040", "#4ac0d0"].slice(0, T - 1) : null, straps: T >= 2 ? [[[-12, -50], [12, -30]]] : null };
+      sp.skirt = { type: "robe", col: dk(bl, .05), len: T >= 2 ? .9 : .75, trim: T >= 4 ? (gold ? MAT.gold : "#8a7a5a") : null };
+      sp.arms = { col: bl, glove: T >= 2 ? "#3a2a1e" : MAT.leather, bracer: T >= 3 ? MAT.dleather : null }; sp.legs = { col: "#2a2420" }; sp.boots = { col: "#1e1a16", high: 1 };
+      sp.belt = { col: MAT.dleather, buckle: MAT.brass, pouch: MAT.leather };
+      sp.headgear = { type: "beak", col: T === 1 ? "#5a4a3a" : "#1e1a18", mask: T >= 4 ? "#e8dcc0" : T >= 2 ? "#c8b898" : "#a89878", glass: T >= 3 ? (ev === "apothicaire" ? "#9fe86a" : "#ffb04a") : "#6a7a7a", hat: T >= 2, band: gold ? MAT.gold : "#6a5a3a" };
+      if (T >= 3) sp.mantle = { col: T >= 4 ? "#14120f" : "#24201c", trim: gold ? MAT.gold : null };
+      if (T >= 4) sp.cape = { col: "#151310", len: .95, tatter: T >= 5 ? 0 : 1 };
+      sp.eyeGlow = T >= 3 ? sp.headgear.glass : null; if (T >= 5) sp.aura = ev === "apothicaire" ? "#7ad04a" : "#ffd27a";
+      break;
+    }
+    case "chasseur_sorcieres": {
+      sp.bulk = 1;
+      const bl = ev === "purificateur" ? "#3a1a10" : "#22201e", sil = gold ? MAT.gold : MAT.silver, m = T >= 5 ? "#d8dce4" : T >= 4 ? "#a8b0b8" : MAT.steel;
+      if (T <= 2) sp.torso = { mat: T === 1 ? "leather" : "brig", col: T === 1 ? "#4a3a28" : bl, stud: MAT.silver, buckle: MAT.brass, straps: [[[-12, -56], [12, -30]]] };
+      else sp.torso = { mat: "plate", col: m, trim: sil, cross: T >= 4 ? sil : null };
+      sp.skirt = { type: "coat", col: T === 1 ? "#3a3026" : bl, len: T >= 3 ? .62 : .45, trim: T >= 3 ? sil : null };
+      sp.arms = { col: T === 1 ? "#4a3a28" : bl, bracer: T >= 2 ? (T >= 4 ? m : MAT.leather) : null, bracerMetal: T >= 4, glove: "#2a221a" }; sp.legs = { col: "#2a2622" }; sp.boots = { col: "#1e1a16", high: 1, cuff: T >= 2 ? "#4a3a28" : null };
+      sp.belt = { col: MAT.dleather, buckle: sil, pouch: MAT.leather };
+      sp.headgear = { type: "hat", col: T >= 4 ? "#141210" : "#2a2420", band: sil, plume: T >= 5 ? "#e8e0d0" : null };
+      if (T >= 3) sp.mantle = { col: "#1a1816", trim: T >= 4 ? sil : null };
+      if (T >= 4) sp.cape = { col: "#1a1614", len: .85, trim: T >= 5 ? sil : null };
+      if (T >= 5) sp.aura = ev === "purificateur" ? "#ff8a3a" : "#ffe8a0";
+      break;
+    }
+    case "hallebardier": {
+      sp.bulk = 1.06;
+      const yl = ev === "lansquenet" ? "#a02a2a" : ev === "garde_roi" ? "#2a3a6a" : "#6a4a14", m = T >= 5 ? "#e0dcd0" : T >= 4 ? "#b8c0c8" : MAT.steel;
+      if (T === 1) { sp.torso = { mat: "gambeson", col: "#8a7a52" }; sp.skirt = { type: "coat", col: "#6a5a3a", len: .35 }; sp.arms = { col: "#8a7a52" }; sp.legs = { col: "#3a3028", type: "wrap" }; sp.boots = { col: MAT.leather }; sp.headgear = { type: "kettle", col: MAT.iron }; sp.belt = { col: MAT.dleather }; }
+      if (T === 2) { sp.torso = { mat: "chain", col: MAT.iron }; sp.skirt = { type: "tabard", col: yl, len: .5, trim: "#1a1a1a", w: 1.1 }; sp.arms = { col: MAT.iron, chain: 1, glove: MAT.leather }; sp.legs = { col: "#2a2a2a", type: "greave", metal: MAT.iron }; sp.boots = { col: MAT.leather }; sp.shoulders = { type: "plate", col: MAT.iron }; sp.headgear = { type: "kettle", col: MAT.steel, trim: "#c0a040" }; sp.belt = { col: MAT.dleather, buckle: MAT.brass }; }
+      if (T >= 3) { sp.torso = { mat: "plate", col: m, trim: gold ? MAT.gold : null }; sp.skirt = { type: "tabard", col: yl, len: .55, trim: gold ? MAT.gold : "#1a1a1a", w: 1.1 }; sp.arms = { col: yl, rerebrace: m, bracer: m, bracerMetal: 1, glove: m, gloveMetal: 1, gold }; sp.legs = { col: "#2a2a2a", type: "plate", metal: m, gold }; sp.boots = { type: "sabaton", metal: m }; sp.shoulders = { type: T >= 4 ? "ornate" : "plate", col: m, trim: gold ? MAT.gold : null }; sp.belt = { col: MAT.dleather, buckle: gold ? MAT.gold : MAT.brass }; sp.headgear = ev === "lansquenet" && T >= 4 ? { type: "hat", col: yl, band: MAT.gold, plume: "#e8e0d0" } : { type: "sallet", col: m, visor: T >= 4, trim: gold ? MAT.gold : null, plume: T >= 4 ? (T >= 5 ? "#e8e0d0" : yl) : null }; if (T >= 4) sp.cape = { col: yl, len: .75, trim: gold ? MAT.gold : null }; if (T >= 5) sp.aura = "#ffd27a"; }
+      break;
+    }
+    case "exorciste": {
+      sp.bulk = .95;
+      const bk = ev === "penitent" ? "#2a1612" : "#16161a", wh = "#e8e2d4", gl = gold ? MAT.gold : MAT.silver;
+      sp.torso = { mat: "cloth", col: T === 1 ? "#3a3634" : bk, collar: wh, cross: T >= 2 ? gl : "#8a7a5a" };
+      sp.skirt = { type: "robe", col: T === 1 ? "#34302e" : bk, len: .97, trim: T >= 2 ? (T >= 4 ? gl : wh) : null };
+      sp.arms = { col: T === 1 ? "#3a3634" : bk, bell: T >= 3 }; sp.legs = { col: "#141416" }; sp.boots = { col: "#141416" };
+      sp.belt = { col: T >= 3 ? "#4a1a4a" : MAT.rope, buckle: gl };
+      sp.headgear = T === 1 ? {} : T === 2 ? { type: "cap", col: bk } : T === 3 ? { type: "hood", col: bk, trim: wh } : T === 4 ? { type: "hat", col: "#0e0e10", band: MAT.gold } : { type: "mitre", col: "#1a1a1e", trim: MAT.gold, gem: "#9fe8ff" };
+      if (T >= 3) sp.mantle = { col: ev === "penitent" ? "#5a1a14" : "#4a1a4a", trim: gl };
+      if (T >= 4) sp.cape = { col: "#101012", len: .95, trim: gl };
+      if (ev === "penitent" && T >= 3) { sp.arms.bareFore = 1; sp.paint = null; }
+      if (T >= 5) { sp.halo = "#e8f0ff"; sp.aura = "#c8d8ff"; }
+      break;
+    }
   }
   if (L.apex && !sp.aura) sp.aura = ac || "#ffd27a";
   return sp;
 }
-const EVO_ACCENT = { bastion: "#4a5a8a", inquisiteur: "#8a2a10", spectre: "#3a6a7a", seigneur_sang: "#7a1018", sainte: "#d9b44a", martyre: "#a02a2a", druidesse: "#4a8a3a", sorciere_noire: "#5a2a5a", heraut: "#c0902a", chantre: "#2a1a2a", ecorcheur: "#8a1a1a", chef_guerre: "#2a4a8a", assassin: "#2a2a3a", ombre_sang: "#a01a2a", tireuse_elite: "#2a3a5a", chasseresse: "#4a5a2a", archimage: "#e08a30", demoniste: "#5a1a4a", liche: "#2a4a4a", maitre_tombes: "#4a4a3a" };
+const EVO_ACCENT = { thane_pierre: "#6a7078", forge_tonnerre: "#2a4a7a", chirurgien: "#6a6050", apothicaire: "#3a4a1a", purificateur: "#8a3a10", traqueur: "#2a2a30", lansquenet: "#a02a2a", garde_roi: "#2a3a6a", confesseur: "#4a1a4a", penitent: "#5a1a14", bastion: "#4a5a8a", inquisiteur: "#8a2a10", spectre: "#3a6a7a", seigneur_sang: "#7a1018", sainte: "#d9b44a", martyre: "#a02a2a", druidesse: "#4a8a3a", sorciere_noire: "#5a2a5a", heraut: "#c0902a", chantre: "#2a1a2a", ecorcheur: "#8a1a1a", chef_guerre: "#2a4a8a", assassin: "#2a2a3a", ombre_sang: "#a01a2a", tireuse_elite: "#2a3a5a", chasseresse: "#4a5a2a", archimage: "#e08a30", demoniste: "#5a1a4a", liche: "#2a4a4a", maitre_tombes: "#4a4a3a" };
 
 // poses de garde selon l'arme
 const STANCE = {
@@ -313,6 +460,11 @@ const STANCE = {
   arbalete: { aFs: 1.3, aFe: .25, aBs: 1.15, aBe: .3, wa: 1.57, twoH: 1 },
   grimoire: { aFs: .6, aFe: 1.25, aBs: .7, aBe: .9, wa: 2.2 },
   faux: { aFs: .5, aFe: 1.0, aBs: .9, aBe: .45, wa: 3.0, twoH: 1 },
+  marteau: { aFs: .45, aFe: 1.4, aBs: .85, aBe: .55, wa: 2.7 },
+  encensoir: { aFs: .1, aFe: .9, aBs: .5, aBe: .8, wa: 2.9 },
+  rapiere: { aFs: .75, aFe: .95, aBs: .45, aBe: 1.1, wa: 1.9 },
+  hallebarde: { aFs: .5, aFe: 1.0, aBs: .9, aBe: .45, wa: 3.0, twoH: 1 },
+  croix: { aFs: .3, aFe: .95, aBs: -.15, aBe: .35, wa: 3.1 },
 };
 function heroLook(h) {
   const wt = h.gear && h.gear.wpn ? h.gear.wpn.tier : 1, at = h.gear && h.gear.arm ? h.gear.arm.tier : 1;
@@ -351,7 +503,7 @@ function drawFigure(x, sp, B0, pose = {}, t = 0, o = {}) {
   if (!sp.float) drawLeg(x, S, "F", sp);
   drawSkirt(x, S, sp, t);
   drawBelt(x, S, sp);
-  if (sp.shield) drawShield(x, wt >= 2 ? "heater" : "round", wt, add2(S.haB, [10, 4]), -.08 + (p.shieldA || 0), { col: (sp.skirt && sp.skirt.col) || "#6b1f1f" });
+  if (sp.shield) drawShield(x, sp.shieldKind || (wt >= 2 ? "heater" : "round"), wt, add2(S.haB, [10, 4]), -.08 + (p.shieldA || 0), { col: (sp.skirt && sp.skirt.col) || "#6b1f1f", rune: sp.runeCol });
   drawHead(x, S, sp, t);
   drawArm(x, S, "F", sp, sp.wpn === "luth" ? null : weapon);
   if (sp.wpn === "luth") weapon();

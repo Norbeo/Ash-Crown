@@ -5,8 +5,11 @@ Toujours répondre en **français**. Pas de Unity tant que le jeu n'est pas fina
 ## Le jeu
 RPG tactique dark fantasy médiéval, vanilla JS + Canvas 2D, PWA installable (mobile + PC).
 - Combat au tour par tour façon Darkest Dungeon : 4 héros en rangs 1–4 contre jusqu'à 4 ennemis (gardiens sur 2 rangs), intentions ennemies affichées, agonie à 0 PV, jauge de résolution, ultimes, rage après le tour 14.
-- 10 classes (2 tanks, 3 soin/soutien, 5 dégâts), 2 évolutions chacune au niveau 5, apogée au niveau 12, niveau max 20. Armure visible sur 5 paliers.
-- 12 compagnons (4 au départ : loup, corbeau, chouette, molosse), évolution au niveau 10.
+- 15 classes (3 tanks, 3 soin, 2 soutien, 7 dégâts), 2 évolutions chacune au niveau 5, apogée au niveau 12, niveau max 20. Armure visible sur 5 paliers. Nouvelles (oct. 2026) : Gardien des runes, Médecin de peste, Chasseur de sorcières, Hallebardier, Exorciste (armes : marteau, encensoir, rapière, hallebarde, croix).
+- Départ aléatoire : 4 héros tirés au sort (`START_SLOTS` : tank, soin, dégâts, dégâts/soutien — toutes classes possibles, 3 relances) et 3 compagnons proposés parmi ceux marqués `starter` (1 relance). Une classe déjà possédée reste recrutable à la Taverne (`classUnlocked`).
+- 18 compagnons (8 `starter` : loup, corbeau, chouette, molosse, renard, ours, cerf, vipère), évolution au niveau 10.
+- Icônes d'équipement peintes (`itemArt` dans 32_ui_hub.js) : arme dessinée, armure sur mannequin, bibelot en médaillon ; mises en cache en data URL.
+- Combats longs : après le tour 14 les soins ennemis sont divisés par 2, après le tour 18 les héros gagnent +5 % de dégâts par tour (évite les enlisements).
 - 5 chapitres (Bourg, Forêt, Catacombes, Marais, Citadelle) + l'Abîme sans fin avec serments.
 - Cartes procédurales (combat, élite, mystère, trésor, camp, colporteur, gardien), 29 événements, 28 reliques, marche animée entre les salles.
 - Bastion : taverne, forge, chapelle, salle des maîtres, ménagerie, fonderie (or hors ligne). Défis du jour, expédition du jour, 24 succès, archives.

@@ -234,7 +234,7 @@ function drawHead(x, S, sp, t, evt) {
   if (MON_HEAD[k.type] && k.full) { MON_HEAD[k.type](x, hx, hy, 13.5, k, sp, t, S); return; }
   // cheveux arrière (longs)
   const hairCol = sp.hairCol;
-  const covered = ["greathelm", "crusader", "skullhelm", "hood", "cowl", "bearhood", "sallet_c"].includes(k.type);
+  const covered = ["greathelm", "crusader", "skullhelm", "hood", "cowl", "bearhood", "sallet_c", "beak"].includes(k.type);
   if (!covered && sp.hair >= 3 && k.type !== "kettle_c") hairBack(x, hx, hy, r, sp.hair, hairCol, t);
   // cou
   shade(x, seg([S.neck[0] - 1, S.neck[1] + 4], [hx - 1, hy + 6], 9, 8), dk(skin, .12), { d: 1.5 });
@@ -255,7 +255,7 @@ function drawHead(x, S, sp, t, evt) {
     shade(x, ell(hx - 2, hy + 1, 2.6, 3.8), dk(skin, .08), { ol: 1.2, d: 1 });
   }
   // barbe
-  if (sp.beard >= 0 && !["greathelm", "crusader", "skullhelm", "cowl"].includes(k.type)) beard(x, hx, hy, r, sp.beard, hairCol);
+  if (sp.beard >= 0 && !["greathelm", "crusader", "skullhelm", "cowl", "beak"].includes(k.type)) beard(x, hx, hy, r, sp.beard, hairCol);
   // cheveux avant
   if (!covered) hairFront(x, hx, hy, r, sp.hair, hairCol, k.type);
   if (k.type) helm(x, hx, hy, r, k, sp, t);
@@ -386,6 +386,27 @@ function helm(x, hx, hy, r, k, sp, t) {
       shade(x, P([[hx - r * .9, hy - r * .6], [hx - r * .65, hy - r * 1.8], [hx + r * .1, hy - r * 2.35, 1], [hx + r * .75, hy - r * 1.7], [hx + r * .9, hy - r * .65]], true, .4), c);
       line(x, [[hx + r * .1, hy - r * 2.25], [hx + r * .05, hy - r * .7]], 2.2, k.trim || MAT.gold); line(x, [[hx - r * .88, hy - r * .78], [hx + r * .88, hy - r * .82]], 2.4, k.trim || MAT.gold);
       if (k.gem) { dot(x, hx + r * .07, hy - r * 1.45, 2.2, k.gem); glow(x, hx + r * .07, hy - r * 1.45, 9, k.gem, .55); }
+      break;
+    }
+    case "beak": {
+      // masque de médecin de peste : capuche, masque de cuir, bec et verres ronds
+      const back = P([[hx - r * 1.4, hy + r * 1.35, 1], [hx - r * 1.35, hy - r * .4], [hx - r * .6, hy - r * 1.3], [hx + r * .5, hy - r * 1.3], [hx + r * 1.15, hy - r * .5], [hx + r * 1.1, hy + r * .9], [hx + r * .3, hy + r * 1.4, 1]], true, .45);
+      shade(x, back, c, { d: 3 });
+      const mk = k.mask || "#c8b898";
+      const face = P([[hx - r * .1, hy - r * .95], [hx + r * .75, hy - r * .85], [hx + r * 1.12, hy - r * .2], [hx + r * 1.05, hy + r * .7], [hx + r * .4, hy + r * 1.05, 1], [hx - r * .15, hy + r * .5]], true, .45);
+      shade(x, face, mk, { grad: lgrad(x, hx, hy - r, hx + r, hy + r, [[0, lt(mk, .12)], [1, dk(mk, .3)]]), d: 2 });
+      const beak = P([[hx + r * .85, hy - r * .15], [hx + r * 1.7, hy + r * .05], [hx + r * 2.55, hy + r * .55, 1], [hx + r * 2.6, hy + r * .72, 1], [hx + r * 1.6, hy + r * .78], [hx + r * .95, hy + r * .75]], true, .45);
+      shade(x, beak, mk, { grad: lgrad(x, hx + r, hy - r * .2, hx + r * 2.4, hy + r * .8, [[0, lt(mk, .1)], [1, dk(mk, .35)]]), d: 2 });
+      line(x, [[hx + r * .95, hy + r * .3], [hx + r * 2.5, hy + r * .64]], 1, rgba(INK, .5), true);
+      for (let i = 0; i < 3; i++) dot(x, hx + r * (1.1 + i * .35), hy + r * (.02 + i * .1), .9, MAT.brass);
+      const gc = k.glass || "#6a7a7a";
+      shade(x, circ(hx + r * .55, hy - r * .3, r * .32), MAT.brass, { ol: 1.4, d: 1 });
+      glow(x, hx + r * .55, hy - r * .3, r * .6, gc, .7); shade(x, circ(hx + r * .55, hy - r * .3, r * .22), gc, { ol: 1, hi: .8 });
+      if (k.hat) {
+        shade(x, P([[hx - r * .9, hy - r * .9], [hx - r * .75, hy - r * 1.8], [hx + r * .5, hy - r * 1.9], [hx + r * .85, hy - r * 1.05]], true, .4), c, { d: 2 });
+        shade(x, P([[hx - r * 2.0, hy - r * .75, 1], [hx - r * .3, hy - r * 1.15], [hx + r * 1.9, hy - r * 1.1, 1], [hx + r * .5, hy - r * .78], [hx - r * 1.2, hy - r * .6]], true, .5), dk(c, .08), { d: 1.5 });
+        line(x, [[hx - r * .85, hy - r * 1.1], [hx + r * .8, hy - r * 1.2]], 2, k.band || "#6a5a3a");
+      }
       break;
     }
     case "crown": { crest(); break; }

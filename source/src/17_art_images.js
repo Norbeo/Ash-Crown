@@ -93,7 +93,7 @@ function heroImgSprite(L, pose, sc, o = {}) {
   const hurt = pose.lean < -.25 && pose.hx < 0, agony = pose.hy > 15;
   const nm = "hero_" + L.cls + "_t" + clamp(L.tier || 1, 1, 5);
   return imgSprite(im, { sc, h: 182, maxW: 260, top: ART_META[nm] || ART_META["hero_" + L.cls + "_t3"] || 0, flip: ART_FLIP.has("hero_" + L.cls + "_t" + clamp(L.tier || 1, 1, 5)), aura: evoAura(L), auraA: L.apex ? .45 : .28,
-    pose: Object.assign({}, pose, { agony, cast: pose.free || pose.aBs > 1.5 }), tint: o.tint || (hurt ? "rgba(160,20,20,.16)" : null) });
+    pose: Object.assign({}, pose, { agony, cast: pose.free || pose.aBs > 1.5 }), tint: o.tint || (agony ? "rgba(70,8,8,.38)" : hurt ? "rgba(160,20,20,.16)" : null) });
 }
 function monImgSprite(key, pose, sc) {
   const M = MONSTERS[key] || {}, n = "mon_" + (M.art || key), im = artImg(n); if (!im) return null;

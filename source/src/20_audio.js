@@ -14,7 +14,27 @@ function audioInit() {
     conv.buffer = ir; SND.rev = c.createGain(); SND.rev.gain.value = .35; SND.rev.connect(conv); conv.connect(SND.master);
     const nb = c.createBuffer(1, c.sampleRate, c.sampleRate), nd = nb.getChannelData(0); for (let i = 0; i < nd.length; i++) nd[i] = Math.random() * 2 - 1; SND.noise = nb;
   } catch (e) { SND.ctx = null; }
+  if (SND.ctx) for (const n of SFX_SET) if (n.startsWith("fx_")) sfxLoad(n);
 }
+// bruitages et ambiances enregistrés (sfx/*.mp3, générés par audio/gen_audio.py) ; la synthèse sert de repli
+const SFX_SET = new Set(typeof window !== "undefined" && window.SFX_LIST ? window.SFX_LIST : []), SBUF = {};
+function sfxLoad(n) {
+  if (!SND.ctx || SBUF[n] !== undefined || !SFX_SET.has(n)) return; SBUF[n] = null;
+  fetch("sfx/" + n + ".mp3").then(r => r.arrayBuffer()).then(b => new Promise((ok, ko) => SND.ctx.decodeAudioData(b, ok, ko))).then(buf => { SBUF[n] = buf; if (n === "amb_" + SND.ambWant) ambPlay(SND.ambWant); }).catch(() => { });
+}
+function playBuf(n, v = 1, rate = 1) { const b = SBUF[n]; if (!b || !SND.ctx) return false; const s = SND.ctx.createBufferSource(), g = SND.ctx.createGain(); s.buffer = b; s.playbackRate.value = rate; g.gain.value = v; s.connect(g); g.connect(SND.sfx); s.start(); return true; }
+// ambiance de région : boucle en fondu enchaîné
+function ambPlay(k) {
+  SND.ambWant = k; const c = SND.ctx; if (!c) return;
+  if (SND.amb && SND.amb.k === k) return;
+  const n = "amb_" + k; if (!SBUF[n]) { sfxLoad(n); if (SND.amb) { const old = SND.amb; old.g.gain.setTargetAtTime(0, c.currentTime, .8); setTimeout(() => { try { old.s.stop(); } catch (e) { } }, 4000); SND.amb = null; } return; }
+  if (!SND.ambG) { SND.ambG = c.createGain(); SND.ambG.connect(SND.master); }
+  SND.ambG.gain.value = S && !S.opts.sound ? 0 : .55;
+  const s = c.createBufferSource(), g = c.createGain(); s.buffer = SBUF[n]; s.loop = true; g.gain.value = 0; s.connect(g); g.connect(SND.ambG); s.start(); g.gain.setTargetAtTime(1, c.currentTime, 1.2);
+  if (SND.amb) { const old = SND.amb; old.g.gain.setTargetAtTime(0, c.currentTime, 1); setTimeout(() => { try { old.s.stop(); } catch (e) { } }, 5000); }
+  SND.amb = { k, s, g };
+}
+function ambVolume() { if (SND.ambG) SND.ambG.gain.setTargetAtTime(S && !S.opts.sound ? 0 : .55, SND.ctx.currentTime, .3); }
 function sfxOn() { return S ? S.opts.sound : 1; }
 function tone(f, d, type = "sine", v = .2, o = {}) {
   const c = SND.ctx; if (!c || !sfxOn()) return; const t = c.currentTime + (o.at || 0);
@@ -57,11 +77,13 @@ const SFX = {
   lose() { [392, 330, 262, 196].forEach((f, i) => tone(f, 1.4, "sine", .08, { at: i * .2, rev: 1 })); },
   bell() { tone(196, 3, "sine", .14, { rev: 1 }); tone(392, 2.5, "sine", .05, { rev: 1 }); tone(587, 2, "sine", .03, { rev: 1 }); },
 };
-function sfx(k) { try { if (SFX[k]) SFX[k](); } catch (e) { } }
+const SFX_REC = { slash: .8, hit: .9, heavy: 1, crit: 1, shoot: .8, miss: .6, fire: .8, holy: .7, dark: .8, heal: .7, die: .8, coin: .7, door: .8, forge: .8, step: .5, bell: .7, open: .6 };
+function sfx(k) { try { if (SFX_REC[k] != null && sfxOn() && SND.ctx) { const n = "fx_" + k; if (SBUF[n]) { playBuf(n, SFX_REC[k], .93 + Math.random() * .14); return; } sfxLoad(n); } if (SFX[k]) SFX[k](); } catch (e) { } }
 // musique : nappes graves et cloches lentes, en mode mineur
 const MUSIC = { bastion: [110, [0, 3, 7, 10]], combat: [98, [0, 3, 7, 8]], boss: [82, [0, 1, 7, 8]], map: [104, [0, 3, 5, 7]], titre: [110, [0, 3, 7, 12]] };
 function musicPlay(kind) {
   if (!SND.ctx) return; SND.mKind = kind;
+  ambPlay(kind === "titre" ? "bastion" : kind === "bastion" ? "bastion" : S && S.run ? S.run.region : "bastion");
   const on = S ? S.opts.music : 1;
   SND.music.gain.setTargetAtTime(on ? .32 : 0, SND.ctx.currentTime, .8);
   if (SND.mOn) return; SND.mOn = true;

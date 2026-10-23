@@ -13,7 +13,7 @@ self.addEventListener("fetch", e => {
   }
   if (url.origin !== location.origin) return;
   // illustrations : cache d'abord, mises en cache au premier chargement
-  if (url.pathname.includes("/assets/")) { e.respondWith(caches.open(ART_CACHE).then(async c => { const hit = await c.match(req); if (hit) return hit; const r = await fetch(req); if (r.ok) c.put(req, r.clone()); return r; })); return; }
+  if (url.pathname.includes("/assets/") || url.pathname.includes("/sfx/")) { e.respondWith(caches.open(ART_CACHE).then(async c => { const hit = await c.match(req); if (hit) return hit; const r = await fetch(req); if (r.ok) c.put(req, r.clone()); return r; })); return; }
   // page du jeu : réseau d'abord (pour recevoir les mises à jour), cache si hors ligne
   if (req.mode === "navigate") { e.respondWith(fetch(req).then(r => { caches.open(CACHE).then(c => c.put("./index.html", r.clone())); return r; }).catch(() => caches.match("./index.html"))); return; }
   e.respondWith(caches.match(req).then(hit => hit || fetch(req)));

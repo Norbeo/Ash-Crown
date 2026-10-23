@@ -39,7 +39,7 @@ SCREENS.options = {
     <div class="row">${PWA.standalone ? `<span class="tag good">Appli installée</span>` : `<button class="btn" data-a="install">${ico("install")}Installer sur l'appareil</button>`}<button class="btn ghost" data-a="exportSave">${ico("scroll")}Exporter la sauvegarde</button><button class="btn ghost" data-a="importSave">Importer</button></div>
     <div class="sep"></div><button class="btn ghost" data-a="toTitle">Écran-titre</button><button class="btn ghost" style="color:var(--bad)" data-a="wipeSave">Effacer la partie</button>
   </div></div><p class="tiny dim" style="text-align:center;margin-top:10px">Couronne de Cendres · RPG tactique dark fantasy · sauvegarde locale automatique</p></div>`,
-  mount: () => document.querySelectorAll("[data-opt]").forEach(i => i.onchange = () => { S.opts[i.dataset.opt] = i.checked ? 1 : 0; if (i.dataset.opt === "music") musicMute(i.checked); save(); }),
+  mount: () => document.querySelectorAll("[data-opt]").forEach(i => i.onchange = () => { S.opts[i.dataset.opt] = i.checked ? 1 : 0; if (i.dataset.opt === "sound") ambVolume(); if (i.dataset.opt === "music") musicMute(i.checked); save(); }),
 };
 ACT.optSpeed = v => { S.opts.speed = +v; save(); refresh(); };
 ACT.toTitle = () => { save(); go("title"); };

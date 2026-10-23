@@ -10,6 +10,8 @@ const HPOSE = {
   hurt: () => ({ lean: -.32, hx: -8, head: -.35, aFs: .1, aFe: .9, lFh: .22, lBh: -.22 }),
   agony: () => ({ lean: .55, hy: 22, lFh: 1.3, lFk: -2.3, lBh: -.2, lBk: -1.6, head: .45, aFs: .4, aFe: .2, aBs: .2, air: 0 }),
 };
+// silhouette blanche d'un sprite (éclair d'impact), mise en cache sur le sprite
+function whiteOf(sp) { if (sp.white) return sp.white; const c = mkCanvas(sp.width, sp.height), x = c.getContext("2d"); x.drawImage(sp, 0, 0); x.globalCompositeOperation = "source-in"; x.fillStyle = "#fff6e8"; x.fillRect(0, 0, c.width, c.height); return sp.white = c; }
 function heroPoseFor(u, key) { const C = CLASSES[u.cls]; const st = STANCE[C.wpn] || STANCE.masse; return (HPOSE[key] || HPOSE.idle)(st); }
 function unitSprite(u, key) {
   const V = CB.vis[u.uid]; const sc = CB.scale * (u.side === "e" && (u.sz || 1) > 1 ? 1.0 : 1);
@@ -205,7 +207,9 @@ function showUnitInfo(u) {
 // ── lecture des événements ──
 function V(id) { return CB.vis[id]; }
 function U(id) { return unitById(CB.B, id) || CB.B.fallen.find(f => f.uid === id) || (CB.B.dead || []).find(d => d.uid === id); }
-function popText(id, text, col, big) { const v = V(id); if (!v) return; CB.txt.push({ x: v.x + (Math.random() - .5) * 20, y: v.y - 170 * CB.scale * (U(id) && U(id).sz > 1 ? 1.4 : 1), text, col, big, t: 0, life: big ? 1.4 : 1.1 }); }
+function popText(id, text, col, big) { const v = V(id); if (!v) return; const y0 = v.y - 170 * CB.scale * (U(id) && U(id).sz > 1 ? 1.4 : 1);
+  const near = CB.txt.filter(q => q.id === id && q.t < .5).length; // les textes d'une même unité s'empilent au lieu de se chevaucher
+  CB.txt.push({ id, x: v.x + (Math.random() - .5) * 14, y: y0 - near * 26 * Math.max(.8, CB.scale * 1.4), text, col, big, t: 0, life: big ? 1.4 : 1.1 }); }
 function burst(x, y, col, n = 14, o = {}) { for (let i = 0; i < n; i++) { const a = Math.random() * Math.PI * 2, s = (o.sp || 160) * (.3 + Math.random()); CB.fx.push({ x, y, vx: Math.cos(a) * s, vy: Math.sin(a) * s - (o.up || 60), g: o.g == null ? 300 : o.g, r: (o.r || 3) * (.5 + Math.random()), col, t: 0, life: (o.life || .6) * (.6 + Math.random() * .6), add: o.add !== false }); } }
 const ANIM_COL = { holy: "#ffe08a", fire: "#ff7a2a", shadow: "#9a6aff", blood: "#d02a2a", nature: "#8ad06a", poison: "#9ad04a", music: "#c9a0ff", arrows: "#e8e0c8" };
 function skillColor(u, name) {
@@ -248,7 +252,9 @@ async function playEvents(ev) {
       case "hit": {
         const v = V(e.u), u = U(e.u); if (!v) break;
         if (e.self) { popText(e.u, "-" + e.dmg, "#ff8a7a"); break; }
-        v.pose = "hurt"; v.pt = .35; v.flash = 1; v.kick = (u && u.side === "h" ? -1 : 1) * 14;
+        v.pose = "hurt"; v.pt = .35; v.flash = 1; v.kick = (u && u.side === "h" ? -1 : 1) * (e.crit ? 26 : 16);
+        if (!e.dot) CB.fx.push({ slash: 1, x: v.x, y: v.y - 105 * CB.scale, r: (e.crit ? 64 : 48) * CB.scale, a: (u && u.side === "h" ? Math.PI : 0) + (Math.random() - .5) * .8, col: e.crit ? "#ffd04a" : "#ffb08a", t: 0, life: e.crit ? .45 : .32 });
+        if (e.crit) CB.flash = Math.max(CB.flash || 0, .25);
         burst(v.x, v.y - 100 * CB.scale, srcCol === "#e8e0c8" ? "#d02a2a" : srcCol, e.crit ? 26 : 12, { sp: e.crit ? 260 : 170 });
         if (u && !u.tags.includes("impie") || (u && u.side === "h")) burst(v.x, v.y - 100 * CB.scale, "#8a0a0a", 6, { add: false, g: 500 });
         popText(e.u, (e.crit ? "" : "") + e.dmg, e.crit ? "#ffd04a" : "#ff6a5a", e.crit);
@@ -363,11 +369,15 @@ function drawCombat(x, t, dt) {
     const br = pose === "idle" ? 1 + Math.sin(t * 2.2 + (u.uid.length * 1.7)) * .012 : 1;
     x.translate(px, py); if (u.side === "e") x.scale(-1, 1);
     if (u.side === "e" && (MONSTERS[u.key].art === "spectre" || MONSTERS[u.key].art === "follet" || MONSTERS[u.key].art === "oeil" || MONSTERS[u.key].art === "liche" || MONSTERS[u.key].art === "mere_noyes")) x.translate(0, Math.sin(t * 2 + px) * 4);
+    // attaque : élan étiré + traînée de l'image ; coup reçu : silhouette blanche ; agonie : souffle lent
+    const k = v.pt > 0 ? Math.min(1, v.pt * 3) : 0;
+    if (pose === "strike" && k > 0) { x.save(); for (const [d, a] of [[-34, .16], [-18, .28]]) { x.globalAlpha = v.a * a * k; x.drawImage(sp, -sp.ax + d * CB.scale, -sp.ay); } x.restore(); x.scale(1 + .07 * k, 1 - .03 * k); }
+    if (pose === "agony") x.scale(1 + Math.sin(t * 1.6) * .008, 1 - Math.sin(t * 1.6) * .012);
     x.scale(1, br);
     x.drawImage(sp, -sp.ax, -sp.ay);
-    if (v.flash > 0) { x.globalCompositeOperation = "lighter"; x.globalAlpha = v.flash * .7 * v.a; x.drawImage(sp, -sp.ax, -sp.ay); }
-    if (u.agony) { x.globalCompositeOperation = "source-atop"; }
+    if (v.flash > 0) { x.globalAlpha = Math.min(1, v.flash) * .85 * v.a; x.drawImage(whiteOf(sp), -sp.ax, -sp.ay); }
     x.restore();
+    if (u.side === "h" && u.agony && !u.fallen) { x.save(); x.globalCompositeOperation = "lighter"; glow(x, v.x, v.y - 30 * CB.scale, 70 * CB.scale, "#c01a10", .18 + Math.sin(t * 3) * .06); x.restore(); }
     if (u.dead || u.fallen) continue;
     drawUnitUI(x, u, v, t);
   }
@@ -383,6 +393,11 @@ function drawCombat(x, t, dt) {
   for (const f of CB.fx) {
     f.t += dt; const k = f.t / f.life; if (k >= 1) { f.done = 1; continue; }
     if (f.glow) { x.globalCompositeOperation = "lighter"; glow(x, f.x, f.y, f.r * (.6 + k * .6), f.col, .55 * (1 - k)); continue; }
+    if (f.slash) { // estafilade : arc lumineux qui se trace puis s'efface
+      x.globalCompositeOperation = "lighter"; const a0 = f.a - 1.1, a1 = a0 + 2.2 * Math.min(1, k * 2.5);
+      for (const [w, c, al] of [[f.r * .22, f.col, .35], [f.r * .08, "#fff4dc", .9]]) { x.strokeStyle = rgba(c, al * (1 - k)); x.lineWidth = w * (1 - k * .5); x.lineCap = "round"; x.beginPath(); x.arc(f.x, f.y, f.r, a0, a1); x.stroke(); }
+      continue;
+    }
     f.vy += f.g * dt; f.x += f.vx * dt; f.y += f.vy * dt;
     x.globalCompositeOperation = f.add ? "lighter" : "source-over";
     if (f.add) glow(x, f.x, f.y, f.r * 3, f.col, .8 * (1 - k)); else { x.fillStyle = rgba(f.col, 1 - k); x.fillRect(f.x, f.y, f.r * 1.5, f.r * 1.5); }

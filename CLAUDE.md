@@ -26,7 +26,7 @@ RPG tactique dark fantasy médiéval, vanilla JS + Canvas 2D, PWA installable (m
 - Forge : bouton « Tout recycler l'inutile » (`ACT.salvAll`, `itemUseful`) — garde tout objet légendaire ou meilleur que ce que porte au moins un héros capable de l'équiper.
 - Élites et gardiens aléatoires : chaque salle d'élite/gardien tire parmi TOUS les élites (`ALL_ELITES`) / gardiens (`ALL_BOSSES`) du jeu, jamais deux fois de suite le même (`S.lastElite`/`S.lastBoss` par région) ; `monNorm` ramène PV/dégâts/protection à ceux du monstre prévu pour la région (`k.f` appliqué dans 05_combat).
 - Difficulté `S.opts.diff` (`DIFFS` dans 04_state : facile/normal/cauchemar, PV/dégâts ennemis, or/xp) ; choix au départ et dans les Options ; `node test/sim.js 10 25 7 --diff=cauchemar`.
-- Événements : 133 + 11 suites (`03z_events.js`). `fxText` affiche l'effet de chaque choix. Chaînes : `flag` (expédition) / `sflag` (sauvegarde `S.flags`), suites avec `need`/`sneed`, `reg` = régions.
+- Événements : 133 + 11 suites (`03z_events.js`). effets des choix cachés (`fxText` reste disponible mais n'est plus affiché). Chaînes : `flag` (expédition) / `sflag` (sauvegarde `S.flags`), suites avec `need`/`sneed`, `reg` = régions.
 - Bilan d'expédition (`run.sum`, `B.tally` dans 05_combat, `runSummaryHTML`) ; défi de la semaine (`WEEK_RULES`, `S.week`, `weekPartyOk`) ; tutoriel guidé du premier combat (`COACH`, `S.tuto.coach`).
 - Compétences chiffrées : `skillNums` (dégâts avant protection, soins ≈ PV moyens du groupe) dans `skillText(sk, héros|unité)`.
 - Noms : sexe fixé par l'illustration de la classe (`CLASS_FEMALE`), surnoms accordés, migration `fixHeroName`.

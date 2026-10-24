@@ -148,7 +148,7 @@ SCREENS.travel = {
 ACT.skipTravel = () => { if (UI.travelDone) UI.travelDone(); };
 function showEvent(n) {
   const E = EVENTS.find(e => e.id === n.ev);
-  modal(`<h2>${ico("quest", "#b48cff")} ${E.n}</h2><p class="lore">${E.t}</p>${E.ch.map((c, i) => { const poor = c.fx.cost && S.gold + S.run.gold < c.fx.cost; return `<button class="btn choice" data-a="evChoice" data-v="${i}" ${poor ? "disabled" : ""}><b>${c.n.replace(/\s*\([^)]*\)\s*$/, "")}</b><span class="fxs">${fxText(c.fx)}</span></button>`; }).join("")}`, { close: false });
+  modal(`<h2>${ico("quest", "#b48cff")} ${E.n}</h2><p class="lore">${E.t}</p>${E.ch.map((c, i) => { const poor = c.fx.cost && S.gold + S.run.gold < c.fx.cost; return `<button class="btn choice" data-a="evChoice" data-v="${i}" ${poor ? "disabled" : ""}><b>${c.n}</b></button>`; }).join("")}`, { close: false });
   UI.evNode = n;
 }
 ACT.evChoice = i => {

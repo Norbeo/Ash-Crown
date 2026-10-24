@@ -35,6 +35,8 @@
 "hero_hallebardier_t3": 0.012,
 "hero_hallebardier_t4": 0.021,
 "hero_hallebardier_t5": 0.047,
+"hero_medecin_peste_apothicaire": 0.005,
+"hero_medecin_peste_chirurgien": 0.005,
 "hero_medecin_peste_t1": 0.007,
 "hero_medecin_peste_t2": 0.005,
 "hero_medecin_peste_t3": 0.005,

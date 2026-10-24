@@ -34,6 +34,8 @@
 "hero_medecin_peste_t3": 0.005,
 "hero_medecin_peste_t4": 0.005,
 "hero_medecin_peste_t5": 0.005,
+"hero_menestrel_chantre": 0.007,
+"hero_menestrel_heraut": 0.13,
 "hero_menestrel_t1": 0.007,
 "hero_menestrel_t2": 0.005,
 "hero_menestrel_t3": 0.007,

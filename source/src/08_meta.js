@@ -15,9 +15,10 @@ function dismiss(id) { const h = heroById(id); if (!h || S.heroes.length <= 1) r
 function healCost(h) { return 30 + h.lvl * 15; }
 function healInjured(id) { const h = heroById(id); if (!h || !isInjured(h)) return false; const c = Math.round(healCost(h) * (1 - (S.bld.chapelle - 1) * .15)); if (S.gold < c) return false; S.gold -= c; h.injured = 0; return true; }
 // équipement
-function canEquip(h, it) { if (!it) return false; if (it.kind === "tr") return true; return it.cls === h.cls && (it.tier < 6 || !!h.evo); } // palier VI : héros évolués
+function canEquip(h, it) { if (!it) return false; if (it.kind === "tr") return true; return it.cls === h.cls && (it.tier < 6 || (!!h.evo && (!it.evo || it.evo === h.evo))); } // palier VI : héros évolués, armure propre à leur voie
 function equip(h, it, slot) {
   if (!canEquip(h, it)) return false;
+  if (it.kind === "arm" && it.tier >= 6 && !it.evo) it.evo = h.evo; // ancienne armure VI : prend la voie de son porteur
   slot = slot || (it.kind === "wpn" ? "wpn" : it.kind === "arm" ? "arm" : (!h.gear.tr1 ? "tr1" : !h.gear.tr2 ? "tr2" : "tr1"));
   if (it.kind === "tr" && [h.gear.tr1, h.gear.tr2].some(x => x && x.key === it.key && x !== h.gear[slot])) return false;
   const i = S.inv.indexOf(it); if (i >= 0) S.inv.splice(i, 1);
@@ -28,10 +29,11 @@ function equip(h, it, slot) {
 function unequip(h, slot) { const it = h.gear[slot]; if (!it || slot === "wpn" || slot === "arm") return false; h.gear[slot] = null; S.inv.push(it); return true; }
 function upgradeItem(it) { if (!it || it.up >= 10) return false; if (it.up >= S.bld.forge * 2) return { err: "La Forge doit être améliorée pour aller plus loin." }; const c = upCost(it); if (!pay(c)) return { err: "Ressources insuffisantes." }; it.up++; return { ok: 1 }; }
 function salvageItem(it) { const i = S.inv.indexOf(it); if (i < 0) return false; const r = salvage(it); S.inv.splice(i, 1); S.gold += r.gold; S.mats.fer += r.fer; S.mats.essence += r.essence; S.mats.cendre += r.cendre; return r; }
-function craft(cls, kind, tier) {
+function craft(cls, kind, tier, evo) {
   if (tier > S.bld.forge) return { err: "Améliorez la Forge pour ce palier." };
   const c = craftCost(tier); if (!pay(c)) return { err: "Ressources insuffisantes." };
-  const it = makeGear(kind, cls, tier, rollRarity(.04 + S.bld.forge * .015)); S.inv.push(it); S.stats.crafts++;
+  if (kind === "arm" && tier >= 6 && !(evo && CLASSES[cls].evos[evo])) return { err: "Choisissez la voie de l'armure." };
+  const it = makeGear(kind, cls, tier, rollRarity(.04 + S.bld.forge * .015), null, evo); S.inv.push(it); S.stats.crafts++;
   if (tier >= 5) S.stats.tier5 = 1; if (it.rar >= 3) S.stats.legend++;
   checkAchievements(); return { ok: it };
 }

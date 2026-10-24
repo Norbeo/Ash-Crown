@@ -83,7 +83,7 @@ function hub() {
   while (S.inv.filter(i => i.kind === "tr").length > 6) salvageItem(S.inv.find(i => i.kind === "tr"));
   for (const k of ["forge", "taverne", "chapelle", "academie", "fonderie", "menagerie"]) { const c = bldCost(k); if (c && S.gold > c.gold * 1.3) upgradeBld(k); }
   const party = partyFor();
-  for (const h of party) { for (const s of ["wpn", "arm"]) { const it = h.gear[s], T = Math.min(S.bld.forge, h.evo ? 6 : 5); if (it.tier < T && S.gold > craftCost(T).gold * 2) { const r = craft(h.cls, s, T); if (r.ok) equip(h, r.ok); } } }
+  for (const h of party) { for (const s of ["wpn", "arm"]) { const it = h.gear[s], T = Math.min(S.bld.forge, h.evo ? 6 : 5); if (it.tier < T && S.gold > craftCost(T).gold * 2) { const r = craft(h.cls, s, T, h.evo); if (r.ok) equip(h, r.ok); } } }
   for (const h of party) for (const s of ["wpn", "arm"]) { let g = 0; while (g++ < 3 && S.gold > upCost(h.gear[s]).gold * 2.5) if (!upgradeItem(h.gear[s]).ok) break; }
   for (const h of party) for (const k of h.skills) { const c = skillUpCost(h.skr[k] || 1); if (S.gold > c.gold * 3) skillUp(h, k); }
   for (const h of S.heroes.filter(isInjured)) if (S.gold > healCost(h) * 3) healInjured(h.id);

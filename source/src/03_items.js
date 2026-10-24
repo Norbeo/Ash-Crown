@@ -201,7 +201,7 @@ const ACHIEVEMENTS = [
   { id: "abime25", n: "Sans fond", d: "Atteindre la profondeur 25 de l'Abîme.", k: "abyss", v: 25, shards: 4 },
   { id: "abime50", n: "Celui qui revient", d: "Atteindre la profondeur 50 de l'Abîme.", k: "abyss", v: 50, shards: 8 },
   { id: "evolution", n: "Métamorphose", d: "Faire évoluer un héros.", k: "evos", v: 1, gold: 150 },
-  { id: "apex", n: "Apogée", d: "Faire atteindre l'apogée (niveau 12) à un héros.", k: "apex", v: 1, shards: 1 },
+  { id: "apex", n: "Apogée", d: "Faire atteindre l'apogée (niveau 18) à un héros.", k: "apex", v: 1, shards: 1 },
   { id: "legende", n: "Légende", d: "Faire atteindre le niveau 20 à un héros.", k: "maxlvl", v: 1, shards: 3 },
   { id: "armee", n: "Une petite armée", d: "Avoir 10 héros.", k: "roster", v: 10, gold: 300 },
   { id: "toutes_classes", n: "Toutes les voies", d: `Recruter les ${CLASS_IDS.length} classes.`, k: "classes", v: CLASS_IDS.length, shards: 2 },

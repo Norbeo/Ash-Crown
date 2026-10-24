@@ -14,7 +14,7 @@ SCREENS.expe = {
     const E = UI.expe = UI.expe || {};
     if (!E.party || E.party.some(id => !heroById(id))) E.party = autoParty();
     if (!E.region || !regionUnlocked(E.region)) E.region = [...REGIONS].reverse().find(r => regionUnlocked(r.id)).id;
-    E.pet = S.pets.owned.includes(E.pet) ? E.pet : S.pet; E.threat = E.threat || 0;
+    E.pet = S.pets.owned.includes(E.pet) ? E.pet : S.pet; E.threat = Math.min(E.threat || 0, threatMax(E.region || "bourg"));
     const R = regionById(E.region), prog = S.prog[E.region], cleared = prog && prog.clears;
     const avgL = E.party.length ? Math.round(E.party.reduce((a, id) => a + heroById(id).lvl, 0) / E.party.length) : 0;
     const roles = E.party.map(id => CLASSES[heroById(id).cls].role);
@@ -24,7 +24,7 @@ SCREENS.expe = {
     ${E.week && weekRule() ? `<div class="panel" style="padding:10px;margin-bottom:10px;border-color:#c9a24a"><b class="gold">${ico("trophy", "#e8c878", 14)} Défi de la semaine : ${weekRule().n}</b> <span class="small">— ${gl(weekRule().d)}</span> <button class="btn ghost sm" data-a="noWeek">Annuler</button>${weekPartyOk(E.party || []) ? `<div class="small bad" style="margin-top:4px">${weekPartyOk(E.party || [])}</div>` : ""}</div>` : ""}
     ${E.daily ? `<div class="panel" style="padding:10px;margin-bottom:10px;border-color:#c9a24a"><b class="gold">${ico("star", "#e8c878", 14)} Expédition du jour</b> <span class="small">— ${R.n}, reliques offertes : ${E.daily.relics.map(k => RELICS[k].n).join(", ")}. Récompenses +25 %.</span> <button class="btn ghost sm" data-a="noDaily">Annuler</button></div>` : ""}
     <h2>Destination</h2><div class="grid" style="--min:200px">${regs.map(r => { const un = regionUnlocked(r.id), p = S.prog[r.id]; return `<div class="card ${E.region === r.id ? "sel" : ""} ${un ? "" : "lock"}" data-a="${un && !E.daily ? "pickReg" : ""}" data-v="${r.id}" style="padding:0">${canvasSlot("reg:" + r.id, 280, 120)}<div style="padding:8px 10px"><div class="tiny dim">${r.sub}${r.id === "abime" ? ` · record ${S.abyss.best}` : ` · niv ${r.lvl}+`}</div><h3 style="margin:0">${r.n} ${!un ? ico("lock", "#9a8c7a", 14) : p && p.clears ? ico("crown", "#e8c878", 14) : ""}</h3><p class="tiny dim" style="margin:2px 0 0">${un ? r.d : "Terminez le chapitre précédent."}</p></div></div>`; }).join("")}</div>
-    ${E.region === "abime" ? seasonPanelHTML() + abyssOpts(E) : cleared && !E.daily ? `<div class="row" style="margin-top:8px"><span class="small">Menace :</span>${[0, 1, 2].map(t => `<button class="btn sm ${E.threat === t ? "gold" : "ghost"}" data-a="threat" data-v="${t}">${["I", "II", "III"][t]}</button>`).join("")}<span class="tiny dim">Ennemis +${E.threat * 2} niveaux, récompenses +${E.threat * 30} %</span></div>` : ""}
+    ${E.region === "abime" ? seasonPanelHTML() + abyssOpts(E) : cleared && !E.daily ? `<div class="row" style="margin-top:8px"><span class="small">Menace :</span>${[0, 1, 2, 3, 4].map(t => { const ok = t <= threatMax(E.region); return `<button class="btn sm ${E.threat === t ? "gold" : "ghost"} ${ok ? "" : "off"}" data-a="threat" data-v="${t}" title="${ok ? "" : "Vainquez le gardien en menace " + THREAT_N[t - 1]}">${ok ? "" : ico("lock", "#9a8c7a", 12)}${THREAT_N[t]}</button>`; }).join("")}<span class="tiny dim">Ennemis +${E.threat * 2} niveaux, récompenses +${E.threat * 30} %${threatMax(E.region) < 4 ? ` · vainquez le gardien en menace ${THREAT_N[threatMax(E.region)]} pour débloquer la ${THREAT_N[threatMax(E.region) + 1]}` : ""}</span></div>` : ""}
     <div style="margin-top:10px">${rushPanelHTML(E)}</div>
     <h2 style="margin-top:14px">Ordre de marche</h2><p class="tiny dim" style="margin-top:-4px">Le rang 1 est en première ligne, face à l'ennemi. Touchez un héros pour l'ajouter ou le retirer, et une flèche pour changer son rang.</p>
     <div class="partyrow">${[3, 2, 1, 0].map(i => { const h = heroById(E.party[i]); return `<div class="card" style="text-align:center;padding:6px 3px" data-a="${h ? "unparty" : ""}" data-v="${i}"><div class="tiny gold">Rang ${i + 1}</div>${h ? canvasSlot("pt:" + h.id, 96, 120) + `<div class="tiny"><b>${esc(h.name.split(" ")[0])}</b></div><div class="tiny dim">${CLASSES[h.cls].n} ${h.lvl}</div>${isInjured(h) ? '<div class="tiny bad">Blessé (50 % PV)</div>' : ""}<div class="row" style="justify-content:center;gap:2px;margin-top:3px"><button class="btn ghost sm" data-a="mvParty" data-v="${i}:1" ${i >= 3 || !E.party[i + 1] ? "disabled" : ""}>◀</button><button class="btn ghost sm" data-a="mvParty" data-v="${i}:-1" ${i <= 0 ? "disabled" : ""}>▶</button></div>` : '<div class="empty" style="padding:40px 4px">vide</div>'}</div>`; }).join("")}</div>
@@ -48,7 +48,7 @@ ACT.toMap = () => go("map");
 ACT.noWeek = () => { UI.expe.week = null; refresh(); };
 ACT.noDaily = () => { UI.expe.daily = null; refresh(); };
 ACT.pickReg = v => { UI.expe.region = v; UI.expe.threat = 0; SC.draw = backdrop(v, { dark: .5 }); refresh(); };
-ACT.threat = v => { UI.expe.threat = +v; refresh(); };
+ACT.threat = v => { if (+v > threatMax(UI.expe.region)) return toast(`Vainquez d'abord le gardien en menace ${THREAT_N[+v - 1]}.`, "bad"); UI.expe.threat = +v; refresh(); };
 ACT.abFloor = v => { UI.expe.floor = +v; refresh(); };
 ACT.oath = k => { const o = S.abyss.oaths; if (o.includes(k)) S.abyss.oaths = o.filter(x => x !== k); else o.push(k); refresh(); };
 ACT.addParty = id => { const E = UI.expe; if (E.party.length >= 4) return toast("4 héros au maximum.", "bad"); E.party.push(id); E.party.sort((a, b) => CLASSES[heroById(a).cls].rk[0] - CLASSES[heroById(b).cls].rk[0]); refresh(); };
@@ -253,6 +253,7 @@ SCREENS.results = {
       ${res.mats.fer || res.mats.essence || res.mats.cendre ? `<div class="reward">${ico("iron", "#a8a8a8", 22)}${res.mats.fer} ferraille · ${res.mats.essence} essence${res.mats.cendre ? " · " + res.mats.cendre + " cendre royale" : ""}</div>` : ""}
       ${res.loot.map(i => `<div class="reward">${slotHTML(i, "itemInfo", i.id)}<div><b class="rar${i.rar}">${gearName(i)}</b><div class="tiny dim">${itemLine(i)}</div></div></div>`).join("")}
       ${res.unlocks.map(u => `<div class="reward" style="color:var(--gold2)">${ico("star", "#e8c878", 22)}<b>${u.k === "class" ? "Nouvelle classe à la Taverne : " + CLASSES[u.id].n : u.k === "pet" ? "Nouveau compagnon à la Ménagerie : " + PETS[u.id].n : "Nouvelle destination : " + regionById(u.id).n}</b></div>`).join("")}
+      ${res.threatUp ? `<div class="reward" style="color:var(--gold2)">${ico("skull", "#ff8a6a", 22)}<b>Menace ${THREAT_N[res.threatUp.t]} débloquée : ${regionById(res.threatUp.region).n}</b></div>` : ""}
       ${res.week ? `<div class="reward" style="color:var(--gold2)">${ico("trophy", "#e8c878", 22)}<b>Défi de la semaine relevé ! +${res.week.gold} or · +${res.week.shards} éclats · +${res.week.essence} essence</b></div>` : ""}
       ${extrasResultsHTML(res)}
       ${res.sum ? runSummaryHTML(res) : ""}

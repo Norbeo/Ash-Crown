@@ -374,8 +374,8 @@ Object.assign(CLASSES, {
   },
 });
 const CLASS_IDS = Object.keys(CLASSES);
-const EVO_LVL = 5, APEX_LVL = 12, MAX_LVL = 20;
-// paliers d'apogée (niveau 12) : un bonus par évolution
+const EVO_LVL = 15, APEX_LVL = 18, MAX_LVL = 20;
+// paliers d'apogée (niveau 18) : un bonus par évolution
 const APEX = {
   bastion: { n: "Bouclier éternel", pas: [{ k: "stat", s: "prot", v: .08 }, { k: "guardProt", v: .15 }] },
   inquisiteur: { n: "Grand Inquisiteur", pas: [{ k: "stat", s: "dmg", v: .15 }, { k: "burnPow", v: .3 }] },

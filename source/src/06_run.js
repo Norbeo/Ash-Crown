@@ -4,6 +4,9 @@ const NODE_T = {
   treasure: { n: "Trésor", ic: "chest", c: "#ffc04a" }, camp: { n: "Feu de camp", ic: "camp", c: "#ff9a3a" }, shop: { n: "Colporteur", ic: "coin", c: "#7ad0a0" }, boss: { n: "Gardien", ic: "crown", c: "#ff3a3a" },
 };
 
+const THREAT_N = ["I", "II", "III", "IV", "V"];
+// menace : chaque victoire à la menace la plus haute débloque la suivante (jusqu'à V)
+function threatMax(id) { const p = S.prog[id]; return p && p.clears ? Math.min(4, (p.threat || 0) + 1) : 0; }
 function regionsCleared() { return REGIONS.filter(r => S.prog[r.id] && S.prog[r.id].clears > 0).length; }
 function classUnlocked(c) { return CLASSES[c].unlock <= regionsCleared() || !!(S.seen && S.seen.classes[c]); }
 function petUnlocked(id) { return PETS[id].starter || (PETS[id].unlock || 0) <= regionsCleared(); }
@@ -193,7 +196,9 @@ function endRun(outcome) {
   if (outcome === "victory" && run.region !== "abime" && !run.rush) {
     const p = S.prog[run.region] = S.prog[run.region] || { clears: 0, best: 0 };
     if (!p.clears) res.story = STORY[run.region];
-    p.clears++; S.stats["boss_" + run.region] = (S.stats["boss_" + run.region] || 0) + 1;
+    const tm = threatMax(run.region); if (p.clears) p.threat = Math.max(p.threat || 0, run.threat || 0); else p.threat = 0;
+    p.clears++; if (threatMax(run.region) > tm) res.threatUp = { region: run.region, t: threatMax(run.region) };
+    S.stats["boss_" + run.region] = (S.stats["boss_" + run.region] || 0) + 1;
   }
   if (run.region === "abime") { const depth = run.floor - (outcome === "victory" ? 0 : 1); S.abyss.best = Math.max(S.abyss.best, depth); S.stats.abyss = Math.max(S.stats.abyss, S.abyss.best); if (outcome === "victory" || outcome === "retreat") S.stats.oath = Math.max(S.stats.oath, run.oaths.length); }
   const after = regionsCleared();

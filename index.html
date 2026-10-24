@@ -616,8 +616,8 @@ Object.assign(CLASSES, {
   },
 });
 const CLASS_IDS = Object.keys(CLASSES);
-const EVO_LVL = 5, APEX_LVL = 12, MAX_LVL = 20;
-// paliers d'apogée (niveau 12) : un bonus par évolution
+const EVO_LVL = 15, APEX_LVL = 18, MAX_LVL = 20;
+// paliers d'apogée (niveau 18) : un bonus par évolution
 const APEX = {
   bastion: { n: "Bouclier éternel", pas: [{ k: "stat", s: "prot", v: .08 }, { k: "guardProt", v: .15 }] },
   inquisiteur: { n: "Grand Inquisiteur", pas: [{ k: "stat", s: "dmg", v: .15 }, { k: "burnPow", v: .3 }] },
@@ -1081,7 +1081,7 @@ const ACHIEVEMENTS = [
   { id: "abime25", n: "Sans fond", d: "Atteindre la profondeur 25 de l'Abîme.", k: "abyss", v: 25, shards: 4 },
   { id: "abime50", n: "Celui qui revient", d: "Atteindre la profondeur 50 de l'Abîme.", k: "abyss", v: 50, shards: 8 },
   { id: "evolution", n: "Métamorphose", d: "Faire évoluer un héros.", k: "evos", v: 1, gold: 150 },
-  { id: "apex", n: "Apogée", d: "Faire atteindre l'apogée (niveau 12) à un héros.", k: "apex", v: 1, shards: 1 },
+  { id: "apex", n: "Apogée", d: "Faire atteindre l'apogée (niveau 18) à un héros.", k: "apex", v: 1, shards: 1 },
   { id: "legende", n: "Légende", d: "Faire atteindre le niveau 20 à un héros.", k: "maxlvl", v: 1, shards: 3 },
   { id: "armee", n: "Une petite armée", d: "Avoir 10 héros.", k: "roster", v: 10, gold: 300 },
   { id: "toutes_classes", n: "Toutes les voies", d: `Recruter les ${CLASS_IDS.length} classes.`, k: "classes", v: CLASS_IDS.length, shards: 2 },
@@ -1333,8 +1333,9 @@ function heroStats(h, relicH = {}) {
 const heroPower = h => { const s = heroStats(h); return Math.round(s.hp * .6 + (s.dmgLo + s.dmgHi) * 2.2 + s.prot * 120 + s.crit * 1.2 + s.dodge * .8 + s.spd * 3); };
 
 // ── Équipement ──
-function makeGear(kind, cls, tier, rar, key) {
+function makeGear(kind, cls, tier, rar, key, evo) {
   const it = { id: uid("i"), kind, tier: clamp(tier, 1, 6), rar: clamp(rar, 0, 3), up: 0, aff: [] };
+  if (kind === "arm" && it.tier >= 6 && evo) it.evo = evo; // armure Ascendante : propre à une voie d'évolution
   if (kind === "tr") {
     const pool = Object.keys(TRINKETS).filter(k => TRINKETS[k].r === rar);
     it.key = key || pick(pool.length ? pool : Object.keys(TRINKETS)); it.rar = TRINKETS[it.key].r; it.tier = 1;
@@ -1347,7 +1348,7 @@ function makeGear(kind, cls, tier, rar, key) {
 function gearName(it) {
   if (!it) return "—";
   if (it.kind === "tr") return TRINKETS[it.key].n;
-  const L = GEAR_NAMES[it.cls][it.kind === "wpn" ? "wpn" : "arm"], n = it.tier >= 6 ? "Ascendant : " + L[4] : L[it.tier - 1];
+  const L = GEAR_NAMES[it.cls][it.kind === "wpn" ? "wpn" : "arm"], n = it.tier >= 6 ? (it.evo && CLASSES[it.cls].evos[it.evo] ? "Armure ascendante : " + CLASSES[it.cls].evos[it.evo].n : "Ascendant : " + L[4]) : L[it.tier - 1];
   return n + (it.up ? " +" + it.up : "");
 }
 const rollRarity = (luck = 0) => { const r = rnd() - luck; return r < .025 ? 3 : r < .12 ? 2 : r < .38 ? 1 : 0; };
@@ -1857,6 +1858,9 @@ const NODE_T = {
   treasure: { n: "Trésor", ic: "chest", c: "#ffc04a" }, camp: { n: "Feu de camp", ic: "camp", c: "#ff9a3a" }, shop: { n: "Colporteur", ic: "coin", c: "#7ad0a0" }, boss: { n: "Gardien", ic: "crown", c: "#ff3a3a" },
 };
 
+const THREAT_N = ["I", "II", "III", "IV", "V"];
+// menace : chaque victoire à la menace la plus haute débloque la suivante (jusqu'à V)
+function threatMax(id) { const p = S.prog[id]; return p && p.clears ? Math.min(4, (p.threat || 0) + 1) : 0; }
 function regionsCleared() { return REGIONS.filter(r => S.prog[r.id] && S.prog[r.id].clears > 0).length; }
 function classUnlocked(c) { return CLASSES[c].unlock <= regionsCleared() || !!(S.seen && S.seen.classes[c]); }
 function petUnlocked(id) { return PETS[id].starter || (PETS[id].unlock || 0) <= regionsCleared(); }
@@ -2046,7 +2050,9 @@ function endRun(outcome) {
   if (outcome === "victory" && run.region !== "abime" && !run.rush) {
     const p = S.prog[run.region] = S.prog[run.region] || { clears: 0, best: 0 };
     if (!p.clears) res.story = STORY[run.region];
-    p.clears++; S.stats["boss_" + run.region] = (S.stats["boss_" + run.region] || 0) + 1;
+    const tm = threatMax(run.region); if (p.clears) p.threat = Math.max(p.threat || 0, run.threat || 0); else p.threat = 0;
+    p.clears++; if (threatMax(run.region) > tm) res.threatUp = { region: run.region, t: threatMax(run.region) };
+    S.stats["boss_" + run.region] = (S.stats["boss_" + run.region] || 0) + 1;
   }
   if (run.region === "abime") { const depth = run.floor - (outcome === "victory" ? 0 : 1); S.abyss.best = Math.max(S.abyss.best, depth); S.stats.abyss = Math.max(S.stats.abyss, S.abyss.best); if (outcome === "victory" || outcome === "retreat") S.stats.oath = Math.max(S.stats.oath, run.oaths.length); }
   const after = regionsCleared();
@@ -2352,9 +2358,10 @@ function dismiss(id) { const h = heroById(id); if (!h || S.heroes.length <= 1) r
 function healCost(h) { return 30 + h.lvl * 15; }
 function healInjured(id) { const h = heroById(id); if (!h || !isInjured(h)) return false; const c = Math.round(healCost(h) * (1 - (S.bld.chapelle - 1) * .15)); if (S.gold < c) return false; S.gold -= c; h.injured = 0; return true; }
 // équipement
-function canEquip(h, it) { if (!it) return false; if (it.kind === "tr") return true; return it.cls === h.cls && (it.tier < 6 || !!h.evo); } // palier VI : héros évolués
+function canEquip(h, it) { if (!it) return false; if (it.kind === "tr") return true; return it.cls === h.cls && (it.tier < 6 || (!!h.evo && (!it.evo || it.evo === h.evo))); } // palier VI : héros évolués, armure propre à leur voie
 function equip(h, it, slot) {
   if (!canEquip(h, it)) return false;
+  if (it.kind === "arm" && it.tier >= 6 && !it.evo) it.evo = h.evo; // ancienne armure VI : prend la voie de son porteur
   slot = slot || (it.kind === "wpn" ? "wpn" : it.kind === "arm" ? "arm" : (!h.gear.tr1 ? "tr1" : !h.gear.tr2 ? "tr2" : "tr1"));
   if (it.kind === "tr" && [h.gear.tr1, h.gear.tr2].some(x => x && x.key === it.key && x !== h.gear[slot])) return false;
   const i = S.inv.indexOf(it); if (i >= 0) S.inv.splice(i, 1);
@@ -2365,10 +2372,11 @@ function equip(h, it, slot) {
 function unequip(h, slot) { const it = h.gear[slot]; if (!it || slot === "wpn" || slot === "arm") return false; h.gear[slot] = null; S.inv.push(it); return true; }
 function upgradeItem(it) { if (!it || it.up >= 10) return false; if (it.up >= S.bld.forge * 2) return { err: "La Forge doit être améliorée pour aller plus loin." }; const c = upCost(it); if (!pay(c)) return { err: "Ressources insuffisantes." }; it.up++; return { ok: 1 }; }
 function salvageItem(it) { const i = S.inv.indexOf(it); if (i < 0) return false; const r = salvage(it); S.inv.splice(i, 1); S.gold += r.gold; S.mats.fer += r.fer; S.mats.essence += r.essence; S.mats.cendre += r.cendre; return r; }
-function craft(cls, kind, tier) {
+function craft(cls, kind, tier, evo) {
   if (tier > S.bld.forge) return { err: "Améliorez la Forge pour ce palier." };
   const c = craftCost(tier); if (!pay(c)) return { err: "Ressources insuffisantes." };
-  const it = makeGear(kind, cls, tier, rollRarity(.04 + S.bld.forge * .015)); S.inv.push(it); S.stats.crafts++;
+  if (kind === "arm" && tier >= 6 && !(evo && CLASSES[cls].evos[evo])) return { err: "Choisissez la voie de l'armure." };
+  const it = makeGear(kind, cls, tier, rollRarity(.04 + S.bld.forge * .015), null, evo); S.inv.push(it); S.stats.crafts++;
   if (tier >= 5) S.stats.tier5 = 1; if (it.rar >= 3) S.stats.legend++;
   checkAchievements(); return { ok: it };
 }
@@ -3016,8 +3024,8 @@ const GLOSS = {
   trait: { n: "Traits", ic: "star", d: "Particularités de naissance d'un héros (vert : qualités, rouge : défauts). Ce sont des bonus passifs, toujours actifs." },
   relique: { n: "Reliques", ic: "gem", d: "Trouvées pendant l'expédition : bonus passifs pour tout le groupe, jusqu'à la fin de l'expédition." },
   synergie: { n: "Synergies", ic: "link", d: "Certaines classes se complètent : quand elles partent ensemble, tout le groupe reçoit un bonus passif pendant l'expédition." },
-  evolution: { n: "Évolution", ic: "crown", d: "Au niveau 5, chaque héros choisit l'une de ses deux voies : nouvelles compétences et une aura. Son aspect final se révèle quand il porte une armure de palier VI." },
-  apogee: { n: "Apogée", ic: "crown", d: "Au niveau 12, un héros évolué atteint l'apogée de sa voie : un bonus passif puissant." },
+  evolution: { n: "Évolution", ic: "crown", d: "Au niveau 15, chaque héros choisit l'une de ses deux voies : nouvelles compétences et une aura. Son aspect final se révèle quand il porte une armure de palier VI." },
+  apogee: { n: "Apogée", ic: "crown", d: "Au niveau 18, un héros évolué atteint l'apogée de sa voie : un bonus passif puissant." },
   palier: { n: "Palier", ic: "armor", d: "Qualité de l'équipement, de I à VI. Un palier plus élevé donne plus de dégâts (arme) ou de PV et de protection (armure). La Forge débloque les paliers. Le palier VI (ascendant) ne se porte qu'après l'évolution : l'armure ascendante révèle l'aspect final du héros dans sa voie." },
   rarete: { n: "Rareté", ic: "gem", d: "Commun, rare, épique, légendaire : plus l'objet est rare, plus il porte de bonus supplémentaires." },
   serment: { n: "Serments", ic: "seal", d: "Dans l'Abîme, des contraintes volontaires qui rendent l'expédition plus dure en échange de meilleures récompenses." },
@@ -3406,7 +3414,7 @@ function openBuilding(k, tab) {
       const owned = [...new Set(S.heroes.map(h => h.cls))];
       body = head + `<p class="lore">L'enclume chante. Plus la forge est grande, plus l'acier est noble — et plus vos héros sont redoutables à voir.</p>
       <div class="row">${owned.map(c => `<button class="btn sm ${c === cls ? "on gold" : "ghost"}" data-a="forgeCls" data-v="${c}">${CLASSES[c].n}</button>`).join("")}</div>
-      <div class="grid" style="--min:250px;margin-top:10px">${[1, 2, 3, 4, 5, 6].map(t => { const c = craftCost(t), lock = t > S.bld.forge; return `<div class="card ${lock ? "lock" : ""}" style="cursor:default"><div class="row">${canvasSlot("tier:" + cls + ":" + t, 76, 95)}<div style="flex:1"><h3>${TIER_N[t]} ${lock ? ico("lock", "#9a8c7a", 14) : ""}</h3><div class="tiny dim">${t >= 6 ? "Ascendant : " + GEAR_NAMES[cls].wpn[4] + "<br>Ascendant : " + GEAR_NAMES[cls].arm[4] + '<br><span class="gold">Réservé aux héros évolués — révèle leur aspect final</span>' : GEAR_NAMES[cls].wpn[t - 1] + "<br>" + GEAR_NAMES[cls].arm[t - 1]}</div><div class="tiny" style="margin-top:4px">${c.gold} or · ${c.fer} fer${c.essence ? ` · ${c.essence} ess.` : ""}${c.cendre ? ` · ${c.cendre} cendre` : ""}</div></div></div>${lock ? `<p class="tiny dim">Forge niveau ${t} requise</p>` : `<div class="row" style="margin-top:6px"><button class="btn sm ${canPay(c) ? "" : "off"}" data-a="craft" data-v="${cls}:wpn:${t}">${ico("weapon")}Arme</button><button class="btn sm ${canPay(c) ? "" : "off"}" data-a="craft" data-v="${cls}:arm:${t}">${ico("armor")}Armure</button></div>`}</div>`; }).join("")}</div>`;
+      <div class="grid" style="--min:250px;margin-top:10px">${[1, 2, 3, 4, 5, 6].map(t => { const c = craftCost(t), lock = t > S.bld.forge; return `<div class="card ${lock ? "lock" : ""}" style="cursor:default"><div class="row">${t >= 6 ? Object.keys(CLASSES[cls].evos).map(k => canvasSlot("tier:" + cls + ":6:" + k, 60, 95)).join("") : canvasSlot("tier:" + cls + ":" + t, 76, 95)}<div style="flex:1"><h3>${TIER_N[t]} ${lock ? ico("lock", "#9a8c7a", 14) : ""}</h3><div class="tiny dim">${t >= 6 ? "Ascendant : " + GEAR_NAMES[cls].wpn[4] + "<br>" + Object.values(CLASSES[cls].evos).map(E => "Armure ascendante : " + E.n).join("<br>") + '<br><span class="gold">Réservé aux héros évolués : chaque voie a son armure, qui révèle son aspect final</span>' : GEAR_NAMES[cls].wpn[t - 1] + "<br>" + GEAR_NAMES[cls].arm[t - 1]}</div><div class="tiny" style="margin-top:4px">${c.gold} or · ${c.fer} fer${c.essence ? ` · ${c.essence} ess.` : ""}${c.cendre ? ` · ${c.cendre} cendre` : ""}</div></div></div>${lock ? `<p class="tiny dim">Forge niveau ${t} requise</p>` : `<div class="row" style="margin-top:6px"><button class="btn sm ${canPay(c) ? "" : "off"}" data-a="craft" data-v="${cls}:wpn:${t}">${ico("weapon")}Arme</button>${t >= 6 ? Object.entries(CLASSES[cls].evos).map(([k, E]) => `<button class="btn sm ${canPay(c) ? "" : "off"}" data-a="craft" data-v="${cls}:arm:6:${k}">${ico("armor")}${E.n}</button>`).join("") : `<button class="btn sm ${canPay(c) ? "" : "off"}" data-a="craft" data-v="${cls}:arm:${t}">${ico("armor")}Armure</button>`}</div>`}</div>`; }).join("")}</div>`;
     } else {
       const junk = S.inv.filter(it => !itemUseful(it));
       body = head + (S.inv.length ? `<div class="row sp" style="margin-bottom:8px"><span class="tiny dim">${junk.length ? `${junk.length} objet${junk.length > 1 ? "s" : ""} moins bon${junk.length > 1 ? "s" : ""} que ce que portent vos héros` : "Tout l'inventaire peut encore servir."}</span><button class="btn sm ${junk.length ? "gold" : "ghost off"}" data-a="salvAll">${ico("iron")}Tout recycler l'inutile</button></div>` : "") + invList();
@@ -3429,12 +3437,12 @@ function openBuilding(k, tab) {
     const b = idleBank();
     body = `<p class="lore">Les âmes des morts brûlent ici, et leur chaleur se change en or. Elle travaille même quand vous dormez.</p><div class="row sp card" style="cursor:default"><div><div class="small dim">Réserve</div><div style="font-size:28px;font-family:var(--f-head)" class="gold">${fmt(b)} or</div><div class="small dim">${fonderieRate()} or par heure · réserve pleine en ${fonderieCap()} h</div></div><button class="btn main ${b > 0 ? "glow" : "off"}" data-a="collect">${ico("coin")}Récolter</button></div>`;
   }
-  modal(`<h2>${ico(B.ic, "#e8c878")} ${B.n}</h2>${body}${bldFooter(k)}`, { wide: 1, mount: m => fillCanvases(m, (c, id) => { const p = id.split(":"); if (p[0] === "r") paintHero(c, S.recruits[+p[1]], true); if (p[0] === "h") paintHero(c, heroById(p[1])); if (p[0] === "p") paintPet(c, p[1], p[2] === "1"); if (p[0] === "tier") { const x = c.getContext("2d"); const sp = heroSprite({ cls: p[1], tier: +p[2], wtier: +p[2], skin: SKINS[1], hair: 1, hairCol: HAIRCOL[1], beard: 0 }, {}, 0, c.width / 230 * 1.2); x.drawImage(sp, c.width / 2 - sp.ax, c.height - 4 - sp.ay); } if (p[0] === "it") paintItem(c, findItem(p[1])); }) });
+  modal(`<h2>${ico(B.ic, "#e8c878")} ${B.n}</h2>${body}${bldFooter(k)}`, { wide: 1, mount: m => fillCanvases(m, (c, id) => { const p = id.split(":"); if (p[0] === "r") paintHero(c, S.recruits[+p[1]], true); if (p[0] === "h") paintHero(c, heroById(p[1])); if (p[0] === "p") paintPet(c, p[1], p[2] === "1"); if (p[0] === "tier") { const x = c.getContext("2d"); const sp = heroSprite({ cls: p[1], tier: +p[2], wtier: +p[2], evo: p[3] || null, skin: SKINS[1], hair: 1, hairCol: HAIRCOL[1], beard: 0 }, {}, 0, c.width / 230 * 1.2); x.drawImage(sp, c.width / 2 - sp.ax, c.height - 4 - sp.ay); } if (p[0] === "it") paintItem(c, findItem(p[1])); }) });
   UI.bldOpen = k;
 }
 ACT.bldTab = v => { const [k, t] = v.split(":"); UI.bldTab = t; openBuilding(k, t); };
 ACT.forgeCls = c => { UI.forgeCls = c; openBuilding("forge", "craft"); };
-ACT.craft = v => { const [c, kind, t] = v.split(":"); const r = craft(c, kind, +t); if (r.err) return toast(r.err, "bad"); sfx("forge"); const it = r.ok; toast(`Forgé : <span class="rar${it.rar}">${gearName(it)}</span> (${RARITY[it.rar].n})`, it.rar >= 2 ? "epic" : "good"); const h = S.heroes.find(h => h.cls === c && h.gear[kind] && h.gear[kind].tier < it.tier); if (h) { equip(h, it); toast(`${esc(h.name)} s'en équipe.`); } save(); renderHud(); openBuilding("forge", "craft"); };
+ACT.craft = v => { const [c, kind, t, evo] = v.split(":"); const r = craft(c, kind, +t, evo); if (r.err) return toast(r.err, "bad"); sfx("forge"); const it = r.ok; toast(`Forgé : <span class="rar${it.rar}">${gearName(it)}</span> (${RARITY[it.rar].n})`, it.rar >= 2 ? "epic" : "good"); const h = S.heroes.find(h => h.cls === c && canEquip(h, it) && h.gear[kind] && h.gear[kind].tier < it.tier); if (h) { equip(h, it); toast(`${esc(h.name)} s'en équipe.`); } save(); renderHud(); openBuilding("forge", "craft"); };
 ACT.recruit = i => { const r = recruit(+i); if (r.err) return toast(r.err, "bad"); sfx("coin"); toast(`${esc(r.ok.name)} rejoint le Bastion.`, "good"); save(); renderHud(); openBuilding("taverne"); };
 ACT.reroll = () => { if (!rerollRecruits()) return toast("Pas assez d'or.", "bad"); save(); renderHud(); openBuilding("taverne"); };
 ACT.heal = id => { if (!healInjured(id)) return toast("Pas assez d'or.", "bad"); sfx("heal"); save(); renderHud(); openBuilding("chapelle"); };
@@ -3481,9 +3489,9 @@ function cropDraw(src, W, pad) { // recadre au plus juste puis centre dans un ca
 }
 function itemArt(it) {
   if (!HASWIN || !it) return "";
-  const bust = it.kind === "arm" ? heroArt({ cls: it.cls, tier: it.tier }) : null;
+  const bust = it.kind === "arm" ? heroArt({ cls: it.cls, tier: it.tier, evo: it.evo }) : null;
   const wim = it.kind === "wpn" ? artImg("wpn_" + CLASSES[it.cls].wpn) : null, tim = it.kind === "tr" ? artImg("tr_" + it.key) : null;
-  const key = (it.kind === "tr" ? "tr|" + it.key + "|" + it.rar : [it.kind, it.cls, it.tier, it.rar].join("|")) + (bust || wim || tim ? "|i" : "");
+  const key = (it.kind === "tr" ? "tr|" + it.key + "|" + it.rar : [it.kind, it.cls, it.tier, it.rar, it.evo || ""].join("|")) + (bust || wim || tim ? "|i" : "");
   if (ITEM_ART[key]) return ITEM_ART[key];
   const W = 112;
   let cv;
@@ -3677,7 +3685,7 @@ SCREENS.expe = {
     const E = UI.expe = UI.expe || {};
     if (!E.party || E.party.some(id => !heroById(id))) E.party = autoParty();
     if (!E.region || !regionUnlocked(E.region)) E.region = [...REGIONS].reverse().find(r => regionUnlocked(r.id)).id;
-    E.pet = S.pets.owned.includes(E.pet) ? E.pet : S.pet; E.threat = E.threat || 0;
+    E.pet = S.pets.owned.includes(E.pet) ? E.pet : S.pet; E.threat = Math.min(E.threat || 0, threatMax(E.region || "bourg"));
     const R = regionById(E.region), prog = S.prog[E.region], cleared = prog && prog.clears;
     const avgL = E.party.length ? Math.round(E.party.reduce((a, id) => a + heroById(id).lvl, 0) / E.party.length) : 0;
     const roles = E.party.map(id => CLASSES[heroById(id).cls].role);
@@ -3687,7 +3695,7 @@ SCREENS.expe = {
     ${E.week && weekRule() ? `<div class="panel" style="padding:10px;margin-bottom:10px;border-color:#c9a24a"><b class="gold">${ico("trophy", "#e8c878", 14)} Défi de la semaine : ${weekRule().n}</b> <span class="small">— ${gl(weekRule().d)}</span> <button class="btn ghost sm" data-a="noWeek">Annuler</button>${weekPartyOk(E.party || []) ? `<div class="small bad" style="margin-top:4px">${weekPartyOk(E.party || [])}</div>` : ""}</div>` : ""}
     ${E.daily ? `<div class="panel" style="padding:10px;margin-bottom:10px;border-color:#c9a24a"><b class="gold">${ico("star", "#e8c878", 14)} Expédition du jour</b> <span class="small">— ${R.n}, reliques offertes : ${E.daily.relics.map(k => RELICS[k].n).join(", ")}. Récompenses +25 %.</span> <button class="btn ghost sm" data-a="noDaily">Annuler</button></div>` : ""}
     <h2>Destination</h2><div class="grid" style="--min:200px">${regs.map(r => { const un = regionUnlocked(r.id), p = S.prog[r.id]; return `<div class="card ${E.region === r.id ? "sel" : ""} ${un ? "" : "lock"}" data-a="${un && !E.daily ? "pickReg" : ""}" data-v="${r.id}" style="padding:0">${canvasSlot("reg:" + r.id, 280, 120)}<div style="padding:8px 10px"><div class="tiny dim">${r.sub}${r.id === "abime" ? ` · record ${S.abyss.best}` : ` · niv ${r.lvl}+`}</div><h3 style="margin:0">${r.n} ${!un ? ico("lock", "#9a8c7a", 14) : p && p.clears ? ico("crown", "#e8c878", 14) : ""}</h3><p class="tiny dim" style="margin:2px 0 0">${un ? r.d : "Terminez le chapitre précédent."}</p></div></div>`; }).join("")}</div>
-    ${E.region === "abime" ? seasonPanelHTML() + abyssOpts(E) : cleared && !E.daily ? `<div class="row" style="margin-top:8px"><span class="small">Menace :</span>${[0, 1, 2].map(t => `<button class="btn sm ${E.threat === t ? "gold" : "ghost"}" data-a="threat" data-v="${t}">${["I", "II", "III"][t]}</button>`).join("")}<span class="tiny dim">Ennemis +${E.threat * 2} niveaux, récompenses +${E.threat * 30} %</span></div>` : ""}
+    ${E.region === "abime" ? seasonPanelHTML() + abyssOpts(E) : cleared && !E.daily ? `<div class="row" style="margin-top:8px"><span class="small">Menace :</span>${[0, 1, 2, 3, 4].map(t => { const ok = t <= threatMax(E.region); return `<button class="btn sm ${E.threat === t ? "gold" : "ghost"} ${ok ? "" : "off"}" data-a="threat" data-v="${t}" title="${ok ? "" : "Vainquez le gardien en menace " + THREAT_N[t - 1]}">${ok ? "" : ico("lock", "#9a8c7a", 12)}${THREAT_N[t]}</button>`; }).join("")}<span class="tiny dim">Ennemis +${E.threat * 2} niveaux, récompenses +${E.threat * 30} %${threatMax(E.region) < 4 ? ` · vainquez le gardien en menace ${THREAT_N[threatMax(E.region)]} pour débloquer la ${THREAT_N[threatMax(E.region) + 1]}` : ""}</span></div>` : ""}
     <div style="margin-top:10px">${rushPanelHTML(E)}</div>
     <h2 style="margin-top:14px">Ordre de marche</h2><p class="tiny dim" style="margin-top:-4px">Le rang 1 est en première ligne, face à l'ennemi. Touchez un héros pour l'ajouter ou le retirer, et une flèche pour changer son rang.</p>
     <div class="partyrow">${[3, 2, 1, 0].map(i => { const h = heroById(E.party[i]); return `<div class="card" style="text-align:center;padding:6px 3px" data-a="${h ? "unparty" : ""}" data-v="${i}"><div class="tiny gold">Rang ${i + 1}</div>${h ? canvasSlot("pt:" + h.id, 96, 120) + `<div class="tiny"><b>${esc(h.name.split(" ")[0])}</b></div><div class="tiny dim">${CLASSES[h.cls].n} ${h.lvl}</div>${isInjured(h) ? '<div class="tiny bad">Blessé (50 % PV)</div>' : ""}<div class="row" style="justify-content:center;gap:2px;margin-top:3px"><button class="btn ghost sm" data-a="mvParty" data-v="${i}:1" ${i >= 3 || !E.party[i + 1] ? "disabled" : ""}>◀</button><button class="btn ghost sm" data-a="mvParty" data-v="${i}:-1" ${i <= 0 ? "disabled" : ""}>▶</button></div>` : '<div class="empty" style="padding:40px 4px">vide</div>'}</div>`; }).join("")}</div>
@@ -3711,7 +3719,7 @@ ACT.toMap = () => go("map");
 ACT.noWeek = () => { UI.expe.week = null; refresh(); };
 ACT.noDaily = () => { UI.expe.daily = null; refresh(); };
 ACT.pickReg = v => { UI.expe.region = v; UI.expe.threat = 0; SC.draw = backdrop(v, { dark: .5 }); refresh(); };
-ACT.threat = v => { UI.expe.threat = +v; refresh(); };
+ACT.threat = v => { if (+v > threatMax(UI.expe.region)) return toast(`Vainquez d'abord le gardien en menace ${THREAT_N[+v - 1]}.`, "bad"); UI.expe.threat = +v; refresh(); };
 ACT.abFloor = v => { UI.expe.floor = +v; refresh(); };
 ACT.oath = k => { const o = S.abyss.oaths; if (o.includes(k)) S.abyss.oaths = o.filter(x => x !== k); else o.push(k); refresh(); };
 ACT.addParty = id => { const E = UI.expe; if (E.party.length >= 4) return toast("4 héros au maximum.", "bad"); E.party.push(id); E.party.sort((a, b) => CLASSES[heroById(a).cls].rk[0] - CLASSES[heroById(b).cls].rk[0]); refresh(); };
@@ -3916,6 +3924,7 @@ SCREENS.results = {
       ${res.mats.fer || res.mats.essence || res.mats.cendre ? `<div class="reward">${ico("iron", "#a8a8a8", 22)}${res.mats.fer} ferraille · ${res.mats.essence} essence${res.mats.cendre ? " · " + res.mats.cendre + " cendre royale" : ""}</div>` : ""}
       ${res.loot.map(i => `<div class="reward">${slotHTML(i, "itemInfo", i.id)}<div><b class="rar${i.rar}">${gearName(i)}</b><div class="tiny dim">${itemLine(i)}</div></div></div>`).join("")}
       ${res.unlocks.map(u => `<div class="reward" style="color:var(--gold2)">${ico("star", "#e8c878", 22)}<b>${u.k === "class" ? "Nouvelle classe à la Taverne : " + CLASSES[u.id].n : u.k === "pet" ? "Nouveau compagnon à la Ménagerie : " + PETS[u.id].n : "Nouvelle destination : " + regionById(u.id).n}</b></div>`).join("")}
+      ${res.threatUp ? `<div class="reward" style="color:var(--gold2)">${ico("skull", "#ff8a6a", 22)}<b>Menace ${THREAT_N[res.threatUp.t]} débloquée : ${regionById(res.threatUp.region).n}</b></div>` : ""}
       ${res.week ? `<div class="reward" style="color:var(--gold2)">${ico("trophy", "#e8c878", 22)}<b>Défi de la semaine relevé ! +${res.week.gold} or · +${res.week.shards} éclats · +${res.week.essence} essence</b></div>` : ""}
       ${extrasResultsHTML(res)}
       ${res.sum ? runSummaryHTML(res) : ""}

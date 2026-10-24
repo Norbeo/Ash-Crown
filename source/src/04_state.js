@@ -80,8 +80,9 @@ function heroStats(h, relicH = {}) {
 const heroPower = h => { const s = heroStats(h); return Math.round(s.hp * .6 + (s.dmgLo + s.dmgHi) * 2.2 + s.prot * 120 + s.crit * 1.2 + s.dodge * .8 + s.spd * 3); };
 
 // ── Équipement ──
-function makeGear(kind, cls, tier, rar, key) {
+function makeGear(kind, cls, tier, rar, key, evo) {
   const it = { id: uid("i"), kind, tier: clamp(tier, 1, 6), rar: clamp(rar, 0, 3), up: 0, aff: [] };
+  if (kind === "arm" && it.tier >= 6 && evo) it.evo = evo; // armure Ascendante : propre à une voie d'évolution
   if (kind === "tr") {
     const pool = Object.keys(TRINKETS).filter(k => TRINKETS[k].r === rar);
     it.key = key || pick(pool.length ? pool : Object.keys(TRINKETS)); it.rar = TRINKETS[it.key].r; it.tier = 1;
@@ -94,7 +95,7 @@ function makeGear(kind, cls, tier, rar, key) {
 function gearName(it) {
   if (!it) return "—";
   if (it.kind === "tr") return TRINKETS[it.key].n;
-  const L = GEAR_NAMES[it.cls][it.kind === "wpn" ? "wpn" : "arm"], n = it.tier >= 6 ? "Ascendant : " + L[4] : L[it.tier - 1];
+  const L = GEAR_NAMES[it.cls][it.kind === "wpn" ? "wpn" : "arm"], n = it.tier >= 6 ? (it.evo && CLASSES[it.cls].evos[it.evo] ? "Armure ascendante : " + CLASSES[it.cls].evos[it.evo].n : "Ascendant : " + L[4]) : L[it.tier - 1];
   return n + (it.up ? " +" + it.up : "");
 }
 const rollRarity = (luck = 0) => { const r = rnd() - luck; return r < .025 ? 3 : r < .12 ? 2 : r < .38 ? 1 : 0; };

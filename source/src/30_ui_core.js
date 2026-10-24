@@ -114,8 +114,20 @@ function canvasSlot(id, w, h) { return `<canvas data-cv="${id}" width="${w}" hei
 // les canvas sont remplis après insertion dans le DOM
 function fillCanvases(root, fn) { const r = ART_REPAINT.find(e => e[0] === root); if (r) r[1] = fn; else ART_REPAINT.push([root, fn]); root.querySelectorAll("canvas[data-cv]").forEach(c => { try { fn(c, c.dataset.cv); } catch (e) { console.error(e); } }); }
 function paintHero(c, h, full) { const sz = c.width; const src = heroCanvas(h, sz, full); c.height = src.height; c.getContext("2d").drawImage(src, 0, 0); }
-function paintPet(c, id, evo) { const x = c.getContext("2d"); const sp = petSprite(id, { evo }, 0, c.width / 160); x.drawImage(sp, c.width / 2 - sp.ax, c.height - 6 - sp.ay); }
-function paintMon(c, key) { const x = c.getContext("2d"); const big = (MONSTERS[key].sz || 1) > 1; const sp = monSprite(key, {}, 0, c.width / (big ? 330 : 250)); x.save(); x.translate(c.width / 2, 0); x.scale(-1, 1); x.drawImage(sp, -sp.ax, c.height - 6 - sp.ay); x.restore(); }
+// cadre d'une vignette : le sprite est recadré sur sa partie visible puis ajusté pour tenir entièrement (pieds en bas)
+function spriteBox(sp) {
+  if (sp.bb) return sp.bb; const w = sp.width, h = sp.height, d = sp.getContext("2d").getImageData(0, 0, w, h).data; let x0 = w, y0 = h, x1 = -1, y1 = -1;
+  for (let y = 0; y < h; y += 2) for (let x = 0; x < w; x += 2) if (d[(y * w + x) * 4 + 3] > 20) { if (x < x0) x0 = x; if (x > x1) x1 = x; if (y < y0) y0 = y; if (y > y1) y1 = y; }
+  return sp.bb = x1 < 0 ? null : { x: x0, y: y0, w: x1 - x0 + 2, h: y1 - y0 + 2 };
+}
+function fitSprite(c, sp, mirror) {
+  const b = spriteBox(sp); if (!b) return; const x = c.getContext("2d"), pad = 6, s = Math.min((c.width - pad * 2) / b.w, (c.height - pad * 2) / b.h, 1.6);
+  const w = b.w * s, h = b.h * s; x.save(); x.imageSmoothingQuality = "high";
+  if (mirror) { x.translate(c.width, 0); x.scale(-1, 1); }
+  x.drawImage(sp, b.x, b.y, b.w, b.h, (c.width - w) / 2, c.height - pad - h, w, h); x.restore();
+}
+function paintPet(c, id, evo) { const sp = petSprite(id, { evo }, 0, c.width / 160); if (!sp.blank) fitSprite(c, sp); }
+function paintMon(c, key) { const big = (MONSTERS[key].sz || 1) > 1; const sp = monSprite(key, {}, 0, c.width / (big ? 330 : 250)); if (!sp.blank) fitSprite(c, sp, true); }
 function roleTag(role) { const R = ROLES[role]; return `<span class="tag" style="color:${R.c}">${ico(R.ic, R.c)}${R.n}</span>`; }
 function rankPips(use, at) { let s = '<span class="pips" title="Rangs">'; for (let r = 4; r >= 1; r--) s += `<i class="${use && use.includes(r) ? "y" : ""}"></i>`; s += "</span>"; if (at) { s += ' <span class="pips" title="Cibles">'; for (let r = 1; r <= 4; r++) s += `<i class="${at.includes(r) ? "t" : ""}"></i>`; s += "</span>"; } return s; }
 // synergies : actives (dorées) et à portée de main (une classe manque et elle est dans la caserne)

@@ -80,7 +80,7 @@ const heroPower = h => { const s = heroStats(h); return Math.round(s.hp * .6 + (
 
 // ── Équipement ──
 function makeGear(kind, cls, tier, rar, key) {
-  const it = { id: uid("i"), kind, tier: clamp(tier, 1, 5), rar: clamp(rar, 0, 3), up: 0, aff: [] };
+  const it = { id: uid("i"), kind, tier: clamp(tier, 1, 6), rar: clamp(rar, 0, 3), up: 0, aff: [] };
   if (kind === "tr") {
     const pool = Object.keys(TRINKETS).filter(k => TRINKETS[k].r === rar);
     it.key = key || pick(pool.length ? pool : Object.keys(TRINKETS)); it.rar = TRINKETS[it.key].r; it.tier = 1;
@@ -93,7 +93,7 @@ function makeGear(kind, cls, tier, rar, key) {
 function gearName(it) {
   if (!it) return "—";
   if (it.kind === "tr") return TRINKETS[it.key].n;
-  const n = GEAR_NAMES[it.cls][it.kind === "wpn" ? "wpn" : "arm"][it.tier - 1];
+  const L = GEAR_NAMES[it.cls][it.kind === "wpn" ? "wpn" : "arm"], n = it.tier >= 6 ? "Ascendant : " + L[4] : L[it.tier - 1];
   return n + (it.up ? " +" + it.up : "");
 }
 const rollRarity = (luck = 0) => { const r = rnd() - luck; return r < .025 ? 3 : r < .12 ? 2 : r < .38 ? 1 : 0; };
@@ -106,7 +106,7 @@ function lootGear(lvl, luck = 0, cls) {
   return makeGear(r < .65 ? "wpn" : "arm", c, tier, rar);
 }
 const upCost = it => ({ gold: Math.round(60 * it.tier * (1 + it.up * .7)), fer: 1 + Math.floor(it.up / 2) + (it.tier >= 3 ? 1 : 0), essence: it.up >= 3 ? 1 + (it.up >= 5 ? 1 : 0) : 0 });
-const craftCost = tier => ({ gold: [0, 80, 220, 520, 1100, 2200][tier], fer: [0, 3, 5, 8, 12, 16][tier], essence: [0, 0, 1, 3, 5, 8][tier], cendre: [0, 0, 0, 0, 1, 3][tier] });
+const craftCost = tier => ({ gold: [0, 80, 220, 520, 1100, 2200, 4500][tier], fer: [0, 3, 5, 8, 12, 16, 22][tier], essence: [0, 0, 1, 3, 5, 8, 12][tier], cendre: [0, 0, 0, 0, 1, 3, 6][tier] });
 const salvage = it => ({ fer: it.kind === "tr" ? 1 : 1 + it.tier + it.up, essence: it.rar >= 1 ? it.rar : 0, cendre: it.rar >= 3 ? 1 : 0, gold: 10 * it.tier * (1 + it.rar) });
 
 // ── Compagnons ──

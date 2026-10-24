@@ -5,7 +5,7 @@ const RARITY = [
   { n: "Épique", c: "#c070ff", aff: 2 },
   { n: "Légendaire", c: "#ffb040", aff: 3 },
 ];
-const TIER_N = ["", "Rustique", "Forgé", "Trempé", "Noble", "Royal"];
+const TIER_N = ["", "Rustique", "Forgé", "Trempé", "Noble", "Royal", "Ascendant"];
 // nom de l'arme et de l'armure de chaque classe, par palier (1 à 5) : le palier change aussi l'apparence du héros
 const GEAR_NAMES = {
   templier: { wpn: ["Gourdin clouté", "Masse d'armes", "Masse bénie", "Étoile du matin", "Marteau de l'Aube"], arm: ["Gambison de pèlerin", "Haubert de croisé", "Plates du Temple", "Armure du Saint-Ordre", "Égide de l'Aube"] },
@@ -25,9 +25,9 @@ const GEAR_NAMES = {
   exorciste: { wpn: ["Croix de bois", "Croix de fer", "Croix d'argent", "Croix reliquaire", "Croix de l'Exorciste"], arm: ["Soutane usée", "Soutane noire", "Habit de chapelain", "Chasuble brodée", "Parure du Saint-Siège"] },
 };
 // bonus de base par palier
-const WPN_DMG = [0, .0, .18, .38, .62, .9];
-const ARM_HP = [0, .0, .14, .3, .48, .7];
-const ARM_PROT = [0, 0, .03, .06, .09, .12];
+const WPN_DMG = [0, .0, .18, .38, .62, .9, 1.25];
+const ARM_HP = [0, .0, .14, .3, .48, .7, .98];
+const ARM_PROT = [0, 0, .03, .06, .09, .12, .16];
 // affixes aléatoires
 const AFFIXES = {
   dmg: { n: "dégâts", v: [.05, .12], fmt: "pct" }, hp: { n: "PV", v: [.05, .12], fmt: "pct" }, crit: { n: "critique", v: [3, 7], fmt: "flat" },
@@ -181,7 +181,7 @@ const EVENTS = [
 // bâtiments du Bastion
 const BUILDINGS = {
   taverne: { n: "Taverne du Pendu", ic: "tavern", d: "Recrutez des héros. Plus elle grandit, plus les recrues sont nombreuses et aguerries.", max: 5, cost: [0, 250, 700, 1600, 3200], shards: [0, 0, 1, 2, 4] },
-  forge: { n: "Forge noire", ic: "anvil", d: "Fabriquez et améliorez l'équipement. Chaque niveau débloque un palier d'armure.", max: 5, cost: [0, 300, 800, 1800, 3600], shards: [0, 0, 1, 2, 4] },
+  forge: { n: "Forge noire", ic: "anvil", d: "Fabriquez et améliorez l'équipement. Chaque niveau débloque un palier d'armure ; le palier VI (ascendant) est réservé aux héros évolués et révèle leur apparence finale.", max: 6, cost: [0, 300, 800, 1800, 3600, 7500], shards: [0, 0, 1, 2, 4, 6] },
   chapelle: { n: "Chapelle en ruine", ic: "chapel", d: "Soignez les blessés. Chaque niveau ajoute une potion par expédition.", max: 5, cost: [0, 200, 600, 1400, 3000], shards: [0, 0, 1, 2, 3] },
   academie: { n: "Salle des maîtres", ic: "book", d: "Entraînez les compétences. Chaque niveau élève le rang maximal des compétences.", max: 5, cost: [0, 300, 800, 1800, 3600], shards: [0, 1, 1, 2, 4] },
   menagerie: { n: "Ménagerie", ic: "paw", d: "Adoptez et entraînez des compagnons.", max: 5, cost: [0, 250, 700, 1600, 3200], shards: [0, 0, 1, 2, 3] },

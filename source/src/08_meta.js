@@ -15,7 +15,7 @@ function dismiss(id) { const h = heroById(id); if (!h || S.heroes.length <= 1) r
 function healCost(h) { return 30 + h.lvl * 15; }
 function healInjured(id) { const h = heroById(id); if (!h || !isInjured(h)) return false; const c = Math.round(healCost(h) * (1 - (S.bld.chapelle - 1) * .15)); if (S.gold < c) return false; S.gold -= c; h.injured = 0; return true; }
 // équipement
-function canEquip(h, it) { if (!it) return false; if (it.kind === "tr") return true; return it.cls === h.cls; }
+function canEquip(h, it) { if (!it) return false; if (it.kind === "tr") return true; return it.cls === h.cls && (it.tier < 6 || !!h.evo); } // palier VI : héros évolués
 function equip(h, it, slot) {
   if (!canEquip(h, it)) return false;
   slot = slot || (it.kind === "wpn" ? "wpn" : it.kind === "arm" ? "arm" : (!h.gear.tr1 ? "tr1" : !h.gear.tr2 ? "tr2" : "tr1"));

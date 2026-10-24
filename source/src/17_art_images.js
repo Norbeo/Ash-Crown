@@ -88,8 +88,9 @@ function evoAura(L) {
   return i === 0 ? (C.pal.trim || "#e8c060") : (["#8a7ae0", "#5ad0c0", "#e05a5a"][hashStr(L.cls) % 3]);
 }
 // illustration d'un héros : sa voie d'évolution si elle est peinte, sinon son palier d'armure
-function heroArtName(L) { if (L.evo && artHas("hero_" + L.cls + "_" + L.evo)) return "hero_" + L.cls + "_" + L.evo; const n = "hero_" + L.cls + "_t" + clamp(L.tier || 1, 1, 5); return artHas(n) ? n : "hero_" + L.cls + "_t3"; }
-function heroArt(L) { return artImg(heroArtName(L)) || (L.evo ? artImg("hero_" + L.cls + "_t" + clamp(L.tier || 1, 1, 5)) : null); }
+// l'illustration de la voie n'apparaît qu'avec une armure de palier VI (ascendante) ; avant, palier d'armure + aura
+function heroArtName(L) { if (L.evo && (L.tier || 1) >= 6 && artHas("hero_" + L.cls + "_" + L.evo)) return "hero_" + L.cls + "_" + L.evo; const n = "hero_" + L.cls + "_t" + clamp(L.tier || 1, 1, 5); return artHas(n) ? n : "hero_" + L.cls + "_t3"; }
+function heroArt(L) { return artImg(heroArtName(L)) || (L.evo && L.tier >= 6 ? artImg("hero_" + L.cls + "_t" + clamp(L.tier || 1, 1, 5)) : null); }
 function heroImgSprite(L, pose, sc, o = {}) {
   const im = heroArt(L); if (!im) return null;
   const hurt = pose.lean < -.25 && pose.hx < 0, agony = pose.hy > 15;

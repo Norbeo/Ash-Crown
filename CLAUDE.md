@@ -32,7 +32,7 @@ RPG tactique dark fantasy médiéval, vanilla JS + Canvas 2D, PWA installable (m
 - Noms : sexe fixé par l'illustration de la classe (`CLASS_FEMALE`), surnoms accordés, migration `fixHeroName`.
 - Son : `source/audio/gen_audio.py` synthétise ambiances par région (`amb_<région>`) et bruitages (`fx_*`) en mp3 dans `source/sfx/` ; `ambPlay`, `sfx()` joue l'enregistrement, synthèse en repli.
 - Combat : élan avec traînée, estafilade (`f.slash`), silhouette blanche à l'impact (`whiteOf`), agonie assombrie et pulsante ; textes empilés par unité.
-- Évolutions peintes : `hero_<classe>_<voie>.webp` (prioritaires dans `heroArtName`) ; file Canva dans /tmp/claude-0/canva/QUEUE.md.
+- Palier VI « Ascendant » (Forge niveau 6, réservé aux héros évolués, `canEquip`) ; l'illustration de voie `hero_<classe>_<voie>.webp` ne s'affiche qu'avec une armure de palier VI (`heroArtName`), aperçu sur la fiche d'évolution ; file Canva dans /tmp/claude-0/canva/QUEUE.md.
 - 5 chapitres (Bourg, Forêt, Catacombes, Marais, Citadelle) + l'Abîme sans fin avec serments.
 - Cartes procédurales (combat, élite, mystère, trésor, camp, colporteur, gardien), 29 événements, 28 reliques, marche animée entre les salles.
 - Bastion : taverne, forge, chapelle, salle des maîtres, ménagerie, fonderie (or hors ligne). Défis du jour, expédition du jour, 24 succès, archives.

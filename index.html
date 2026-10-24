@@ -3830,7 +3830,7 @@ const HPOSE = {
 function whiteOf(sp) { if (sp.white) return sp.white; const c = mkCanvas(sp.width, sp.height), x = c.getContext("2d"); x.drawImage(sp, 0, 0); x.globalCompositeOperation = "source-in"; x.fillStyle = "#fff6e8"; x.fillRect(0, 0, c.width, c.height); return sp.white = c; }
 function heroPoseFor(u, key) { const C = CLASSES[u.cls]; const st = STANCE[C.wpn] || STANCE.masse; return (HPOSE[key] || HPOSE.idle)(st); }
 function unitSprite(u, key) {
-  const V = CB.vis[u.uid]; const sc = CB.scale * (u.side === "e" && (u.sz || 1) > 1 ? 1.0 : 1);
+  const V = CB.vis[u.uid]; const sc = u.side === "h" && CB.port && CB.hScale ? CB.hScale : CB.scale;
   const ck = key + ":" + sc.toFixed(3) + (u.side === "h" ? ":" + V.lookKey : "");
   V.cache = V.cache || {};
   if (V.cache[ck]) return V.cache[ck];
@@ -3846,14 +3846,14 @@ function cbLayout() {
   const pos = {};
   if (!port) {
     const mid = W / 2, gap = Math.min(W / 10, H * .27), gy = H * .86;
-    CB.scale = Math.min(H * .44 / 200, gap / 84); CB.ground = gy;
+    CB.scale = Math.min(H * .44 / 200, gap / 84); CB.ground = gy; CB.hScale = null;
     let r = 1; for (const u of B.heroes) { pos[u.uid] = [mid - gap * .85 - gap * (r - 1), gy]; r += 1; }
     r = 1; for (const u of B.enemies) { const s = u.sz || 1; pos[u.uid] = [mid + gap * .85 + gap * (r - 1 + (s - 1) / 2), gy]; r += s; }
   } else {
-    const colW = W / 4.1, eY = H * .47, hY = H * .89;
-    CB.scale = Math.min((hY - eY) * .68 / 200, colW / 82); CB.ground = hY;
-    const cx = rk => W - colW * (rk - .5) - W * .012;
-    let r = 1; for (const u of B.heroes) { pos[u.uid] = [cx(r), hY]; r++; }
+    const colW = W / 4.1, colH = B.pet ? W / 5.05 : colW, eY = H * .47, hY = H * .89; // avec un compagnon, les héros se resserrent pour lui laisser la place à gauche
+    CB.scale = Math.min((hY - eY) * .68 / 200, colW / 82); CB.hScale = Math.min(CB.scale, colH / 70); CB.ground = hY; CB.petX = W - colH * 4.5 - W * .012;
+    const cx = rk => W - colW * (rk - .5) - W * .012, hx = rk => W - colH * (rk - .5) - W * .012;
+    let r = 1; for (const u of B.heroes) { pos[u.uid] = [hx(r), hY]; r++; }
     r = 1; for (const u of B.enemies) { const s = u.sz || 1; pos[u.uid] = [cx(r + (s - 1) / 2), eY]; r += s; }
   }
   for (const u of [...B.heroes, ...B.enemies, ...B.fallen, ...(B.dead || [])]) {
@@ -4224,7 +4224,8 @@ function drawCombat(x, t, dt) {
     tx2.t += dt; const k = tx2.t / tx2.life; if (k >= 1) { tx2.done = 1; continue; }
     const sc = tx2.big ? 1.4 : 1, yy = tx2.y - easeOut(k) * 50, a = k < .8 ? 1 : (1 - k) * 5;
     x.save(); x.globalAlpha = a; x.font = `${tx2.big ? 900 : 700} ${Math.round((16 + (/^\d+$/.test(tx2.text) ? 6 : 0)) * sc * Math.max(.8, Math.min(1.3, CB.scale * 1.5)))}px Cinzel, serif`; x.textAlign = "center";
-    x.lineWidth = 4; x.strokeStyle = "#000"; x.strokeText(tx2.text, tx2.x, yy); x.fillStyle = tx2.col; x.fillText(tx2.text, tx2.x, yy); x.restore();
+    const hw = x.measureText(tx2.text).width / 2 + 6, tx = clamp(tx2.x, hw, SC.w - hw), ty = Math.max(CB.port ? 96 : 70, yy); // jamais hors de l'écran ni sous le bandeau
+    x.lineWidth = 4; x.strokeStyle = "#000"; x.strokeText(tx2.text, tx, ty); x.fillStyle = tx2.col; x.fillText(tx2.text, tx, ty); x.restore();
   }
   CB.txt = CB.txt.filter(t2 => !t2.done);
   x.restore();
@@ -4244,7 +4245,7 @@ function drawIcon(x, name, cx, cy, s, col, lw = 2) {
   const im = artImg("ui_" + name); if (im) { const d = 26 * s; x.drawImage(im, cx - d / 2, cy - d / 2, d, d); return; } // icône peinte
  const p = new Path2D(IC[name] || IC.star); x.save(); x.translate(cx - 12 * s, cy - 12 * s); x.scale(s, s); x.strokeStyle = col; x.lineWidth = lw / s * s; x.lineCap = "round"; x.lineJoin = "round"; x.stroke(p); x.restore(); }
 function drawUnitUI(x, u, v, t) {
-  const B = CB.B, s = Math.max(.75, Math.min(1.25, CB.scale * 1.6)), w = 64 * s * (u.sz > 1 ? 1.5 : 1), bx = v.x - w / 2, by = v.y + 8 * s;
+  const B = CB.B, us = u.side === "h" && CB.port && CB.hScale ? CB.hScale : CB.scale, s = Math.max(.7, Math.min(1.25, us * 1.6)), w = Math.min(64 * s, CB.port && u.side === "h" ? SC.w / 5.4 : 1e9) * (u.sz > 1 ? 1.5 : 1), bx = v.x - w / 2, by = v.y + 8 * s;
   // barre de PV
   x.fillStyle = "rgba(0,0,0,.75)"; x.fillRect(bx - 1, by - 1, w + 2, 8 * s + 2);
   const hpk = clamp(u.hp / u.hpMax, 0, 1); v.hp = v.hp == null ? hpk : v.hp + (hpk - v.hp) * .12;
@@ -4273,8 +4274,9 @@ function drawUnitUI(x, u, v, t) {
 function drawPetInCombat(x, t, dt) {
   const B = CB.B; const P = B.pet; const W = SC.w;
   const back = B.heroes[B.heroes.length - 1]; const bv = back ? CB.vis[back.uid] : null; if (!bv) return;
-  const px = CB.port ? Math.max(36 * CB.scale, bv.x - 60 * CB.scale) : Math.max(50 * CB.scale, bv.x - 75 * CB.scale), py = CB.port ? CB.ground - 6 : bv.y + 6;
-  CB.petCache = CB.petCache && CB.petCache.k === P.id + P.evo + CB.scale ? CB.petCache : { k: P.id + P.evo + CB.scale, cv: petSprite(P.id, { evo: P.evo }, 0, CB.scale * .95), cva: petSprite(P.id, { evo: P.evo, atk: 1 }, .3, CB.scale * .95) };
+  const gapL = Math.min(SC.w / 10, CB.stageH * .27); // paysage/ordi : une demi-place derrière le dernier héros ; portrait : colonne réservée
+  const px = CB.port ? Math.max(30 * CB.scale, CB.petX || 40) : Math.max(46 * CB.scale, Math.min(bv.x - gapL * .78, SC.w / 2 - gapL * 4.4)), py = CB.port ? CB.ground - 4 : CB.ground + 4;
+  CB.petCache = CB.petCache && CB.petCache.k === P.id + P.evo + CB.scale + CB.port ? CB.petCache : { k: P.id + P.evo + CB.scale + CB.port, cv: petSprite(P.id, { evo: P.evo }, 0, (CB.port ? CB.hScale * .72 : CB.scale * .9)), cva: petSprite(P.id, { evo: P.evo, atk: 1 }, .3, (CB.port ? CB.hScale * .72 : CB.scale * .9)) };
   let atk = 0; if (CB.petAct) { CB.petAct.t += dt * (CB.speed || 1); atk = CB.petAct.t < .5 ? 1 : 0; if (CB.petAct.t > 1) CB.petAct = null; }
   const cv = atk ? CB.petCache.cva : CB.petCache.cv;
   x.save(); x.translate(px + (atk ? 30 * CB.scale : 0), py + Math.sin(t * 2.5) * 1.5); x.fillStyle = "rgba(0,0,0,.4)"; x.beginPath(); x.ellipse(0, 0, 34 * CB.scale, 6 * CB.scale, 0, 0, 7); x.fill(); x.drawImage(cv, -cv.ax, -cv.ay); x.restore();

@@ -99,7 +99,7 @@ function genEncounter(run, node, rng = RNG) {
     // gardien tiré parmi tous les gardiens du jeu (jamais deux fois de suite le même ici), ramené à la force du gardien du chapitre
     const ref = run.region === "abime" ? R.bosses[(run.floor - 1) % R.bosses.length] : R.boss2 && S.prog[R.id] && S.prog[R.id].clears && rng.chance(.5) ? R.boss2 : R.boss;
     const last = (S.lastBoss || (S.lastBoss = {}))[R.id], cand = ALL_BOSSES.filter(k => k !== last);
-    const bk = rng.pick(cand); S.lastBoss[R.id] = bk;
+    const bk = run.region === "abime" && run.floor % 5 === 0 && S.season && S.season.boss ? S.season.boss : rng.pick(cand); S.lastBoss[R.id] = bk; // l'Abîme : gardien de la saison tous les 5 étages
     out.push({ key: pickFor(1), lvl });
     out.push({ key: bk, lvl: lvl + 1, f: monNorm(bk, ref) });
     if (run.region === "abime" || R.lvl >= 9) out.push({ key: pickFor(4), lvl });
@@ -190,7 +190,7 @@ function endRun(outcome) {
   if (outcome === "wipe") { res.gold = Math.round(run.gold * .5); res.loot = []; res.shards = 0;
     for (const w of (run.swaps || []).slice().reverse()) { const h = heroById(w.hid); if (!h || !h.gear[w.slot] || h.gear[w.slot].id !== w.nu) continue; h.gear[w.slot] = w.old ? run.loot.find(x => x.id === w.old) || h.gear[w.slot] : null; } }
   const before = regionsCleared();
-  if (outcome === "victory" && run.region !== "abime") {
+  if (outcome === "victory" && run.region !== "abime" && !run.rush) {
     const p = S.prog[run.region] = S.prog[run.region] || { clears: 0, best: 0 };
     if (!p.clears) res.story = STORY[run.region];
     p.clears++; S.stats["boss_" + run.region] = (S.stats["boss_" + run.region] || 0) + 1;
@@ -216,6 +216,7 @@ function endRun(outcome) {
   if (run.flawless && outcome === "victory") S.stats.flawless++;
   if (run.daily && outcome === "victory") { S.daily.done = 1; S.stats.daily++; }
   if (run.week && outcome === "victory" && S.week && !S.week.done) { const W = weekReward(); S.week.done = 1; res.week = W; S.gold += W.gold; S.shards += W.shards; S.mats.essence += W.essence; S.stats.weeks = (S.stats.weeks || 0) + 1; }
+  extrasEndRun(run, outcome, res);
   S.stats.goldMax = Math.max(S.stats.goldMax, S.gold);
   S.run = null;
   refreshRecruits();

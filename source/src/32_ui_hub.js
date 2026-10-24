@@ -85,7 +85,7 @@ function openBuilding(k, tab) {
   if (k === "chapelle") {
     const inj = S.heroes.filter(isInjured);
     body = `<p class="lore">Les cierges ne s'éteignent jamais ici. Les blessés reprennent des forces, lentement.</p><p class="small">Potions par expédition : <b>${potionMax()}</b>. Les blessés guérissent seuls avec le temps ; ils peuvent aussi partir blessés, à 50 % de leurs PV.</p>
-    ${inj.length ? inj.map(h => { const c = Math.round(healCost(h) * (1 - (S.bld.chapelle - 1) * .15)); const m = Math.ceil((h.injured - Date.now()) / 60000); return `<div class="row sp card" style="cursor:default">${canvasSlot("h:" + h.id, 56, 56)}<div style="flex:1"><b>${esc(h.name)}</b> <span class="small dim">· ${heroTitle(h)} niv ${h.lvl}</span><div class="small bad">Blessé · guéri dans ${m} min</div></div><button class="btn sm" data-a="heal" data-v="${h.id}">${ico("heal")}${c} or</button></div>`; }).join("") : '<div class="empty">Aucun blessé. Que la lumière vous garde.</div>'}`;
+    ${inj.length ? inj.map(h => { const c = Math.round(healCost(h) * (1 - (S.bld.chapelle - 1) * .15)); const m = Math.ceil((h.injured - Date.now()) / 60000); return `<div class="row sp card" style="cursor:default">${canvasSlot("h:" + h.id, 56, 56)}<div style="flex:1"><b>${esc(h.name)}</b> <span class="small dim">· ${heroTitle(h)} niv ${h.lvl}</span><div class="small bad">Blessé · guéri dans ${m} min</div></div><button class="btn sm" data-a="heal" data-v="${h.id}">${ico("heal")}${c} or</button></div>`; }).join("") : '<div class="empty">Aucun blessé. Que la lumière vous garde.</div>'}${chapelMarksHTML()}`;
   }
   if (k === "academie") {
     const evo = S.heroes.filter(h => h.lvl >= EVO_LVL && !h.evo);

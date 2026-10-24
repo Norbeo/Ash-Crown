@@ -27,7 +27,7 @@ const HAIRCOL = ["#1a1410", "#3a2414", "#6a3a1a", "#a06a30", "#c8a060", "#d8d0c0
 function makeHero(cls, opt = {}) {
   const C = CLASSES[cls], female = CLASS_FEMALE.has(cls);
   const name = opt.name || heroName(female);
-  const goods = Object.keys(TRAITS).filter(k => TRAITS[k].good), bads = Object.keys(TRAITS).filter(k => !TRAITS[k].good);
+  const goods = Object.keys(TRAITS).filter(k => TRAITS[k].good && !TRAITS[k].unique), bads = Object.keys(TRAITS).filter(k => !TRAITS[k].good);
   const traits = opt.traits || (() => { const t = [pick(goods)]; if (chance(.35)) { let g = pick(goods); if (!t.includes(g)) t.push(g); } if (chance(.4)) t.push(pick(bads)); return t; })();
   const sk = Object.keys(C.skills);
   const h = {
@@ -53,6 +53,7 @@ function heroPassives(h) {
   for (const t of h.traits) out.push(...TRAITS[t].pas);
   if (h.evo) { out.push(...C.evos[h.evo].pas); if (h.lvl >= APEX_LVL) out.push(...APEX[h.evo].pas); }
   for (const s of ["tr1", "tr2"]) { const it = h.gear[s]; if (it && TRINKETS[it.key]) out.push(...TRINKETS[it.key].pas); }
+  if (h.mark && typeof GUARD_MARKS !== "undefined" && GUARD_MARKS[h.mark]) out.push(...GUARD_MARKS[h.mark].pas); // marque d'un gardien vaincu
   return out;
 }
 

@@ -151,6 +151,7 @@ function afterBattle(run, B) {
   if (T.best && (!L.best || T.best.v > L.best.v)) L.best = T.best;
   L.crits += B.crits || 0;
   if (B.over === "win") for (const e of B.dead || []) if (e.boss || e.elite) L.foes.push({ name: e.name, boss: !!e.boss });
+  questsAfterBattle(run, B);
   S.stats.kills += B.kills; if (B.over === "win") S.stats.wins++;
   contractProgress("kills", B.kills); contractProgress("crits", B.crits); contractProgress("ults", B.ults || 0);
   contractProgress("impie", (B.dead || []).filter(e => e.tags.includes("impie")).length);

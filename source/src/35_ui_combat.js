@@ -1,6 +1,6 @@
 /* ═══════════════════════ Combat : scène, animations, commandes ═══════════════════════ */
 const CB = { B: null, vis: {}, fx: [], txt: [], proj: [], shake: 0, flash: 0, banner: null, resolve: null, actor: null, sel: null, hoverU: null, speed: 1, auto: false, busy: false, barH: 150, zoom: 0 };
-const wait = ms => new Promise(r => setTimeout(r, ms / (CB.speed || 1)));
+const wait = ms => new Promise(r => setTimeout(r, ms / (CB.speed || 1) / (S.opts.quick ? 1.7 : 1)));
 const HPOSE = {
   idle: () => ({}),
   windup: st => ({ lean: -.08, aFs: st.aFs - .7, aFe: st.aFe + .5, wa: (st.wa || 2.5) + .6 }),
@@ -143,7 +143,7 @@ function coachShow() {
 }
 ACT.coachNext = () => { UI.coach++; coachShow(); };
 ACT.coachSkip = () => { UI.coach = COACH.length; coachShow(); };
-function choose(a) { const r = CB.resolve; CB.resolve = null; CB.sel = null; if (r) r(a); }
+function choose(a) { if (CB.busy) return; const r = CB.resolve; CB.resolve = null; CB.sel = null; if (r) r(a); }
 function selectSkill(sk) {
   const B = CB.B, u = CB.actor; if (!u || !canUse(B, u, sk)) return;
   CB.sel = { sk, tg: validTargets(B, u, sk) };
@@ -173,7 +173,7 @@ function cbBar(u) {
     `<button class="sk ${S.run.potions ? "" : "no"}" data-a="cbPotion" data-v="potion">${ico("potion", "#e86a5a")}<span>Potion ×${S.run.potions}</span></button>` +
     `<button class="sk ${r >= n ? "no" : ""}" data-a="cbMove" data-v="1" title="Reculer">${ico("back", "#c8b8a0")}<span>Reculer</span></button>` +
     `<button class="sk ${r <= 1 ? "no" : ""}" data-a="cbMove" data-v="-1" title="Avancer">${ico("charge", "#c8b8a0")}<span>Avancer</span></button>` +
-    `<button class="sk" data-a="cbPass" title="Passer">${ico("skip", "#9a8c7a")}<span>Passer</span></button>`;
+    `<button class="sk" data-a="cbPass" title="Passer">${ico("skip", "#9a8c7a")}<span>Passer</span></button>` + petBurstBtn();
   d.innerHTML = `<b>${esc(u.name)}</b> <span class="dim small">${CLASSES[u.cls].n} · rang ${r}</span>`;
   void n;
   CB.barH = $("#cbar").offsetHeight + 6; cbLayout();
@@ -258,7 +258,7 @@ async function playEvents(ev) {
         burst(v.x, v.y - 100 * CB.scale, srcCol === "#e8e0c8" ? "#d02a2a" : srcCol, e.crit ? 26 : 12, { sp: e.crit ? 260 : 170 });
         if (u && !u.tags.includes("impie") || (u && u.side === "h")) burst(v.x, v.y - 100 * CB.scale, "#8a0a0a", 6, { add: false, g: 500 });
         popText(e.u, (e.crit ? "" : "") + e.dmg, e.crit ? "#ffd04a" : "#ff6a5a", e.crit);
-        if (e.crit) { CB.shake = .35; sfx("crit"); popText(e.u, "CRITIQUE", "#ffd04a"); } else sfx("hit");
+        if (e.crit) { CB.shake = .35; sfx("crit"); popText(e.u, "CRITIQUE", "#ffd04a"); if (cur && U(cur.u) && U(cur.u).side === "h") bark(cur.u, "crit"); } else sfx("hit");
         await wait(e.crit ? 220 : 130);
         break;
       }
@@ -274,13 +274,13 @@ async function playEvents(ev) {
       case "riposte": popText(e.u, "Riposte !", "#e0c080"); { const v = V(e.u); if (v) { v.pose = "strike"; v.pt = .35; v.off = (U(e.u).side === "h" ? 30 : -30); } } sfx("slash"); await wait(150); break;
       case "thorns": popText(e.u, "Épines", "#e07a3a"); break;
       case "detonate": { const v = V(e.u); if (v) { burst(v.x, v.y - 90 * CB.scale, ST_INFO[e.st].c, 30, { sp: 280 }); CB.shake = .3; } sfx("crit"); await wait(150); break; }
-      case "agony": popText(e.u, "À L'AGONIE", "#ff3a2a", true); sfx("fall"); CB.shake = .25; await wait(450); break;
-      case "saved": popText(e.u, "Sauvé !", "#8fe07a"); break;
+      case "agony": popText(e.u, "À L'AGONIE", "#ff3a2a", true); sfx("fall"); CB.shake = .25; bark(e.u, "agony"); await wait(450); break;
+      case "saved": popText(e.u, "Sauvé !", "#8fe07a"); bark(e.u, "saved"); break;
       case "resist_death": popText(e.u, "Tient bon !", "#ffd27a", true); await wait(380); break;
       case "cheat": popText(e.u, "Défie la mort !", "#ffd27a", true); await wait(380); break;
-      case "fall": { popText(e.u, "TOMBÉ", "#ff3a2a", true); sfx("fall"); const v = V(e.u); if (v) v.dying = 1; CB.shake = .3; await wait(700); cbLayout(); break; }
+      case "fall": { popText(e.u, "TOMBÉ", "#ff3a2a", true); sfx("fall"); const v = V(e.u); if (v) v.dying = 1; CB.shake = .3; { const o = CB.B.heroes.filter(h => alive(h) && h.uid !== e.u); if (o.length) bark(pick(o).uid, "ally"); } await wait(700); cbLayout(); break; }
       case "revive": { popText(e.u, "Se relève !", "#ffe08a", true); sfx("holy"); cbLayout(); const v = V(e.u); if (v) { v.dying = 0; v.a = 1; glowAt(v, "#ffe08a", 1.5); } await wait(400); break; }
-      case "die": { const v = V(e.u); if (v) { v.dying = 1; burst(v.x, v.y - 80 * CB.scale, "#2a1a1a", 20, { add: false, g: 200 }); burst(v.x, v.y - 80 * CB.scale, "#ffb070", 10, { up: 140, g: -30 }); } sfx("die"); await wait(e.boss ? 900 : 380); cbLayout(); break; }
+      case "die": { const v = V(e.u); if (cur && U(cur.u) && U(cur.u).side === "h" && alive(U(cur.u))) bark(cur.u, "kill"); if (v) { v.dying = 1; burst(v.x, v.y - 80 * CB.scale, "#2a1a1a", 20, { add: false, g: 200 }); burst(v.x, v.y - 80 * CB.scale, "#ffb070", 10, { up: 140, g: -30 }); } sfx("die"); await wait(e.boss ? 900 : 380); cbLayout(); break; }
       case "move": cbLayout(); sfx("step"); await wait(200); break;
       case "morale": if (Math.abs(e.d) >= 8) { const pc = e.d > 0 ? "#ffd27a" : "#ff6a5a"; CB.txt.push({ x: SC.w / 2, y: CB.stageH * .2, text: (e.d > 0 ? "Résolution +" : "Résolution ") + Math.round(e.d), col: pc, t: 0, life: 1.2 }); } cbTopLeft(); break;
       case "phase": sfx("dark"); CB.flash = .8; await showBanner(e.text, "", "#ff4a3a", 1500); break;
@@ -306,6 +306,7 @@ async function combatEnd(over) {
     const ups = grantReward(run, R);
     node.done = 1; save();
     sfx("win");
+    if (node.type === "boss" && run.rush && node.c < run.map.length - 1) { go("map"); rewardModal("Gardien vaincu", "Le suivant vous attend déjà…", R, ups); return; } // boss rush : on enchaîne
     if (node.type === "boss") {
       if (run.region === "abime") {
         modal(`<h2>${ico("crown", "#e8c878")} Gardien vaincu — profondeur ${run.floor}</h2><p class="lore">L'Abîme s'ouvre plus bas. L'air y est plus froid, les trésors plus brillants.</p>${rewardHTML(R)}<div class="row" style="justify-content:flex-end;gap:8px;margin-top:10px"><button class="btn" data-a="abyssUp">Remonter avec le butin</button><button class="btn main" data-a="abyssDown">Descendre plus bas</button></div>`, { close: false });
@@ -332,7 +333,7 @@ ACT.abyssDown = () => { const run = S.run; run.floor++; run.map = genMap(RNG, 6,
 function drawCombat(x, t, dt) {
   const B = CB.B, run = S.run;
   const W = SC.w, H = SC.h;
-  let sx = 0, sy = 0; if (CB.shake > 0) { CB.shake -= dt; sx = (Math.random() - .5) * 14 * CB.shake; sy = (Math.random() - .5) * 10 * CB.shake; }
+  if (S.opts.calm) CB.shake = 0; let sx = 0, sy = 0; if (CB.shake > 0) { CB.shake -= dt; sx = (Math.random() - .5) * 14 * CB.shake; sy = (Math.random() - .5) * 10 * CB.shake; }
   x.save(); x.translate(sx, sy);
   // décor
   const reg = run ? run.region : "bourg"; const bg = paintRegion(reg, 1280, 720);
@@ -406,15 +407,15 @@ function drawCombat(x, t, dt) {
   // textes flottants
   for (const tx2 of CB.txt) {
     tx2.t += dt; const k = tx2.t / tx2.life; if (k >= 1) { tx2.done = 1; continue; }
-    const sc = tx2.big ? 1.4 : 1, yy = tx2.y - easeOut(k) * 50, a = k < .8 ? 1 : (1 - k) * 5;
-    x.save(); x.globalAlpha = a; x.font = `${tx2.big ? 900 : 700} ${Math.round((16 + (/^\d+$/.test(tx2.text) ? 6 : 0)) * sc * Math.max(.8, Math.min(1.3, CB.scale * 1.5)))}px Cinzel, serif`; x.textAlign = "center";
+    const sc = tx2.big ? 1.4 : 1, yy = tx2.y - easeOut(k) * (tx2.bark ? 18 : 50), a = k < .8 ? 1 : (1 - k) * 5;
+    x.save(); x.globalAlpha = a; x.font = tx2.bark ? `italic 600 ${Math.round(15 * Math.max(.85, Math.min(1.2, CB.scale * 1.5)))}px Alegreya, Georgia, serif` : `${tx2.big ? 900 : 700} ${Math.round((16 + (/^\d+$/.test(tx2.text) ? 6 : 0)) * sc * Math.max(.8, Math.min(1.3, CB.scale * 1.5)))}px Cinzel, serif`; x.textAlign = "center";
     const hw = x.measureText(tx2.text).width / 2 + 6, tx = clamp(tx2.x, hw, SC.w - hw), ty = Math.max(CB.port ? 96 : 70, yy); // jamais hors de l'écran ni sous le bandeau
     x.lineWidth = 4; x.strokeStyle = "#000"; x.strokeText(tx2.text, tx, ty); x.fillStyle = tx2.col; x.fillText(tx2.text, tx, ty); x.restore();
   }
   CB.txt = CB.txt.filter(t2 => !t2.done);
   x.restore();
   // éclair d'écran, bandeau
-  if (CB.flash > 0) { x.fillStyle = `rgba(255,240,220,${CB.flash * .35})`; x.fillRect(0, 0, W, H); CB.flash -= dt * 2; }
+  if (CB.flash > 0) { x.fillStyle = `rgba(255,240,220,${CB.flash * (S.opts.calm ? .08 : .35)})`; x.fillRect(0, 0, W, H); CB.flash -= dt * 2; }
   if (CB.banner) { const b = CB.banner; b.t += dt; const k = b.t / b.life; if (k >= 1) CB.banner = null; else {
     const a = k < .15 ? k / .15 : k > .85 ? (1 - k) / .15 : 1; const cy = stH * .32;
     x.save(); x.globalAlpha = a; x.fillStyle = lgrad(x, 0, cy - 50, 0, cy + 50, [[0, "rgba(0,0,0,0)"], [.3, "rgba(0,0,0,.82)"], [.7, "rgba(0,0,0,.82)"], [1, "rgba(0,0,0,0)"]]); x.fillRect(0, cy - 50, W, 100);

@@ -22,7 +22,7 @@ SCREENS.title = {
   },
   mount: () => { audioInit(); },
 };
-ACT.continue = () => { S = load(); if (!S) return; dailyCheck(); weekCheck(); musicPlay("bastion"); const bank = idleBank(); if (S.run) go("map"); else go("bastion"); if (bank >= 10) toast(`${ico("furnace", "#ff9a3a")} La Fonderie a produit <b>${bank} or</b> en votre absence.`, "good"); };
+ACT.continue = () => { S = load(); if (!S) return; dailyCheck(); weekCheck(); seasonCheck(); musicPlay("bastion"); const bank = idleBank(); if (S.run) go("map"); else go("bastion"); if (bank >= 10) toast(`${ico("furnace", "#ff9a3a")} La Fonderie a produit <b>${bank} or</b> en votre absence.`, "good"); };
 ACT.ngDiff = k => { NG.diff = k; refresh(); };
 ACT.newgame = () => { const go2 = () => { NG.step = 0; NG.hard = false; NG.diff = NG.diff || "normal"; NG.pets = rollStarterPets(3); NG.pet = NG.pets[0]; NG.petRolls = NG_PET_ROLLS; NG.cls = rollStartParty(); NG.heroes = NG.cls.map(c => makeHero(c)); NG.rolls = NG_ROLLS; go("newgame"); musicPlay("titre"); }; if (load()) confirmBox("Une partie existe déjà sur cet appareil. Elle sera <b>effacée</b>.", go2, { yes: "Recommencer" }); else go2(); };
 ACT.install = async () => {

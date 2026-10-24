@@ -1,5 +1,5 @@
 /* Service worker : le jeu fonctionne hors connexion une fois installé. */
-const CACHE = "couronne-cendres-1d13e2971b", ART_CACHE = "couronne-cendres-art-1a686510";
+const CACHE = "couronne-cendres-ca0d7189e0", ART_CACHE = "couronne-cendres-art-1a686510";
 const SHELL = ["./", "./index.html", "./manifest.webmanifest", "./icon-192.png", "./icon-512.png", "./icon-maskable-512.png", "./apple-touch-icon.png", "./favicon-64.png"];
 self.addEventListener("install", e => { e.waitUntil(caches.open(CACHE).then(c => c.addAll(SHELL)).then(() => self.skipWaiting())); });
 self.addEventListener("activate", e => { e.waitUntil(caches.keys().then(ks => Promise.all(ks.filter(k => k !== CACHE && k !== ART_CACHE).map(k => caches.delete(k)))).then(() => self.clients.claim())); });

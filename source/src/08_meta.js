@@ -63,6 +63,6 @@ function newGame(petId, opt = {}) {
   list.sort((a, b) => CLASSES[a.cls].rk[0] - CLASSES[b.cls].rk[0]);
   for (const h of list) addHero(h);
   S.pets.owned = [petId]; S.pets.lvl[petId] = 1; S.pets.xp[petId] = 0; S.pet = petId;
-  S.potions = 0; refreshRecruits(); dailyCheck(); weekCheck();
+  S.potions = 0; refreshRecruits(); dailyCheck(); weekCheck(); seasonCheck();
   return S;
 }

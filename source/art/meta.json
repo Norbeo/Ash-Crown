@@ -1,9 +1,11 @@
 {
+"hero_arbaletriere_chasseresse": 0.019,
 "hero_arbaletriere_t1": 0.009,
 "hero_arbaletriere_t2": 0.009,
 "hero_arbaletriere_t3": 0.007,
 "hero_arbaletriere_t4": 0.007,
 "hero_arbaletriere_t5": 0.009,
+"hero_arbaletriere_tireuse_elite": 0.007,
 "hero_berserker_chef_guerre": 0.03,
 "hero_berserker_ecorcheur": 0.007,
 "hero_berserker_t1": 0.014,

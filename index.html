@@ -3835,11 +3835,17 @@ function campPartyHTML() {
 ACT.camp = k => { doCamp(S.run, k); UI.campNode.done = 1; sfx(k === "rest" ? "heal" : "buff"); save(); closeModal(); refresh(); toast({ rest: "Le groupe reprend des forces.", train: "Les héros s'entraînent jusqu'à l'aube.", watch: "Vous ravivez les torches." }[k], "good"); };
 function showShop(n) {
   const st = n.stock;
-  modal(`<h2>${ico("coin", "#7ad0a0")} Le colporteur</h2><p class="lore">« Tout se paie, voyageurs. Surtout ici. »</p><p class="small">Or disponible : <b class="gold">${fmt(S.run.gold + S.gold)}</b> <span class="tiny dim">(expédition + Bastion)</span></p>${st.map((o, i) => `<div class="row card" style="cursor:default;${o.sold && !(o.it && S.run.loot.includes(o.it)) ? "opacity:.4" : ""}"><div style="flex:1;min-width:0"><b class="${o.it ? "rar" + o.it.rar : ""}">${o.n}</b><div class="tiny dim">${o.it ? itemLine(o.it) : o.d}</div>${o.sold && o.it ? runEquipBtns(o.it) : ""}</div><button class="btn sm ${o.sold || S.run.gold + S.gold < o.cost ? "off" : ""}" data-a="buy" data-v="${i}">${o.sold ? "Vendu" : o.cost + " or"}</button></div>`).join("")}<div class="row" style="justify-content:flex-end;margin-top:8px"><button class="btn main" data-a="leaveShop">Partir</button></div>`, { close: false });
+  modal(`<h2>${ico("coin", "#7ad0a0")} Le colporteur</h2><p class="lore">« Tout se paie, voyageurs. Surtout ici. »</p><p class="small">Or disponible : <b class="gold">${fmt(S.run.gold + S.gold)}</b> <span class="tiny dim">(expédition + Bastion)</span></p>${st.map((o, i) => `<div class="row card" style="cursor:default;${o.sold && !(o.it && S.run.loot.includes(o.it)) ? "opacity:.4" : ""}"><div style="flex:1;min-width:0"><b class="${o.it ? "rar" + o.it.rar : ""}">${o.n}</b><div class="tiny dim">${o.it ? itemLine(o.it) : o.d}</div>${o.it ? (o.sold ? runEquipBtns(o.it) : shopPreview(o.it)) : ""}</div><button class="btn sm ${o.sold || S.run.gold + S.gold < o.cost ? "off" : ""}" data-a="buy" data-v="${i}">${o.sold ? "Vendu" : o.cost + " or"}</button></div>`).join("")}<div class="row" style="justify-content:flex-end;margin-top:8px"><button class="btn main" data-a="leaveShop">Partir</button></div>`, { close: false });
   UI.shopNode = n;
 }
 ACT.buy = i => { const o = UI.shopNode.stock[+i]; if (!shopBuy(S.run, UI.shopNode, +i)) return toast("Pas assez d'or.", "bad"); sfx("coin"); save(); renderHud(); showShop(UI.shopNode); if (o && o.it) toast(runEquipTargets(o.it).length ? "Objet ajouté au butin — équipez-le directement ci-dessous." : "Objet ajouté au butin.", "good"); };
 ACT.leaveShop = () => { UI.shopNode.done = 1; save(); closeModal(); refresh(); };
+// colporteur : avant l'achat, comparaison avec ce que portent les héros de l'expédition capables de l'équiper
+function shopPreview(it) {
+  const run = S.run, rh = relicHooks(run), hs = runParty().filter(h => !run.fallen.includes(h.id) && canEquip(h, it));
+  if (!hs.length) return `<div class="tiny bad" style="margin-top:4px">Aucun héros de l'expédition ne peut l'équiper.</div>`;
+  return `<div class="runeq">${hs.sort((a, b) => gearDelta(b, it, rh).score - gearDelta(a, it, rh).score).map(h => { const D = gearDelta(h, it, rh); return `<div class="eqrow ${D.score > 0 ? "better" : ""}"><div class="eqtop"><span class="eqwho">${heroLabel(h)}</span>${D.score > 0 ? `<span class="tiny good">${ico("up", "#8ad06a", 12)}Meilleur</span>` : ""}</div><div class="eqcmp"><span class="tiny dim">${D.old ? `Remplace <span class="rar${D.old.rar}">${gearName(D.old)}</span>` : "Emplacement libre"}</span><span class="chips">${deltaChips(D)}</span></div></div>`; }).join("")}</div>`;
+}
 // équipement du butin en cours d'expédition : boutons par héros, sans quitter la fenêtre ouverte
 function runEquipBtns(it) {
   const run = S.run; if (!run || !run.loot.includes(it)) return "";
@@ -3978,7 +3984,7 @@ function cbLayout() {
 SCREENS.combat = {
   noNav: 1, noHud: 1, pass: 1,
   scene: () => drawCombat,
-  html: () => `<div class="ctop l" id="cb-tl"></div><div class="ctop" id="cb-tr"><button class="btn ghost sm" data-a="cbSpeed" title="Vitesse">${ico("speed")}<span id="cb-spd">×${CB.speed}</span></button><button class="btn ghost sm ${CB.auto ? "on" : ""}" data-a="cbAuto" title="Combat automatique">${ico("auto")}<span id="cb-auto">${CB.auto ? "Auto" : "Manuel"}</span></button><button class="btn ghost sm" data-a="cbFlee" id="cb-flee" title="Fuir">${ico("flee")}</button></div><div id="cbar"><div class="skdesc" id="cb-desc"></div><div class="skills" id="cb-skills"></div></div>`,
+  html: () => `<div class="ctop l" id="cb-tl"></div><div class="ctop" id="cb-tr"><button class="btn ghost sm" data-a="cbSpeed" title="Vitesse">${ico("speed")}<span id="cb-spd">×${S.opts.speed || 1}</span></button><button class="btn ghost sm ${S.opts.auto ? "on" : ""}" data-a="cbAuto" title="Combat automatique">${ico("auto")}<span id="cb-auto">${S.opts.auto ? "Auto" : "Manuel"}</span></button><button class="btn ghost sm" data-a="cbFlee" id="cb-flee" title="Fuir">${ico("flee")}</button></div><div id="cbar"><div class="skdesc" id="cb-desc"></div><div class="skills" id="cb-skills"></div></div>`,
   mount: arg => startCombat(arg.node),
   leave: () => { CB.B = null; CB.resolve = null; const c = $("#coach"); if (c) c.remove(); UI.coach = null; document.querySelectorAll(".coachon").forEach(e => e.classList.remove("coachon")); },
   resize: () => { if (CB.B) { CB.barH = $("#cbar") ? $("#cbar").offsetHeight + 6 : 150; cbLayout(); } },
@@ -4090,8 +4096,8 @@ ACT.cbPotion = () => { const u = CB.actor; if (!u || !CB.resolve) return; if (S.
 ACT.cbMove = d => { const u = CB.actor; if (!u || !CB.resolve) return; const r = rankOf(CB.B, u), n = CB.B.heroes.length; if ((+d < 0 && r <= 1) || (+d > 0 && r >= n)) return; choose({ move: +d }); };
 ACT.cbPass = () => { if (CB.resolve) choose({ pass: 1 }); };
 ACT.cbFlee = () => { if (!CB.resolve) return toast("Attendez votre tour.", "bad"); confirmBox("Tenter de fuir ? (75 % de réussite, aucune récompense)", () => choose({ flee: 1 }), { yes: "Fuir" }); };
-ACT.cbSpeed = () => { CB.speed = CB.speed >= 3 ? 1 : CB.speed + 1; S.opts.speed = CB.speed; $("#cb-spd").textContent = "×" + CB.speed; };
-ACT.cbAuto = (v, el) => { CB.auto = !CB.auto; S.opts.auto = CB.auto ? 1 : 0; $("#cb-auto").textContent = CB.auto ? "Auto" : "Manuel"; el.classList.toggle("on", CB.auto); if (CB.auto && CB.resolve && CB.actor) choose(autoChoice(CB.actor)); };
+ACT.cbSpeed = () => { CB.speed = CB.speed >= 3 ? 1 : CB.speed + 1; S.opts.speed = CB.speed; save(); $("#cb-spd").textContent = "×" + CB.speed; };
+ACT.cbAuto = (v, el) => { CB.auto = !CB.auto; S.opts.auto = CB.auto ? 1 : 0; save(); $("#cb-auto").textContent = CB.auto ? "Auto" : "Manuel"; el.classList.toggle("on", CB.auto); if (CB.auto && CB.resolve && CB.actor) choose(autoChoice(CB.actor)); };
 function cbBar(u) {
   const box = $("#cb-skills"), d = $("#cb-desc"); if (!box) return;
   if (!u) { box.innerHTML = ""; d.innerHTML = CB.actor && CB.actor.side === "e" ? `<span class="bad">${esc(CB.actor.name)}</span> agit…` : '<span class="dim">…</span>'; return; }

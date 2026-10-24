@@ -191,6 +191,9 @@ p{margin:6px 0;line-height:1.45}
 }
 @media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
 ::-webkit-scrollbar{width:8px}::-webkit-scrollbar-thumb{background:#3a2a22;border-radius:4px}::-webkit-scrollbar-track{background:transparent}
+#cbinfo{position:fixed;z-index:60;background:linear-gradient(#1c1410f2,#0c0806f5);border:1px solid #6a4a2a;border-radius:6px;padding:9px 11px;box-shadow:0 6px 24px #000c;color:var(--txt);font-size:14px;max-height:70vh;overflow:auto}
+#cbinfo .cbi-st{display:flex;gap:8px;align-items:flex-start;margin-top:6px}#cbinfo .cbi-ic{flex:0 0 26px;height:26px;border:1px solid;border-radius:50%;display:flex;align-items:center;justify-content:center;background:#000a}
+#cbinfo .cbi-int{margin-top:6px;padding-top:6px;border-top:1px solid #ffffff14}
 </style>
 </head><body>
 <canvas id="scene"></canvas>
@@ -3995,7 +3998,7 @@ SCREENS.combat = {
   scene: () => drawCombat,
   html: () => `<div class="ctop l" id="cb-tl"></div><div class="ctop" id="cb-tr"><button class="btn ghost sm" data-a="cbSpeed" title="Vitesse">${ico("speed")}<span id="cb-spd">×${S.opts.speed || 1}</span></button><button class="btn ghost sm ${S.opts.auto ? "on" : ""}" data-a="cbAuto" title="Combat automatique">${ico("auto")}<span id="cb-auto">${S.opts.auto ? "Auto" : "Manuel"}</span></button><button class="btn ghost sm" data-a="cbFlee" id="cb-flee" title="Fuir">${ico("flee")}</button></div><div id="cbar"><div class="skdesc" id="cb-desc"></div><div class="skills" id="cb-skills"></div></div>`,
   mount: arg => startCombat(arg.node),
-  leave: () => { CB.B = null; CB.resolve = null; const c = $("#coach"); if (c) c.remove(); UI.coach = null; document.querySelectorAll(".coachon").forEach(e => e.classList.remove("coachon")); },
+  leave: () => { CB.B = null; CB.resolve = null; { const ci = $("#cbinfo"); if (ci) ci.remove(); } const c = $("#coach"); if (c) c.remove(); UI.coach = null; document.querySelectorAll(".coachon").forEach(e => e.classList.remove("coachon")); },
   resize: () => { if (CB.B) { CB.barH = $("#cbar") ? $("#cbar").offsetHeight + 6 : 150; cbLayout(); } },
 };
 async function startCombat(node) {
@@ -4134,6 +4137,8 @@ function unitAt(px, py) {
 }
 function cbHover(px, py) { CB.hoverU = unitAt(px, py); SC.cv.style.cursor = CB.hoverU && CB.sel && CB.sel.tg.includes(CB.hoverU) ? "pointer" : "default"; }
 function cbClick(px, py) {
+  const z = (CB.zones || []).find(z => px >= z.x0 && px <= z.x1 && py >= z.y0 && py <= z.y1);
+  if (z) return cbInfo(z.u, z.k, px, py);
   const u = unitAt(px, py);
   if (!CB.resolve || !CB.sel) { if (u) showUnitInfo(u); return; }
   if (!u) return;
@@ -4141,12 +4146,7 @@ function cbClick(px, py) {
   if (CB.sel.potion) return choose({ potion: 1, tgt: u });
   choose({ sk: CB.sel.sk, tgt: u });
 }
-function showUnitInfo(u) {
-  const st = u.st.map(s => `<span class="tag" data-tip="${s.k}" style="color:${ST_INFO[s.k].c}">${ST_INFO[s.k].n}${s.t < 50 ? " " + s.t : ""}</span>`).join(" ");
-  let txt = `<b>${esc(u.name)}</b> ${u.side === "e" ? `<span class="tiny dim">niv ${u.lvl}${u.tags.includes("impie") ? " · impie" : ""}</span>` : ""}<br><span class="small">PV ${Math.ceil(u.hp)}/${u.hpMax} · Prot ${Math.round(effProt(u) * 100)} % · Vit ${effSpd(u)} · Esq ${Math.round(effDodge(u))}</span>${st ? "<br>" + st : ""}`;
-  if (u.side === "e" && u.intent && u.intent.sk) txt += `<br><span class="small bad">Intention : ${u.intent.sk.n}</span>`;
-  toast(txt);
-}
+function showUnitInfo(u) { return cbInfo(u, "unit"); }
 // ── lecture des événements ──
 function V(id) { return CB.vis[id]; }
 function U(id) { return unitById(CB.B, id) || CB.B.fallen.find(f => f.uid === id) || (CB.B.dead || []).find(d => d.uid === id); }
@@ -4277,7 +4277,7 @@ function drawCombat(x, t, dt) {
   const B = CB.B, run = S.run;
   const W = SC.w, H = SC.h;
   if (S.opts.calm) CB.shake = 0; let sx = 0, sy = 0; if (CB.shake > 0) { CB.shake -= dt; sx = (Math.random() - .5) * 14 * CB.shake; sy = (Math.random() - .5) * 10 * CB.shake; }
-  x.save(); x.translate(sx, sy);
+  CB.zones = []; x.save(); x.translate(sx, sy);
   // décor
   const reg = run ? run.region : "bourg"; const bg = paintRegion(reg, 1280, 720);
   const stH = CB.stageH || H * .7, bw = Math.max(W, stH * 16 / 9 * 1.1), bh = bw * 9 / 16;
@@ -4386,6 +4386,7 @@ function drawUnitUI(x, u, v, t) {
   if (u.side === "h") { x.fillStyle = "rgba(0,0,0,.7)"; x.fillRect(bx, by + 9 * s, w, 3 * s); x.fillStyle = u.ultV >= 100 ? `rgba(255,170,60,${.7 + Math.sin(t * 6) * .3})` : "#b0702a"; x.fillRect(bx, by + 9 * s, w * u.ultV / 100, 3 * s); }
   // altérations
   const sts = []; const seen = {}; for (const st of u.st) if (!seen[st.k]) { seen[st.k] = 1; sts.push(st.k); }
+  if (sts.length) (CB.zones = CB.zones || []).push({ x0: bx - 4, x1: bx + Math.min(7, sts.length) * 12 * s + 10 * s, y0: by + 10 * s, y1: by + 26 * s, u, k: "st" });
   sts.slice(0, 7).forEach((k, i) => { const ix = bx + i * 12 * s + 5 * s, iy = by + 18 * s; x.fillStyle = "rgba(0,0,0,.8)"; x.beginPath(); x.arc(ix, iy, 5.6 * s, 0, 7); x.fill(); drawIcon(x, ST_IC[k] || "star", ix, iy, .38 * s, ST_INFO[k].c, 1.8); });
   // rang
   x.font = `700 ${Math.round(9 * s)}px Cinzel, serif`; x.fillStyle = "rgba(232,200,120,.6)"; x.fillText(String(rankOf(B, u)), bx - 6 * s, by + 7 * s);
@@ -4396,6 +4397,7 @@ function drawUnitUI(x, u, v, t) {
     const iy = v.y - 200 * CB.scale * (u.sz > 1 ? 1.5 : 1) - 8 + Math.sin(t * 3) * 2;
     x.fillStyle = "rgba(0,0,0,.75)"; x.beginPath(); x.arc(v.x, iy, 11 * s, 0, 7); x.fill(); x.strokeStyle = rgba(kind[1], .8); x.lineWidth = 1.5; x.stroke();
     drawIcon(x, kind[0], v.x, iy, .62 * s, kind[1], 2);
+    (CB.zones = CB.zones || []).push({ x0: v.x - 16 * s, x1: v.x + 16 * s, y0: iy - 16 * s, y1: iy + 16 * s, u, k: "intent" });
     if (u.intent.tgt) { const tv = CB.vis[u.intent.tgt], tu = unitById(B, u.intent.tgt); if (tv && tu && alive(tu)) { x.fillStyle = rgba("#ff3a2a", .85); const ty = tv.y - 192 * CB.scale - 6; x.beginPath(); x.moveTo(tv.x - 5, ty); x.lineTo(tv.x + 5, ty); x.lineTo(tv.x, ty + 7); x.fill(); } }
   }
 }
@@ -4564,6 +4566,36 @@ function seasonRecordsHTML() {
   return `<h2 style="margin-top:14px">Saisons de l'Abîme</h2>${seasonPanelHTML()}${H.length ? `<div class="panel" style="padding:10px">${H.map(x => `<div class="row sp small"><span>${x.n}</span><b>profondeur ${x.best}</b></div>`).join("")}</div>` : '<p class="tiny dim">Aucune saison passée pour l\'instant.</p>'}
   <h2 style="margin-top:14px">Boss rush</h2><div class="panel" style="padding:10px"><span class="small">${R0 ? `Record : <b>${R0.best}</b> victoires en ${R0.time} min (${R0.alive} survivant(s)) · ${R0.runs} tentative(s)` : rushAvailable() ? "Pas encore tenté. Choisissez « Boss rush » en préparant une expédition." : "Disponible après avoir vaincu deux gardiens de chapitre."}</span></div>`;
 }
+
+// ── Bulle d'information en combat : altérations (bonus/malus), intention ennemie, fiche d'unité ──
+function stLine(st) {
+  const I = ST_INFO[st.k] || { n: st.k, c: "#ddd" }, G = GLOSS[st.k], neg = NEG.has(st.k);
+  const dur = st.t >= 50 ? "permanent" : st.t + " tour" + (st.t > 1 ? "s" : "");
+  const val = st.v ? (["bleed", "poison", "burn", "regen", "shield", "thorns"].includes(st.k) ? ` · ${Math.round(st.v)}${st.k === "shield" ? " PV absorbés" : st.k === "regen" ? " PV/tour" : st.k === "thorns" ? " renvoyés" : " dégâts/tour"}` : Math.abs(st.v) < 1.01 && st.v % 1 ? ` · ${st.v > 0 ? "+" : "−"}${Math.round(Math.abs(st.v) * 100)} %` : ` · ${st.v > 0 ? "+" : "−"}${Math.round(Math.abs(st.v))}`) : "";
+  return `<div class="cbi-st"><span class="cbi-ic" style="border-color:${I.c}">${ico(ST_IC[st.k] || "star", I.c, 16)}</span><div><b style="color:${I.c}">${I.n}</b> <span class="tiny ${neg ? "bad" : "good"}">${neg ? "malus" : "bonus"}</span> <span class="tiny dim">${dur}${val}</span><div class="tiny">${G ? G.d : ""}</div></div></div>`;
+}
+function intentHTML(u) {
+  const B = CB.B, sk = u.intent && u.intent.sk; if (!sk) return "";
+  const tt = sk.t || "e", tg = u.intent.tgt && unitById(B, u.intent.tgt);
+  const kind = sk.heal || tt === "allies" ? "Soin ou renfort de ses alliés" : tt === "self" ? "Se protège ou se renforce" : !sk.m ? "Malédiction : altérations sans gros dégâts" : tt === "ae" ? "Attaque de zone : touche plusieurs héros" : "Attaque";
+  return `<div class="cbi-int"><b class="bad">Intention : ${sk.n}</b><div class="tiny dim">${kind}${tg && tg.side === "h" ? ` · vise <b>${esc(tg.name)}</b>` : ""}</div><div class="tiny">${skillText(sk, u)}</div></div>`;
+}
+function cbInfo(u, what, px, py) {
+  const B = CB.B; if (!B || !u) return;
+  const seen = {}, sts = u.st.filter(s => !seen[s.k] && (seen[s.k] = 1));
+  let h = `<div class="row sp" style="flex-wrap:nowrap"><b>${esc(u.name)}</b><span class="tiny dim">${u.side === "e" ? `niv ${u.lvl}${u.tags.includes("impie") ? " · impie" : ""}` : CLASSES[u.cls] ? CLASSES[u.cls].n : ""} · rang ${rankOf(B, u)}</span></div>`;
+  if (what !== "st") h += `<div class="tiny">PV ${Math.ceil(u.hp)}/${u.hpMax} · Protection ${Math.round(effProt(u) * 100)} % · Vitesse ${effSpd(u)} · Esquive ${Math.round(effDodge(u))}</div>`;
+  if (what === "intent") h += intentHTML(u);
+  if (what !== "intent") h += sts.length ? `<div class="cbi-list">${sts.map(stLine).join("")}</div>` : `<div class="tiny dim" style="margin-top:4px">Aucune altération.</div>`;
+  if (what === "unit" && u.side === "e") h += intentHTML(u);
+  let el = $("#cbinfo"); if (!el) { el = document.createElement("div"); el.id = "cbinfo"; document.body.appendChild(el); el.onclick = () => el.remove(); }
+  el.innerHTML = h + `<div class="tiny dim" style="text-align:right;margin-top:4px">Touchez pour fermer</div>`;
+  const W = window.innerWidth, w = Math.min(340, W - 24); el.style.width = w + "px";
+  const r = SC.cv.getBoundingClientRect(), cx = r.left + (px != null ? px : (CB.vis[u.uid] || { x: W / 2 }).x) * r.width / SC.w;
+  el.style.left = clamp(cx - w / 2, 12, W - w - 12) + "px"; el.style.top = Math.max(8, r.top + 70) + "px";
+  clearTimeout(CB.infoT); CB.infoT = setTimeout(() => { const e = $("#cbinfo"); if (e) e.remove(); }, 9000);
+}
+document.addEventListener("pointerdown", e => { const el = $("#cbinfo"); if (el && !el.contains(e.target) && e.target !== SC.cv) el.remove(); });
 /* ═══════════════════════ Démarrage ═══════════════════════ */
 if (HASWIN) {
   const boot = () => {

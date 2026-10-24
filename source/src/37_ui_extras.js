@@ -100,3 +100,33 @@ function seasonRecordsHTML() {
   return `<h2 style="margin-top:14px">Saisons de l'Abîme</h2>${seasonPanelHTML()}${H.length ? `<div class="panel" style="padding:10px">${H.map(x => `<div class="row sp small"><span>${x.n}</span><b>profondeur ${x.best}</b></div>`).join("")}</div>` : '<p class="tiny dim">Aucune saison passée pour l\'instant.</p>'}
   <h2 style="margin-top:14px">Boss rush</h2><div class="panel" style="padding:10px"><span class="small">${R0 ? `Record : <b>${R0.best}</b> victoires en ${R0.time} min (${R0.alive} survivant(s)) · ${R0.runs} tentative(s)` : rushAvailable() ? "Pas encore tenté. Choisissez « Boss rush » en préparant une expédition." : "Disponible après avoir vaincu deux gardiens de chapitre."}</span></div>`;
 }
+
+// ── Bulle d'information en combat : altérations (bonus/malus), intention ennemie, fiche d'unité ──
+function stLine(st) {
+  const I = ST_INFO[st.k] || { n: st.k, c: "#ddd" }, G = GLOSS[st.k], neg = NEG.has(st.k);
+  const dur = st.t >= 50 ? "permanent" : st.t + " tour" + (st.t > 1 ? "s" : "");
+  const val = st.v ? (["bleed", "poison", "burn", "regen", "shield", "thorns"].includes(st.k) ? ` · ${Math.round(st.v)}${st.k === "shield" ? " PV absorbés" : st.k === "regen" ? " PV/tour" : st.k === "thorns" ? " renvoyés" : " dégâts/tour"}` : Math.abs(st.v) < 1.01 && st.v % 1 ? ` · ${st.v > 0 ? "+" : "−"}${Math.round(Math.abs(st.v) * 100)} %` : ` · ${st.v > 0 ? "+" : "−"}${Math.round(Math.abs(st.v))}`) : "";
+  return `<div class="cbi-st"><span class="cbi-ic" style="border-color:${I.c}">${ico(ST_IC[st.k] || "star", I.c, 16)}</span><div><b style="color:${I.c}">${I.n}</b> <span class="tiny ${neg ? "bad" : "good"}">${neg ? "malus" : "bonus"}</span> <span class="tiny dim">${dur}${val}</span><div class="tiny">${G ? G.d : ""}</div></div></div>`;
+}
+function intentHTML(u) {
+  const B = CB.B, sk = u.intent && u.intent.sk; if (!sk) return "";
+  const tt = sk.t || "e", tg = u.intent.tgt && unitById(B, u.intent.tgt);
+  const kind = sk.heal || tt === "allies" ? "Soin ou renfort de ses alliés" : tt === "self" ? "Se protège ou se renforce" : !sk.m ? "Malédiction : altérations sans gros dégâts" : tt === "ae" ? "Attaque de zone : touche plusieurs héros" : "Attaque";
+  return `<div class="cbi-int"><b class="bad">Intention : ${sk.n}</b><div class="tiny dim">${kind}${tg && tg.side === "h" ? ` · vise <b>${esc(tg.name)}</b>` : ""}</div><div class="tiny">${skillText(sk, u)}</div></div>`;
+}
+function cbInfo(u, what, px, py) {
+  const B = CB.B; if (!B || !u) return;
+  const seen = {}, sts = u.st.filter(s => !seen[s.k] && (seen[s.k] = 1));
+  let h = `<div class="row sp" style="flex-wrap:nowrap"><b>${esc(u.name)}</b><span class="tiny dim">${u.side === "e" ? `niv ${u.lvl}${u.tags.includes("impie") ? " · impie" : ""}` : CLASSES[u.cls] ? CLASSES[u.cls].n : ""} · rang ${rankOf(B, u)}</span></div>`;
+  if (what !== "st") h += `<div class="tiny">PV ${Math.ceil(u.hp)}/${u.hpMax} · Protection ${Math.round(effProt(u) * 100)} % · Vitesse ${effSpd(u)} · Esquive ${Math.round(effDodge(u))}</div>`;
+  if (what === "intent") h += intentHTML(u);
+  if (what !== "intent") h += sts.length ? `<div class="cbi-list">${sts.map(stLine).join("")}</div>` : `<div class="tiny dim" style="margin-top:4px">Aucune altération.</div>`;
+  if (what === "unit" && u.side === "e") h += intentHTML(u);
+  let el = $("#cbinfo"); if (!el) { el = document.createElement("div"); el.id = "cbinfo"; document.body.appendChild(el); el.onclick = () => el.remove(); }
+  el.innerHTML = h + `<div class="tiny dim" style="text-align:right;margin-top:4px">Touchez pour fermer</div>`;
+  const W = window.innerWidth, w = Math.min(340, W - 24); el.style.width = w + "px";
+  const r = SC.cv.getBoundingClientRect(), cx = r.left + (px != null ? px : (CB.vis[u.uid] || { x: W / 2 }).x) * r.width / SC.w;
+  el.style.left = clamp(cx - w / 2, 12, W - w - 12) + "px"; el.style.top = Math.max(8, r.top + 70) + "px";
+  clearTimeout(CB.infoT); CB.infoT = setTimeout(() => { const e = $("#cbinfo"); if (e) e.remove(); }, 9000);
+}
+document.addEventListener("pointerdown", e => { const el = $("#cbinfo"); if (el && !el.contains(e.target) && e.target !== SC.cv) el.remove(); });

@@ -52,7 +52,7 @@ SCREENS.combat = {
   scene: () => drawCombat,
   html: () => `<div class="ctop l" id="cb-tl"></div><div class="ctop" id="cb-tr"><button class="btn ghost sm" data-a="cbSpeed" title="Vitesse">${ico("speed")}<span id="cb-spd">×${S.opts.speed || 1}</span></button><button class="btn ghost sm ${S.opts.auto ? "on" : ""}" data-a="cbAuto" title="Combat automatique">${ico("auto")}<span id="cb-auto">${S.opts.auto ? "Auto" : "Manuel"}</span></button><button class="btn ghost sm" data-a="cbFlee" id="cb-flee" title="Fuir">${ico("flee")}</button></div><div id="cbar"><div class="skdesc" id="cb-desc"></div><div class="skills" id="cb-skills"></div></div>`,
   mount: arg => startCombat(arg.node),
-  leave: () => { CB.B = null; CB.resolve = null; const c = $("#coach"); if (c) c.remove(); UI.coach = null; document.querySelectorAll(".coachon").forEach(e => e.classList.remove("coachon")); },
+  leave: () => { CB.B = null; CB.resolve = null; { const ci = $("#cbinfo"); if (ci) ci.remove(); } const c = $("#coach"); if (c) c.remove(); UI.coach = null; document.querySelectorAll(".coachon").forEach(e => e.classList.remove("coachon")); },
   resize: () => { if (CB.B) { CB.barH = $("#cbar") ? $("#cbar").offsetHeight + 6 : 150; cbLayout(); } },
 };
 async function startCombat(node) {
@@ -191,6 +191,8 @@ function unitAt(px, py) {
 }
 function cbHover(px, py) { CB.hoverU = unitAt(px, py); SC.cv.style.cursor = CB.hoverU && CB.sel && CB.sel.tg.includes(CB.hoverU) ? "pointer" : "default"; }
 function cbClick(px, py) {
+  const z = (CB.zones || []).find(z => px >= z.x0 && px <= z.x1 && py >= z.y0 && py <= z.y1);
+  if (z) return cbInfo(z.u, z.k, px, py);
   const u = unitAt(px, py);
   if (!CB.resolve || !CB.sel) { if (u) showUnitInfo(u); return; }
   if (!u) return;
@@ -198,12 +200,7 @@ function cbClick(px, py) {
   if (CB.sel.potion) return choose({ potion: 1, tgt: u });
   choose({ sk: CB.sel.sk, tgt: u });
 }
-function showUnitInfo(u) {
-  const st = u.st.map(s => `<span class="tag" data-tip="${s.k}" style="color:${ST_INFO[s.k].c}">${ST_INFO[s.k].n}${s.t < 50 ? " " + s.t : ""}</span>`).join(" ");
-  let txt = `<b>${esc(u.name)}</b> ${u.side === "e" ? `<span class="tiny dim">niv ${u.lvl}${u.tags.includes("impie") ? " · impie" : ""}</span>` : ""}<br><span class="small">PV ${Math.ceil(u.hp)}/${u.hpMax} · Prot ${Math.round(effProt(u) * 100)} % · Vit ${effSpd(u)} · Esq ${Math.round(effDodge(u))}</span>${st ? "<br>" + st : ""}`;
-  if (u.side === "e" && u.intent && u.intent.sk) txt += `<br><span class="small bad">Intention : ${u.intent.sk.n}</span>`;
-  toast(txt);
-}
+function showUnitInfo(u) { return cbInfo(u, "unit"); }
 // ── lecture des événements ──
 function V(id) { return CB.vis[id]; }
 function U(id) { return unitById(CB.B, id) || CB.B.fallen.find(f => f.uid === id) || (CB.B.dead || []).find(d => d.uid === id); }
@@ -334,7 +331,7 @@ function drawCombat(x, t, dt) {
   const B = CB.B, run = S.run;
   const W = SC.w, H = SC.h;
   if (S.opts.calm) CB.shake = 0; let sx = 0, sy = 0; if (CB.shake > 0) { CB.shake -= dt; sx = (Math.random() - .5) * 14 * CB.shake; sy = (Math.random() - .5) * 10 * CB.shake; }
-  x.save(); x.translate(sx, sy);
+  CB.zones = []; x.save(); x.translate(sx, sy);
   // décor
   const reg = run ? run.region : "bourg"; const bg = paintRegion(reg, 1280, 720);
   const stH = CB.stageH || H * .7, bw = Math.max(W, stH * 16 / 9 * 1.1), bh = bw * 9 / 16;
@@ -443,6 +440,7 @@ function drawUnitUI(x, u, v, t) {
   if (u.side === "h") { x.fillStyle = "rgba(0,0,0,.7)"; x.fillRect(bx, by + 9 * s, w, 3 * s); x.fillStyle = u.ultV >= 100 ? `rgba(255,170,60,${.7 + Math.sin(t * 6) * .3})` : "#b0702a"; x.fillRect(bx, by + 9 * s, w * u.ultV / 100, 3 * s); }
   // altérations
   const sts = []; const seen = {}; for (const st of u.st) if (!seen[st.k]) { seen[st.k] = 1; sts.push(st.k); }
+  if (sts.length) (CB.zones = CB.zones || []).push({ x0: bx - 4, x1: bx + Math.min(7, sts.length) * 12 * s + 10 * s, y0: by + 10 * s, y1: by + 26 * s, u, k: "st" });
   sts.slice(0, 7).forEach((k, i) => { const ix = bx + i * 12 * s + 5 * s, iy = by + 18 * s; x.fillStyle = "rgba(0,0,0,.8)"; x.beginPath(); x.arc(ix, iy, 5.6 * s, 0, 7); x.fill(); drawIcon(x, ST_IC[k] || "star", ix, iy, .38 * s, ST_INFO[k].c, 1.8); });
   // rang
   x.font = `700 ${Math.round(9 * s)}px Cinzel, serif`; x.fillStyle = "rgba(232,200,120,.6)"; x.fillText(String(rankOf(B, u)), bx - 6 * s, by + 7 * s);
@@ -453,6 +451,7 @@ function drawUnitUI(x, u, v, t) {
     const iy = v.y - 200 * CB.scale * (u.sz > 1 ? 1.5 : 1) - 8 + Math.sin(t * 3) * 2;
     x.fillStyle = "rgba(0,0,0,.75)"; x.beginPath(); x.arc(v.x, iy, 11 * s, 0, 7); x.fill(); x.strokeStyle = rgba(kind[1], .8); x.lineWidth = 1.5; x.stroke();
     drawIcon(x, kind[0], v.x, iy, .62 * s, kind[1], 2);
+    (CB.zones = CB.zones || []).push({ x0: v.x - 16 * s, x1: v.x + 16 * s, y0: iy - 16 * s, y1: iy + 16 * s, u, k: "intent" });
     if (u.intent.tgt) { const tv = CB.vis[u.intent.tgt], tu = unitById(B, u.intent.tgt); if (tv && tu && alive(tu)) { x.fillStyle = rgba("#ff3a2a", .85); const ty = tv.y - 192 * CB.scale - 6; x.beginPath(); x.moveTo(tv.x - 5, ty); x.lineTo(tv.x + 5, ty); x.lineTo(tv.x, ty + 7); x.fill(); } }
   }
 }

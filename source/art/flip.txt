@@ -25,3 +25,5 @@ hero_exorciste_t5
 mon_archer_os
 mon_moine_flagellant
 mon_spectre
+hero_ombre_assassin
+hero_ombre_ombre_sang

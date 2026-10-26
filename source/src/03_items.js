@@ -4,6 +4,8 @@ const RARITY = [
   { n: "Rare", c: "#5aa0ff", aff: 1 },
   { n: "Épique", c: "#c070ff", aff: 2 },
   { n: "Légendaire", c: "#ffb040", aff: 3 },
+  { n: "Mythique", c: "#ff4a6a", aff: 4 },
+  { n: "Divin", c: "#7af0ff", aff: 5 },
 ];
 const TIER_N = ["", "Rustique", "Forgé", "Trempé", "Noble", "Royal", "Ascendant"];
 // nom de l'arme et de l'armure de chaque classe, par palier (1 à 5) : le palier change aussi l'apparence du héros

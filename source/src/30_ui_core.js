@@ -76,7 +76,7 @@ function modal(html, o = {}) {
   const m = $("#modal"); m.hidden = false;
   m.innerHTML = `<div class="box panel frame ${o.wide ? "wide" : ""}"><span class="corner c1"></span><span class="corner c2"></span><span class="corner c3"></span><span class="corner c4"></span>${o.close === false ? "" : `<button class="btn ghost sm" data-a="closeModal" style="position:absolute;top:8px;right:8px;z-index:2">${ico("close")}</button>`}${html}</div>`;
   if (o.mount) o.mount(m);
-  UI.modalClose = o.onClose || null;
+  UI.modalClose = o.onClose || null; UI.modalOut = o.close === false ? o.outside || null : closeModal; // un clic à côté de la fenêtre la ferme
 }
 function closeModal() { const m = $("#modal"); m.hidden = true; m.innerHTML = ""; const f = UI.modalClose; UI.modalClose = null; if (f) f(); }
 ACT.closeModal = closeModal;
@@ -87,6 +87,7 @@ function confirmBox(text, yes, o = {}) {
 function uiEvents() {
   document.addEventListener("click", e => {
     audioInit();
+    if (e.target.id === "modal" && UI.modalOut) { UI.modalOut(); return; }
     const g = e.target.closest("[data-go]"); if (g) { sfx("click"); const k = g.dataset.go; if (k === "expe" && S && S.run) go("map"); else go(k, g.dataset.arg); return; }
     const a = e.target.closest("[data-a]"); if (a) { const f = ACT[a.dataset.a]; if (f) { sfx("click"); f(a.dataset.v, a, e); } }
   });

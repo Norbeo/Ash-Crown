@@ -2,26 +2,6 @@
 # Héros : listés ici s'ils regardent vers la gauche (ils doivent regarder à droite).
 # Monstres : listés ici s'ils regardent DÉJÀ vers la droite (les autres sont retournés, le combat les remet face à gauche).
 # Compagnons : listés s'ils regardent vers la gauche.
-hero_pretresse_t1
-hero_pretresse_t2
-hero_pretresse_t3
-hero_pretresse_t4
-hero_pretresse_t5
-hero_sorciere_t1
-hero_sorciere_t2
-hero_sorciere_t3
-hero_sorciere_t4
-hero_sorciere_t5
-hero_necromancien_t1
-hero_necromancien_t2
-hero_necromancien_t3
-hero_necromancien_t4
-hero_necromancien_t5
-hero_exorciste_t1
-hero_exorciste_t2
-hero_exorciste_t3
-hero_exorciste_t4
-hero_exorciste_t5
 mon_archer_os
 mon_moine_flagellant
 mon_spectre

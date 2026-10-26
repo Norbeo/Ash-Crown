@@ -374,7 +374,8 @@ Object.assign(CLASSES, {
   },
 });
 const CLASS_IDS = Object.keys(CLASSES);
-const EVO_LVL = 15, APEX_LVL = 18, MAX_LVL = 20;
+const EVO_LVL = 15, APEX_LVL = 18, MAX_LVL = Infinity; // progression sans limite
+const TIER_LVL = [0, 1, 5, 10, 15, 20, 25]; // niveau de héros requis par palier d'équipement
 // paliers d'apogée (niveau 18) : un bonus par évolution
 const APEX = {
   bastion: { n: "Bouclier éternel", pas: [{ k: "stat", s: "prot", v: .08 }, { k: "guardProt", v: .15 }] },

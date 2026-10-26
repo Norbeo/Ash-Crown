@@ -81,7 +81,7 @@ const heroPower = h => { const s = heroStats(h); return Math.round(s.hp * .6 + (
 
 // ── Équipement ──
 function makeGear(kind, cls, tier, rar, key, evo) {
-  const it = { id: uid("i"), kind, tier: clamp(tier, 1, 6), rar: clamp(rar, 0, 3), up: 0, aff: [] };
+  const it = { id: uid("i"), kind, tier: clamp(tier, 1, 6), rar: clamp(rar, 0, 5), up: 0, aff: [] };
   if (kind === "arm" && it.tier >= 6 && evo) it.evo = evo; // armure Ascendante : propre à une voie d'évolution
   if (kind === "tr") {
     const pool = Object.keys(TRINKETS).filter(k => TRINKETS[k].r === rar);
@@ -98,7 +98,7 @@ function gearName(it) {
   const L = GEAR_NAMES[it.cls][it.kind === "wpn" ? "wpn" : "arm"], n = it.tier >= 6 ? (it.evo && CLASSES[it.cls].evos[it.evo] ? "Armure ascendante : " + CLASSES[it.cls].evos[it.evo].n : "Ascendant : " + L[4]) : L[it.tier - 1];
   return n + (it.up ? " +" + it.up : "");
 }
-const rollRarity = (luck = 0) => { const r = rnd() - luck; return r < .025 ? 3 : r < .12 ? 2 : r < .38 ? 1 : 0; };
+const rollRarity = (luck = 0) => { const r = rnd() - luck; return r < .003 ? 5 : r < .01 ? 4 : r < .03 ? 3 : r < .12 ? 2 : r < .38 ? 1 : 0; };
 function lootGear(lvl, luck = 0, cls) {
   const tier = clamp(Math.floor(lvl / 4.2) + 1 + (chance(.25) ? 1 : 0), 1, 5);
   const r = rnd(), rar = rollRarity(luck);
@@ -155,6 +155,6 @@ const DIFFS = {
 const diffOf = () => DIFFS[(S && S.opts && S.opts.diff) || "normal"] || DIFFS.normal;
 const potionMax = () => 2 + (S ? S.bld.chapelle : 1);
 const rosterMax = () => 4 + S.bld.taverne * 2;
-const skillRankMax = () => S.bld.academie;
+const skillRankMax = h => S.bld.academie + (h ? Math.floor(h.lvl / 10) : 0); // la Salle des maîtres, puis le niveau du héros : sans limite
 const fonderieRate = () => [0, 18, 34, 58, 90, 135][S.bld.fonderie]; // or par heure
 const fonderieCap = () => [0, 6, 8, 10, 12, 16][S.bld.fonderie]; // heures

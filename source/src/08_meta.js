@@ -15,7 +15,7 @@ function dismiss(id) { const h = heroById(id); if (!h || S.heroes.length <= 1) r
 function healCost(h) { return 30 + h.lvl * 15; }
 function healInjured(id) { const h = heroById(id); if (!h || !isInjured(h)) return false; const c = Math.round(healCost(h) * (1 - (S.bld.chapelle - 1) * .15)); if (S.gold < c) return false; S.gold -= c; h.injured = 0; return true; }
 // équipement
-function canEquip(h, it) { if (!it) return false; if (it.kind === "tr") return true; return it.cls === h.cls && (it.tier < 6 || (!!h.evo && (!it.evo || it.evo === h.evo))); } // palier VI : héros évolués, armure propre à leur voie
+function canEquip(h, it) { if (!it) return false; if (it.kind === "tr") return true; return it.cls === h.cls && h.lvl >= TIER_LVL[it.tier] && (it.tier < 6 || (!!h.evo && (!it.evo || it.evo === h.evo))); } // palier VI : héros évolués, armure propre à leur voie
 function equip(h, it, slot) {
   if (!canEquip(h, it)) return false;
   if (it.kind === "arm" && it.tier >= 6 && !it.evo) it.evo = h.evo; // ancienne armure VI : prend la voie de son porteur
@@ -33,6 +33,7 @@ function craft(cls, kind, tier, evo) {
   if (tier > S.bld.forge) return { err: "Améliorez la Forge pour ce palier." };
   const c = craftCost(tier); if (!pay(c)) return { err: "Ressources insuffisantes." };
   if (kind === "arm" && tier >= 6 && !(evo && CLASSES[cls].evos[evo])) return { err: "Choisissez la voie de l'armure." };
+  if (kind === "arm" && tier >= 6 && !S.heroes.some(h => h.cls === cls && h.evo === evo)) return { err: "Faites d'abord évoluer un héros dans cette voie." };
   const it = makeGear(kind, cls, tier, rollRarity(.04 + S.bld.forge * .015), null, evo); S.inv.push(it); S.stats.crafts++;
   if (tier >= 5) S.stats.tier5 = 1; if (it.rar >= 3) S.stats.legend++;
   checkAchievements(); return { ok: it };
@@ -41,11 +42,11 @@ function craft(cls, kind, tier, evo) {
 const EVO_COST = { gold: 250, essence: 2 };
 function evolve(h, evo) { if (h.evo || h.lvl < EVO_LVL || !CLASSES[h.cls].evos[evo]) return { err: "Impossible." }; if (!pay(EVO_COST)) return { err: "Il faut 250 or et 2 essences." }; h.evo = evo; for (const k of Object.keys(CLASSES[h.cls].evos[evo].skills)) h.skr[k] = 1; const ns = Object.keys(CLASSES[h.cls].evos[evo].skills); h.skills = h.skills.slice(0, 2).concat(ns); S.stats.evos++; if (h.lvl >= APEX_LVL) S.stats.apex++; checkAchievements(); return { ok: 1 }; }
 const skillUpCost = r => ({ gold: Math.round(90 * Math.pow(r, 1.7)), essence: r >= 3 ? r - 2 : 0 });
-function skillUp(h, id) { const r = h.skr[id] || 1; if (r >= 5) return { err: "Rang maximal." }; if (r >= skillRankMax()) return { err: "Améliorez la Salle des maîtres." }; if (!pay(skillUpCost(r))) return { err: "Ressources insuffisantes." }; h.skr[id] = r + 1; return { ok: 1 }; }
+function skillUp(h, id) { const r = h.skr[id] || 1; if (r >= skillRankMax(h)) return { err: `Rang maximal pour l'instant (${skillRankMax(h)}) : améliorez la Salle des maîtres ou gagnez des niveaux.` }; if (!pay(skillUpCost(r))) return { err: "Ressources insuffisantes." }; h.skr[id] = r + 1; return { ok: 1 }; }
 function setSkills(h, list) { const pool = heroSkillPool(h); const l = list.filter(x => pool.includes(x)).slice(0, 4); if (l.length < 1) return false; h.skills = l; return true; }
 // bâtiments
 function bldCost(k) { const B = BUILDINGS[k], l = S.bld[k]; if (l >= B.max) return null; return { gold: B.cost[l], shards: B.shards[l] }; }
-function upgradeBld(k) { const c = bldCost(k); if (!c) return { err: "Niveau maximal." }; if (!pay(c)) return { err: "Ressources insuffisantes." }; if (k === "fonderie") bankTick(); S.bld[k]++; return { ok: 1 }; }
+function upgradeBld(k) { const c = bldCost(k); if (!c) return { err: "Niveau maximal." }; if (advLevel() < bldAdvReq(k)) return { err: `Niveau d'aventure ${bldAdvReq(k)} requis.` }; if (!pay(c)) return { err: "Ressources insuffisantes." }; if (k === "fonderie") bankTick(); S.bld[k]++; return { ok: 1 }; }
 // compagnons
 function adoptPet(id) { const P = PETS[id]; if (S.pets.owned.includes(id)) return { err: "Déjà adopté." }; if (!petUnlocked(id)) return { err: "Pas encore disponible." }; const c = P.cost || 0; if (S.pets.owned.length - 1 >= S.bld.menagerie + 1) return { err: "Agrandissez la Ménagerie." }; if (S.gold < c) return { err: "Pas assez d'or." }; S.gold -= c; S.pets.owned.push(id); S.pets.lvl[id] = Math.max(1, Math.round(petLvl(S.pet || id) * .6)); S.pets.xp[id] = 0; checkAchievements(); return { ok: 1 }; }
 const PET_EVO_COST = { gold: 600, essence: 4, shards: 1 };
@@ -68,3 +69,9 @@ function newGame(petId, opt = {}) {
   S.potions = 0; refreshRecruits(); dailyCheck(); weekCheck(); seasonCheck();
   return S;
 }
+
+// ── niveau d'aventure global : combats gagnés, gardiens vaincus, profondeur de l'Abîme ; il débloque les améliorations de bâtiments ──
+function advXp() { const st = S.stats || {}; return (st.wins || 0) + (st.runs || 0) * 2 + REGIONS.reduce((a, r) => a + ((S.prog[r.id] && S.prog[r.id].clears) || 0) * 12, 0) + (S.abyss ? S.abyss.best * 4 : 0); }
+function advLevel() { return 1 + Math.floor(Math.sqrt(advXp() / 3)); }
+function advNext() { const l = advLevel(); return { l, cur: advXp() - 3 * (l - 1) * (l - 1), need: 3 * l * l - 3 * (l - 1) * (l - 1) }; }
+const bldAdvReq = k => Math.max(1, S.bld[k] * 3);

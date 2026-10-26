@@ -10,11 +10,29 @@ function petOrder() {
   const rank = id => id === S.pet ? 0 : S.pets.owned.includes(id) ? 1 : petUnlocked(id) ? 2 : 3;
   return PET_IDS.slice().sort((a, b) => rank(a) - rank(b) || (PETS[a].unlock || 0) - (PETS[b].unlock || 0) || (PETS[a].cost || 0) - (PETS[b].cost || 0));
 }
-function drawBuilding(x, k, bx, by, s, lvl, t) { // bâtiment peint : posé sur le sol, lueur qui grandit avec le niveau
+const BLD_CACHE = {};
+function bldTinted(im, lvl, k) { // niveau 1 : bâtiment délabré, assombri ; puis il s'éclaire à chaque amélioration
+  const key = k + "|" + lvl + "|" + im.width; if (BLD_CACHE[key]) return BLD_CACHE[key];
+  const c = mkCanvas(im.width, im.height), x = c.getContext("2d"); x.drawImage(im, 0, 0);
+  const dark = Math.max(0, .5 - (lvl - 1) * .12); if (dark > 0) { x.globalCompositeOperation = "source-atop"; x.fillStyle = `rgba(12,8,14,${dark})`; x.fillRect(0, 0, c.width, c.height); }
+  if (lvl >= 4) { x.globalCompositeOperation = "source-atop"; const g = x.createLinearGradient(0, 0, 0, c.height); g.addColorStop(0, `rgba(255,200,110,${.05 * (lvl - 3)})`); g.addColorStop(1, "rgba(255,140,60,0)"); x.fillStyle = g; x.fillRect(0, 0, c.width, c.height); }
+  return BLD_CACHE[key] = c;
+}
+function drawBuilding(x, k, bx, by, s, lvl, t) { // bâtiment peint : grandit, s'éclaire et se pare de bannières et de braseros à chaque niveau
   const im = artImg("bld_" + k); if (!im) return;
-  const hh = s * (k === "porte" ? 1.62 : k === "academie" ? 2.0 : k === "chapelle" ? 1.9 : 1.3), sc = Math.min(hh / im.height, s * 1.7 / im.width), w = im.width * sc, h = im.height * sc;
+  const grow = k === "porte" ? 1 : .86 + Math.min(lvl, 8) * .035;
+  const hh = s * grow * (k === "porte" ? 1.62 : k === "academie" ? 2.0 : k === "chapelle" ? 1.9 : 1.3), sc = Math.min(hh / im.height, s * grow * 1.7 / im.width), w = im.width * sc, h = im.height * sc;
   if (lvl > 1) glow(x, bx, by - h * .35, w * (.45 + lvl * .06), "#ff9a4a", .05 + lvl * .03 + Math.sin(t * 2 + bx) * .015);
-  x.drawImage(im, bx - w / 2, by - h + s * .04, w, h);
+  x.drawImage(k === "porte" ? im : bldTinted(im, lvl, k), bx - w / 2, by - h + s * .04, w, h);
+  if (k === "porte") return;
+  // bannières au sommet (une par niveau au-delà du premier)
+  const nb = Math.min(lvl - 1, 5), top = by - h * .96;
+  for (let i = 0; i < nb; i++) { const px = bx + (i - (nb - 1) / 2) * w * .17, sw = Math.sin(t * 2.4 + i + bx) * 2.5;
+    x.strokeStyle = "#2a1a10"; x.lineWidth = 2; x.beginPath(); x.moveTo(px, top + 14); x.lineTo(px, top - 16); x.stroke();
+    x.fillStyle = lvl >= 5 ? "#c9a24a" : "#8a1a1a"; x.beginPath(); x.moveTo(px, top - 16); x.lineTo(px + 13 + sw, top - 12); x.lineTo(px, top - 7); x.closePath(); x.fill(); }
+  // braseros au pied à partir du niveau 3
+  if (lvl >= 3) for (const sd of [-1, 1]) { const fx = bx + sd * w * .46, fy = by - 4, f = .8 + Math.sin(t * 9 + sd * 3 + bx) * .15;
+    x.fillStyle = "#1a120c"; x.fillRect(fx - 4, fy - 10, 8, 10); glow(x, fx, fy - 14, 16 + lvl * 2, "#ff7a2a", .45 * f); glow(x, fx, fy - 13, 6, "#ffe08a", .8 * f); }
 }
 SCREENS.bastion = {
   title: "Le Bastion", tab: "bastion",
@@ -37,7 +55,7 @@ SCREENS.bastion = {
     if (UI.hideDaily == null) UI.hideDaily = (SC.w || innerWidth) < (SC.h || innerHeight);
     return `${L.map(b => { const hh = b.s * (b.k === "porte" ? 1.62 : b.k === "academie" ? 2.0 : b.k === "chapelle" ? 1.9 : 1.3); return `<button class="hot" style="left:${b.x}px;top:${b.y - off - hh}px;width:${b.s * 1.3}px;height:${hh}px" data-a="bld" data-v="${b.k}"><span class="lbl">${note(b.k) ? '<i class="dotn"></i>' : ""}${names[b.k]}${b.k !== "porte" ? ` <b>${"I II III IV V VI".split(" ")[S.bld[b.k] - 1]}</b>` : ""}</span></button>`; }).join("")}
     <div class="panel" style="position:absolute;left:10px;top:6px;width:min(300px,calc(100vw - 20px));padding:10px 12px" id="dailyp">
-      <div class="row sp"><h3 style="margin:0">${ico("daily", "#e8c878", 16)} Défis du jour</h3><button class="btn ghost sm" data-a="toggleDaily">${UI.hideDaily ? "+" : "–"}</button></div>
+      ${(() => { const A = advNext(); return `<div class="small" data-tipn="Niveau d'aventure" data-tipd="Monte avec les combats gagnés, les expéditions, les gardiens vaincus et la profondeur de l'Abîme. Il conditionne l'amélioration des bâtiments."><b class="gold">${ico("crown", "#e8c878", 14)} Niveau d'aventure ${A.l}</b><div class="bar xp" style="margin:3px 0 8px"><i style="width:${100 * A.cur / A.need}%"></i></div></div>`; })()}<div class="row sp"><h3 style="margin:0">${ico("daily", "#e8c878", 16)} Défis du jour</h3><button class="btn ghost sm" data-a="toggleDaily">${UI.hideDaily ? "+" : "–"}</button></div>
       ${UI.hideDaily ? "" : ct.map((c, i) => `<div style="margin-top:6px"><div class="row sp small"><span>${c.n}</span><span class="${c.p >= c.goal ? "good" : "dim"}">${c.p}/${c.goal}</span></div><div class="row" style="gap:6px"><div class="bar xp" style="flex:1"><i style="width:${100 * c.p / c.goal}%"></i></div>${c.claimed ? '<span class="tiny good">✓</span>' : c.p >= c.goal ? `<button class="btn gold sm" data-a="claimCt" data-v="${i}">+${c.gold}</button>` : `<span class="tiny dim">${c.gold} or</span>`}</div></div>`).join("") + `<div class="sep" style="margin:8px 0"></div><button class="btn ${S.daily.done ? "ghost off" : "main"} sm" style="width:100%" data-a="dailyRun">${ico("star")}${S.daily.done ? "Expédition du jour accomplie" : "Expédition du jour (+récompenses)"}</button>` + weekPanel()}
     </div>`;
   },
@@ -57,7 +75,7 @@ ACT.bld = k => { if (k === "porte") { sfx("door"); go("expe"); return; } sfx("op
 function bldFooter(k) {
   const B = BUILDINGS[k], c = bldCost(k), l = S.bld[k];
   const next = { taverne: `Caserne : ${4 + (l + 1) * 2} héros · ${3 + l} recrues mieux aguerries`, forge: `Palier d'armure ${l + 1} · amélioration jusqu'à +${(l + 1) * 2}`, chapelle: `${3 + l} potions par expédition · soins moins chers`, academie: `Rang de compétence maximal ${l + 1}`, menagerie: `${l + 2} compagnons`, fonderie: `${[0, 18, 34, 58, 90, 135][l + 1]} or/h, réserve ${[0, 6, 8, 10, 12, 16][l + 1]} h` }[k];
-  return `<div class="sep"></div><div class="row sp"><div><b>${B.n}</b> <span class="gold">niveau ${l}</span>${c ? `<div class="small dim">Niveau ${l + 1} : ${next}</div>` : '<div class="small good">Niveau maximal</div>'}</div>${c ? `<button class="btn gold sm ${canPay(c) ? "" : "off"}" data-a="upBld" data-v="${k}">${ico("up")}${c.gold} ${ico("coin", "#e8c060")}${c.shards ? ` ${c.shards} ${ico("shard", "#c090ff")}` : ""}</button>` : ""}</div>`;
+  return `<div class="sep"></div><div class="row sp"><div><b>${B.n}</b> <span class="gold">niveau ${l}</span>${c ? `<div class="small dim">Niveau ${l + 1} : ${next}</div><div class="tiny ${advLevel() >= bldAdvReq(k) ? "good" : "bad"}">Niveau d'aventure ${bldAdvReq(k)} requis (actuel : ${advLevel()})</div>` : '<div class="small good">Niveau maximal</div>'}</div>${c ? `<button class="btn gold sm ${canPay(c) && advLevel() >= bldAdvReq(k) ? "" : "off"}" data-a="upBld" data-v="${k}">${ico("up")}${c.gold} ${ico("coin", "#e8c060")}${c.shards ? ` ${c.shards} ${ico("shard", "#c090ff")}` : ""}</button>` : ""}</div>`;
 }
 ACT.upBld = k => { const r = upgradeBld(k); if (r.err) return toast(r.err, "bad"); sfx("forge"); toast(`${BUILDINGS[k].n} : niveau ${S.bld[k]} !`, "good"); save(); openBuilding(k); renderHud(); };
 function openBuilding(k, tab) {
@@ -76,10 +94,10 @@ function openBuilding(k, tab) {
       const owned = [...new Set(S.heroes.map(h => h.cls))];
       body = head + `<p class="lore">L'enclume chante. Plus la forge est grande, plus l'acier est noble — et plus vos héros sont redoutables à voir.</p>
       <div class="row">${owned.map(c => `<button class="btn sm ${c === cls ? "on gold" : "ghost"}" data-a="forgeCls" data-v="${c}">${CLASSES[c].n}</button>`).join("")}</div>
-      <div class="grid" style="--min:250px;margin-top:10px">${[1, 2, 3, 4, 5, 6].map(t => { const c = craftCost(t), lock = t > S.bld.forge; return `<div class="card ${lock ? "lock" : ""}" style="cursor:default"><div class="row">${t >= 6 ? Object.keys(CLASSES[cls].evos).map(k => canvasSlot("tier:" + cls + ":6:" + k, 60, 95)).join("") : canvasSlot("tier:" + cls + ":" + t, 76, 95)}<div style="flex:1"><h3>${TIER_N[t]} ${lock ? ico("lock", "#9a8c7a", 14) : ""}</h3><div class="tiny dim">${t >= 6 ? "Ascendant : " + GEAR_NAMES[cls].wpn[4] + "<br>" + Object.values(CLASSES[cls].evos).map(E => "Armure ascendante : " + E.n).join("<br>") + '<br><span class="gold">Réservé aux héros évolués : chaque voie a son armure, qui révèle son aspect final</span>' : GEAR_NAMES[cls].wpn[t - 1] + "<br>" + GEAR_NAMES[cls].arm[t - 1]}</div><div class="tiny" style="margin-top:4px">${c.gold} or · ${c.fer} fer${c.essence ? ` · ${c.essence} ess.` : ""}${c.cendre ? ` · ${c.cendre} cendre` : ""}</div></div></div>${lock ? `<p class="tiny dim">Forge niveau ${t} requise</p>` : `<div class="row" style="margin-top:6px"><button class="btn sm ${canPay(c) ? "" : "off"}" data-a="craft" data-v="${cls}:wpn:${t}">${ico("weapon")}Arme</button>${t >= 6 ? Object.entries(CLASSES[cls].evos).map(([k, E]) => `<button class="btn sm ${canPay(c) ? "" : "off"}" data-a="craft" data-v="${cls}:arm:6:${k}">${ico("armor")}${E.n}</button>`).join("") : `<button class="btn sm ${canPay(c) ? "" : "off"}" data-a="craft" data-v="${cls}:arm:${t}">${ico("armor")}Armure</button>`}</div>`}</div>`; }).join("")}</div>`;
+      <div class="grid" style="--min:250px;margin-top:10px">${[1, 2, 3, 4, 5, 6].map(t => { const c = craftCost(t), lock = t > S.bld.forge; return `<div class="card ${lock ? "lock" : ""}" style="cursor:default"><div class="row">${t >= 6 ? Object.keys(CLASSES[cls].evos).map(k => canvasSlot("tier:" + cls + ":6:" + k, 60, 95)).join("") : canvasSlot("tier:" + cls + ":" + t, 76, 95)}<div style="flex:1"><h3>${TIER_N[t]} ${lock ? ico("lock", "#9a8c7a", 14) : ""}</h3><div class="tiny gold">Héros niveau ${TIER_LVL[t]}+</div><div class="tiny dim">${t >= 6 ? "Ascendant : " + GEAR_NAMES[cls].wpn[4] + "<br>" + Object.values(CLASSES[cls].evos).map(E => "Armure ascendante : " + E.n).join("<br>") + '<br><span class="gold">Réservé aux héros évolués : chaque voie a son armure, qui révèle son aspect final</span>' : GEAR_NAMES[cls].wpn[t - 1] + "<br>" + GEAR_NAMES[cls].arm[t - 1]}</div><div class="tiny" style="margin-top:4px">${c.gold} or · ${c.fer} fer${c.essence ? ` · ${c.essence} ess.` : ""}${c.cendre ? ` · ${c.cendre} cendre` : ""}</div></div></div>${lock ? `<p class="tiny dim">Forge niveau ${t} requise</p>` : `<div class="row" style="margin-top:6px"><button class="btn sm ${canPay(c) ? "" : "off"}" data-a="craft" data-v="${cls}:wpn:${t}">${ico("weapon")}Arme</button>${t >= 6 ? Object.entries(CLASSES[cls].evos).map(([k, E]) => `<button class="btn sm ${canPay(c) && S.heroes.some(h => h.cls === cls && h.evo === k) ? "" : "off"}" data-a="craft" data-v="${cls}:arm:6:${k}" ${S.heroes.some(h => h.cls === cls && h.evo === k) ? "" : 'title="Faites d\'abord évoluer un héros dans cette voie"'}>${ico("armor")}${E.n}</button>`).join("") : `<button class="btn sm ${canPay(c) ? "" : "off"}" data-a="craft" data-v="${cls}:arm:${t}">${ico("armor")}Armure</button>`}</div>`}</div>`; }).join("")}</div>`;
     } else {
       const junk = S.inv.filter(it => !itemUseful(it));
-      body = head + (S.inv.length ? `<div class="row sp" style="margin-bottom:8px"><span class="tiny dim">${junk.length ? `${junk.length} objet${junk.length > 1 ? "s" : ""} moins bon${junk.length > 1 ? "s" : ""} que ce que portent vos héros` : "Tout l'inventaire peut encore servir."}</span><button class="btn sm ${junk.length ? "gold" : "ghost off"}" data-a="salvAll">${ico("iron")}Tout recycler l'inutile</button></div>` : "") + invList();
+      body = head + (S.inv.length ? `<div class="row sp" style="margin-bottom:8px"><span class="tiny dim">${junk.length ? `${junk.length} objet${junk.length > 1 ? "s" : ""} moins bon${junk.length > 1 ? "s" : ""} que ce que portent vos héros` : "Tout l'inventaire peut encore servir."}</span><button class="btn sm ${junk.length ? "gold" : "ghost off"}" data-a="salvAll">${ico("iron")}Recyclage rapide</button></div>` : "") + invList();
     }
   }
   if (k === "chapelle") {
@@ -89,7 +107,7 @@ function openBuilding(k, tab) {
   }
   if (k === "academie") {
     const evo = S.heroes.filter(h => h.lvl >= EVO_LVL && !h.evo);
-    body = `<p class="lore">Des livres, des maîtres d'armes fatigués, et des leçons écrites dans le sang.</p><p class="small">Rang maximal des compétences : <b>${skillRankMax()}</b> (chaque rang : +10 % d'efficacité). Améliorez les compétences depuis la fiche de chaque héros.</p>
+    body = `<p class="lore">Des livres, des maîtres d'armes fatigués, et des leçons écrites dans le sang.</p><p class="small">Rang maximal des compétences : <b>${skillRankMax()}</b>, +1 tous les 10 niveaux du héros (chaque rang : +10 % d'efficacité). Améliorez les compétences depuis la fiche de chaque héros.</p>
     ${evo.length ? `<h3>Prêts à évoluer</h3>${evo.map(h => `<div class="row sp card" data-go="hero" data-arg="${h.id}">${canvasSlot("h:" + h.id, 56, 56)}<div style="flex:1"><b>${esc(h.name)}</b> <span class="small dim">· ${CLASSES[h.cls].n} niv ${h.lvl}</span><div class="small gold">Peut devenir ${Object.values(CLASSES[h.cls].evos).map(e => e.n).join(" ou ")}</div></div>${ico("up", "#e8c878")}</div>`).join("")}` : `<p class="small dim">Au niveau ${EVO_LVL}, chaque héros choisit une voie : deux évolutions par classe, chacune avec ses compétences, son ultime et son apparence. Au niveau ${APEX_LVL}, il atteint son apogée.</p>`}`;
   }
   if (k === "menagerie") {
@@ -194,7 +212,8 @@ function itemLine(it) {
   if (it.kind === "arm") stats.push(`+${Math.round((ARM_HP[it.tier] * (1 + .07 * it.up) + it.up * .025) * 100)} % PV`, `+${Math.round(ARM_PROT[it.tier] * 100)} % protection`);
   if (it.kind === "tr") stats.push(TRINKETS[it.key].d);
   for (const f of it.aff || []) { const A = AFFIXES[f.k]; stats.push(`+${A.fmt === "pct" ? Math.round(f.v * 100) + " %" : f.v} ${A.n}`); }
-  return gl(stats.filter(t => !/^\+0 %/.test(t)).join(" · ")) || "Équipement de base";
+  const req = it.kind !== "tr" && TIER_LVL[it.tier] > 1 ? ` · <span class="tiny dim">niv ${TIER_LVL[it.tier]}+</span>` : "";
+  return (gl(stats.filter(t => !/^\+0 %/.test(t)).join(" · ")) || "Équipement de base") + req;
 }
 function slotHTML(it, act, v, extra = "") { if (!it) return `<div class="slot" data-a="${act}" data-v="${v}">${ico("plus", "#5a4a3a")}</div>`; return `<div class="slot r${it.rar}" data-a="${act}" data-v="${v}" title="${esc(gearName(it))}">${(() => { const a = itemArt(it); if (a) return `<img class="itimg" src="${a}" alt="">`; const id = "w" + (++ITEM_WAIT.n); ITEM_WAIT.set(id, it); return `<span class="itw" data-iw="${id}">${ico(itemIcon(it), RARITY[it.rar].c)}</span>`; })()}${it.kind !== "tr" ? `<span class="tier">${"I II III IV V VI".split(" ")[it.tier - 1]}</span>` : ""}${it.up ? `<span class="up">+${it.up}</span>` : ""}${extra}</div>`; }
 function invList(filter) {

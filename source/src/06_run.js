@@ -42,7 +42,23 @@ function genMap(rng, cols, opt = {}) {
     for (let j = 0; j < Bn.length; j++) if (!A.some(nd => nd.links.includes(j))) { const nd = A.reduce((b, x) => Math.abs(x.x - Bn[j].x) < Math.abs(b.x - Bn[j].x) ? x : b); nd.links.push(j); }
     for (const nd of A) nd.links.sort((a, b) => a - b);
   }
+  fixMapRules(map, rng);
   return map;
+}
+// règles de la carte : jamais deux salles identiques d'affilée (sauf les combats) et au moins une élite sur chaque chemin
+function fixMapRules(map, rng) {
+  const cols = map.length, parents = (nd) => nd.c ? map[nd.c - 1].filter(p => p.links.includes(nd.i)) : [], kids = nd => nd.c < cols - 1 ? nd.links.map(j => map[nd.c + 1][j]) : [];
+  for (let c = 1; c < cols - 1; c++) for (const nd of map[c]) if (nd.type !== "combat") for (const p of parents(nd)) if (p.type === nd.type) { if (c === cols - 2) p.type = "combat"; else nd.type = "combat"; }
+  for (let guard = 0; guard < 40; guard++) {
+    // f : existe-t-il un chemin sans élite depuis ce nœud jusqu'au gardien ?
+    const f = new Map(); for (let c = cols - 1; c >= 0; c--) for (const nd of map[c]) f.set(nd, nd.type !== "elite" && (c === cols - 1 || kids(nd).some(k => f.get(k))));
+    let cur = map[0].find(nd => f.get(nd)); if (!cur) break;
+    const path = []; while (cur) { path.push(cur); cur = kids(cur).find(k => f.get(k)); }
+    const cand = path.filter(nd => nd.c >= 1 && nd.c <= cols - 3 && nd.type === "combat");
+    const calm = cand.filter(nd => ![...parents(nd), ...kids(nd)].some(x => x.type === "elite"));
+    const pickN = (calm.length ? calm : cand)[Math.floor(rng() * (calm.length || cand.length))];
+    if (!pickN) { const any = path.find(nd => nd.c >= 1 && nd.c <= cols - 3); if (!any) break; any.type = "elite"; } else pickN.type = "elite";
+  }
 }
 
 // ── lancement d'une expédition ──

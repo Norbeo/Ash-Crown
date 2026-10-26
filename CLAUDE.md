@@ -55,3 +55,11 @@ RPG tactique dark fantasy médiéval, vanilla JS + Canvas 2D, PWA installable (m
 ## Commits
 Auteur `Norbeo`, et terminer les messages par :
 Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+
+## À faire (demandes du 26 oct. 2026, après réinitialisation de l'utilisation)
+- Doubler le contenu : nouveaux monstres, élites, gardiens, un 6e chapitre (illustrations Canva : décor + monstres), bibelots peints `tr_<clé>` pour les 20 nouveaux.
+- Compagnons ×3 (18 → 54) avec illustrations Canva.
+- Sons : refaire `gen_audio.py` en plus réaliste et sombre (moins « enfantin »).
+- Accueil (écran-titre) et bâtiments : retravailler, éventuellement nouvelles illustrations par niveau.
+- Armures palier V trop belles par rapport au VI : retoucher le palier V ou renforcer le VI (aura déjà ajoutée).
+- Idées validées « toutes » : équipes enregistrées, arbre de talents après le niveau 15, stress/folie, ennemis corrompus en menace IV–V, fiches d'ennemis au Bestiaire, journal de combat, défis de classe, revente au colporteur, scènes du Bastion.

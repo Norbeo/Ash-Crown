@@ -140,7 +140,7 @@ function genEncounter(run, node, rng = RNG) {
 // ── récompenses ──
 function rewardFor(run, node, rng = RNG) {
   const lvl = runLevel(run, node), rh = relicHooks(run), luck = run.light < 30 ? .05 : 0;
-  const goldM = 1 + (rh.gold || 0) + (run.pet && PETS[run.pet].gold ? PETS[run.pet].gold : 0) + (run.daily ? .25 : 0) + run.oaths.length * .15 + run.threat * .3;
+  const goldM = 1 + (rh.gold || 0) + run.party.map(heroById).filter(Boolean).reduce((a, h) => a + heroPassives(h).filter(p => p.k === "gold").reduce((b, p) => b + p.v, 0), 0) + (run.pet && PETS[run.pet].gold ? PETS[run.pet].gold : 0) + (run.daily ? .25 : 0) + run.oaths.length * .15 + run.threat * .3;
   const R = { gold: 0, xp: 0, loot: [], relic: null, mats: { fer: 0, essence: 0, cendre: 0 }, shards: 0, petXp: 0 };
   const t = node.type;
   if (t === "combat") { R.gold = (14 + lvl * 4.5) * (0.85 + rng() * .3); R.xp = 26 + lvl * 7; R.mats.fer = rng.chance(.6) ? 1 : 0; if (rng.chance(.22 + luck)) R.loot.push(lootGear(lvl, luck)); }

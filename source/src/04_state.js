@@ -102,7 +102,7 @@ const rollRarity = (luck = 0) => { const r = rnd() - luck; return r < .003 ? 5 :
 function lootGear(lvl, luck = 0, cls) {
   const tier = clamp(Math.floor(lvl / 4.2) + 1 + (chance(.25) ? 1 : 0), 1, 5);
   const r = rnd(), rar = rollRarity(luck);
-  if (r < .3) return makeGear("tr", null, 1, Math.min(rar, 3));
+  if (r < .3) return makeGear("tr", null, 1, rar);
   const owned = S ? [...new Set(S.heroes.map(h => h.cls))] : [];
   const c = cls || (owned.length && chance(.85) ? pick(owned) : pick(CLASS_IDS));
   return makeGear(r < .65 ? "wpn" : "arm", c, tier, rar);

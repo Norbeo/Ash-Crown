@@ -38,6 +38,28 @@ const AFFIXES = {
 };
 // bibelots : 2 emplacements. Uniques, avec un effet marquant
 const TRINKETS = {
+  // ── bibelots ajoutés ──
+  oeil_verre: { n: "Œil de verre", r: 0, ic: "eye", pas: [{ k: "stat", s: "acc", v: 6 }], d: "+6 de précision." },
+  plume_corbeau: { n: "Plume de corbeau", r: 0, ic: "feather", pas: [{ k: "stat", s: "dodge", v: 4 }], d: "+4 d'esquive." },
+  bourse_cuir: { n: "Bourse de cuir", r: 0, ic: "bag", pas: [{ k: "gold", v: .08 }], d: "+8 % d'or." },
+  clou_cercueil: { n: "Clou de cercueil", r: 0, ic: "skull", pas: [{ k: "stat", s: "dmg", v: .04 }], d: "+4 % de dégâts." },
+  fiole_sel: { n: "Fiole de sel", r: 0, ic: "flask", pas: [{ k: "stat", s: "res", v: 15 }], d: "+15 de résistance." },
+  gantelet_rouille: { n: "Gantelet rouillé", r: 1, ic: "glove", pas: [{ k: "stat", s: "prot", v: .06 }, { k: "stat", s: "spd", v: -1 }], d: "+6 % de protection, −1 de vitesse." },
+  sablier_noir: { n: "Sablier noir", r: 1, ic: "hourglass", pas: [{ k: "stat", s: "spd", v: 2 }], d: "+2 de vitesse." },
+  coeur_seche: { n: "Cœur séché", r: 1, ic: "heart", pas: [{ k: "stat", s: "hp", v: .1 }], d: "+10 % de PV." },
+  dague_rituelle: { n: "Dague rituelle", r: 1, ic: "dagger", pas: [{ k: "stat", s: "crit", v: 6 }, { k: "stat", s: "dmg", v: .03 }], d: "+6 % de critique, +3 % de dégâts." },
+  encens_noir: { n: "Encens noir", r: 1, ic: "ember", pas: [{ k: "stat", s: "healPow", v: .12 }], d: "+12 % de soins prodigués." },
+  sceau_abbe: { n: "Sceau de l'abbé", r: 2, ic: "seal", pas: [{ k: "stat", s: "res", v: 25 }, { k: "stat", s: "prot", v: .05 }], d: "+25 de résistance, +5 % de protection." },
+  crane_dore: { n: "Crâne doré", r: 2, ic: "skull", pas: [{ k: "stat", s: "dmg", v: .1 }, { k: "stat", s: "hp", v: -.05 }], d: "+10 % de dégâts, −5 % de PV." },
+  manteau_givre: { n: "Agrafe de givre", r: 2, ic: "cloak", pas: [{ k: "stat", s: "dodge", v: 8 }, { k: "stat", s: "spd", v: 1 }], d: "+8 d'esquive, +1 de vitesse." },
+  dent_vampire: { n: "Dent de vampire", r: 2, ic: "fang", pas: [{ k: "stat", s: "leech", v: .08 }], d: "+8 % de vol de vie." },
+  larme_sainte: { n: "Larme de la Sainte", r: 3, ic: "gem", pas: [{ k: "stat", s: "healPow", v: .25 }, { k: "stat", s: "res", v: 15 }], d: "+25 % de soins prodigués, +15 de résistance." },
+  oeil_roi: { n: "Œil du Roi de Cendres", r: 3, ic: "eye", pas: [{ k: "stat", s: "crit", v: 10 }, { k: "stat", s: "acc", v: 8 }], d: "+10 % de critique, +8 de précision." },
+  // mythiques et divins
+  fragment_couronne: { n: "Fragment de la Couronne", r: 4, ic: "crown", pas: [{ k: "stat", s: "dmg", v: .15 }, { k: "stat", s: "hp", v: .1 }], d: "+15 % de dégâts, +10 % de PV." },
+  coeur_abime: { n: "Cœur de l'Abîme", r: 4, ic: "heart", pas: [{ k: "stat", s: "leech", v: .1 }, { k: "stat", s: "crit", v: 8 }], d: "+10 % de vol de vie, +8 % de critique." },
+  aube_eternelle: { n: "Aube éternelle", r: 5, ic: "sun", pas: [{ k: "stat", s: "dmg", v: .2 }, { k: "stat", s: "hp", v: .15 }, { k: "stat", s: "spd", v: 2 }], d: "+20 % de dégâts, +15 % de PV, +2 de vitesse." },
+  larme_dieu: { n: "Larme d'un dieu mort", r: 5, ic: "gem", pas: [{ k: "stat", s: "healPow", v: .35 }, { k: "stat", s: "prot", v: .1 }, { k: "stat", s: "res", v: 30 }], d: "+35 % de soins, +10 % de protection, +30 de résistance." },
   dent_loup: { n: "Dent de loup", r: 0, ic: "fang", pas: [{ k: "stat", s: "crit", v: 4 }], d: "+4 % de critique." },
   chapelet: { n: "Chapelet usé", r: 0, ic: "rosary", pas: [{ k: "stat", s: "res", v: 12 }], d: "+12 de résistance." },
   bague_fer: { n: "Bague de fer", r: 0, ic: "ring", pas: [{ k: "stat", s: "prot", v: .05 }], d: "+5 % de protection." },
@@ -109,6 +131,41 @@ const SYNERGIES = {
   garde_royale: { n: "Garde royale", need: [["hallebardier"], ["arbaletriere", "templier"]], h: { thorns: .12, crit: 4 }, d: "12 % des dégâts de mêlée renvoyés, +4 % de critique." },
   choeur_funebre: { n: "Chœur funèbre", need: [["menestrel"], ["exorciste", "pretresse"]], h: { morale: 15, roundHeal: .02 }, d: "+15 de résolution au début des combats, le groupe récupère 2 % de PV par tour." },
   danse_macabre: { n: "Danse macabre", need: [["necromancien"], ["menestrel"]], h: { markDmg: .2 }, d: "+20 % de dégâts contre les cibles marquées." },
+  // ── synergies ajoutées : chaque classe a plusieurs partenaires, et les compositions par rôles sont récompensées ──
+  croisade: { n: "Croisade", need: [["templier"], ["exorciste"]], h: { vsImpie: .18, prot: .04 }, d: "+18 % de dégâts contre les impies, +4 % de protection." },
+  ordre_noir: { n: "L'Ordre noir", need: [["revenant"], ["templier", "hallebardier"]], h: { thorns: .12, hp: .06 }, d: "12 % des dégâts de mêlée renvoyés, +6 % de PV." },
+  serment_sang: { n: "Serment de sang", need: [["revenant"], ["berserker"]], h: { leech: .05, dmg: .07 }, d: "+5 % de vol de vie, +7 % de dégâts." },
+  veillee: { n: "La Veillée", need: [["pretresse"], ["menestrel"]], h: { roundHeal: .02, morale: 10 }, d: "Le groupe récupère 2 % de PV par tour, +10 de résolution." },
+  chirurgie_sainte: { n: "Chirurgie sainte", need: [["pretresse"], ["medecin_peste"]], h: { heal: .2, postHeal: .04 }, d: "+20 % de soins, +4 % de PV rendus après chaque combat." },
+  cercle_sorcieres: { n: "Le Cercle", need: [["sorciere"], ["necromancien", "pyromancien"]], h: { dot: .2, startWeak: 1 }, d: "+20 % de dégâts sur la durée, les ennemis commencent affaiblis." },
+  druides: { n: "Racines profondes", need: [["sorciere"], ["gardien_runes"]], h: { hp: .08, roundHeal: .015 }, d: "+8 % de PV, 1,5 % de PV rendus par tour." },
+  ballade_guerre: { n: "Ballade de guerre", need: [["menestrel"], ["berserker", "hallebardier"]], h: { dmg: .08, spd: 1 }, d: "+8 % de dégâts, +1 de vitesse." },
+  hymne_runique: { n: "Hymne runique", need: [["menestrel"], ["gardien_runes"]], h: { prot: .06, morale: 8 }, d: "+6 % de protection, +8 de résolution." },
+  fureur_flammes: { n: "Fureur des flammes", need: [["berserker"], ["pyromancien"]], h: { burnT: 1, crit: 4 }, d: "Les brûlures durent 1 tour de plus, +4 % de critique." },
+  boucherie: { n: "Boucherie", need: [["berserker"], ["ombre"]], h: { bleedT: 1, killHeal: .05 }, d: "Les saignements durent 1 tour de plus, chaque ennemi tué soigne de 5 %." },
+  lames_nuit: { n: "Lames de la nuit", need: [["ombre"], ["chasseur_sorcieres"]], h: { markDmg: .15, crit: 5 }, d: "+15 % de dégâts sur les cibles marquées, +5 % de critique." },
+  poison_ombre: { n: "Venin d'ombre", need: [["ombre"], ["medecin_peste"]], h: { poisonT: 1, dot: .12 }, d: "Les poisons durent 1 tour de plus, +12 % de dégâts sur la durée." },
+  pluie_carreaux: { n: "Pluie de carreaux", need: [["arbaletriere"], ["chasseur_sorcieres"]], h: { firstStrike: 1, aoe: .1 }, d: "Le groupe agit en premier, +10 % de dégâts de zone." },
+  tir_couvert: { n: "Tir à couvert", need: [["arbaletriere"], ["gardien_runes", "templier"]], h: { crit: 6, prot: .03 }, d: "+6 % de critique, +3 % de protection." },
+  feu_noir: { n: "Feu noir", need: [["pyromancien"], ["necromancien"]], h: { darkDmg: .15, burnT: 1 }, d: "+15 % de dégâts dans l'obscurité, brûlures prolongées." },
+  forge_ardente: { n: "Forge ardente", need: [["pyromancien"], ["gardien_runes"]], h: { dmg: .08, thorns: .08 }, d: "+8 % de dégâts, 8 % des dégâts de mêlée renvoyés." },
+  armee_morts: { n: "Armée des morts", need: [["necromancien"], ["hallebardier"]], h: { revive: 1, hp: .05 }, d: "Une fois par combat, un héros tombé se relève ; +5 % de PV." },
+  peste_noire: { n: "La Peste noire", need: [["necromancien"], ["medecin_peste"]], h: { poisonT: 1, startWeak: 1 }, d: "Poisons prolongés, ennemis affaiblis au départ." },
+  enclume: { n: "Enclume et marteau", need: [["gardien_runes"], ["hallebardier"]], h: { prot: .07, critStun: 1 }, d: "+7 % de protection, les critiques peuvent étourdir." },
+  quarantaine: { n: "Quarantaine", need: [["medecin_peste"], ["chasseur_sorcieres", "exorciste"]], h: { heal: .12, vsImpie: .12 }, d: "+12 % de soins, +12 % de dégâts contre les impies." },
+  inquisition: { n: "L'Inquisition", need: [["chasseur_sorcieres"], ["templier"]], h: { markDmg: .15, morale: 8 }, d: "+15 % sur les cibles marquées, +8 de résolution." },
+  phalange: { n: "Phalange", need: [["hallebardier"], ["templier", "revenant", "gardien_runes"]], h: { thorns: .1, prot: .05 }, d: "10 % des dégâts renvoyés, +5 % de protection." },
+  confession: { n: "Confession", need: [["exorciste"], ["pretresse", "medecin_peste"]], h: { heal: .1, morale: 12 }, d: "+10 % de soins, +12 de résolution." },
+  exorcisme: { n: "Grand exorcisme", need: [["exorciste"], ["necromancien"]], h: { vsImpie: .3 }, d: "+30 % de dégâts contre les impies (le mort au service de la foi)." },
+  meute: { n: "La Meute", need: [["berserker"], ["arbaletriere"]], h: { pet: .25, dmg: .05 }, d: "Le compagnon frappe 25 % plus fort, +5 % de dégâts." },
+  // rôles
+  deux_soigneurs: { n: "Double bénédiction", count: { soin: 2 }, h: { heal: .1, roundHeal: .015 }, d: "Deux soigneurs : +10 % de soins, 1,5 % de PV par tour." },
+  deux_soutiens: { n: "Chœur de guerre", count: { soutien: 2 }, h: { morale: 15, spd: 1 }, d: "Deux soutiens : +15 de résolution, +1 de vitesse." },
+  trois_lames: { n: "Trois lames", count: { dps: 3 }, h: { dmg: .1, crit: 4 }, d: "Trois héros de dégâts : +10 % de dégâts, +4 % de critique." },
+  massacre: { n: "Massacre", count: { dps: 4 }, h: { dmg: .2, hp: -.1 }, d: "Quatre héros de dégâts : +20 % de dégâts, mais −10 % de PV." },
+  forteresse: { n: "Forteresse", count: { tank: 3 }, h: { prot: .12, hp: .08, dmg: -.08 }, d: "Trois tanks : +12 % de protection, +8 % de PV, −8 % de dégâts." },
+  sans_soigneur: { n: "Sans pitié", none: ["soin"], h: { dmg: .08, killHeal: .06 }, d: "Aucun soigneur : +8 % de dégâts, chaque ennemi tué soigne de 6 %." },
+  sans_tank: { n: "Vent de mort", none: ["tank"], h: { firstStrike: 1, spd: 2 }, d: "Aucun tank : le groupe agit en premier, +2 de vitesse." },
   compagnie_complete: { n: "Compagnie complète", roles: ["tank", "soin", "soutien", "dps"], h: { dmg: .05, hp: .05 }, d: "Un tank, un soigneur, un soutien et une lame : +5 % de dégâts et de PV." },
 };
 function activeSynergies(classes) {
@@ -117,6 +174,8 @@ function activeSynergies(classes) {
     if (Y.need && !Y.need.every(g => g.some(c => classes.includes(c)))) return false;
     if (Y.tanks && roles.filter(r => r === "tank").length < Y.tanks) return false;
     if (Y.roles && !Y.roles.every(r => roles.includes(r))) return false;
+    if (Y.count && !Object.entries(Y.count).every(([r, n]) => roles.filter(x => x === r).length >= n)) return false;
+    if (Y.none && Y.none.some(r => roles.includes(r))) return false;
     return true; });
 }
 // événements : choix narratifs entre deux salles

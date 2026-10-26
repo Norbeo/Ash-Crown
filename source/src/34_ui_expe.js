@@ -65,6 +65,7 @@ ACT.launch = () => {
   startRun(E.region, E.party, E.pet, opt);
   E.daily = null; E.week = null; save(); sfx("door"); musicPlay("map");
   go("map");
+  if (!(S.seenScene || {})[S.run.region] && SCENES[S.run.region]) return showScene(S.run.region);
   const R = regionById(S.run.region);
   setTimeout(() => toast(`<b>${R.n}</b><br><span class="small lore">${gl(R.d)}</span>`), 300);
 };
@@ -247,7 +248,7 @@ SCREENS.results = {
     const T = { victory: ["Victoire", "Le gardien est tombé. Vos héros rentrent, couverts de gloire et de sang."], retreat: ["Retraite", "Vous rentrez avant que la nuit ne vous dévore."], wipe: ["Déroute", "Personne n'est resté debout. Vos héros sont ramenés au Bastion par des inconnus… sans leur butin."] }[res.outcome];
     return `<div class="wrap" style="max-width:640px"><div class="panel frame" style="margin-top:10px"><span class="corner c1"></span><span class="corner c2"></span><span class="corner c3"></span><span class="corner c4"></span>
       <h1 style="text-align:center;color:${res.outcome === "wipe" ? "#ff6a5a" : res.outcome === "victory" ? "var(--gold2)" : "var(--txt)"}">${T[0]}</h1><p class="lore" style="text-align:center">${T[1]}</p>
-      ${res.story ? `<div class="storybox" style="font-size:16px;padding:6px 10px">${res.story}</div>` : ""}
+      ${res.story ? `<div class="storybox" style="font-size:16px;padding:6px 10px">${res.story}</div>${(SCENE_END[res.region] || []).map(sceneLineHTML).join("")}` : ""}
       <div class="reward">${ico("coin", "#e8c060", 22)}<b>+${res.gold} or</b>${res.outcome === "wipe" ? ' <span class="tiny bad">(moitié perdue)</span>' : ""}</div>
       ${res.shards ? `<div class="reward">${ico("shard", "#c090ff", 22)}<b>+${res.shards} éclats de couronne</b></div>` : ""}
       ${res.mats.fer || res.mats.essence || res.mats.cendre ? `<div class="reward">${ico("iron", "#a8a8a8", 22)}${res.mats.fer} ferraille · ${res.mats.essence} essence${res.mats.cendre ? " · " + res.mats.cendre + " cendre royale" : ""}</div>` : ""}

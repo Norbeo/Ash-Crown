@@ -130,3 +130,23 @@ function cbInfo(u, what, px, py) {
   clearTimeout(CB.infoT); CB.infoT = setTimeout(() => { const e = $("#cbinfo"); if (e) e.remove(); }, 9000);
 }
 document.addEventListener("pointerdown", e => { const el = $("#cbinfo"); if (el && !el.contains(e.target) && e.target !== SC.cv) el.remove(); });
+
+// ── Histoire : scène dialoguée avant chaque chapitre ──
+function sceneLineHTML([sp, txt]) { const P = SPEAKERS[sp] || SPEAKERS.narr; return P.n ? `<p class="scn"><b style="color:${P.c}">${P.n}</b><br>« ${txt} »</p>` : `<p class="scn lore">${txt}</p>`; }
+function showScene(reg, done) {
+  const Sc = SCENES[reg]; if (!Sc) return done && done();
+  (S.seenScene = S.seenScene || {})[reg] = 1; save();
+  let i = 0;
+  const step = () => {
+    const shown = Sc.lines.slice(0, i + 1).map(sceneLineHTML).join(""), last = i >= Sc.lines.length - 1;
+    modal(`<h2>${ico("scroll", "#e8c878")} ${Sc.t}</h2><div class="scnbox">${shown}</div><div class="row sp" style="margin-top:10px"><button class="btn ghost sm" data-a="sceneSkip">Passer</button><button class="btn main" data-a="sceneNext">${last ? "En route" : "Suite"}</button></div>`, { close: false, outside: () => ACT.sceneNext() });
+    const b = $("#modal .scnbox"); if (b) b.scrollTop = b.scrollHeight;
+  };
+  ACT.sceneNext = () => { if (i >= Sc.lines.length - 1) { closeModal(); done && done(); } else { i++; step(); } };
+  ACT.sceneSkip = () => { closeModal(); done && done(); };
+  step();
+}
+function scenesCodexHTML() {
+  const seen = S.seenScene || {};
+  return Object.keys(SCENES).filter(k => seen[k]).map(k => `<div class="panel" style="padding:12px;margin-top:10px"><h3>${SCENES[k].t}</h3>${SCENES[k].lines.map(sceneLineHTML).join("")}${S.prog[k] && S.prog[k].clears && SCENE_END[k] ? `<div class="sep"></div>${SCENE_END[k].map(sceneLineHTML).join("")}` : ""}</div>`).join("") || '<p class="tiny dim">Les dialogues des chapitres apparaîtront ici au fil de l\'aventure.</p>';
+}

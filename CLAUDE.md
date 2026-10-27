@@ -63,3 +63,19 @@ Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
 - Accueil (écran-titre) et bâtiments : retravailler, éventuellement nouvelles illustrations par niveau.
 - Armures palier V trop belles par rapport au VI : retoucher le palier V ou renforcer le VI (aura déjà ajoutée).
 - Idées validées « toutes » : équipes enregistrées, arbre de talents après le niveau 15, stress/folie, ennemis corrompus en menace IV–V, fiches d'ennemis au Bestiaire, journal de combat, défis de classe, revente au colporteur, scènes du Bastion.
+
+## À faire jeudi soir (demandes du 27 oct. 2026), en plus de la liste ci-dessus
+1. Armures palier V : certaines classes deviennent toutes dorées au palier V puis redeviennent « normales » au VI (prêtresse, templier, hallebardier…). Repeindre le palier V de chaque classe pour une progression cohérente IV → V → VI (le VI = illustration de voie). Pas d'aura ajoutée (retirée à la demande).
+2. Recyclage rapide : ne pas recycler les objets de palier supérieur que les héros ne peuvent pas encore équiper (niveau trop bas) ; proposer une sélection par rareté (tout le commun, tout le peu commun, etc.).
+3. Forge : toucher une armure (ou son palier) ouvre l'image en grand pour voir le détail.
+4. Quitter en plein combat de gardien : à la reprise, même gardien (ne pas retirer au hasard) — mémoriser le monstre tiré dans le nœud.
+5. Agonie : un héros qui tombe 3 fois à l'agonie dans le même combat meurt (évite les combats infinis avec le soin du compagnon). Fuite toujours possible si le combat est trop dur.
+6. Niveaux des chapitres alignés sur les paliers : chap. 1 niv 1–5, chap. 2 niv 5–10, chap. 3 niv 10–15, chap. 4 niv 15–20, chap. 5 niv 20–25 ; butin plafonné au palier du chapitre (chap. 1 → niveau 5 max, etc.).
+7. Taux de drop par qualité, à documenter (glossaire/Archives + CLAUDE.md) : commun ≈ 50 %, peu commun ≈ 30 %, rare ≈ 10 %, puis épique, légendaire, mythique, divin décroissants ; prévoir une qualité au-dessus plus tard (« cosmique »). NB : il faut une qualité « Peu commun » entre Commun et Rare (renommer/insérer dans `RARITY`).
+8. Retour d'interface : après avoir équipé un objet (ex. depuis l'inventaire de la forge), revenir à l'écran précédent (la forge) et non au menu principal.
+9. Gardiens hors cadre en portrait sur téléphone : réduire leur taille en portrait.
+10. Statistiques affichées avec trop de décimales (ex. 2.0333333) : arrondir à l'entier partout.
+11. Nouveaux objets « tome d'expérience » : donnent de l'XP uniquement aux héros d'un niveau inférieur au héros le plus haut du roster.
+12. Bibelots : quand les deux emplacements sont pleins, laisser choisir lequel remplacer (pas toujours le premier).
+13. Gardiens de chapitre : remettre l'ordre de l'histoire à la première victoire (chap. 1 Docteur Peste, etc.) ; ensuite, aux passages suivants, gardien aléatoire parmi ceux déjà vaincus uniquement (un gardien du chap. 3 n'apparaît pas tant qu'on ne l'a pas battu à la fin du chap. 3).
+14. Un nouveau gardien inédit par niveau de menace (II à V), à créer avec illustrations.

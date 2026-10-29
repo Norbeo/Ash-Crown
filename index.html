@@ -34,6 +34,7 @@ html,body{margin:0;height:100%;background:var(--bg);color:var(--txt);font-family
 #nav button{flex:1;max-width:120px;display:flex;flex-direction:column;align-items:center;gap:2px;background:none;border:0;color:var(--dim);font-family:var(--f-head);font-size:11px;letter-spacing:.05em;padding:6px 2px;position:relative;cursor:pointer;transition:color .2s}
 #nav button .ic{width:26px;height:26px;transition:transform .25s,filter .25s}
 #nav button.on{color:var(--gold2)}#nav button.on .ic{filter:drop-shadow(0 0 6px #ff9a3a);transform:translateY(-2px) scale(1.08)}
+#boot{position:fixed;inset:0;z-index:200;background:radial-gradient(ellipse at 50% 40%,#2a1408 0%,#0a0604 60%,#030202 100%);display:flex;align-items:center;justify-content:center;transition:opacity .9s}#boot.out{opacity:0;pointer-events:none}.bootin{text-align:center;width:min(340px,80vw)}.bootin img{width:120px;height:120px;object-fit:contain;filter:drop-shadow(0 0 18px #ff7a2a66);animation:bootpulse 2.4s ease-in-out infinite}.bootin h1{font-family:var(--f-title);color:var(--gold2);font-size:clamp(24px,7vw,36px);margin:10px 0 16px;text-shadow:0 0 14px #ff7a2a66}.bootbar{height:4px;background:#ffffff14;border-radius:3px;overflow:hidden}.bootbar i{display:block;height:100%;width:0;background:linear-gradient(90deg,#8a4a1a,#e8b060);box-shadow:0 0 10px #ff9a3a;transition:width .3s}.boottxt{margin-top:10px;font-size:13px;color:#b8a88a;letter-spacing:.05em}#bootskip{margin-top:14px}@keyframes bootpulse{50%{transform:scale(1.04);filter:drop-shadow(0 0 28px #ff7a2a99)}}
 #artload{position:fixed;left:50%;bottom:calc(env(safe-area-inset-bottom) + 84px);transform:translateX(-50%);width:min(320px,70vw);z-index:60;pointer-events:none;text-align:center;font-size:11px;color:#b8a88a;letter-spacing:.06em;transition:opacity .8s}#artload i{display:block;height:3px;width:0;background:linear-gradient(90deg,#8a4a1a,#e8b060);border-radius:2px;box-shadow:0 0 8px #ff9a3a88;margin-bottom:5px;transition:width .3s}#artload.done{opacity:0}
 .gl{border-bottom:1px dotted rgba(232,200,120,.55);cursor:help}[data-tip],[data-tipn]{cursor:help}
 #tip{position:fixed;z-index:90;max-width:min(320px,calc(100vw - 16px));padding:9px 11px;background:linear-gradient(#1c1612,#0e0b09);border:1px solid #6a5232;border-radius:6px;box-shadow:0 6px 24px #000c,inset 0 0 0 1px #0008;font-size:13px;line-height:1.4;color:#d8ccb4;pointer-events:none}
@@ -206,9 +207,10 @@ p{margin:6px 0;line-height:1.45}
 </div>
 <div id="modal" hidden></div>
 <div id="artload" hidden><i></i><span></span></div>
+<div id="boot"><div class="bootin"><img src="assets/ui_emblem.webp" alt="" onerror="this.remove()"><h1>Couronne de Cendres</h1><div class="bootbar"><i></i></div><div class="boottxt">Les braises s'allument…</div><button class="btn ghost sm" id="bootskip" style="display:none">Continuer sans attendre</button></div></div>
 <div id="toasts" aria-live="polite"></div>
 <script>window.CC_SW = 1;</script><script>
-window.ART_LIST=["bg_abime","bg_bastion","bg_bastion2","bg_bourg","bg_catacombes","bg_citadelle","bg_foret","bg_marais","bg_titre","bld_academie","bld_chapelle","bld_fonderie","bld_forge","bld_menagerie","bld_porte","bld_taverne","hero_arbaletriere_chasseresse","hero_arbaletriere_t1","hero_arbaletriere_t2","hero_arbaletriere_t3","hero_arbaletriere_t4","hero_arbaletriere_t5","hero_arbaletriere_tireuse_elite","hero_berserker_chef_guerre","hero_berserker_ecorcheur","hero_berserker_t1","hero_berserker_t2","hero_berserker_t3","hero_berserker_t4","hero_berserker_t5","hero_chasseur_sorcieres_purificateur","hero_chasseur_sorcieres_t1","hero_chasseur_sorcieres_t2","hero_chasseur_sorcieres_t3","hero_chasseur_sorcieres_t4","hero_chasseur_sorcieres_t5","hero_chasseur_sorcieres_traqueur","hero_exorciste_confesseur","hero_exorciste_penitent","hero_exorciste_t1","hero_exorciste_t2","hero_exorciste_t3","hero_exorciste_t4","hero_exorciste_t5","hero_gardien_runes_forge_tonnerre","hero_gardien_runes_t1","hero_gardien_runes_t2","hero_gardien_runes_t3","hero_gardien_runes_t4","hero_gardien_runes_t5","hero_gardien_runes_thane_pierre","hero_hallebardier_garde_roi","hero_hallebardier_lansquenet","hero_hallebardier_t1","hero_hallebardier_t2","hero_hallebardier_t3","hero_hallebardier_t4","hero_hallebardier_t5","hero_medecin_peste_apothicaire","hero_medecin_peste_chirurgien","hero_medecin_peste_t1","hero_medecin_peste_t2","hero_medecin_peste_t3","hero_medecin_peste_t4","hero_medecin_peste_t5","hero_menestrel_chantre","hero_menestrel_heraut","hero_menestrel_t1","hero_menestrel_t2","hero_menestrel_t3","hero_menestrel_t4","hero_menestrel_t5","hero_necromancien_liche","hero_necromancien_maitre_tombes","hero_necromancien_t1","hero_necromancien_t2","hero_necromancien_t3","hero_necromancien_t4","hero_necromancien_t5","hero_ombre_assassin","hero_ombre_ombre_sang","hero_ombre_t1","hero_ombre_t2","hero_ombre_t3","hero_ombre_t4","hero_ombre_t5","hero_pretresse_martyre","hero_pretresse_sainte","hero_pretresse_t1","hero_pretresse_t2","hero_pretresse_t3","hero_pretresse_t4","hero_pretresse_t5","hero_pyromancien_archimage","hero_pyromancien_demoniste","hero_pyromancien_t1","hero_pyromancien_t2","hero_pyromancien_t3","hero_pyromancien_t4","hero_pyromancien_t5","hero_revenant_seigneur_sang","hero_revenant_spectre","hero_revenant_t1","hero_revenant_t2","hero_revenant_t3","hero_revenant_t4","hero_revenant_t5","hero_sorciere_druidesse","hero_sorciere_sorciere_noire","hero_sorciere_t1","hero_sorciere_t2","hero_sorciere_t3","hero_sorciere_t4","hero_sorciere_t5","hero_templier_bastion","hero_templier_inquisiteur","hero_templier_t1","hero_templier_t2","hero_templier_t3","hero_templier_t4","hero_templier_t5","map_boss","map_camp","map_combat","map_elite","map_event","map_shop","map_treasure","mon_abbe","mon_alpha","mon_araignee","mon_archer","mon_archer_os","mon_boucher","mon_bourreau","mon_brigand","mon_charognard","mon_chevalier_dechu","mon_chevalier_os","mon_crapaud","mon_cultiste","mon_diablotin","mon_docteur","mon_dryade","mon_follet","mon_gargouille","mon_golem","mon_goule","mon_hallebardier_os","mon_horreur","mon_hydre","mon_inquisiteur","mon_liche","mon_loup","mon_mere_noyes","mon_mere_ronces","mon_moine_flagellant","mon_necrophage","mon_noye","mon_oeil","mon_ogre","mon_pecheur","mon_pendu","mon_pestifere","mon_prieur","mon_profond","mon_rat","mon_reine_sabbat","mon_roi","mon_sangsue","mon_sans_nom","mon_sorciere_marais","mon_spectre","mon_squelette","mon_thuriferaire","pet_araignee","pet_araignee_evo","pet_cerf","pet_cerf_evo","pet_chat_noir","pet_chat_noir_evo","pet_chauve_souris","pet_chauve_souris_evo","pet_chouette","pet_chouette_evo","pet_corbeau","pet_corbeau_evo","pet_crapaud","pet_crapaud_evo","pet_drake","pet_drake_evo","pet_feu_follet","pet_feu_follet_evo","pet_gargouille","pet_gargouille_evo","pet_griffon","pet_griffon_evo","pet_loup","pet_loup_evo","pet_molosse","pet_molosse_evo","pet_ours","pet_ours_evo","pet_renard","pet_renard_evo","pet_salamandre","pet_salamandre_evo","pet_sanglier","pet_sanglier_evo","pet_vipere","pet_vipere_evo","tr_amulette_sel","tr_bague_fer","tr_cape_brume","tr_chapelet","tr_cloche_morte","tr_coeur_braise","tr_coeur_roi","tr_couronne_epines","tr_crane_saint","tr_croc_vampire","tr_dent_loup","tr_ecu_brise","tr_fiole_sang","tr_fragment_couronne","tr_gant_bourreau","tr_griffe_ombre","tr_herbe_rare","tr_oeil_abime","tr_oeil_verre","tr_phylactere","tr_pierre_ame","tr_plume_corbeau","tr_relique_aube","tr_sablier","tr_sceau_rouge","ui_aim","ui_amulet","ui_anvil","ui_armor","ui_axe","ui_back","ui_bag","ui_banner","ui_bark","ui_bell","ui_bird","ui_bless","ui_blood","ui_bolt","ui_bones","ui_book","ui_boom","ui_camp","ui_castle","ui_chain","ui_chapel","ui_charge","ui_chest","ui_claw","ui_cleanse","ui_cloak","ui_coin","ui_crown","ui_cup","ui_curse","ui_dagger","ui_daily","ui_dice","ui_drain","ui_ember","ui_emblem","ui_essence","ui_eye","ui_fang","ui_fear","ui_feather","ui_fire","ui_flames","ui_flare","ui_flask","ui_flee","ui_frost","ui_furnace","ui_gear","ui_gem","ui_ghost","ui_glove","ui_guard","ui_hammer","ui_hand","ui_heal","ui_heart","ui_helm","ui_herb","ui_horn","ui_hourglass","ui_iron","ui_knives","ui_link","ui_lock","ui_lute","ui_mace","ui_map","ui_mark","ui_mask","ui_meteor","ui_moon","ui_music","ui_note","ui_pact","ui_paw","ui_pawn","ui_pierce","ui_pillar","ui_potion","ui_quest","ui_rage","ui_rain","ui_ray","ui_ring","ui_riposte","ui_root","ui_rosary","ui_run","ui_sanct","ui_scroll","ui_scythe","ui_seal","ui_shard","ui_shield","ui_shroud","ui_skull","ui_skullc","ui_smoke","ui_sound","ui_star","ui_stun","ui_sun","ui_sword","ui_swords","ui_tavern","ui_thorn","ui_torch","ui_trap","ui_tree","ui_trophy","ui_vial","ui_wall","ui_weapon","ui_whirl","ui_wind","wpn_arbalete","wpn_baton","wpn_croix","wpn_dagues","wpn_encensoir","wpn_espadon","wpn_faucille","wpn_faux","wpn_grimoire","wpn_hache","wpn_hallebarde","wpn_luth","wpn_marteau","wpn_masse","wpn_rapiere"];window.ART_META={"hero_arbaletriere_chasseresse": 0.019,"hero_arbaletriere_t1": 0.009,"hero_arbaletriere_t2": 0.009,"hero_arbaletriere_t3": 0.007,"hero_arbaletriere_t4": 0.007,"hero_arbaletriere_t5": 0.009,"hero_arbaletriere_tireuse_elite": 0.007,"hero_berserker_chef_guerre": 0.03,"hero_berserker_ecorcheur": 0.007,"hero_berserker_t1": 0.014,"hero_berserker_t2": 0.009,"hero_berserker_t3": 0.009,"hero_berserker_t4": 0.007,"hero_berserker_t5": 0.021,"hero_chasseur_sorcieres_purificateur": 0.056,"hero_chasseur_sorcieres_t1": 0.007,"hero_chasseur_sorcieres_t2": 0.009,"hero_chasseur_sorcieres_t3": 0.007,"hero_chasseur_sorcieres_t4": 0.007,"hero_chasseur_sorcieres_t5": 0.012,"hero_chasseur_sorcieres_traqueur": 0.007,"hero_exorciste_confesseur": 0.005,"hero_exorciste_penitent": 0.028,"hero_exorciste_t1": 0.04,"hero_exorciste_t2": 0.065,"hero_exorciste_t3": 0.074,"hero_exorciste_t4": 0.072,"hero_exorciste_t5": 0.03,"hero_gardien_runes_forge_tonnerre": 0.023,"hero_gardien_runes_t1": 0.014,"hero_gardien_runes_t2": 0.012,"hero_gardien_runes_t3": 0.014,"hero_gardien_runes_t4": 0.014,"hero_gardien_runes_t5": 0.035,"hero_gardien_runes_thane_pierre": 0.014,"hero_hallebardier_garde_roi": 0.016,"hero_hallebardier_lansquenet": 0.028,"hero_hallebardier_t1": 0.012,"hero_hallebardier_t2": 0.012,"hero_hallebardier_t3": 0.012,"hero_hallebardier_t4": 0.021,"hero_hallebardier_t5": 0.047,"hero_medecin_peste_apothicaire": 0.005,"hero_medecin_peste_chirurgien": 0.005,"hero_medecin_peste_t1": 0.007,"hero_medecin_peste_t2": 0.005,"hero_medecin_peste_t3": 0.005,"hero_medecin_peste_t4": 0.005,"hero_medecin_peste_t5": 0.005,"hero_menestrel_chantre": 0.007,"hero_menestrel_heraut": 0.13,"hero_menestrel_t1": 0.007,"hero_menestrel_t2": 0.005,"hero_menestrel_t3": 0.007,"hero_menestrel_t4": 0.012,"hero_menestrel_t5": 0.007,"hero_necromancien_liche": 0.014,"hero_necromancien_maitre_tombes": 0.079,"hero_necromancien_t1": 0.009,"hero_necromancien_t2": 0.016,"hero_necromancien_t3": 0.016,"hero_necromancien_t4": 0.016,"hero_necromancien_t5": 0.012,"hero_ombre_assassin": 0.007,"hero_ombre_ombre_sang": 0.009,"hero_ombre_t1": 0.009,"hero_ombre_t2": 0.009,"hero_ombre_t3": 0.009,"hero_ombre_t4": 0.009,"hero_ombre_t5": 0.014,"hero_pretresse_martyre": 0.102,"hero_pretresse_sainte": 0.07,"hero_pretresse_t1": 0.079,"hero_pretresse_t2": 0.1,"hero_pretresse_t3": 0.121,"hero_pretresse_t4": 0.091,"hero_pretresse_t5": 0.035,"hero_pyromancien_archimage": 0.007,"hero_pyromancien_demoniste": 0.051,"hero_pyromancien_t1": 0.009,"hero_pyromancien_t2": 0.007,"hero_pyromancien_t3": 0.007,"hero_pyromancien_t4": 0.007,"hero_pyromancien_t5": 0.026,"hero_revenant_seigneur_sang": 0.151,"hero_revenant_spectre": 0.114,"hero_revenant_t1": 0.109,"hero_revenant_t2": 0.151,"hero_revenant_t3": 0.156,"hero_revenant_t4": 0.149,"hero_revenant_t5": 0.053,"hero_sorciere_druidesse": 0.051,"hero_sorciere_sorciere_noire": 0.028,"hero_sorciere_t1": 0.007,"hero_sorciere_t2": 0.014,"hero_sorciere_t3": 0.012,"hero_sorciere_t4": 0.009,"hero_sorciere_t5": 0.012,"hero_templier_bastion": 0.021,"hero_templier_inquisiteur": 0.007,"hero_templier_t1": 0.007,"hero_templier_t2": 0.007,"hero_templier_t3": 0.005,"hero_templier_t4": 0.026,"hero_templier_t5": 0.037};window.SFX_LIST=["amb_abime","amb_bastion","amb_bourg","amb_catacombes","amb_citadelle","amb_foret","amb_marais","fx_bell","fx_coin","fx_crit","fx_dark","fx_die","fx_door","fx_fire","fx_forge","fx_heal","fx_heavy","fx_hit","fx_holy","fx_miss","fx_open","fx_shoot","fx_slash","fx_step"];window.ART_FLIP=["mon_archer_os","mon_moine_flagellant","mon_spectre","hero_ombre_assassin","hero_ombre_ombre_sang"];
+window.ART_LIST=["bg_abime","bg_bastion","bg_bastion2","bg_bourg","bg_catacombes","bg_citadelle","bg_foret","bg_marais","bg_terres","bg_titre","bld_academie","bld_chapelle","bld_fonderie","bld_forge","bld_menagerie","bld_porte","bld_taverne","hero_arbaletriere_chasseresse","hero_arbaletriere_t1","hero_arbaletriere_t2","hero_arbaletriere_t3","hero_arbaletriere_t4","hero_arbaletriere_t5","hero_arbaletriere_tireuse_elite","hero_berserker_chef_guerre","hero_berserker_ecorcheur","hero_berserker_t1","hero_berserker_t2","hero_berserker_t3","hero_berserker_t4","hero_berserker_t5","hero_chasseur_sorcieres_purificateur","hero_chasseur_sorcieres_t1","hero_chasseur_sorcieres_t2","hero_chasseur_sorcieres_t3","hero_chasseur_sorcieres_t4","hero_chasseur_sorcieres_t5","hero_chasseur_sorcieres_traqueur","hero_exorciste_confesseur","hero_exorciste_penitent","hero_exorciste_t1","hero_exorciste_t2","hero_exorciste_t3","hero_exorciste_t4","hero_exorciste_t5","hero_gardien_runes_forge_tonnerre","hero_gardien_runes_t1","hero_gardien_runes_t2","hero_gardien_runes_t3","hero_gardien_runes_t4","hero_gardien_runes_t5","hero_gardien_runes_thane_pierre","hero_hallebardier_garde_roi","hero_hallebardier_lansquenet","hero_hallebardier_t1","hero_hallebardier_t2","hero_hallebardier_t3","hero_hallebardier_t4","hero_hallebardier_t5","hero_medecin_peste_apothicaire","hero_medecin_peste_chirurgien","hero_medecin_peste_t1","hero_medecin_peste_t2","hero_medecin_peste_t3","hero_medecin_peste_t4","hero_medecin_peste_t5","hero_menestrel_chantre","hero_menestrel_heraut","hero_menestrel_t1","hero_menestrel_t2","hero_menestrel_t3","hero_menestrel_t4","hero_menestrel_t5","hero_necromancien_liche","hero_necromancien_maitre_tombes","hero_necromancien_t1","hero_necromancien_t2","hero_necromancien_t3","hero_necromancien_t4","hero_necromancien_t5","hero_ombre_assassin","hero_ombre_ombre_sang","hero_ombre_t1","hero_ombre_t2","hero_ombre_t3","hero_ombre_t4","hero_ombre_t5","hero_pretresse_martyre","hero_pretresse_sainte","hero_pretresse_t1","hero_pretresse_t2","hero_pretresse_t3","hero_pretresse_t4","hero_pretresse_t5","hero_pyromancien_archimage","hero_pyromancien_demoniste","hero_pyromancien_t1","hero_pyromancien_t2","hero_pyromancien_t3","hero_pyromancien_t4","hero_pyromancien_t5","hero_revenant_seigneur_sang","hero_revenant_spectre","hero_revenant_t1","hero_revenant_t2","hero_revenant_t3","hero_revenant_t4","hero_revenant_t5","hero_sorciere_druidesse","hero_sorciere_sorciere_noire","hero_sorciere_t1","hero_sorciere_t2","hero_sorciere_t3","hero_sorciere_t4","hero_sorciere_t5","hero_templier_bastion","hero_templier_inquisiteur","hero_templier_t1","hero_templier_t2","hero_templier_t3","hero_templier_t4","hero_templier_t5","map_boss","map_camp","map_combat","map_elite","map_event","map_shop","map_treasure","mon_abbe","mon_alpha","mon_araignee","mon_archer","mon_archer_os","mon_archonte_cendres","mon_boucher","mon_bourreau","mon_brigand","mon_cardinal","mon_charognard","mon_chevalier_dechu","mon_chevalier_os","mon_chevaucheur_calcine","mon_chien_cendre","mon_colosse_braise","mon_crapaud","mon_cultiste","mon_devoreur_lumiere","mon_diablotin","mon_docteur","mon_dryade","mon_follet","mon_gargouille","mon_golem","mon_goule","mon_hallebardier_os","mon_horreur","mon_hydre","mon_inquisiteur","mon_liche","mon_loup","mon_matrone_os","mon_mere_noyes","mon_mere_ronces","mon_moine_flagellant","mon_necrophage","mon_noye","mon_oeil","mon_ogre","mon_pecheur","mon_pendu","mon_penitent_ardent","mon_pestifere","mon_pretre_suie","mon_prieur","mon_profond","mon_rat","mon_reine_sabbat","mon_roi","mon_sangsue","mon_sans_nom","mon_sans_visage","mon_sentinelle_obsidienne","mon_sorciere_marais","mon_spectre","mon_squelette","mon_thuriferaire","pet_araignee","pet_araignee_evo","pet_belette","pet_cerf","pet_cerf_evo","pet_chat_noir","pet_chat_noir_evo","pet_chauve_souris","pet_chauve_souris_evo","pet_chouette","pet_chouette_evo","pet_corbeau","pet_corbeau_evo","pet_crapaud","pet_crapaud_evo","pet_drake","pet_drake_evo","pet_feu_follet","pet_feu_follet_evo","pet_gargouille","pet_gargouille_evo","pet_griffon","pet_griffon_evo","pet_loup","pet_loup_evo","pet_molosse","pet_molosse_evo","pet_ours","pet_ours_evo","pet_renard","pet_renard_evo","pet_salamandre","pet_salamandre_evo","pet_sanglier","pet_sanglier_evo","pet_vipere","pet_vipere_evo","tr_amulette_sel","tr_bague_fer","tr_cape_brume","tr_chapelet","tr_cloche_morte","tr_coeur_braise","tr_coeur_roi","tr_couronne_epines","tr_crane_saint","tr_croc_vampire","tr_dent_loup","tr_ecu_brise","tr_fiole_sang","tr_fragment_couronne","tr_gant_bourreau","tr_griffe_ombre","tr_herbe_rare","tr_oeil_abime","tr_oeil_verre","tr_phylactere","tr_pierre_ame","tr_plume_corbeau","tr_relique_aube","tr_sablier","tr_sceau_rouge","ui_aim","ui_amulet","ui_anvil","ui_armor","ui_axe","ui_back","ui_bag","ui_banner","ui_bark","ui_bell","ui_bird","ui_bless","ui_blood","ui_bolt","ui_bones","ui_book","ui_boom","ui_camp","ui_castle","ui_chain","ui_chapel","ui_charge","ui_chest","ui_claw","ui_cleanse","ui_cloak","ui_coin","ui_crown","ui_cup","ui_curse","ui_dagger","ui_daily","ui_dice","ui_drain","ui_ember","ui_emblem","ui_essence","ui_eye","ui_fang","ui_fear","ui_feather","ui_fire","ui_flames","ui_flare","ui_flask","ui_flee","ui_frost","ui_furnace","ui_gear","ui_gem","ui_ghost","ui_glove","ui_guard","ui_hammer","ui_hand","ui_heal","ui_heart","ui_helm","ui_herb","ui_horn","ui_hourglass","ui_iron","ui_knives","ui_link","ui_lock","ui_lute","ui_mace","ui_map","ui_mark","ui_mask","ui_meteor","ui_moon","ui_music","ui_note","ui_pact","ui_paw","ui_pawn","ui_pierce","ui_pillar","ui_potion","ui_quest","ui_rage","ui_rain","ui_ray","ui_ring","ui_riposte","ui_root","ui_rosary","ui_run","ui_sanct","ui_scroll","ui_scythe","ui_seal","ui_shard","ui_shield","ui_shroud","ui_skull","ui_skullc","ui_smoke","ui_sound","ui_star","ui_stun","ui_sun","ui_sword","ui_swords","ui_tavern","ui_thorn","ui_torch","ui_trap","ui_tree","ui_trophy","ui_vial","ui_wall","ui_weapon","ui_whirl","ui_wind","wpn_arbalete","wpn_baton","wpn_croix","wpn_dagues","wpn_encensoir","wpn_espadon","wpn_faucille","wpn_faux","wpn_grimoire","wpn_hache","wpn_hallebarde","wpn_luth","wpn_marteau","wpn_masse","wpn_rapiere"];window.ART_META={"hero_arbaletriere_chasseresse": 0.019,"hero_arbaletriere_t1": 0.009,"hero_arbaletriere_t2": 0.009,"hero_arbaletriere_t3": 0.007,"hero_arbaletriere_t4": 0.007,"hero_arbaletriere_t5": 0.009,"hero_arbaletriere_tireuse_elite": 0.007,"hero_berserker_chef_guerre": 0.03,"hero_berserker_ecorcheur": 0.007,"hero_berserker_t1": 0.014,"hero_berserker_t2": 0.009,"hero_berserker_t3": 0.009,"hero_berserker_t4": 0.007,"hero_berserker_t5": 0.021,"hero_chasseur_sorcieres_purificateur": 0.056,"hero_chasseur_sorcieres_t1": 0.007,"hero_chasseur_sorcieres_t2": 0.009,"hero_chasseur_sorcieres_t3": 0.007,"hero_chasseur_sorcieres_t4": 0.007,"hero_chasseur_sorcieres_t5": 0.012,"hero_chasseur_sorcieres_traqueur": 0.007,"hero_exorciste_confesseur": 0.005,"hero_exorciste_penitent": 0.028,"hero_exorciste_t1": 0.04,"hero_exorciste_t2": 0.065,"hero_exorciste_t3": 0.074,"hero_exorciste_t4": 0.072,"hero_exorciste_t5": 0.03,"hero_gardien_runes_forge_tonnerre": 0.023,"hero_gardien_runes_t1": 0.014,"hero_gardien_runes_t2": 0.012,"hero_gardien_runes_t3": 0.014,"hero_gardien_runes_t4": 0.014,"hero_gardien_runes_t5": 0.035,"hero_gardien_runes_thane_pierre": 0.014,"hero_hallebardier_garde_roi": 0.016,"hero_hallebardier_lansquenet": 0.028,"hero_hallebardier_t1": 0.012,"hero_hallebardier_t2": 0.012,"hero_hallebardier_t3": 0.012,"hero_hallebardier_t4": 0.021,"hero_hallebardier_t5": 0.014,"hero_medecin_peste_apothicaire": 0.005,"hero_medecin_peste_chirurgien": 0.005,"hero_medecin_peste_t1": 0.007,"hero_medecin_peste_t2": 0.005,"hero_medecin_peste_t3": 0.005,"hero_medecin_peste_t4": 0.005,"hero_medecin_peste_t5": 0.005,"hero_menestrel_chantre": 0.007,"hero_menestrel_heraut": 0.13,"hero_menestrel_t1": 0.007,"hero_menestrel_t2": 0.005,"hero_menestrel_t3": 0.007,"hero_menestrel_t4": 0.012,"hero_menestrel_t5": 0.007,"hero_necromancien_liche": 0.014,"hero_necromancien_maitre_tombes": 0.079,"hero_necromancien_t1": 0.009,"hero_necromancien_t2": 0.016,"hero_necromancien_t3": 0.016,"hero_necromancien_t4": 0.016,"hero_necromancien_t5": 0.012,"hero_ombre_assassin": 0.007,"hero_ombre_ombre_sang": 0.009,"hero_ombre_t1": 0.009,"hero_ombre_t2": 0.009,"hero_ombre_t3": 0.009,"hero_ombre_t4": 0.009,"hero_ombre_t5": 0.014,"hero_pretresse_martyre": 0.102,"hero_pretresse_sainte": 0.07,"hero_pretresse_t1": 0.079,"hero_pretresse_t2": 0.1,"hero_pretresse_t3": 0.121,"hero_pretresse_t4": 0.091,"hero_pretresse_t5": 0.06,"hero_pyromancien_archimage": 0.007,"hero_pyromancien_demoniste": 0.051,"hero_pyromancien_t1": 0.009,"hero_pyromancien_t2": 0.007,"hero_pyromancien_t3": 0.007,"hero_pyromancien_t4": 0.007,"hero_pyromancien_t5": 0.026,"hero_revenant_seigneur_sang": 0.151,"hero_revenant_spectre": 0.114,"hero_revenant_t1": 0.109,"hero_revenant_t2": 0.151,"hero_revenant_t3": 0.156,"hero_revenant_t4": 0.149,"hero_revenant_t5": 0.095,"hero_sorciere_druidesse": 0.051,"hero_sorciere_sorciere_noire": 0.028,"hero_sorciere_t1": 0.007,"hero_sorciere_t2": 0.014,"hero_sorciere_t3": 0.012,"hero_sorciere_t4": 0.009,"hero_sorciere_t5": 0.019,"hero_templier_bastion": 0.021,"hero_templier_inquisiteur": 0.007,"hero_templier_t1": 0.007,"hero_templier_t2": 0.007,"hero_templier_t3": 0.005,"hero_templier_t4": 0.026,"hero_templier_t5": 0.009};window.SFX_LIST=["amb_abime","amb_bastion","amb_bourg","amb_catacombes","amb_citadelle","amb_foret","amb_marais","fx_bell","fx_coin","fx_crit","fx_dark","fx_die","fx_door","fx_fire","fx_forge","fx_heal","fx_heavy","fx_hit","fx_holy","fx_miss","fx_open","fx_shoot","fx_slash","fx_step"];window.ART_FLIP=["mon_archer_os","mon_moine_flagellant","mon_spectre","hero_ombre_assassin","hero_ombre_ombre_sang","mon_cardinal"];
 /* ═══════════════════════ Couronne de Cendres — utilitaires ═══════════════════════ */
 "use strict";
 const HASWIN = typeof window !== "undefined" && typeof document !== "undefined";
@@ -884,8 +886,102 @@ const STORY = {
   foret: "La Mère des Ronces se fane en poussière. Les pendus cessent de tourner. Dans son cœur de bois mort, le deuxième fragment.",
   catacombes: "La Liche s'effondre et dix mille moines se rendorment enfin. Sa couronne de fer cachait le troisième fragment.",
   marais: "La Mère des Noyés retourne à l'eau, et l'eau devient claire pour la première fois depuis un siècle. Le quatrième fragment flotte à la surface.",
+  terres: "Le Cardinal Écarlate s'effondre sur les fragments qu'il serrait contre lui. Ils brûlent encore, mais ils sont de nouveau à vous.",
   citadelle: "Le Roi de Cendres s'agenouille. « Merci », murmure-t-il en tombant en poussière. Le dernier fragment est entre vos mains… mais sous la Citadelle, quelque chose s'éveille. L'Abîme est ouvert.",
 };
+/* ═══════════════════════ Contenu supplémentaire : chapitre VI, gardiens de menace ═══════════════════════ */
+Object.assign(MONSTERS, {
+  // Chapitre VI — Les Terres Brûlées
+  penitent_ardent: { n: "Pénitent ardent", art: "penitent_ardent", tags: ["humain"], hp: 46, dmg: [8, 13], prot: .08, spd: 5, dodge: 4, rk: [1, 2],
+    sk: [{ n: "Fouet de braises", m: 1, at: [1, 2], fx: [{ k: "burn", v: .45, t: 3, ch: .9 }] }, { n: "Immolation", m: .7, t: "ae", at: [1, 2], fx: [{ k: "burn", v: .4, t: 2, ch: .7 }], self: .06, every: 3 }] },
+  chien_cendre: { n: "Molosse de cendre", art: "chien_cendre", tags: ["bete"], hp: 40, dmg: [8, 12], prot: .04, spd: 8, dodge: 10, rk: [1, 2],
+    sk: [{ n: "Crocs brûlants", m: 1, at: [1, 2], fx: [{ k: "bleed", v: .5, t: 3, ch: .9 }] }, { n: "Bond", m: .8, at: [2, 3], fx: [{ k: "spdDn", v: 2, t: 2, ch: .7 }] }] },
+  pretre_suie: { n: "Prêcheur de suie", art: "pretre_suie", tags: ["humain"], hp: 36, dmg: [6, 10], prot: 0, spd: 6, dodge: 8, rk: [3, 4],
+    sk: [{ n: "Sermon noir", m: .5, t: "ae", at: [1, 2, 3, 4], fx: [{ k: "weak", t: 2, ch: .8 }] }, { n: "Bénédiction cendrée", t: "allies", heal: .12, w: .6 }, { n: "Anathème", m: .9, at: [1, 2, 3, 4], fx: [{ k: "vuln", t: 2, ch: 1 }] }] },
+  sentinelle_obsidienne: { n: "Sentinelle d'obsidienne", art: "sentinelle_obsidienne", tags: ["impie"], hp: 70, dmg: [9, 14], prot: .3, spd: 2, dodge: 0, res: 40, rk: [1, 2],
+    sk: [{ n: "Poing de verre noir", m: 1.1, at: [1, 2], fx: [{ k: "stun", t: 1, ch: .3 }] }, { n: "Éclats", m: .5, t: "ae", at: [1, 2, 3, 4], fx: [{ k: "bleed", v: .4, t: 2, ch: .6 }], every: 3 }] },
+  chevaucheur_calcine: { n: "Chevaucheur calciné", art: "chevaucheur_calcine", tags: ["impie"], hp: 52, dmg: [9, 15], prot: .12, spd: 7, dodge: 6, rk: [2, 3],
+    sk: [{ n: "Charge ardente", m: 1.1, at: [1, 2], fx: [{ k: "burn", v: .4, t: 2, ch: .8 }] }, { n: "Lance de cendre", m: .9, at: [2, 3, 4], fx: [{ k: "protDn", v: .12, t: 2, ch: .8 }] }] },
+  colosse_braise: { n: "Colosse de braise", art: "colosse_braise", tags: ["impie"], elite: 1, hp: 180, dmg: [12, 18], prot: .2, spd: 3, dodge: 0, res: 40, rk: [1, 2],
+    sk: [{ n: "Marteau de lave", m: 1.3, at: [1, 2], fx: [{ k: "burn", v: .5, t: 3, ch: 1 }, { k: "stun", t: 1, ch: .25 }] }, { n: "Éruption", m: .7, t: "ae", at: [1, 2, 3, 4], fx: [{ k: "burn", v: .4, t: 2, ch: .8 }], every: 3 }] },
+  cardinal: { n: "Le Cardinal Écarlate", art: "cardinal", tags: ["humain"], boss: 1, sz: 2, hp: 1150, dmg: [13, 20], prot: .18, spd: 7, dodge: 10, res: 50, rk: [2],
+    sk: [{ n: "Sentence écarlate", m: 1.3, at: [1, 2, 3, 4], fx: [{ k: "bleed", v: .6, t: 3, ch: 1 }] }, { n: "Autodafé", m: .8, t: "ae", at: [1, 2, 3, 4], fx: [{ k: "burn", v: .5, t: 3, ch: 1 }] }, { n: "Excommunication", m: .4, t: "ae", at: [1, 2, 3, 4], fx: [{ k: "weak", t: 2, ch: .8 }, { k: "vuln", t: 2, ch: .6 }] }, { n: "Reliques volées", t: "self", heal: .08, sfx: [{ k: "shield", v: .14, t: 2 }], w: .4 }],
+    phase: { at: .5, n: "Le Cardinal brandit les fragments volés. La Couronne crie !", sfx: [{ k: "dmgUp", v: .4, t: 99 }, { k: "spdUp", v: 3, t: 99 }] } },
+  // Gardiens de menace : un inédit par niveau de menace (II à V)
+  sans_visage: { n: "Le Chevalier Sans-Visage", art: "sans_visage", tags: ["impie"], boss: 1, sz: 2, hp: 700, dmg: [11, 17], prot: .25, spd: 5, dodge: 6, res: 40, rk: [2], threatBoss: 1,
+    sk: [{ n: "Taille sans fin", m: 1.2, at: [1, 2], fx: [{ k: "bleed", v: .5, t: 3, ch: 1 }] }, { n: "Heaume vide", m: .5, t: "ae", at: [1, 2, 3, 4], fx: [{ k: "accDn", v: 12, t: 2, ch: .9 }] }, { n: "Garde de fer", t: "self", sfx: [{ k: "protUp", v: .2, t: 2 }, { k: "riposte", t: 2 }], w: .5 }],
+    phase: { at: .5, n: "Sous le heaume, il n'y a rien. Et ce rien a faim.", sfx: [{ k: "dmgUp", v: .35, t: 99 }] } },
+  matrone_os: { n: "La Matrone des Os", art: "matrone_os", tags: ["impie"], boss: 1, sz: 2, hp: 760, dmg: [10, 16], prot: .15, spd: 5, dodge: 8, res: 45, rk: [2], threatBoss: 2,
+    sk: [{ n: "Berceuse d'ossements", m: .6, t: "ae", at: [1, 2, 3, 4], fx: [{ k: "stun", t: 1, ch: .25 }] }, { n: "Étreinte maternelle", m: 1.2, at: [1, 2], fx: [{ k: "weak", t: 2, ch: 1 }] }, { n: "Enfants des tombes", t: "self", heal: .1, sfx: [{ k: "shield", v: .15, t: 2 }], w: .4 }],
+    phase: { at: .5, n: "La Matrone appelle ses enfants. La terre se met à bouger.", sfx: [{ k: "spdUp", v: 3, t: 99 }, { k: "dmgUp", v: .3, t: 99 }] } },
+  devoreur_lumiere: { n: "Le Dévoreur de Lumière", art: "devoreur_lumiere", tags: ["impie"], boss: 1, sz: 2, hp: 820, dmg: [12, 18], prot: .18, spd: 6, dodge: 10, res: 50, rk: [2], threatBoss: 3,
+    sk: [{ n: "Engloutir", m: 1.3, at: [1, 2, 3], fx: [{ k: "vuln", t: 2, ch: 1 }] }, { n: "Nuit totale", m: .6, t: "ae", at: [1, 2, 3, 4], fx: [{ k: "accDn", v: 15, t: 2, ch: 1 }, { k: "dodgeDn", v: 10, t: 2, ch: .8 }] }, { n: "Festin d'étoiles", t: "self", heal: .1, w: .35 }],
+    phase: { at: .5, n: "Les torches s'éteignent une à une. Le Dévoreur grandit.", sfx: [{ k: "dmgUp", v: .45, t: 99 }] } },
+  archonte_cendres: { n: "L'Archonte de Cendres", art: "archonte_cendres", tags: ["impie"], boss: 1, sz: 2, hp: 900, dmg: [13, 20], prot: .2, spd: 7, dodge: 10, res: 55, rk: [2], threatBoss: 4,
+    sk: [{ n: "Jugement", m: 1.4, at: [1, 2, 3, 4], fx: [{ k: "burn", v: .6, t: 3, ch: 1 }] }, { n: "Ailes de cendre", m: .8, t: "ae", at: [1, 2, 3, 4], fx: [{ k: "burn", v: .5, t: 2, ch: 1 }, { k: "weak", t: 2, ch: .6 }] }, { n: "Couronne d'ailes", t: "self", sfx: [{ k: "shield", v: .18, t: 2 }, { k: "dmgUp", v: .2, t: 2 }], w: .4 }],
+    phase: { at: .5, n: "L'Archonte déploie six ailes de cendre. Le ciel brûle.", sfx: [{ k: "dmgUp", v: .45, t: 99 }, { k: "spdUp", v: 3, t: 99 }] } },
+});
+// chapitre VI, entre la Citadelle et l'Abîme
+REGIONS.push({ id: "terres", n: "Les Terres Brûlées", sub: "Chapitre VI", lvl: 25, pool: ["penitent_ardent", "chien_cendre", "pretre_suie", "sentinelle_obsidienne", "chevaucheur_calcine"], elite: ["colosse_braise"], boss: "cardinal",
+  d: "Au-delà de la Citadelle, la terre brûle encore. Le Cardinal y emporte les fragments volés.", sky: ["#1a0806", "#4a1a0a"], fog: "#d0602a", accent: "#ff6a3a" });
+ABYSS.lvl = 30;
+const THREAT_BOSS = { 1: "sans_visage", 2: "matrone_os", 3: "devoreur_lumiere", 4: "archonte_cendres" };
+/* ═══════════════════════ Compagnons supplémentaires (×3) ═══════════════════════
+   Chaque compagnon suit un modèle par rôle, avec sa propre altération. */
+const PET_MORE = [
+  // id, nom, rôle, déblocage (chapitres terminés), description, couleur, élément, évolution, description de l'évolution
+  ["belette", "Belette des tombes", "dps", 0, "Elle se faufile entre les côtes des morts et ronge ce qui dépasse.", "#7a6a58", "bleed", "Hermine funèbre", "Blanche comme un linceul, rouge jusqu'aux babines."],
+  ["hibou_gris", "Hibou des clochers", "soutien", 0, "Il voit tout depuis les clochers et hulule quand l'ennemi faiblit.", "#8a8478", "mark", "Grand hibou des glas", "Chacun de ses cris sonne un glas."],
+  ["chevre", "Chèvre noire", "tank", 0, "Têtue comme une mule, cornue comme un démon.", "#3a3430", "protUp", "Bouc du sabbat", "Ses cornes ont percé des armures de chevalier."],
+  ["pie", "Pie voleuse", "soutien", 1, "Elle vole tout ce qui brille… y compris le courage de l'ennemi.", "#2a2a30", "weak", "Pie des gibets", "Elle niche dans les cordes des pendus."],
+  ["lievre", "Lièvre blanc", "soin", 1, "Un lièvre qui ne fuit jamais. On dit qu'il porte chance.", "#e0dcd0", "heal", "Lièvre de lune", "Il bondit sur les rayons de lune."],
+  ["rat_geant", "Rat des égouts", "dps", 1, "Gros comme un chien, plus intelligent que certains hommes.", "#5a4a40", "poison", "Roi des rats", "Une couronne de queues nouées, une armée sous ses ordres."],
+  ["blaireau", "Blaireau de fer", "tank", 1, "Il ne recule devant rien, pas même devant un ours.", "#5a5a52", "shield", "Blaireau cuirassé", "Sa fourrure est devenue aussi dure que l'acier."],
+  ["luciole", "Essaim de lucioles", "soin", 1, "Des lumières douces qui referment les plaies.", "#d8d07a", "regen", "Constellation vivante", "Un ciel étoilé qui vous suit dans le noir."],
+  ["serpent_eau", "Couleuvre des douves", "dps", 2, "Elle glisse sous l'eau et mord aux chevilles.", "#3a5a4a", "poison", "Hydre des douves", "Trois têtes, trois morsures."],
+  ["chien_berger", "Chien de berger", "tank", 2, "Il protège le troupeau, quel qu'il soit.", "#8a6a4a", "shield", "Gardien des bergeries", "Aucun loup n'a jamais franchi sa garde."],
+  ["corneille", "Corneille borgne", "soutien", 2, "Il lui manque un œil, mais elle voit l'avenir.", "#1e1e24", "vuln", "Corneille du destin", "Elle a vu votre mort, et l'a repoussée."],
+  ["tortue", "Tortue des marais", "tank", 2, "Lente, mais rien ne traverse sa carapace.", "#4a5a3a", "protUp", "Tortue-forteresse", "Une carapace couverte de mousse et de runes."],
+  ["cygne_noir", "Cygne noir", "soin", 2, "Il chante pour les mourants, et parfois ils guérissent.", "#1a1a22", "heal", "Cygne de deuil", "Son chant ramène les âmes égarées."],
+  ["frelon", "Frelon géant", "dps", 3, "Son dard traverse le cuir comme une aiguille.", "#a07a2a", "poison", "Frelon-reine", "Une reine, et son essaim."],
+  ["lynx", "Lynx des neiges", "dps", 3, "Silencieux, patient, mortel.", "#c8c0b0", "bleed", "Lynx spectral", "On ne le voit qu'au moment où il frappe."],
+  ["mouton_noir", "Agneau noir", "soin", 3, "Un agneau né pendant une éclipse. Sa laine apaise.", "#2a2624", "regen", "Bélier des cendres", "Ses cornes brûlent d'un feu qui soigne."],
+  ["sangsue", "Sangsue géante", "soutien", 3, "Elle boit le sang de l'ennemi et vous rend ses forces.", "#4a2a2a", "weak", "Mère-sangsue", "Gorgée de sang, elle partage son festin."],
+  ["scarabee", "Scarabée d'ébène", "tank", 3, "Une carapace noire qui renvoie les coups.", "#20202a", "thorns", "Scarabée sacré", "Il porte un soleil noir sur le dos."],
+  ["chacal", "Chacal des ruines", "dps", 4, "Il rôde autour des champs de bataille. Il sait qui va tomber.", "#8a6a3a", "bleed", "Chacal d'Anubis", "Gardien des tombes, juge des morts."],
+  ["paon", "Paon funèbre", "soutien", 4, "Ses plumes ont des yeux qui fixent l'ennemi.", "#2a4a5a", "accDn", "Paon aux cent yeux", "Cent regards, cent malédictions."],
+  ["elan", "Élan des tourbières", "tank", 4, "Ses bois arrêtent les lames.", "#5a4a32", "shield", "Élan-roi", "Couronné de bois et de mousse."],
+  ["phalene", "Phalène d'argent", "soin", 4, "Ses ailes répandent une poussière qui soigne.", "#b8b8c8", "heal", "Phalène lunaire", "Sa poussière brille comme la lune."],
+  ["anguille", "Anguille électrique", "dps", 4, "Une décharge, et le cœur s'arrête.", "#2a3a4a", "stun", "Anguille-tonnerre", "La foudre dans un corps de serpent."],
+  ["mante", "Mante des cimetières", "soutien", 4, "Elle prie sur les tombes, puis elle tue.", "#5a7a3a", "protDn", "Mante-prêtresse", "Ses prières sont des sentences."],
+  ["bouc_sacre", "Bouc des sommets", "tank", 5, "Né sur les falaises, il ne tombe jamais.", "#a09a8a", "protUp", "Bouc des tempêtes", "Ses cornes attirent la foudre."],
+  ["kirin", "Poulain de brume", "soin", 5, "Un poulain fait de brouillard. Là où il passe, les blessures se referment.", "#c8d0d8", "regen", "Destrier de brume", "Un cheval de nuages, rapide comme le vent."],
+  ["scorpion", "Scorpion des cendres", "dps", 5, "Son dard brûle autant qu'il empoisonne.", "#6a3a1a", "burn", "Scorpion-empereur", "Une armure de lave, un dard de feu."],
+  ["chimere", "Chimérot", "soutien", 5, "Un peu lion, un peu chèvre, un peu serpent. Totalement imprévisible.", "#7a4a3a", "vuln", "Chimère adulte", "Trois têtes, trois souffles."],
+  ["golem_os", "Golem d'os", "tank", 5, "Assemblé par un nécromancien, abandonné, puis adopté.", "#c8c0a8", "shield", "Colosse d'ossements", "Un rempart de crânes."],
+  ["ange_dechu", "Chérubin déchu", "soin", 5, "Un petit ange aux ailes brûlées. Il soigne encore.", "#d8c8a8", "heal", "Séraphin déchu", "Six ailes noires, une lumière intacte."],
+  ["wyverne", "Wyvernette", "dps", 6, "Un dragonnet venimeux à deux pattes.", "#4a5a3a", "poison", "Wyverne des marais", "Son venin ronge l'acier."],
+  ["sphinx", "Sphinxelet", "soutien", 6, "Il pose des énigmes à vos ennemis, qui en perdent la tête.", "#b8945a", "stun", "Sphinx des sables noirs", "Nul ne survit à sa dernière énigme."],
+  ["mammouth", "Mammouthon", "tank", 6, "Un petit mammouth laineux venu du grand froid.", "#6a5040", "protUp", "Mammouth de guerre", "Une montagne qui charge."],
+  ["phenix", "Phénix de cendre", "soin", 6, "Il meurt et renaît dans la cendre, encore et encore.", "#ff7a3a", "regen", "Phénix royal", "Ses flammes soignent ceux qu'il aime."],
+  ["basilic", "Basilic", "dps", 6, "Un regard, et l'ennemi se fige.", "#5a6a2a", "stun", "Roi-basilic", "Il pétrifie d'un battement de paupières."],
+  ["ombre_chat", "Chat d'ombre", "soutien", 6, "Un chat fait de nuit pure. Il désigne les proies.", "#14121a", "mark", "Panthère d'ombre", "La nuit entière marche à vos côtés."],
+];
+const PET_ROLE_SK = {
+  dps: (fx, nm) => ({ sk: [{ n: "Assaut", m: .9, t: "e", at: [1, 2], fx: [{ k: fx, v: .45, t: 3, ch: .9 }] }, { n: "Curée", m: .6, t: "ae", at: [1, 2, 3], fx: [{ k: fx, v: .35, t: 2, ch: .6 }], every: 3 }], evo: { n: "Furie " + nm, m: 1.3, t: "ae", at: [1, 2, 3], fx: [{ k: fx, v: .5, t: 3, ch: 1 }] } }),
+  tank: (fx, nm) => ({ sk: [{ n: "Rempart", t: "low", shield: .18 }, { n: "Charge", m: .7, t: "e", at: [1, 2], fx: [{ k: "stun", t: 1, ch: .25 }], every: 2 }], evo: { n: "Rempart " + nm, t: "aa", shield: .14, afx: [{ k: fx === "thorns" ? "thorns" : "protUp", v: fx === "thorns" ? .2 : .08, t: 2 }] } }),
+  soin: (fx, nm) => ({ sk: [{ n: "Soin", t: "low", heal: .14, regen: fx === "regen" ? .04 : 0 }, { n: "Bénédiction", t: "aa", heal: .06, cleanse1: true, every: 3 }], evo: { n: "Grâce " + nm, t: "aa", heal: .14, cleanse1: true } }),
+  soutien: (fx, nm) => ({ sk: [{ n: "Présage", t: "e", at: [1, 2, 3, 4], fx: [{ k: fx, v: fx === "accDn" ? 10 : fx === "protDn" ? .12 : .2, t: 2, ch: 1 }] }, { n: "Cri", t: "aa", afx: [{ k: "dmgUp", v: .1, t: 2 }], every: 3 }], evo: { n: "Augure " + nm, m: .4, t: "ae", at: [1, 2, 3, 4], fx: [{ k: fx, v: fx === "accDn" ? 12 : fx === "protDn" ? .15 : .25, t: 2, ch: 1 }] } }),
+};
+for (const [id, n, role, unlock, d, col, fx, en, ed] of PET_MORE) {
+  const T = PET_ROLE_SK[role](fx, ""), cost = [500, 800, 1200, 1700, 2400, 3000, 3600][unlock] || 3600;
+  for (const s of T.sk) if (!s.regen) delete s.regen;
+  PETS[id] = { n, role, unlock, cost, d, col, sk: T.sk, evo: { n: en, d: ed, sk: Object.assign(T.evo, { n: en.split(" ")[0] === en ? en : T.evo.n.trim() + en.split(" ").slice(0, 1).join("") }) }, art: "pet_" + id, more: 1 };
+  PETS[id].evo.sk.n = { dps: "Furie", tank: "Rempart", soin: "Grâce", soutien: "Augure" }[role] + " de " + en.toLowerCase().replace(/^(le |la |l')/, "");
+}
+// compagnons pas encore peints : masqués dans le jeu (la simulation, sans illustrations, les garde tous)
+if (typeof window !== "undefined" && window.ART_LIST) { const L = new Set(window.ART_LIST); for (const p of PET_MORE) if (!L.has("pet_" + p[0])) delete PETS[p[0]]; }
+PET_IDS.push(...PET_MORE.map(p => p[0]).filter(id => PETS[id] && !PET_IDS.includes(id)));
 /* ═══════════════════════ Équipement, reliques, événements, bâtiments ═══════════════════════ */
 const RARITY = [
   // taux de base (sans chance) : commun 50 %, peu commun 30 %, rare 12 %, épique 5 %, légendaire 2,2 %, mythique 0,6 %, divin 0,2 % (voir rollRarity)
@@ -1223,6 +1319,14 @@ const SCENES = {
     ["voix", "Venez, mes enfants. Venez me rendre ma Couronne. Je vous ferai rois de la Cendre."],
     ["capitaine", "Il y a cent ans, il a voulu vaincre la mort. Ce soir, on lui rend la sienne."],
   ] },
+  terres: { t: "Chapitre VI — Les Terres Brûlées", lines: [
+    ["narr", "Au matin, l'autel de la chapelle est vide. Les cinq fragments ont disparu, et Frère Anselme a le crâne ouvert."],
+    ["anselme", "Le Cardinal… Le confesseur d'Aldemar. Il est entré comme un pèlerin. Il a dit qu'il venait prier pour les morts."],
+    ["ysolde", "Les traces partent vers l'est, vers les Terres Brûlées. Là-bas, le sol fume depuis le couronnement."],
+    ["maugrin", "S'il reforge la Couronne avec ces éclats, tout ce que vous avez fait n'aura servi à rien."],
+    ["voix", "Un roi est mort, mes enfants. Vive le roi. Et cette fois, le roi sera un saint."],
+    ["capitaine", "Alors on va lui apprendre ce que valent les saints, ici."],
+  ] },
   abime: { t: "L'Abîme sans fin", lines: [
     ["narr", "Le Roi est tombé. Mais sous la Citadelle, la pierre s'est ouverte sur un puits sans fond, et la Cendre en remonte toujours."],
     ["anselme", "La Couronne n'était qu'un sceau. Ce qui est en bas… ce n'est pas Aldemar. C'est ce qu'il a voulu enfermer."],
@@ -1237,6 +1341,16 @@ const SCENE_END = {
   catacombes: [["anselme", "Une carte et une date. Le Roi a sacrifié quelqu'un pour sa Couronne. Il faut savoir qui."]],
   marais: [["voix", "Allez, maintenant. Allez lui rendre visite. Et dites-lui que sa reine l'attend au fond de l'eau."]],
   citadelle: [["capitaine", "C'est fini…"], ["anselme", "Non, Capitaine. Écoutez. Sous nos pieds. Ça vient de commencer."]],
+  terres: [["anselme", "Les fragments sont revenus. Le Cardinal n'était qu'un homme qui voulait être roi."], ["ysolde", "Et l'Abîme, lui, s'ouvre toujours plus grand. Il est temps de descendre."]],
+};
+// ── Scènes du Bastion : quand un bâtiment grandit, ses occupants le commentent ──
+const BLD_SCENES = {
+  forge: { 3: [["maugrin", "Le nouveau soufflet tire comme un dragon. Rapportez-moi du bon fer et je vous forgerai des armures dignes d'un roi."], ["ysolde", "Pas d'un roi. On en a déjà un, et il est mort deux fois."]], 5: [["maugrin", "Cette enclume a été bénie par trois prêtres et maudite par un quatrième. C'est ce qu'il faut pour travailler l'acier des cendres."]] },
+  chapelle: { 3: [["anselme", "J'ai rallumé les cierges de la nef. La lumière tient mieux, maintenant. Les blessés dorment sans cris."]], 5: [["anselme", "Le fragment de la Couronne ne chuchote plus quand je prie à côté. Je ne sais pas si c'est bon signe."]] },
+  taverne: { 3: [["ysolde", "La taverne se remplit. Des déserteurs, des veuves, des fous. Exactement ce qu'il nous faut."]], 5: [["ysolde", "On refuse du monde, Capitaine. Le bruit court qu'au Bastion, on rend les coups à la Cendre."]] },
+  academie: { 3: [["ysolde", "J'ai trouvé deux vieux maîtres d'armes dans les ruines. Ils boitent, mais ils frappent juste."]], 5: [["anselme", "La bibliothèque de l'ordre est presque complète. Il manque un seul livre : celui qui raconte la fin d'Aldemar."]] },
+  menagerie: { 3: [["ysolde", "Les bêtes sentent la Cendre avant nous. Écoutez-les quand elles grognent dans le noir."]] },
+  fonderie: { 3: [["maugrin", "La fonderie tourne même la nuit. Les âmes coincées dans le minerai, ça chauffe bien, faut croire."]] },
 };
 /* ═══════════════════════ Cent événements supplémentaires ═══════════════════════
    Format : [id, nom, texte, [[choix, effets], …], régions?]
@@ -1440,6 +1554,8 @@ function heroPassives(h) {
   if (h.evo) { out.push(...C.evos[h.evo].pas); if (h.lvl >= APEX_LVL) out.push(...APEX[h.evo].pas); }
   for (const s of ["tr1", "tr2"]) { const it = h.gear[s]; if (it && TRINKETS[it.key]) out.push(...TRINKETS[it.key].pas); }
   if (h.mark && typeof GUARD_MARKS !== "undefined" && GUARD_MARKS[h.mark]) out.push(...GUARD_MARKS[h.mark].pas); // marque d'un gardien vaincu
+  if (h.affl && typeof AFFLICTIONS !== "undefined" && AFFLICTIONS[h.affl]) out.push(...AFFLICTIONS[h.affl].pas); // stress : affliction ou vertu
+  if (h.talents && typeof talentPas === "function") out.push(...talentPas(h)); // arbre de talents (après le niveau 15)
   return out;
 }
 
@@ -1484,11 +1600,12 @@ function gearName(it) {
   const L = GEAR_NAMES[it.cls][it.kind === "wpn" ? "wpn" : "arm"], n = it.tier >= 6 ? (it.evo && CLASSES[it.cls].evos[it.evo] ? "Armure ascendante : " + CLASSES[it.cls].evos[it.evo].n : "Ascendant : " + L[4]) : L[it.tier - 1];
   return n + (it.up ? " +" + it.up : "");
 }
-const rollRarity = (luck = 0) => { const r = rnd() * 100 - luck * 100; let acc = 0; for (let q = RARITY.length - 1; q >= 1; q--) { acc += RARITY[q].p; if (r < acc) return q; } return 0; }; // taux dans RARITY[q].p
-function lootGear(lvl, luck = 0, cls) {
+// tirage de qualité : poids RARITY[q].p ; la chance (0 à ~0,4) renforce les qualités hautes de façon progressive, le plancher retire les basses
+const rollRarity = (luck = 0, floor = 0) => { const w = RARITY.map((R, q) => q < floor ? 0 : R.p * Math.pow(1 + Math.max(0, luck) * 6, q / 2)); let r = rnd() * w.reduce((a, b) => a + b, 0); for (let q = 0; q < w.length; q++) { r -= w[q]; if (r < 0) return q; } return floor; };
+function lootGear(lvl, luck = 0, cls, floor = 0) {
   const base = TIER_LVL.filter(l => l <= lvl).length - 1; // palier que le niveau permet de porter
   const tier = clamp(base + (chance(.25) ? 1 : 0), 1, typeof lootTierCap === "function" ? lootTierCap() : 5);
-  const r = rnd(), rar = rollRarity(luck);
+  const r = rnd(), rar = rollRarity(luck, floor);
   if (r < .3) return makeGear("tr", null, 1, rar);
   const owned = S ? [...new Set(S.heroes.map(h => h.cls))] : [];
   const c = cls || (owned.length && chance(.85) ? pick(owned) : pick(CLASS_IDS));
@@ -1598,7 +1715,7 @@ function newBattle(heroes, enemyKeys, opt = {}) {
   const relicH = opt.relicH || {};
   const B = { heroes: heroes.map(h => heroUnit(h, relicH)), enemies: [], fallen: [], round: 0, order: [], turn: -1, morale: clamp(50 + (relicH.morale || 0) + (opt.morale || 0), 0, 100),
     light: opt.light == null ? 100 : opt.light, relicH, pet: null, over: null, log: [], kills: 0, crits: 0, opt, revived: 0, firstRound: true, mods: opt.mods || {} };
-  for (const k of enemyKeys) { const m = Object.assign({}, opt.mods); if (k.f) { m.hp = (m.hp || 1) * k.f.hp; m.dmg = (m.dmg || 1) * k.f.dmg; m.prot = (m.prot || 0) + k.f.prot * .5; } B.enemies.push(monUnit(k.key || k, k.lvl || opt.lvl || 1, m)); }
+  for (const k of enemyKeys) { const m = Object.assign({}, opt.mods); if (k.f) { m.hp = (m.hp || 1) * k.f.hp; m.dmg = (m.dmg || 1) * k.f.dmg; m.prot = (m.prot || 0) + k.f.prot * .5; } if (k.corrupt) { m.hp = (m.hp || 1) * 1.3; m.dmg = (m.dmg || 1) * 1.2; } const eu = monUnit(k.key || k, k.lvl || opt.lvl || 1, m); if (k.corrupt) { eu.corrupt = 1; eu.name += " corrompu"; eu.res = (eu.res || 0) + 15; } B.enemies.push(eu); }
   if (opt.pet) B.pet = { id: opt.pet, lvl: petLvl(opt.pet), evo: petEvolved(opt.pet), pw: petPower(opt.pet), n: 0 };
   if (relicH.startWeak) for (const e of B.enemies) addSt(B, null, e, { k: "weak", t: 2 }, []);
   return B;
@@ -2086,7 +2203,7 @@ function runLevel(run, node) {
   const R = regionById(run.region);
   // chaque chapitre couvre 5 niveaux (I : 1–5, II : 5–10, III : 10–15…), du premier au dernier pas
   let l = R.lvl + Math.round((node ? node.c : 0) / Math.max(1, run.map.length - 1) * (R.lvl === 1 ? 4 : 5)) + run.threat * 2;
-  if (run.region === "abime") l = 25 + Math.floor((run.floor - 1) * 1.2) + Math.floor((node ? node.c : 0) / 2);
+  if (run.region === "abime") l = 30 + Math.floor((run.floor - 1) * 1.2) + Math.floor((node ? node.c : 0) / 2);
   return l;
 }
 // butin plafonné au palier du chapitre : chapitre I → palier II (niveau 5) max, chapitre II → palier III, etc.
@@ -2111,7 +2228,8 @@ function beatenBosses() { const b = S.beaten = S.beaten || {}; for (const r of R
 // la rencontre est tirée une seule fois par salle : quitter puis reprendre redonne les mêmes ennemis (et le même gardien)
 function genEncounter(run, node, rng = RNG) {
   if (node.enc) return node.enc.map(e => Object.assign({}, e));
-  const enc = genEncounter0(run, node, rng); node.enc = enc.map(e => Object.assign({}, e)); return enc;
+  const enc = genEncounter0(run, node, rng);
+  if (run.threat >= 3) for (const e of enc) if (!MONSTERS[e.key].boss && rng.chance(run.threat >= 4 ? .45 : .3)) e.corrupt = 1; /* menace IV–V : créatures corrompues (+30 % PV, +20 % dégâts, meilleur butin) */ node.enc = enc.map(e => Object.assign({}, e)); return enc;
 }
 function genEncounter0(run, node, rng = RNG) {
   const R = regionById(run.region), lvl = runLevel(run, node);
@@ -2123,7 +2241,8 @@ function genEncounter0(run, node, rng = RNG) {
     // 1re fois : le gardien de l'histoire ; ensuite, au hasard parmi les gardiens déjà vaincus (jamais deux fois de suite le même)
     const last = (S.lastBoss || (S.lastBoss = {}))[R.id], beaten = beatenBosses(), firstTime = run.region !== "abime" && !(S.prog[R.id] && S.prog[R.id].clears);
     const cand = beaten.filter(k => k !== last), pool = cand.length ? cand : beaten.length ? beaten : [ref];
-    const bk = firstTime ? R.boss : run.region === "abime" && run.floor % 5 === 0 && S.season && S.season.boss ? S.season.boss : rng.pick(pool); S.lastBoss[R.id] = bk; // l'Abîme : gardien de la saison tous les 5 étages
+    const tb = run.threat >= 1 && run.region !== "abime" && THREAT_BOSS[run.threat], tbNew = tb && !(S.beaten || {})[tb];
+    const bk = firstTime ? R.boss : tbNew ? tb : run.region === "abime" && run.floor % 5 === 0 && S.season && S.season.boss ? S.season.boss : rng.pick(pool); S.lastBoss[R.id] = bk; // l'Abîme : gardien de la saison tous les 5 étages
     out.push({ key: pickFor(1), lvl });
     out.push({ key: bk, lvl: lvl + 1, f: monNorm(bk, ref) });
     if (run.region === "abime" || R.lvl >= 9) out.push({ key: pickFor(4), lvl });
@@ -2144,18 +2263,19 @@ function genEncounter0(run, node, rng = RNG) {
 
 // ── récompenses ──
 function rewardFor(run, node, rng = RNG) {
-  const lvl = runLevel(run, node), rh = relicHooks(run), luck = run.light < 30 ? .05 : 0;
+  const lvl = runLevel(run, node), rh = relicHooks(run), luck0 = run.light < 30 ? .05 : 0; let luck = luck0;
   const goldM = 1 + (rh.gold || 0) + run.party.map(heroById).filter(Boolean).reduce((a, h) => a + heroPassives(h).filter(p => p.k === "gold").reduce((b, p) => b + p.v, 0), 0) + (run.pet && PETS[run.pet].gold ? PETS[run.pet].gold : 0) + (run.daily ? .25 : 0) + run.oaths.length * .15 + run.threat * .3;
   const R = { gold: 0, xp: 0, loot: [], relic: null, mats: { fer: 0, essence: 0, cendre: 0 }, shards: 0, petXp: 0 };
   const t = node.type;
+  const corr = node.enc ? node.enc.filter(e => e.corrupt).length : 0; if (corr) luck += .04 * corr;
   if (t === "combat") { R.gold = (14 + lvl * 4.5) * (0.85 + rng() * .3); R.xp = 26 + lvl * 7; R.mats.fer = rng.chance(.6) ? 1 : 0; if (rng.chance(.22 + luck)) R.loot.push(lootGear(lvl, luck)); }
-  if (t === "elite") { R.gold = (34 + lvl * 9) * (0.9 + rng() * .3); R.xp = 50 + lvl * 12; R.mats.fer = 2; R.mats.essence = 1; R.loot.push(lootGear(lvl + 2, .08 + luck)); if (rng.chance(.5)) R.relic = randRelic(run, rng, 1); }
-  if (t === "elite" && run.week && weekRule() && weekRule().eliteLoot) R.loot.push(lootGear(lvl + 2, .1));
+  if (t === "elite") { R.gold = (34 + lvl * 9) * (0.9 + rng() * .3); R.xp = 50 + lvl * 12; R.mats.fer = 2; R.mats.essence = 1; R.loot.push(lootGear(lvl + 2, .12 + luck, null, 1)); if (rng.chance(.5)) R.relic = randRelic(run, rng, 1); } // élite : jamais de commun, qualités hautes favorisées
+  if (t === "elite" && run.week && weekRule() && weekRule().eliteLoot) R.loot.push(lootGear(lvl + 2, .12, null, 1));
   if (t === "treasure") { R.gold = (30 + lvl * 7) * (0.8 + rng() * .5); R.loot.push(lootGear(lvl + 1, .05 + luck)); R.mats.fer = 1; if (rng.chance(.4)) R.relic = randRelic(run, rng); }
   if (t === "boss") {
     const first = run.region !== "abime" && !(S.prog[run.region] && S.prog[run.region].clears);
     R.gold = (120 + lvl * 22) * (first ? 1.5 : 1); R.xp = 120 + lvl * 22; R.mats.fer = 3; R.mats.essence = 2 + Math.floor(lvl / 8); R.mats.cendre = lvl >= 13 ? 1 : 0;
-    R.loot.push(lootGear(lvl + 3, .15)); if (rng.chance(.5)) R.loot.push(lootGear(lvl + 2, .1));
+    R.loot.push(lootGear(lvl + 3, .25, null, 2)); if (rng.chance(.5)) R.loot.push(lootGear(lvl + 2, .2, null, 2)); // gardien : rare au minimum
     R.shards = first ? 3 : 1 + (run.region === "abime" && run.floor % 3 === 0 ? 1 : 0) + Math.floor(run.oaths.length / 3); R.relic = randRelic(run, rng, 2);
   }
   R.gold = Math.round(R.gold * goldM * diffOf().gold); R.xp = Math.round(R.xp * (1 + run.threat * .2) * diffOf().xp); R.petXp = Math.round(R.xp * .8);
@@ -2442,6 +2562,7 @@ const CAMP = [
 ];
 function doCamp(run, k) {
   if (k === "rest") healParty(run, .45 * (run.week && weekRule() && weekRule().campX || 1));
+  for (const h of runParty()) h.stress = Math.max(0, (h.stress || 0) - (k === "rest" ? 30 : 15)); // le feu apaise
   if (k === "train") { const xp = 30 + runLevel(run, null) * 8; for (const h of runParty()) if (!run.fallen.includes(h.id)) giveXp(h, xp); }
   if (k === "watch") { run.light = clamp(run.light + 35, 0, 100); run.morale = clamp((run.morale || 0) + 10, -30, 30); }
 }
@@ -2460,6 +2581,7 @@ function battleFor(run, node, enc) {
 }
 function afterBattle(run, B) {
   run.buff = 0; run.morale = 0;
+  if (typeof stressAfterBattle === "function") stressAfterBattle(run, B);
   // PV conservés, héros tombés
   for (const u of [...B.heroes, ...B.fallen]) { const h = heroById(u.hid); if (!h) continue; h.hp = u.fallen ? 0 : u.hp; if (u.fallen && !run.fallen.includes(h.id)) { run.fallen.push(h.id); run.flawless = false; } }
   const rh = relicHooks(run);
@@ -2641,6 +2763,7 @@ const GUARD_MARKS = {
   foret: { n: "Sève noire", d: "+10 % de dégâts, mais −6 d'esquive.", pas: [{ k: "stat", s: "dmg", v: .1 }, { k: "stat", s: "dodge", v: -6 }] },
   catacombes: { n: "Os maudits", d: "+8 % de protection, mais −2 de vitesse.", pas: [{ k: "stat", s: "prot", v: .08 }, { k: "stat", s: "spd", v: -2 }] },
   marais: { n: "Fièvre des noyés", d: "+20 % de soins reçus, mais −5 de précision.", pas: [{ k: "healTaken", v: .2 }, { k: "stat", s: "acc", v: -5 }] },
+  terres: { n: "Sceau écarlate", d: "+10 % de dégâts contre les humains, mais −5 de résistance.", pas: [{ k: "vsTag", tag: "humain", v: .1 }, { k: "stat", s: "res", v: -5 }] },
   citadelle: { n: "Cendres du roi", d: "+8 % de critique, mais −10 % de soins prodigués.", pas: [{ k: "stat", s: "crit", v: 8 }, { k: "stat", s: "healPow", v: -.1 }] },
 };
 const markCost = h => 120 + h.lvl * 25;
@@ -2672,6 +2795,8 @@ function startRush(partyIds, petId) {
 // ── fin d'expédition : quêtes, marques, saison, rush ──
 function extrasEndRun(run, outcome, res) {
   seeRelics(run);
+  if (outcome === "victory" && !run.rush) res.classCh = classChallengeTick(run);
+  for (const h of run.party.map(heroById).filter(Boolean)) if (outcome !== "wipe") h.stress = Math.max(0, (h.stress || 0) - 10);
   const party = run.party.map(heroById).filter(Boolean), done = run.questsDone || [];
   for (const h of party) {
     if (!run.fallen.includes(h.id) && outcome !== "wipe") { const r = questProgress(h, "survive", 1); if (r) done.push(r); }
@@ -2691,6 +2816,44 @@ function extrasEndRun(run, outcome, res) {
     const B0 = S.rush || { best: 0, time: 0, alive: 0, runs: 0 }; B0.runs++; res.rush = { n, mins, alive, record: n > B0.best || (n === B0.best && mins < B0.time) };
     if (res.rush.record) { B0.best = n; B0.time = mins; B0.alive = alive; } S.rush = B0; }
 }
+
+// ── Stress : chaque combat éprouvant use les nerfs ; à 100, le héros craque (affliction) ou se révèle (vertu) ──
+const AFFLICTIONS = {
+  paranoia: { n: "Paranoïaque", bad: 1, d: "−8 de précision, −6 d'esquive.", pas: [{ k: "stat", s: "acc", v: -8 }, { k: "stat", s: "dodge", v: -6 }] },
+  desespoir: { n: "Désespéré", bad: 1, d: "−12 % de dégâts.", pas: [{ k: "stat", s: "dmg", v: -.12 }] },
+  rage: { n: "Rage aveugle", bad: 1, d: "+8 % de dégâts, mais −8 % de protection et −10 de résistance.", pas: [{ k: "stat", s: "dmg", v: .08 }, { k: "stat", s: "prot", v: -.08 }, { k: "stat", s: "res", v: -10 }] },
+  terreur: { n: "Terrorisé", bad: 1, d: "−2 de vitesse, −10 % de PV.", pas: [{ k: "stat", s: "spd", v: -2 }, { k: "stat", s: "hp", v: -.1 }] },
+  inebranlable: { n: "Inébranlable", d: "Vertu : +10 % de dégâts, +15 de résistance.", pas: [{ k: "stat", s: "dmg", v: .1 }, { k: "stat", s: "res", v: 15 }] },
+  vigilant: { n: "Vigilant", d: "Vertu : +2 de vitesse, +8 d'esquive.", pas: [{ k: "stat", s: "spd", v: 2 }, { k: "stat", s: "dodge", v: 8 }] },
+};
+function stressAfterBattle(run, B) {
+  const fallen = B.fallen.length, long = B.round > 10 ? 10 : 0; run.stressLog = [];
+  for (const u of [...B.heroes, ...B.fallen]) { const h = heroById(u.hid); if (!h) continue;
+    const add = (u.agonyN || 0) * 22 + fallen * 12 + long + (u.hp > 0 && u.hp / u.hpMax < .25 ? 8 : 0) + ([...B.enemies, ...(B.dead || [])].some(e => e.boss) ? 6 : 2);
+    h.stress = clamp((h.stress || 0) + add, 0, 100);
+    if (h.stress >= 100 && !h.affl) { const virt = chance(.25), pool = Object.keys(AFFLICTIONS).filter(k => !!AFFLICTIONS[k].bad !== virt); h.affl = pick(pool); h.stress = virt ? 40 : 70; run.stressLog.push({ name: h.name, a: h.affl }); }
+  }
+}
+const calmCost = h => 80 + h.lvl * 15;
+function calmHero(h) { const c = calmCost(h); if (S.gold < c) return { err: "Pas assez d'or." }; S.gold -= c; h.stress = 0; if (h.affl && AFFLICTIONS[h.affl].bad) h.affl = null; return { ok: 1 }; }
+
+// ── Arbre de talents : un point par niveau au-delà du 14e, trois voies sans limite ──
+const TALENTS = {
+  off: { n: "Lame", d: "+3 % de dégâts et +0,5 % de critique par point.", ic: "sword" },
+  def: { n: "Bouclier", d: "+3 % de PV et +1 % de protection par point (max +20 %).", ic: "shield" },
+  mas: { n: "Maîtrise", d: "+3 % de soins prodigués, +4 de résistance et +1 de vitesse tous les 4 points.", ic: "book" },
+};
+const talentPoints = h => Math.max(0, h.lvl - 14);
+const talentSpent = h => h.talents ? (h.talents.off || 0) + (h.talents.def || 0) + (h.talents.mas || 0) : 0;
+function talentPas(h) { const T = h.talents || {}, o = T.off || 0, d = T.def || 0, m = T.mas || 0;
+  return [{ k: "stat", s: "dmg", v: .03 * o }, { k: "stat", s: "crit", v: .5 * o }, { k: "stat", s: "hp", v: .03 * d }, { k: "stat", s: "prot", v: Math.min(.2, .01 * d) }, { k: "stat", s: "healPow", v: .03 * m }, { k: "stat", s: "res", v: 4 * m }, { k: "stat", s: "spd", v: Math.floor(m / 4) }].filter(p => p.v); }
+function talentAdd(h, k) { if (!TALENTS[k] || talentSpent(h) >= talentPoints(h)) return false; h.talents = h.talents || {}; h.talents[k] = (h.talents[k] || 0) + 1; return true; }
+
+// ── Défis de classe : gagner des gardiens avec chaque classe ──
+const CLASS_GOALS = [3, 10, 25];
+function classChallengeTick(run) { const won = S.classWins = S.classWins || {}, out = [];
+  for (const h of run.party.map(heroById).filter(Boolean)) { const c = h.cls; won[c] = (won[c] || 0) + 1; const g = CLASS_GOALS.indexOf(won[c]); if (g >= 0) { const gold = [300, 900, 2500][g], sh = [1, 3, 6][g]; S.gold += gold; S.shards += sh; out.push({ cls: c, g, gold, sh }); } }
+  return out; }
 /* ═══════════════════════ Outils de dessin (effets de combat, lueurs, dégradés) ═══════════════════════
    Tout l'art du jeu est peint (assets/) ; il ne reste ici que les utilitaires des effets. */
 function hexRgb(h) { h = h.replace("#", ""); if (h.length === 3) h = h.split("").map(c => c + c).join(""); const n = parseInt(h, 16); return [n >> 16 & 255, n >> 8 & 255, n & 255]; }
@@ -2813,15 +2976,27 @@ function artPump() {
   }
 }
 // précharge tout en tâche de fond (après les images demandées par l'écran courant)
-function artPreload() { if (typeof Image === "undefined") return; PIC.total = ART_SET.size; for (const n of [...ART_SET].sort((a, b) => /^(tr|wpn|map)_/.test(b) - /^(tr|wpn|map)_/.test(a))) if (!PIC.img[n]) { PIC.img[n] = { ok: 0 }; PIC.queue.push(n); } artPump(); artProgress(); }
+function artPreload() { if (typeof Image === "undefined") return; PIC.total = ART_SET.size; if (!PIC.total) return bootDone(); for (const n of [...ART_SET].sort((a, b) => /^(tr|wpn|map)_/.test(b) - /^(tr|wpn|map)_/.test(a))) if (!PIC.img[n]) { PIC.img[n] = { ok: 0 }; PIC.queue.push(n); } artPump(); artProgress(); }
 // barre de chargement discrète (premier lancement : ensuite tout vient du cache de l'appli)
 function artProgress() {
   if (typeof document === "undefined" || !PIC.total) return;
   const el = document.getElementById("artload"); if (!el) return;
   const k = Math.min(1, PIC.done / PIC.total);
+  bootProgress(k);
   if (k >= 1) { el.classList.add("done"); return; }
+  if (document.getElementById("boot")) return; // l'écran de chargement affiche déjà la progression
   el.hidden = false; el.firstElementChild.style.width = (k * 100).toFixed(1) + "%"; el.lastElementChild.textContent = "Illustrations " + Math.min(PIC.done, PIC.total) + " / " + PIC.total;
 }
+// écran de chargement : attend les illustrations (instantané ensuite, tout vient du cache), avec une issue si le réseau traîne
+const BOOT_TXT = ["Les braises s'allument…", "On aiguise les lames…", "Les morts se retournent dans leurs tombes…", "La Cendre retombe sur Morvaine…", "Le Bastion ouvre ses portes…"];
+function bootProgress(k) {
+  const b = document.getElementById("boot"); if (!b || b.classList.contains("out")) return;
+  b.querySelector(".bootbar i").style.width = (k * 100).toFixed(1) + "%";
+  const t = b.querySelector(".boottxt"); if (t) t.textContent = BOOT_TXT[Math.min(BOOT_TXT.length - 1, Math.floor(k * BOOT_TXT.length))] + " " + Math.round(k * 100) + " %";
+  if (k >= 1) bootDone();
+}
+function bootDone() { const b = document.getElementById("boot"); if (!b || b.classList.contains("out")) return; b.classList.add("out"); setTimeout(() => b.remove(), 1000); }
+if (typeof document !== "undefined") { setTimeout(() => { const s = document.getElementById("bootskip"); if (s) { s.style.display = ""; s.onclick = bootDone; } }, 9000); setTimeout(bootDone, 45000); }
 const ART_REPAINT = [];
 // une image vient d'arriver : on vide les caches de sprites et on repeint les vignettes encore à l'écran
 function artChanged() {
@@ -2997,11 +3172,11 @@ function musicPlay(kind) {
     const c = SND.ctx; if (!c) return; const M = MUSIC[SND.mKind] || MUSIC.bastion, root = M[0], sc = M[1];
     const t = c.currentTime;
     if (step % 4 === 0) { // nappe
-      for (const iv of [0, sc[1], sc[2]]) { const f = root * Math.pow(2, (iv + (step % 16 >= 8 ? sc[3] - sc[2] : 0)) / 12); const o = c.createOscillator(), g = c.createGain(), fl = c.createBiquadFilter(); o.type = "sawtooth"; o.frequency.value = f / 2; fl.type = "lowpass"; fl.frequency.value = 500; g.gain.setValueAtTime(0, t); g.gain.linearRampToValueAtTime(.05, t + 1.5); g.gain.linearRampToValueAtTime(0, t + 6.2); o.connect(fl); fl.connect(g); g.connect(SND.music); g.connect(SND.rev); o.start(t); o.stop(t + 6.5); }
+      for (const iv of [0, sc[1], sc[2]]) { const f = root * Math.pow(2, (iv + (step % 16 >= 8 ? sc[3] - sc[2] : 0)) / 12); const o = c.createOscillator(), g = c.createGain(), fl = c.createBiquadFilter(); o.type = "sawtooth"; o.frequency.value = f / 2; fl.type = "lowpass"; fl.frequency.value = 340; g.gain.setValueAtTime(0, t); g.gain.linearRampToValueAtTime(.05, t + 1.5); g.gain.linearRampToValueAtTime(0, t + 6.2); o.connect(fl); fl.connect(g); g.connect(SND.music); g.connect(SND.rev); o.start(t); o.stop(t + 6.5); }
     }
-    if (Math.random() < (SND.mKind === "combat" || SND.mKind === "boss" ? .7 : .45)) { // cloche / harpe
-      const iv = sc[Math.floor(Math.random() * sc.length)] + (Math.random() < .4 ? 12 : 0); const f = root * 2 * Math.pow(2, iv / 12);
-      const o = c.createOscillator(), g = c.createGain(); o.type = "triangle"; o.frequency.value = f; g.gain.setValueAtTime(0, t); g.gain.linearRampToValueAtTime(.05, t + .01); g.gain.exponentialRampToValueAtTime(.0005, t + 2.4); o.connect(g); g.connect(SND.music); g.connect(SND.rev); o.start(t); o.stop(t + 2.5);
+    if (Math.random() < (SND.mKind === "combat" || SND.mKind === "boss" ? .3 : .22)) { // glas grave, rare (plus de « harpe » aiguë)
+      const iv = sc[Math.floor(Math.random() * sc.length)]; const f = root * Math.pow(2, iv / 12);
+      const o = c.createOscillator(), g = c.createGain(); o.type = "sine"; o.frequency.value = f; g.gain.setValueAtTime(0, t); g.gain.linearRampToValueAtTime(.045, t + .04); g.gain.exponentialRampToValueAtTime(.0005, t + 4); o.connect(g); g.connect(SND.music); g.connect(SND.rev); o.start(t); o.stop(t + 4.1);
     }
     if ((SND.mKind === "combat" || SND.mKind === "boss") && step % 2 === 0) { // tambour
       const o = c.createOscillator(), g = c.createGain(); o.frequency.setValueAtTime(70, t); o.frequency.exponentialRampToValueAtTime(35, t + .3); g.gain.setValueAtTime(.18, t); g.gain.exponentialRampToValueAtTime(.001, t + .35); o.connect(g); g.connect(SND.music); o.start(t); o.stop(t + .4);
@@ -3204,7 +3379,7 @@ const GLOSS = {
   evolution: { n: "Évolution", ic: "crown", d: "Au niveau 15, chaque héros choisit l'une de ses deux voies : nouvelles compétences et une aura. Son aspect final se révèle quand il porte une armure de palier VI." },
   apogee: { n: "Apogée", ic: "crown", d: "Au niveau 18, un héros évolué atteint l'apogée de sa voie : un bonus passif puissant." },
   palier: { n: "Palier", ic: "armor", d: "Qualité de l'équipement, de I à VI. Un palier plus élevé donne plus de dégâts (arme) ou de PV et de protection (armure). La Forge débloque les paliers. Le palier VI (ascendant) ne se porte qu'après l'évolution : l'armure ascendante révèle l'aspect final du héros dans sa voie." },
-  rarete: { n: "Rareté", ic: "gem", d: "Commun (≈ 50 % des objets trouvés), peu commun (≈ 30 %), rare (≈ 12 %), épique (≈ 5 %), légendaire (≈ 2 %), mythique (≈ 0,6 %), divin (≈ 0,2 %). Plus l'objet est rare, plus il porte de bonus supplémentaires. La chance (lueur basse, élites, gardiens, Forge) améliore les tirages." },
+  rarete: { n: "Rareté", ic: "gem", d: "Commun (≈ 50 % des objets trouvés), peu commun (≈ 30 %), rare (≈ 12 %), épique (≈ 5 %), légendaire (≈ 2 %), mythique (≈ 0,6 %), divin (≈ 0,2 %). Plus l'objet est rare, plus il porte de bonus supplémentaires. Les élites ne donnent jamais de commun et favorisent les hautes qualités ; les gardiens donnent au moins du rare. La lueur basse et la Forge améliorent aussi les tirages." },
   serment: { n: "Serments", ic: "seal", d: "Dans l'Abîme, des contraintes volontaires qui rendent l'expédition plus dure en échange de meilleures récompenses." },
   compagnon: { n: "Compagnon", ic: "paw", d: "L'animal qui suit le groupe : il frappe ou soutient à chaque tour et évolue au niveau 10." },
   // ── ressources ──
@@ -3447,12 +3622,23 @@ const PWA = { prompt: null,
 if (HASWIN) { addEventListener("beforeinstallprompt", e => { e.preventDefault(); PWA.prompt = e; if (UI.screen === "title" || UI.screen === "options") refresh(); }); addEventListener("appinstalled", () => { PWA.prompt = null; toast("Couronne de Cendres est installée !", "good"); }); }
 SCREENS.title = {
   noHud: 1, noNav: 1,
-  scene: () => backdrop("titre", { align: .6, after: (x, t) => { const w = SC.w, h = SC.h; glow(x, w / 2, h * .32, Math.min(w, h) * .45, "#ff5a1a", .12 + Math.sin(t * 1.3) * .04); } }),
+  scene: () => { const ash = []; let last = 0;
+    return backdrop("titre", { align: .6, after: (x, t) => { const w = SC.w, h = SC.h, dt = Math.min(.05, t - last || 0); last = t;
+      glow(x, w / 2, h * .32, Math.min(w, h) * .45, "#ff5a1a", .12 + Math.sin(t * 1.3) * .04);
+      // braises qui montent et cendre qui tombe
+      while (ash.length < Math.min(140, w / 6)) ash.push({ x: Math.random() * w, y: Math.random() * h, v: 10 + Math.random() * 40, s: .6 + Math.random() * 1.8, ember: Math.random() < .35, ph: Math.random() * 6 });
+      for (const a of ash) { a.y += (a.ember ? -1 : 1) * a.v * dt; a.x += Math.sin(t * .7 + a.ph) * 12 * dt; if (a.y < -10) { a.y = h + 10; a.x = Math.random() * w; } if (a.y > h + 10) { a.y = -10; a.x = Math.random() * w; }
+        if (a.ember) glow(x, a.x, a.y, a.s * 3.5, "#ff8a2a", .55 + Math.sin(t * 4 + a.ph) * .25); else { x.fillStyle = `rgba(190,180,170,${.25 + .2 * Math.sin(t + a.ph)})`; x.fillRect(a.x, a.y, a.s, a.s); } }
+      // vignette sombre
+      const g = x.createRadialGradient(w / 2, h / 2, Math.min(w, h) * .3, w / 2, h / 2, Math.max(w, h) * .75); g.addColorStop(0, "rgba(0,0,0,0)"); g.addColorStop(1, "rgba(0,0,0,.7)"); x.fillStyle = g; x.fillRect(0, 0, w, h); } }); },
   html: () => {
     const has = !!load();
     return `<div class="titlebox">
+      ${artHas("ui_emblem") ? `<img src="assets/ui_emblem.webp" alt="" style="width:84px;height:84px;object-fit:contain;filter:drop-shadow(0 0 16px #ff7a2a88);margin-bottom:-6px">` : ""}
       <div class="logo">Couronne<br>de Cendres<small>LE DERNIER BASTION</small></div>
       <p class="lore" style="max-width:460px;margin:6px 0 14px">Un royaume maudit. Une couronne brisée. Des héros perdus, et vous pour les mener dans l'ombre.</p>
+      ${has ? (() => { const d = load(); const ch = REGIONS.filter(r => d.prog && d.prog[r.id] && d.prog[r.id].clears).length, top = (d.heroes || []).slice().sort((a, b) => b.lvl - a.lvl)[0];
+        return `<div class="panel" style="padding:8px 14px;margin-bottom:8px;max-width:340px;text-align:left"><div class="small"><b class="gold">${ch ? "Chapitre " + ["I", "II", "III", "IV", "V", "V"][Math.min(5, ch)] + (ch >= 5 ? " terminé" : "") : "Chapitre I"}</b> · ${(d.heroes || []).length} héros${top ? ` · ${esc(top.name.split(" ")[0])} niv ${top.lvl}` : ""}</div><div class="tiny dim">${d.run ? "Une expédition est en cours." : "Le Bastion vous attend."}</div></div>`; })() : ""}
       ${has ? `<button class="btn main glow" data-a="continue">${ico("castle")}Continuer</button>` : ""}
       <button class="btn ${has ? "" : "main glow"}" data-a="newgame">${ico("plus")}Nouvelle partie</button>
       ${PWA.standalone ? "" : `<button class="btn ghost" data-a="install">${ico("install")}Installer l'appli</button>`}
@@ -3587,14 +3773,14 @@ function bldFooter(k) {
   const next = { taverne: `Caserne : ${4 + (l + 1) * 2} héros · ${3 + l} recrues mieux aguerries`, forge: `Palier d'armure ${l + 1} · amélioration jusqu'à +${(l + 1) * 2}`, chapelle: `${3 + l} potions par expédition · soins moins chers`, academie: `Rang de compétence maximal ${l + 1}`, menagerie: `${l + 2} compagnons`, fonderie: `${[0, 18, 34, 58, 90, 135][l + 1]} or/h, réserve ${[0, 6, 8, 10, 12, 16][l + 1]} h` }[k];
   return `<div class="sep"></div><div class="row sp"><div><b>${B.n}</b> <span class="gold">niveau ${l}</span>${c ? `<div class="small dim">Niveau ${l + 1} : ${next}</div><div class="tiny ${advLevel() >= bldAdvReq(k) ? "good" : "bad"}">Niveau d'aventure ${bldAdvReq(k)} requis (actuel : ${advLevel()})</div>` : '<div class="small good">Niveau maximal</div>'}</div>${c ? `<button class="btn gold sm ${canPay(c) && advLevel() >= bldAdvReq(k) ? "" : "off"}" data-a="upBld" data-v="${k}">${ico("up")}${c.gold} ${ico("coin", "#e8c060")}${c.shards ? ` ${c.shards} ${ico("shard", "#c090ff")}` : ""}</button>` : ""}</div>`;
 }
-ACT.upBld = k => { const r = upgradeBld(k); if (r.err) return toast(r.err, "bad"); sfx("forge"); toast(`${BUILDINGS[k].n} : niveau ${S.bld[k]} !`, "good"); save(); openBuilding(k); renderHud(); };
+ACT.upBld = k => { const r = upgradeBld(k); if (r.err) return toast(r.err, "bad"); sfx("forge"); toast(`${BUILDINGS[k].n} : niveau ${S.bld[k]} !`, "good"); save(); renderHud(); const L = (BLD_SCENES[k] || {})[S.bld[k]]; if (L) showLines(`${BUILDINGS[k].n} — niveau ${S.bld[k]}`, L, () => openBuilding(k)); else openBuilding(k); };
 function openBuilding(k, tab) {
   const B = BUILDINGS[k]; let body = "";
   UI.bldTab = tab || UI.bldTab || "";
   if (k === "taverne") {
     body = `<p class="lore">Une odeur de bière tiède et de sang séché. Des âmes perdues attendent un capitaine.</p><p class="small">Caserne : <b>${S.heroes.length}/${rosterMax()}</b> héros.</p>
     <div class="grid" style="--min:170px">${S.recruits.map((h, i) => { const C = CLASSES[h.cls], c = recruitPrice(i); return `<div class="card" style="text-align:center">${canvasSlot("r:" + i, 150, 188)}<h3 style="margin:2px 0">${esc(h.name)}</h3><div class="row" style="justify-content:center;gap:4px">${roleTag(C.role)}<span class="tag">${h.evo ? CLASSES[h.cls].evos[h.evo].n : C.n} · niv ${h.lvl}</span></div><p class="tiny" style="min-height:30px;margin-bottom:2px">${h.traits.map(t => `<span class="${TRAITS[t].good ? "good" : "bad"}" ${tipAttr(TRAITS[t].n, TRAITS[t].d)}>${TRAITS[t].n}</span>`).join(" · ")}</p><div class="tiny dim" style="margin-bottom:6px">${h.skills.map(k => skillDef(h, k).n).join(" · ")}</div><div class="row" style="justify-content:center;gap:4px"><button class="btn ghost sm" data-a="recruitInfo" data-v="${i}">${ico("info")}Détails</button><button class="btn ${c === 0 ? "main" : ""} sm" data-a="recruit" data-v="${i}">${c === 0 ? "Gratuit" : c + " " + ico("coin", "#e8c060")}</button></div></div>`; }).join("") || '<div class="empty">Plus personne. Revenez après une expédition.</div>'}</div>
-    <div class="row" style="margin-top:10px"><button class="btn ghost sm" data-a="reroll">${ico("dice")}Nouvelles recrues (${40 + S.bld.taverne * 20} or)</button><span class="small dim">Les recrues changent après chaque expédition. Classes débloquées : ${CLASS_IDS.filter(classUnlocked).length}/${CLASS_IDS.length}.</span></div>`;
+    <div class="row" style="margin-top:10px"><button class="btn ghost sm" data-a="reroll">${ico("dice")}Nouvelles recrues (${40 + S.bld.taverne * 20} or)</button><span class="small dim">Les recrues changent après chaque expédition. Classes débloquées : ${CLASS_IDS.filter(classUnlocked).length}/${CLASS_IDS.length}.</span></div>${tavernCalmHTML()}`;
   }
   if (k === "forge") {
     const tabs = ["craft", "inv"]; const tb = tabs.includes(UI.bldTab) ? UI.bldTab : "craft";
@@ -3812,7 +3998,7 @@ SCREENS.hero = {
     <h2 style="margin-top:14px">Compétences <span class="small dim" style="font-family:var(--f-body)">(${h.skills.length}/4 équipées — touchez pour équiper)</span></h2>
     <div class="col">${pool.map(k => { const sk = skillDef(h, k), on = h.skills.includes(k), r = h.skr[k] || 1, c = skillUpCost(r); return `<div class="skl ${on ? "on" : ""}" data-a="toggleSk" data-v="${h.id}:${k}">${ico(sk.ic, on ? "#e8c878" : "#9a8c7a")}<div style="flex:1"><div class="row sp"><b>${sk.n}</b><span>${rankPips(sk.use, sk.t === "e" || sk.t === "ae" ? sk.at : null)}</span></div><div class="tiny">${skillText(Object.assign({ id: k }, sk), h)}</div><div class="row sp tiny" style="margin-top:3px"><span class="ranks">${[1, 2, 3, 4, 5].map(i => `<i class="${i <= r ? "u" : ""}"></i>`).join("")}</span>${r < 5 ? `<button class="btn ghost sm ${r >= skillRankMax(h) || !canPay(c) ? "off" : ""}" data-a="skUp" data-v="${h.id}:${k}" title="${r >= skillRankMax(h) ? "Salle des maîtres ou niveau du héros insuffisant" : ""}">Rang ${r + 1} · ${c.gold} or${c.essence ? ` ${c.essence} ess.` : ""}</button>` : '<span class="gold">Maîtrisée</span>'}</div></div></div>`; }).join("")}</div>
     <div class="skl" style="margin-top:8px;border-color:#a05a2a;cursor:default">${ico(ult.ic, "#ff9a4a")}<div><b>Ultime : ${ult.n}</b><div class="tiny">${skillText(Object.assign({ isUlt: 1 }, ult), h)}</div><div class="tiny dim">La jauge d'ultime se remplit en agissant, en frappant et en encaissant.</div></div></div>
-    ${questMarkHTML(h)}${tomeHTML(h)}
+    ${questMarkHTML(h)}${tomeHTML(h)}${stressHTML(h)}${talentsHTML(h)}
     ${evoBlock}
     <div class="row" style="margin-top:14px;justify-content:space-between"><span class="tiny dim">${h.runs} expéditions · ${h.kills} victimes</span><button class="btn ghost sm" data-a="dismiss" data-v="${h.id}">Renvoyer</button></div></div>`;
   },
@@ -3914,6 +4100,7 @@ SCREENS.expe = {
     <div class="partyrow">${[3, 2, 1, 0].map(i => { const h = heroById(E.party[i]); return `<div class="card" style="text-align:center;padding:6px 3px" data-a="${h ? "unparty" : ""}" data-v="${i}"><div class="tiny gold">Rang ${i + 1}</div>${h ? canvasSlot("pt:" + h.id, 96, 120) + `<div class="tiny"><b>${esc(h.name.split(" ")[0])}</b></div><div class="tiny dim">${CLASSES[h.cls].n} ${h.lvl}</div>${isInjured(h) ? '<div class="tiny bad">Blessé (50 % PV)</div>' : ""}<div class="row" style="justify-content:center;gap:2px;margin-top:3px"><button class="btn ghost sm" data-a="mvParty" data-v="${i}:1" ${i >= 3 || !E.party[i + 1] ? "disabled" : ""}>◀</button><button class="btn ghost sm" data-a="mvParty" data-v="${i}:-1" ${i <= 0 ? "disabled" : ""}>▶</button></div>` : '<div class="empty" style="padding:40px 4px">vide</div>'}</div>`; }).join("")}</div>
     ${warn.length ? `<div class="small bad" style="text-align:center">${warn.join("<br>")}</div>` : ""}
     ${synergyHTML(E.party.map(id => heroById(id).cls), S.heroes.filter(h => !E.party.includes(h.id)).map(h => h.cls))}
+    ${teamsHTML(E)}
     <div class="row" style="gap:6px;margin-top:8px">${S.heroes.filter(h => !E.party.includes(h.id)).map(h => `<div class="card" style="padding:4px 8px" data-a="addParty" data-v="${h.id}"><div class="row" style="gap:6px;flex-wrap:nowrap">${canvasSlot("ro:" + h.id, 40, 40)}<div class="tiny"><b>${esc(h.name.split(" ")[0])}</b><br><span class="dim">${CLASSES[h.cls].n} ${h.lvl}${isInjured(h) ? ' · <span class="bad">blessé</span>' : ""}</span></div></div></div>`).join("")}<button class="btn ghost sm" data-a="autoParty">${ico("auto")}Composition auto</button></div>
     <h2 style="margin-top:14px">Compagnon</h2><div class="row">${S.pets.owned.map(id => `<div class="card ${E.pet === id ? "sel" : ""}" style="padding:4px 10px;text-align:center" data-a="pickPet" data-v="${id}">${canvasSlot("pe:" + id, 90, 64)}<div class="tiny"><b>${petName(id)}</b> niv ${petLvl(id)}</div></div>`).join("")}</div>
     <div class="stickybar"><span class="small dim">${ico("potion", "#e86a5a", 16)} ${potionMax() - (E.region === "abime" && (S.abyss.oaths || []).includes("jeune") ? 1 : 0)} potions</span><button class="btn main glow" data-a="launch" ${E.party.length ? "" : "disabled"}>${ico("map")}Commencer l'expédition</button></div></div>`;
@@ -4057,7 +4244,7 @@ function campPartyHTML() {
 ACT.camp = k => { doCamp(S.run, k); UI.campNode.done = 1; sfx(k === "rest" ? "heal" : "buff"); save(); closeModal(); refresh(); toast({ rest: "Le groupe reprend des forces.", train: "Les héros s'entraînent jusqu'à l'aube.", watch: "Vous ravivez les torches." }[k], "good"); };
 function showShop(n) {
   const st = n.stock;
-  modal(`<h2>${ico("coin", "#7ad0a0")} Le colporteur</h2><p class="lore">« Tout se paie, voyageurs. Surtout ici. »</p><p class="small">Or disponible : <b class="gold">${fmt(S.run.gold + S.gold)}</b> <span class="tiny dim">(expédition + Bastion)</span></p>${st.map((o, i) => `<div class="row card" style="cursor:default;${o.sold && !(o.it && S.run.loot.includes(o.it)) ? "opacity:.4" : ""}"><div style="flex:1;min-width:0"><b class="${o.it ? "rar" + o.it.rar : ""}">${o.n}</b><div class="tiny dim">${o.it ? itemLine(o.it) : o.d}</div>${o.it ? (o.sold ? runEquipBtns(o.it) : shopPreview(o.it)) : ""}</div><button class="btn sm ${o.sold || S.run.gold + S.gold < o.cost ? "off" : ""}" data-a="buy" data-v="${i}">${o.sold ? "Vendu" : o.cost + " or"}</button></div>`).join("")}<div class="row" style="justify-content:flex-end;margin-top:8px"><button class="btn main" data-a="leaveShop">Partir</button></div>`, { close: false, outside: () => ACT.leaveShop() });
+  modal(`<h2>${ico("coin", "#7ad0a0")} Le colporteur</h2><p class="lore">« Tout se paie, voyageurs. Surtout ici. »</p><p class="small">Or disponible : <b class="gold">${fmt(S.run.gold + S.gold)}</b> <span class="tiny dim">(expédition + Bastion)</span></p>${st.map((o, i) => `<div class="row card" style="cursor:default;${o.sold && !(o.it && S.run.loot.includes(o.it)) ? "opacity:.4" : ""}"><div style="flex:1;min-width:0"><b class="${o.it ? "rar" + o.it.rar : ""}">${o.n}</b><div class="tiny dim">${o.it ? itemLine(o.it) : o.d}</div>${o.it ? (o.sold ? runEquipBtns(o.it) : shopPreview(o.it)) : ""}</div><button class="btn sm ${o.sold || S.run.gold + S.gold < o.cost ? "off" : ""}" data-a="buy" data-v="${i}">${o.sold ? "Vendu" : o.cost + " or"}</button></div>`).join("")}${shopSellHTML()}<div class="row" style="justify-content:flex-end;margin-top:8px"><button class="btn main" data-a="leaveShop">Partir</button></div>`, { close: false, outside: () => ACT.leaveShop() });
   UI.shopNode = n;
 }
 ACT.buy = i => { const o = UI.shopNode.stock[+i]; if (!shopBuy(S.run, UI.shopNode, +i)) return toast("Pas assez d'or.", "bad"); sfx("coin"); save(); renderHud(); showShop(UI.shopNode); if (o && o.it) toast(runEquipTargets(o.it).length ? "Objet ajouté au butin — équipez-le directement ci-dessous." : "Objet ajouté au butin.", "good"); };
@@ -4143,7 +4330,7 @@ SCREENS.results = {
       ${res.unlocks.map(u => `<div class="reward" style="color:var(--gold2)">${ico("star", "#e8c878", 22)}<b>${u.k === "class" ? "Nouvelle classe à la Taverne : " + CLASSES[u.id].n : u.k === "pet" ? "Nouveau compagnon à la Ménagerie : " + PETS[u.id].n : "Nouvelle destination : " + regionById(u.id).n}</b></div>`).join("")}
       ${res.threatUp ? `<div class="reward" style="color:var(--gold2)">${ico("skull", "#ff8a6a", 22)}<b>Menace ${THREAT_N[res.threatUp.t]} débloquée : ${regionById(res.threatUp.region).n}</b></div>` : ""}
       ${res.week ? `<div class="reward" style="color:var(--gold2)">${ico("trophy", "#e8c878", 22)}<b>Défi de la semaine relevé ! +${res.week.gold} or · +${res.week.shards} éclats · +${res.week.essence} essence</b></div>` : ""}
-      ${extrasResultsHTML(res)}
+      ${extrasResultsHTML(res)}${(res.classCh || []).map(c => `<div class="reward" style="color:var(--gold2)">${ico("trophy", "#e8c878", 22)}<b>Défi de classe — ${CLASSES[c.cls].n} : ${CLASS_GOALS[c.g]} gardiens vaincus ! +${c.gold} or, +${c.sh} éclats</b></div>`).join("")}
       ${res.sum ? runSummaryHTML(res) : ""}
       ${res.region === "abime" ? `<p class="small" style="text-align:center">Record de l'Abîme : <b>${S.abyss.best}</b></p>` : ""}
       <div class="row" style="justify-content:center;margin-top:12px"><button class="btn main" data-go="bastion">${ico("castle")}Au Bastion</button></div></div></div>`;
@@ -4210,7 +4397,7 @@ function cbLayout() {
 SCREENS.combat = {
   noNav: 1, noHud: 1, pass: 1,
   scene: () => drawCombat,
-  html: () => `<div class="ctop l" id="cb-tl"></div><div class="ctop" id="cb-tr"><button class="btn ghost sm" data-a="cbSpeed" title="Vitesse">${ico("speed")}<span id="cb-spd">×${S.opts.speed || 1}</span></button><button class="btn ghost sm ${S.opts.auto ? "on" : ""}" data-a="cbAuto" title="Combat automatique">${ico("auto")}<span id="cb-auto">${S.opts.auto ? "Auto" : "Manuel"}</span></button><button class="btn ghost sm" data-a="cbFlee" id="cb-flee" title="Fuir">${ico("flee")}</button></div><div id="cbar"><div class="skdesc" id="cb-desc"></div><div class="skills" id="cb-skills"></div></div>`,
+  html: () => `<div class="ctop l" id="cb-tl"></div><div class="ctop" id="cb-tr"><button class="btn ghost sm" data-a="cbSpeed" title="Vitesse">${ico("speed")}<span id="cb-spd">×${S.opts.speed || 1}</span></button><button class="btn ghost sm ${S.opts.auto ? "on" : ""}" data-a="cbAuto" title="Combat automatique">${ico("auto")}<span id="cb-auto">${S.opts.auto ? "Auto" : "Manuel"}</span></button><button class="btn ghost sm" data-a="cbLogShow" title="Journal du combat">${ico("scroll")}</button><button class="btn ghost sm" data-a="cbFlee" id="cb-flee" title="Fuir">${ico("flee")}</button></div><div id="cbar"><div class="skdesc" id="cb-desc"></div><div class="skills" id="cb-skills"></div></div>`,
   mount: arg => startCombat(arg.node),
   leave: () => { CB.B = null; CB.resolve = null; { const ci = $("#cbinfo"); if (ci) ci.remove(); } const c = $("#coach"); if (c) c.remove(); UI.coach = null; document.querySelectorAll(".coachon").forEach(e => e.classList.remove("coachon")); },
   resize: () => { if (CB.B) { CB.barH = $("#cbar") ? $("#cbar").offsetHeight + 6 : 150; cbLayout(); } },
@@ -4219,7 +4406,7 @@ async function startCombat(node) {
   const run = S.run;
   const enc = genEncounter(run, node);
   const B = CB.B = battleFor(run, node, enc);
-  CB.vis = {}; CB.fx = []; CB.txt = []; CB.proj = []; CB.node = node; CB.speed = S.opts.speed || 1; CB.auto = !!S.opts.auto; CB.banner = null;
+  CB.vis = {}; CB.fx = []; CB.txt = []; CB.proj = []; CB.log = []; CB.node = node; CB.speed = S.opts.speed || 1; CB.auto = !!S.opts.auto; CB.banner = null;
   CB.barH = $("#cbar").offsetHeight + 6 || 150;
   cbLayout();
   SC.click = cbClick; SC.hover = cbHover;
@@ -4377,7 +4564,7 @@ async function playEvents(ev) {
   const B = CB.B; if (!B) return;
   let cur = null, srcCol = "#fff";
   for (let i = 0; i < ev.length; i++) {
-    const e = ev[i]; if (!CB.B) return;
+    const e = ev[i]; if (!CB.B) return; cbLog(e);
     switch (e.k) {
       case "act": {
         cur = e; const u = U(e.u); if (!u) break; const v = V(e.u); srcCol = skillColor(u, e.sk);
@@ -4524,6 +4711,7 @@ function drawCombat(x, t, dt) {
     // sprite
     let pose = v.pose || "idle"; if (u.side === "h" && u.agony && pose === "idle") pose = "agony";
     const sp = unitSprite(u, pose);
+    if (pose === "idle" || v.top == null) { const bb = spriteBox(sp); if (bb) v.top = py - sp.ay + bb.y; } // haut réel de l'illustration (intentions, cible)
     x.save(); x.globalAlpha = v.a;
     const br = pose === "idle" ? 1 + Math.sin(t * 2.2 + (u.uid.length * 1.7)) * .012 : 1;
     x.translate(px, py); if (u.side === "e") x.scale(-1, 1);
@@ -4596,6 +4784,7 @@ function drawUnitUI(x, u, v, t) {
   x.fillStyle = u.side === "h" ? lgrad(x, 0, by, 0, by + 8 * s, [[0, "#e04a3a"], [1, "#8a1a10"]]) : lgrad(x, 0, by, 0, by + 8 * s, [[0, "#c03a3a"], [1, "#6a1010"]]); x.fillRect(bx, by, w * hpk, 8 * s);
   const sh = stSum(u, "shield"); if (sh > 0) { x.fillStyle = "rgba(140,190,255,.7)"; x.fillRect(bx, by, w * clamp(sh / u.hpMax, 0, 1), 3 * s); }
   x.font = `700 ${Math.round(9.5 * s)}px Alegreya, serif`; x.textAlign = "center"; x.fillStyle = "#fff"; x.lineWidth = 3; x.strokeStyle = "#000"; const ht = u.agony ? "AGONIE" : Math.ceil(u.hp) + "/" + u.hpMax; x.strokeText(ht, v.x, by + 7.5 * s); x.fillStyle = u.agony ? "#ff6a5a" : "#f0e8e0"; x.fillText(ht, v.x, by + 7.5 * s);
+  if (u.corrupt) glow(x, v.x, v.y - 60 * CB.scale, 80 * CB.scale, "#9a3aff", .14 + Math.sin(t * 3) * .04); // créature corrompue
   if (u.agony) { const pk = .5 + Math.sin(t * 5) * .5; glow(x, v.x, v.y - 60 * CB.scale, 60 * CB.scale, "#ff2a1a", .2 + pk * .2); }
   // ultime (héros)
   if (u.side === "h") { x.fillStyle = "rgba(0,0,0,.7)"; x.fillRect(bx, by + 9 * s, w, 3 * s); x.fillStyle = u.ultV >= 100 ? `rgba(255,170,60,${.7 + Math.sin(t * 6) * .3})` : "#b0702a"; x.fillRect(bx, by + 9 * s, w * u.ultV / 100, 3 * s); }
@@ -4609,11 +4798,11 @@ function drawUnitUI(x, u, v, t) {
   if (u.side === "e" && u.intent && u.intent.sk && !B.over) {
     const sk = u.intent.sk, tt = sk.t || "e";
     const kind = sk.heal || tt === "allies" ? ["heart", "#8fe07a"] : tt === "self" ? ["shield", "#a0c8ff"] : !sk.m ? ["curse", "#c090ff"] : tt === "ae" ? ["flames", "#ff8a4a"] : ["swords", "#ff5a4a"];
-    const iy = v.y - 200 * CB.scale * (u.sz > 1 ? 1.5 : 1) - 8 + Math.sin(t * 3) * 2;
+    const iy = Math.max(14 * s, (v.top != null ? v.top - 16 * s : v.y - 200 * CB.scale * (u.sz > 1 ? 1.5 : 1) - 8)) + Math.sin(t * 3) * 2; // au-dessus de la tête, jamais sur le corps
     x.fillStyle = "rgba(0,0,0,.75)"; x.beginPath(); x.arc(v.x, iy, 11 * s, 0, 7); x.fill(); x.strokeStyle = rgba(kind[1], .8); x.lineWidth = 1.5; x.stroke();
     drawIcon(x, kind[0], v.x, iy, .62 * s, kind[1], 2);
     (CB.zones = CB.zones || []).push({ x0: v.x - 16 * s, x1: v.x + 16 * s, y0: iy - 16 * s, y1: iy + 16 * s, u, k: "intent" });
-    if (u.intent.tgt) { const tv = CB.vis[u.intent.tgt], tu = unitById(B, u.intent.tgt); if (tv && tu && alive(tu)) { x.fillStyle = rgba("#ff3a2a", .85); const ty = tv.y - 192 * CB.scale - 6; x.beginPath(); x.moveTo(tv.x - 5, ty); x.lineTo(tv.x + 5, ty); x.lineTo(tv.x, ty + 7); x.fill(); } }
+    if (u.intent.tgt) { const tv = CB.vis[u.intent.tgt], tu = unitById(B, u.intent.tgt); if (tv && tu && alive(tu)) { x.fillStyle = rgba("#ff3a2a", .85); const ty = tv.top != null ? tv.top - 8 : tv.y - 192 * CB.scale - 6; x.beginPath(); x.moveTo(tv.x - 5, ty); x.lineTo(tv.x + 5, ty); x.lineTo(tv.x, ty + 7); x.fill(); } }
   }
 }
 function drawPetInCombat(x, t, dt) {
@@ -4641,13 +4830,14 @@ SCREENS.codex = {
   scene: () => backdrop("catacombes", { dark: .6 }),
   html: () => {
     const tab = UI.codexTab || "classes";
-    const T = [["classes", "helm", "Classes"], ["bestiaire", "skull", "Bestiaire"], ["synergies", "link", "Synergies"], ["reliques", "gem", "Reliques"], ["histoire", "scroll", "Chroniques"], ["succes", "trophy", "Succès"], ["records", "cup", "Registres"], ["glossaire", "book", "Glossaire"]];
+    const T = [["classes", "helm", "Classes"], ["bestiaire", "skull", "Bestiaire"], ["synergies", "link", "Synergies"], ["reliques", "gem", "Reliques"], ["defis", "trophy", "Défis de classe"], ["histoire", "scroll", "Chroniques"], ["succes", "trophy", "Succès"], ["records", "cup", "Registres"], ["glossaire", "book", "Glossaire"]];
     let body = "";
     if (tab === "glossaire") body = glossaryHTML();
     if (tab === "reliques") body = relicsCodexHTML();
+    if (tab === "defis") body = classChCodexHTML();
     if (tab === "classes") body = `<div class="grid" style="--min:280px">${CLASS_IDS.map(k => { const C = CLASSES[k], un = classUnlocked(k); return `<div class="card ${un ? "" : "lock"}" style="cursor:default"><div class="row" style="flex-wrap:nowrap;gap:8px">${canvasSlot("cl:" + k, 90, 112)}<div style="flex:1"><h3 style="margin:0">${C.n} ${un ? "" : ico("lock", "#9a8c7a", 13)}</h3>${roleTag(C.role)}<p class="tiny lore" style="margin:4px 0">${C.lore}</p><div class="tiny">Voies : ${Object.values(C.evos).map(e => `<b class="gold">${e.n}</b>`).join(" ou ")}</div>${un ? "" : `<div class="tiny dim">Débloquée au chapitre ${C.unlock}</div>`}</div></div></div>`; }).join("")}</div>`;
     if (tab === "synergies") body = `<p class="small dim">Certaines classes se complètent. Quand elles partent ensemble en expédition, tout le groupe en profite.</p><div class="grid" style="--min:260px">${Object.keys(SYNERGIES).map(k => { const Y = SYNERGIES[k]; return `<div class="card" style="cursor:default"><h3 style="margin:0">${ico("link", "#e8c878", 15)} ${Y.n}</h3><div class="tiny gold" style="margin:3px 0">${synergyNeedText(Y)}</div><p class="small" style="margin:0">${gl(Y.d)}</p></div>`; }).join("")}</div>`;
-    if (tab === "bestiaire") { const ks = Object.keys(MONSTERS); body = `<p class="small dim">${ks.filter(k => S.seen.monsters[k] != null).length}/${ks.length} créatures rencontrées.</p><div class="grid" style="--min:170px">${ks.map(k => { const M = MONSTERS[k], seen = S.seen.monsters[k] != null; return `<div class="card ${seen ? "" : "lock"}" style="text-align:center;cursor:default">${seen ? canvasSlot("mo:" + k, 150, 150) : `<div style="height:150px;display:flex;align-items:center;justify-content:center">${ico("quest", "#5a4a3a", 48)}</div>`}<h3 style="margin:0">${seen ? M.n : "???"}</h3>${seen ? `<div class="tiny dim">${M.boss ? "Gardien" : M.elite ? "Élite" : "Créature"} · ${M.tags.map(t => t === "impie" ? "impie" : t === "bete" ? "bête" : "humain").join(", ")}</div><div class="tiny">PV ${M.hp} · ${M.sk.map(s => s.n).join(", ")}</div><div class="tiny dim">${S.seen.monsters[k] || 0} vaincus</div>` : ""}</div>`; }).join("")}</div>`; }
+    if (tab === "bestiaire") { const ks = Object.keys(MONSTERS); body = `<p class="small dim">${ks.filter(k => S.seen.monsters[k] != null).length}/${ks.length} créatures rencontrées.</p><div class="grid" style="--min:170px">${ks.map(k => { const M = MONSTERS[k], seen = S.seen.monsters[k] != null; return `<div class="card ${seen ? "" : "lock"}" style="text-align:center;cursor:${seen ? "pointer" : "default"}" ${seen ? `data-a="monSheet" data-v="${k}"` : ""}>${seen ? canvasSlot("mo:" + k, 150, 150) : `<div style="height:150px;display:flex;align-items:center;justify-content:center">${ico("quest", "#5a4a3a", 48)}</div>`}<h3 style="margin:0">${seen ? M.n : "???"}</h3>${seen ? `<div class="tiny dim">${M.boss ? "Gardien" : M.elite ? "Élite" : "Créature"} · ${M.tags.map(t => t === "impie" ? "impie" : t === "bete" ? "bête" : "humain").join(", ")}</div><div class="tiny">PV ${M.hp} · ${M.sk.map(s => s.n).join(", ")}</div><div class="tiny dim">${S.seen.monsters[k] || 0} vaincus</div>` : ""}</div>`; }).join("")}</div>`; }
     if (tab === "histoire") body = `<div class="panel" style="padding:14px"><h3>Prologue</h3>${STORY.intro.map(l => `<p class="lore">${l}</p>`).join("")}${REGIONS.map(r => S.prog[r.id] && S.prog[r.id].clears ? `<div class="sep"></div><h3>${r.sub} — ${r.n}</h3><p class="lore">${STORY[r.id]}</p>` : `<div class="sep"></div><h3 class="dim">${r.sub} — ???</h3>`).join("")}</div>`;
     if (tab === "succes") body = `<p class="small dim">${Object.keys(S.ach).length}/${ACHIEVEMENTS.length} succès.</p><div class="grid" style="--min:240px">${ACHIEVEMENTS.map(a => { const done = S.ach[a.id], p = Math.min(a.v, S.stats[a.k] || 0); return `<div class="card ${done ? "sel" : ""}" style="cursor:default"><div class="row" style="flex-wrap:nowrap">${ico("trophy", done ? "#e8c878" : "#5a4a3a", 28)}<div style="flex:1"><b>${a.n}</b><div class="tiny">${a.d}</div>${done ? '<div class="tiny good">Accompli</div>' : `<div class="bar xp" style="margin-top:3px"><i style="width:${100 * p / a.v}%"></i></div>`}<div class="tiny dim">${a.gold ? a.gold + " or" : ""}${a.shards ? a.shards + " éclats" : ""}</div></div></div></div>`; }).join("")}</div>`;
     if (tab === "records") { const s = S.stats; body = `<div class="panel" style="padding:14px"><div class="statgrid"><div>Expéditions <b>${s.runs}</b></div><div>Victoires en combat <b>${s.wins}</b></div><div>Ennemis tués <b>${fmt(s.kills)}</b></div><div>Gardiens vaincus <b>${REGIONS.reduce((a, r) => a + (s["boss_" + r.id] || 0), 0)}</b></div><div>Record de l'Abîme <b>${S.abyss.best}</b></div><div>Évolutions <b>${s.evos}</b></div><div>Objets forgés <b>${s.crafts}</b></div><div>Expéditions du jour <b>${s.daily}</b></div><div>Mode <b>${S.opts.hardcore ? "Hardi" : "Normal"}</b></div></div>${S.graves && S.graves.length ? `<div class="sep"></div><h3>${ico("skull", "#c8b8a0", 16)} Le cimetière</h3>${S.graves.slice(-20).reverse().map(g => `<div class="small">${esc(g.name)} — ${CLASSES[g.cls].n}, niveau ${g.lvl}</div>`).join("")}` : ""}</div>`; }
@@ -4815,9 +5005,9 @@ document.addEventListener("pointerdown", e => { const el = $("#cbinfo"); if (el 
 
 // ── Histoire : scène dialoguée avant chaque chapitre ──
 function sceneLineHTML([sp, txt]) { const P = SPEAKERS[sp] || SPEAKERS.narr; return P.n ? `<p class="scn"><b style="color:${P.c}">${P.n}</b><br>« ${txt} »</p>` : `<p class="scn lore">${txt}</p>`; }
-function showScene(reg, done) {
-  const Sc = SCENES[reg]; if (!Sc) return done && done();
-  (S.seenScene = S.seenScene || {})[reg] = 1; save();
+function showScene(reg, done, custom) {
+  const Sc = custom || SCENES[reg]; if (!Sc) return done && done();
+  if (reg) { (S.seenScene = S.seenScene || {})[reg] = 1; save(); }
   let i = 0;
   const step = () => {
     const shown = Sc.lines.slice(0, i + 1).map(sceneLineHTML).join(""), last = i >= Sc.lines.length - 1;
@@ -4842,6 +5032,80 @@ function tomeHTML(h) {
 }
 ACT.readTome = id => { const h = heroById(id); if (!h || !(S.tomes > 0)) return; if (h.lvl >= tomeCap()) return toast("Ce héros est déjà parmi les plus aguerris.", "bad");
   S.tomes--; const need = xpNeed(h.lvl) - h.xp; giveXp(h, Math.max(1, Math.ceil(need / Math.max(.5, 1 + heroPassives(h).filter(p => p.k === "xp").reduce((a, p) => a + p.v, 0))))); sfx("level"); toast(`${esc(h.name)} passe niveau ${h.lvl}.`, "good"); save(); refresh(); };
+
+// ── Équipes enregistrées : 3 compositions (héros, ordre, compagnon) ──
+function teamsHTML(E) {
+  const T = S.teams = S.teams || [null, null, null];
+  return `<div class="row" style="gap:6px;margin-top:8px;align-items:center"><span class="small dim">${ico("banner", "#c8b8a0", 14)} Équipes :</span>${T.map((t, i) => {
+    const ok = t && t.party.every(id => heroById(id)), nm = t ? t.party.map(id => { const h = heroById(id); return h ? esc(h.name.split(" ")[0]) : "?"; }).join(", ") : "vide";
+    return `<span class="row" style="gap:2px"><button class="btn sm ${ok ? "" : "ghost"}" data-a="teamLoad" data-v="${i}" title="${nm}" ${ok ? "" : "disabled"}>${i + 1}${t ? " · " + nm : ""}</button><button class="btn ghost sm" data-a="teamSave" data-v="${i}" title="Enregistrer la composition actuelle">${ico("plus", "#9a8c7a", 12)}</button></span>`; }).join("")}</div>`;
+}
+ACT.teamSave = i => { const E = UI.expe; if (!E || !E.party.length) return; (S.teams = S.teams || [null, null, null])[+i] = { party: E.party.slice(), pet: E.pet }; save(); refresh(); toast(`Équipe ${+i + 1} enregistrée.`, "good"); };
+ACT.teamLoad = i => { const t = (S.teams || [])[+i]; if (!t) return; const E = UI.expe; E.party = t.party.filter(id => heroById(id)).slice(0, 4); if (t.pet && S.pets.owned.includes(t.pet)) E.pet = t.pet; refresh(); toast(`Équipe ${+i + 1} chargée.`); };
+
+// ── Journal du combat : qui a fait quoi, pour comprendre d'où viennent les dégâts ──
+function cbLog(e) {
+  const B = CB.B; if (!B || !CB.log) return; const N = id => { const u = unitById(B, id) || [...B.fallen, ...(B.dead || [])].find(x => x.uid === id); return u ? esc(u.name.split(" ")[0]) : id === "PET" ? "Compagnon" : "?"; };
+  const side = id => { const u = unitById(B, id) || [...B.fallen].find(x => x.uid === id); return u && u.side === "h" ? "good" : "bad"; };
+  let l = null;
+  if (e.k === "act") l = `<b class="${side(e.u)}">${N(e.u)}</b> : ${esc(e.sk)}`;
+  else if (e.k === "hit" && !e.dot) l = `&nbsp;→ ${N(e.u)} <b>−${e.dmg}</b>${e.crit ? " (critique)" : ""}`;
+  else if (e.k === "dot") l = `&nbsp;${N(e.u)} −${e.dmg} (${(ST_INFO[e.st] || {}).n || e.st})`;
+  else if (e.k === "heal" && e.v > 0) l = `&nbsp;→ ${N(e.u)} <span class="good">+${e.v}</span>`;
+  else if (e.k === "miss") l = `&nbsp;→ ${N(e.u)} esquive`;
+  else if (e.k === "st") l = `&nbsp;→ ${N(e.u)} : ${(ST_INFO[e.st] || {}).n || e.st}`;
+  else if (e.k === "agony") l = `<span class="bad">${N(e.u)} est à l'agonie</span>`;
+  else if (e.k === "fall") l = `<span class="bad">${N(e.u)} tombe</span>`;
+  else if (e.k === "die") l = `<span class="good">${N(e.u)} est vaincu</span>`;
+  else if (e.k === "pet") l = `<b class="good">Compagnon</b> : ${esc(e.sk)}`;
+  if (l) { CB.log.push((B.round ? `<span class="tiny dim">T${B.round}</span> ` : "") + l); if (CB.log.length > 300) CB.log.shift(); }
+}
+ACT.cbLogShow = () => modal(`<h2>${ico("scroll", "#e8c878")} Journal du combat</h2><div class="small" style="max-height:60vh;overflow:auto;line-height:1.45" id="cblogbox">${(CB.log || []).slice(-150).join("<br>") || '<span class="dim">Rien pour l\'instant.</span>'}</div>`, { mount: m => { const b = m.querySelector("#cblogbox"); if (b) b.scrollTop = b.scrollHeight; } });
+
+// ── Bestiaire : fiche détaillée d'une créature rencontrée ──
+ACT.monSheet = k => { const M = MONSTERS[k]; if (!M) return;
+  const tags = M.tags.map(t => t === "impie" ? "impie" : t === "bete" ? "bête" : "humain").join(", "), kills = (S.stats.monKills || {})[k] || 0;
+  let skt = ""; try { skt = M.sk.map(sk => `<div class="skl" style="cursor:default">${ico(sk.heal ? "heal" : sk.m ? "sword" : "curse", "#e8b8a0")}<div style="flex:1;min-width:0"><b>${sk.n}</b>${sk.every ? ` <span class="tiny dim">(tous les ${sk.every} tours)</span>` : ""}<div class="tiny">${skillText(sk, null)}</div></div></div>`).join(""); } catch (e) { skt = M.sk.map(sk => `<div class="small">${sk.n}</div>`).join(""); }
+  modal(`<div class="row" style="gap:12px;flex-wrap:wrap;align-items:flex-start"><div style="margin:0 auto">${canvasSlot("mon", 200, 200)}</div><div style="flex:1;min-width:220px"><h2 style="margin:0">${M.n}</h2><div class="tiny dim">${M.boss ? "Gardien" : M.elite ? "Élite" : "Créature"} · ${tags}</div>
+    <div class="statgrid" style="margin-top:8px"><div>PV de base <b>${M.hp}</b></div><div>Dégâts <b>${M.dmg[0]}–${M.dmg[1]}</b></div><div>Protection <b>${Math.round((M.prot || 0) * 100)} %</b></div><div>Vitesse <b>${M.spd}</b></div><div>Esquive <b>${M.dodge || 0}</b></div><div>Résistance <b>${M.res || 0}</b></div></div>
+    <p class="tiny dim" style="margin-top:6px">Rangs : ${(M.rk || []).join(", ")} · rencontré ${S.seen.monsters[k] || 0} fois${kills ? ` · ${kills} vaincus` : ""}${M.tags.includes("impie") ? " · sensible aux armes saintes" : ""}</p></div></div>
+    <h3 style="margin-top:10px">Compétences</h3><div class="col">${skt}</div>`, { wide: 1, onClose: null, mount: m => fillCanvases(m, c => paintMon(c, k)) });
+};
+
+// ── Fiche du héros : stress, talents ──
+function stressHTML(h) {
+  const s = Math.round(h.stress || 0), A = h.affl && AFFLICTIONS[h.affl];
+  if (!s && !A) return "";
+  return `<div class="panel" style="padding:10px;margin-top:10px"><div class="row sp"><b>${ico("skull", "#c87a7a", 14)} Stress ${s} / 100</b>${A ? `<span class="tag ${A.bad ? "bad" : "good"}" ${tipAttr(A.n, A.d)}>${A.n}</span>` : ""}</div><div class="bar" style="margin:4px 0"><i style="width:${s}%;background:linear-gradient(90deg,#6a2a6a,#c03a3a)"></i></div>
+    <div class="tiny dim">${A ? gl(A.d) + " " : ""}Le stress monte dans les combats éprouvants (agonies, alliés tombés, gardiens) ; à 100, le héros craque (ou se révèle). Le feu de camp l'apaise ; la Taverne l'efface.</div></div>`;
+}
+function talentsHTML(h) {
+  const P = talentPoints(h); if (!P) return `<div class="panel" style="padding:10px;margin-top:10px"><b>${ico("star", "#9a8c7a", 14)} Talents</b> <span class="tiny dim">— un point par niveau à partir du niveau 15.</span></div>`;
+  const left = P - talentSpent(h), T = h.talents || {};
+  return `<div class="panel" style="padding:10px;margin-top:10px"><div class="row sp"><b>${ico("star", "#e8c878", 14)} Talents</b><span class="small ${left ? "gold" : "dim"}">${left} point${left > 1 ? "s" : ""} à placer</span></div>
+    <div class="grid" style="--min:180px;margin-top:6px">${Object.entries(TALENTS).map(([k, X]) => `<div class="card" style="cursor:default"><div class="row sp"><b>${ico(X.ic, "#e8c878", 14)} ${X.n} <span class="gold">${T[k] || 0}</span></b><button class="btn sm ${left ? "gold" : "off"}" data-a="talentAdd" data-v="${h.id}:${k}">+1</button></div><div class="tiny dim">${X.d}</div></div>`).join("")}</div></div>`;
+}
+ACT.talentAdd = v => { const [id, k] = v.split(":"), h = heroById(id); if (!h || !talentAdd(h, k)) return toast("Aucun point disponible.", "bad"); sfx("level"); save(); refresh(); };
+function tavernCalmHTML() {
+  const hs = S.heroes.filter(h => (h.stress || 0) >= 20 || (h.affl && AFFLICTIONS[h.affl].bad));
+  return `<h3 style="margin-top:12px">${ico("skull", "#c87a7a", 14)} Se changer les idées</h3><p class="tiny dim">Une nuit à la taverne efface le stress et les afflictions (les vertus restent).</p>${hs.length ? hs.map(h => `<div class="row sp card" style="cursor:default"><div style="flex:1;min-width:0"><b>${esc(h.name)}</b> <span class="small dim">· stress ${Math.round(h.stress || 0)}${h.affl ? " · " + AFFLICTIONS[h.affl].n : ""}</span></div><button class="btn sm" data-a="calmHero" data-v="${h.id}">${calmCost(h)} or</button></div>`).join("") : '<div class="empty">Personne n\'a besoin de boire pour oublier.</div>'}`;
+}
+ACT.calmHero = id => { const h = heroById(id), r = calmHero(h); if (r.err) return toast(r.err, "bad"); sfx("coin"); save(); renderHud(); toast(`${esc(h.name)} a les idées claires.`, "good"); openBuilding("taverne"); };
+
+// ── Colporteur : revendre le butin de l'expédition ──
+const sellPrice = it => Math.round((20 + it.tier * 25 + it.rar * 45) * (it.kind === "tr" ? .8 : 1));
+function shopSellHTML() {
+  const L = (S.run && S.run.loot) || []; if (!L.length) return "";
+  return `<h3 style="margin-top:12px">${ico("coin", "#e8c060", 14)} Revendre le butin</h3><div class="col">${L.map(it => `<div class="row card" style="cursor:default">${slotHTML(it, "itemInfo", it.id)}<div style="flex:1;min-width:0"><b class="rar${it.rar}">${gearName(it)}</b><div class="tiny dim">${itemLine(it)}</div></div><button class="btn sm" data-a="sellLoot" data-v="${it.id}">+${sellPrice(it)} or</button></div>`).join("")}</div>`;
+}
+ACT.sellLoot = id => { const run = S.run, i = run.loot.findIndex(x => x.id === id); if (i < 0) return; const it = run.loot[i]; run.loot.splice(i, 1); run.gold += sellPrice(it); sfx("coin"); save(); renderHud(); showShop(UI.shopNode); };
+
+// ── Archives : défis de classe ──
+function classChCodexHTML() {
+  const W = S.classWins || {};
+  return `<p class="small dim">Vaincre des gardiens avec une classe dans le groupe : 3, 10 et 25 victoires rapportent de l'or et des éclats.</p><div class="grid" style="--min:230px">${CLASS_IDS.map(c => { const n = W[c] || 0, g = CLASS_GOALS.find(x => x > n); return `<div class="card" style="cursor:default"><b>${CLASSES[c].n}</b><div class="bar xp" style="margin:4px 0"><i style="width:${g ? 100 * n / g : 100}%"></i></div><div class="tiny ${g ? "dim" : "good"}">${n} victoire${n > 1 ? "s" : ""}${g ? ` · prochain palier : ${g}` : " · tous les paliers atteints"}</div></div>`; }).join("")}</div>`;
+}
+function showLines(title, lines, done) { showScene(null, done, { t: title, lines }); }
 /* ═══════════════════════ Démarrage ═══════════════════════ */
 if (HASWIN) {
   const boot = () => {

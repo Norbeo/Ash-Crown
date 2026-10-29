@@ -93,7 +93,7 @@ function runLevel(run, node) {
   const R = regionById(run.region);
   // chaque chapitre couvre 5 niveaux (I : 1–5, II : 5–10, III : 10–15…), du premier au dernier pas
   let l = R.lvl + Math.round((node ? node.c : 0) / Math.max(1, run.map.length - 1) * (R.lvl === 1 ? 4 : 5)) + run.threat * 2;
-  if (run.region === "abime") l = 25 + Math.floor((run.floor - 1) * 1.2) + Math.floor((node ? node.c : 0) / 2);
+  if (run.region === "abime") l = 30 + Math.floor((run.floor - 1) * 1.2) + Math.floor((node ? node.c : 0) / 2);
   return l;
 }
 // butin plafonné au palier du chapitre : chapitre I → palier II (niveau 5) max, chapitre II → palier III, etc.
@@ -131,7 +131,8 @@ function genEncounter0(run, node, rng = RNG) {
     // 1re fois : le gardien de l'histoire ; ensuite, au hasard parmi les gardiens déjà vaincus (jamais deux fois de suite le même)
     const last = (S.lastBoss || (S.lastBoss = {}))[R.id], beaten = beatenBosses(), firstTime = run.region !== "abime" && !(S.prog[R.id] && S.prog[R.id].clears);
     const cand = beaten.filter(k => k !== last), pool = cand.length ? cand : beaten.length ? beaten : [ref];
-    const bk = firstTime ? R.boss : run.region === "abime" && run.floor % 5 === 0 && S.season && S.season.boss ? S.season.boss : rng.pick(pool); S.lastBoss[R.id] = bk; // l'Abîme : gardien de la saison tous les 5 étages
+    const tb = run.threat >= 1 && run.region !== "abime" && THREAT_BOSS[run.threat], tbNew = tb && !(S.beaten || {})[tb];
+    const bk = firstTime ? R.boss : tbNew ? tb : run.region === "abime" && run.floor % 5 === 0 && S.season && S.season.boss ? S.season.boss : rng.pick(pool); S.lastBoss[R.id] = bk; // l'Abîme : gardien de la saison tous les 5 étages
     out.push({ key: pickFor(1), lvl });
     out.push({ key: bk, lvl: lvl + 1, f: monNorm(bk, ref) });
     if (run.region === "abime" || R.lvl >= 9) out.push({ key: pickFor(4), lvl });

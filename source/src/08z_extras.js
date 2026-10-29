@@ -51,6 +51,7 @@ const GUARD_MARKS = {
   foret: { n: "Sève noire", d: "+10 % de dégâts, mais −6 d'esquive.", pas: [{ k: "stat", s: "dmg", v: .1 }, { k: "stat", s: "dodge", v: -6 }] },
   catacombes: { n: "Os maudits", d: "+8 % de protection, mais −2 de vitesse.", pas: [{ k: "stat", s: "prot", v: .08 }, { k: "stat", s: "spd", v: -2 }] },
   marais: { n: "Fièvre des noyés", d: "+20 % de soins reçus, mais −5 de précision.", pas: [{ k: "healTaken", v: .2 }, { k: "stat", s: "acc", v: -5 }] },
+  terres: { n: "Sceau écarlate", d: "+10 % de dégâts contre les humains, mais −5 de résistance.", pas: [{ k: "vsTag", tag: "humain", v: .1 }, { k: "stat", s: "res", v: -5 }] },
   citadelle: { n: "Cendres du roi", d: "+8 % de critique, mais −10 % de soins prodigués.", pas: [{ k: "stat", s: "crit", v: 8 }, { k: "stat", s: "healPow", v: -.1 }] },
 };
 const markCost = h => 120 + h.lvl * 25;

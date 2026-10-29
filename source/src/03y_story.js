@@ -45,6 +45,14 @@ const SCENES = {
     ["voix", "Venez, mes enfants. Venez me rendre ma Couronne. Je vous ferai rois de la Cendre."],
     ["capitaine", "Il y a cent ans, il a voulu vaincre la mort. Ce soir, on lui rend la sienne."],
   ] },
+  terres: { t: "Chapitre VI — Les Terres Brûlées", lines: [
+    ["narr", "Au matin, l'autel de la chapelle est vide. Les cinq fragments ont disparu, et Frère Anselme a le crâne ouvert."],
+    ["anselme", "Le Cardinal… Le confesseur d'Aldemar. Il est entré comme un pèlerin. Il a dit qu'il venait prier pour les morts."],
+    ["ysolde", "Les traces partent vers l'est, vers les Terres Brûlées. Là-bas, le sol fume depuis le couronnement."],
+    ["maugrin", "S'il reforge la Couronne avec ces éclats, tout ce que vous avez fait n'aura servi à rien."],
+    ["voix", "Un roi est mort, mes enfants. Vive le roi. Et cette fois, le roi sera un saint."],
+    ["capitaine", "Alors on va lui apprendre ce que valent les saints, ici."],
+  ] },
   abime: { t: "L'Abîme sans fin", lines: [
     ["narr", "Le Roi est tombé. Mais sous la Citadelle, la pierre s'est ouverte sur un puits sans fond, et la Cendre en remonte toujours."],
     ["anselme", "La Couronne n'était qu'un sceau. Ce qui est en bas… ce n'est pas Aldemar. C'est ce qu'il a voulu enfermer."],
@@ -59,6 +67,7 @@ const SCENE_END = {
   catacombes: [["anselme", "Une carte et une date. Le Roi a sacrifié quelqu'un pour sa Couronne. Il faut savoir qui."]],
   marais: [["voix", "Allez, maintenant. Allez lui rendre visite. Et dites-lui que sa reine l'attend au fond de l'eau."]],
   citadelle: [["capitaine", "C'est fini…"], ["anselme", "Non, Capitaine. Écoutez. Sous nos pieds. Ça vient de commencer."]],
+  terres: [["anselme", "Les fragments sont revenus. Le Cardinal n'était qu'un homme qui voulait être roi."], ["ysolde", "Et l'Abîme, lui, s'ouvre toujours plus grand. Il est temps de descendre."]],
 };
 // ── Scènes du Bastion : quand un bâtiment grandit, ses occupants le commentent ──
 const BLD_SCENES = {

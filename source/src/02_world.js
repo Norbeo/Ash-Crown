@@ -196,5 +196,6 @@ const STORY = {
   foret: "La Mère des Ronces se fane en poussière. Les pendus cessent de tourner. Dans son cœur de bois mort, le deuxième fragment.",
   catacombes: "La Liche s'effondre et dix mille moines se rendorment enfin. Sa couronne de fer cachait le troisième fragment.",
   marais: "La Mère des Noyés retourne à l'eau, et l'eau devient claire pour la première fois depuis un siècle. Le quatrième fragment flotte à la surface.",
+  terres: "Le Cardinal Écarlate s'effondre sur les fragments qu'il serrait contre lui. Ils brûlent encore, mais ils sont de nouveau à vous.",
   citadelle: "Le Roi de Cendres s'agenouille. « Merci », murmure-t-il en tombant en poussière. Le dernier fragment est entre vos mains… mais sous la Citadelle, quelque chose s'éveille. L'Abîme est ouvert.",
 };

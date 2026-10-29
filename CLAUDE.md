@@ -52,6 +52,9 @@ RPG tactique dark fantasy médiéval, vanilla JS + Canvas 2D, PWA installable (m
 - `source/test/sim.js` : bots qui jouent des carrières (`node test/sim.js 20 40 5`) — erreurs, équilibrage, taux de victoire des gardiens.
 - Sauvegarde : localStorage `couronne-de-cendres-v1`.
 
+## Publication
+- Depuis le 29 oct. 2026 : ne plus publier le jeu au fur et à mesure. Tester et committer localement, puis publier une seule fois (cp dist à la racine, push, artefact) quand toutes les tâches prévues sont terminées.
+
 ## Commits
 Auteur `Norbeo`, et terminer les messages par :
 Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>

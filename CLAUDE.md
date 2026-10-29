@@ -83,6 +83,10 @@ Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
 - Chapitre VI « Les Terres Brûlées » (`02y_more.js` : 5 monstres, élite Colosse de braise, gardien Le Cardinal Écarlate, niv 25–30 ; Abîme niv 30+), gardiens de menace II–V (`THREAT_BOSS` : Sans-Visage, Matrone des Os, Dévoreur de Lumière, Archonte de Cendres — tirés à la menace correspondante tant qu'ils ne sont pas vaincus), 36 compagnons (`02z_pets.js`, modèles par rôle).
 - Art en cours : file /tmp/claude-0/canva/ART2.md (`evo/t5.sh`, `evo/sheet.sh` + `evo/sheet4.py`).
 
+## Fait le 30 oct. 2026 (publié, v39)
+- `08y_more.js` : reliques maudites (`cursed`, `addRelic`/`onGet`), vétérans (`VET_TITLES`, `vetCheck` à 10 expéditions, passifs dans heroStats), mémorial (`engrave`, `S.graves`, onglet Archives), marchand ambulant quotidien (`merchantStock`/`merchantBuy`, bouton du panneau du Bastion), tenues (`OUTFITS`, recoloration `hue` dans imgSprite, choix sur la fiche), duos compagnon/classe (`PET_DUOS`, `petDuo`), succès cachés (`HIDDEN_ACH`, `hiddenEndRun`), expéditions de nuit (`opt.night`, `run.night`, 4 événements `need:"nuit"`).
+- Gardiens à invocations (`BOSS_SUMMON`, `sk.summon` dans 05_combat) ; frise de l'ordre des tours (`turnOrderHTML`, `#cb-ord`).
+
 ## Reste à faire (prochaine séance)
 1. Armures palier V à repeindre pour chaque classe (progression cohérente IV → V → VI), sans aura.
 2. Un nouveau gardien inédit par niveau de menace (II à V), avec illustrations.

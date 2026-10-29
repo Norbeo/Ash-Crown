@@ -76,6 +76,13 @@ Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
 - Chapitres : niveaux 1–5, 5–10, 10–15, 15–20, 20–25 (`runLevel`), force des monstres tassée (`L = (lvl-1)*.78` dans 05_combat) ; butin plafonné (`lootTierCap`).
 - Gardiens réduits en portrait ; statistiques affichées arrondies ; tomes d'expérience (`S.tomes`, `tomeHTML`, `ACT.readTome`) ; choix du bibelot à remplacer (`askTrSlot`, `runEquip` avec emplacement).
 
+## Fait le 29 oct. 2026 (suite, non publié tant que l'art n'est pas fini)
+- Tirage des qualités corrigé (`rollRarity(luck, floor)` pondéré) ; élites : plancher Peu commun + chance, gardiens : plancher Rare.
+- Intentions ennemies et cible au-dessus de la tête réelle (`v.top` via `spriteBox`). Écran de chargement `#boot` (`bootProgress`, `bootDone`).
+- Équipes enregistrées (`S.teams`), journal de combat (`CB.log`, `cbLog`), fiche bestiaire (`ACT.monSheet`), ennemis corrompus en menace IV–V (`e.corrupt`), stress/afflictions (`AFFLICTIONS`, `stressAfterBattle`, apaisement à la Taverne), talents après le niv 15 (`TALENTS`, `talentPas`), revente chez le colporteur (`sellPrice`), défis de classe (`CLASS_GOALS`, onglet Archives), scènes du Bastion (`BLD_SCENES`, `showLines`), sons/musique plus sombres (`gen_audio.py`, `20_audio.js`), écran-titre (cendres, emblème, résumé de partie).
+- Chapitre VI « Les Terres Brûlées » (`02y_more.js` : 5 monstres, élite Colosse de braise, gardien Le Cardinal Écarlate, niv 25–30 ; Abîme niv 30+), gardiens de menace II–V (`THREAT_BOSS` : Sans-Visage, Matrone des Os, Dévoreur de Lumière, Archonte de Cendres — tirés à la menace correspondante tant qu'ils ne sont pas vaincus), 36 compagnons (`02z_pets.js`, modèles par rôle).
+- Art en cours : file /tmp/claude-0/canva/ART2.md (`evo/t5.sh`, `evo/sheet.sh` + `evo/sheet4.py`).
+
 ## Reste à faire (prochaine séance)
 1. Armures palier V à repeindre pour chaque classe (progression cohérente IV → V → VI), sans aura.
 2. Un nouveau gardien inédit par niveau de menace (II à V), avec illustrations.

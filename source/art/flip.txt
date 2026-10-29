@@ -7,3 +7,4 @@ mon_moine_flagellant
 mon_spectre
 hero_ombre_assassin
 hero_ombre_ombre_sang
+mon_cardinal

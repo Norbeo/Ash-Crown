@@ -51,4 +51,6 @@ for (const [id, n, role, unlock, d, col, fx, en, ed] of PET_MORE) {
   PETS[id] = { n, role, unlock, cost, d, col, sk: T.sk, evo: { n: en, d: ed, sk: Object.assign(T.evo, { n: en.split(" ")[0] === en ? en : T.evo.n.trim() + en.split(" ").slice(0, 1).join("") }) }, art: "pet_" + id, more: 1 };
   PETS[id].evo.sk.n = { dps: "Furie", tank: "Rempart", soin: "Grâce", soutien: "Augure" }[role] + " de " + en.toLowerCase().replace(/^(le |la |l')/, "");
 }
-PET_IDS.push(...PET_MORE.map(p => p[0]).filter(id => !PET_IDS.includes(id)));
+// compagnons pas encore peints : masqués dans le jeu (la simulation, sans illustrations, les garde tous)
+if (typeof window !== "undefined" && window.ART_LIST) { const L = new Set(window.ART_LIST); for (const p of PET_MORE) if (!L.has("pet_" + p[0])) delete PETS[p[0]]; }
+PET_IDS.push(...PET_MORE.map(p => p[0]).filter(id => PETS[id] && !PET_IDS.includes(id)));

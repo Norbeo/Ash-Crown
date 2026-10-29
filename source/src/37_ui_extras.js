@@ -133,9 +133,9 @@ document.addEventListener("pointerdown", e => { const el = $("#cbinfo"); if (el 
 
 // ── Histoire : scène dialoguée avant chaque chapitre ──
 function sceneLineHTML([sp, txt]) { const P = SPEAKERS[sp] || SPEAKERS.narr; return P.n ? `<p class="scn"><b style="color:${P.c}">${P.n}</b><br>« ${txt} »</p>` : `<p class="scn lore">${txt}</p>`; }
-function showScene(reg, done) {
-  const Sc = SCENES[reg]; if (!Sc) return done && done();
-  (S.seenScene = S.seenScene || {})[reg] = 1; save();
+function showScene(reg, done, custom) {
+  const Sc = custom || SCENES[reg]; if (!Sc) return done && done();
+  if (reg) { (S.seenScene = S.seenScene || {})[reg] = 1; save(); }
   let i = 0;
   const step = () => {
     const shown = Sc.lines.slice(0, i + 1).map(sceneLineHTML).join(""), last = i >= Sc.lines.length - 1;
@@ -160,3 +160,77 @@ function tomeHTML(h) {
 }
 ACT.readTome = id => { const h = heroById(id); if (!h || !(S.tomes > 0)) return; if (h.lvl >= tomeCap()) return toast("Ce héros est déjà parmi les plus aguerris.", "bad");
   S.tomes--; const need = xpNeed(h.lvl) - h.xp; giveXp(h, Math.max(1, Math.ceil(need / Math.max(.5, 1 + heroPassives(h).filter(p => p.k === "xp").reduce((a, p) => a + p.v, 0))))); sfx("level"); toast(`${esc(h.name)} passe niveau ${h.lvl}.`, "good"); save(); refresh(); };
+
+// ── Équipes enregistrées : 3 compositions (héros, ordre, compagnon) ──
+function teamsHTML(E) {
+  const T = S.teams = S.teams || [null, null, null];
+  return `<div class="row" style="gap:6px;margin-top:8px;align-items:center"><span class="small dim">${ico("banner", "#c8b8a0", 14)} Équipes :</span>${T.map((t, i) => {
+    const ok = t && t.party.every(id => heroById(id)), nm = t ? t.party.map(id => { const h = heroById(id); return h ? esc(h.name.split(" ")[0]) : "?"; }).join(", ") : "vide";
+    return `<span class="row" style="gap:2px"><button class="btn sm ${ok ? "" : "ghost"}" data-a="teamLoad" data-v="${i}" title="${nm}" ${ok ? "" : "disabled"}>${i + 1}${t ? " · " + nm : ""}</button><button class="btn ghost sm" data-a="teamSave" data-v="${i}" title="Enregistrer la composition actuelle">${ico("plus", "#9a8c7a", 12)}</button></span>`; }).join("")}</div>`;
+}
+ACT.teamSave = i => { const E = UI.expe; if (!E || !E.party.length) return; (S.teams = S.teams || [null, null, null])[+i] = { party: E.party.slice(), pet: E.pet }; save(); refresh(); toast(`Équipe ${+i + 1} enregistrée.`, "good"); };
+ACT.teamLoad = i => { const t = (S.teams || [])[+i]; if (!t) return; const E = UI.expe; E.party = t.party.filter(id => heroById(id)).slice(0, 4); if (t.pet && S.pets.owned.includes(t.pet)) E.pet = t.pet; refresh(); toast(`Équipe ${+i + 1} chargée.`); };
+
+// ── Journal du combat : qui a fait quoi, pour comprendre d'où viennent les dégâts ──
+function cbLog(e) {
+  const B = CB.B; if (!B || !CB.log) return; const N = id => { const u = unitById(B, id) || [...B.fallen, ...(B.dead || [])].find(x => x.uid === id); return u ? esc(u.name.split(" ")[0]) : id === "PET" ? "Compagnon" : "?"; };
+  const side = id => { const u = unitById(B, id) || [...B.fallen].find(x => x.uid === id); return u && u.side === "h" ? "good" : "bad"; };
+  let l = null;
+  if (e.k === "act") l = `<b class="${side(e.u)}">${N(e.u)}</b> : ${esc(e.sk)}`;
+  else if (e.k === "hit" && !e.dot) l = `&nbsp;→ ${N(e.u)} <b>−${e.dmg}</b>${e.crit ? " (critique)" : ""}`;
+  else if (e.k === "dot") l = `&nbsp;${N(e.u)} −${e.dmg} (${(ST_INFO[e.st] || {}).n || e.st})`;
+  else if (e.k === "heal" && e.v > 0) l = `&nbsp;→ ${N(e.u)} <span class="good">+${e.v}</span>`;
+  else if (e.k === "miss") l = `&nbsp;→ ${N(e.u)} esquive`;
+  else if (e.k === "st") l = `&nbsp;→ ${N(e.u)} : ${(ST_INFO[e.st] || {}).n || e.st}`;
+  else if (e.k === "agony") l = `<span class="bad">${N(e.u)} est à l'agonie</span>`;
+  else if (e.k === "fall") l = `<span class="bad">${N(e.u)} tombe</span>`;
+  else if (e.k === "die") l = `<span class="good">${N(e.u)} est vaincu</span>`;
+  else if (e.k === "pet") l = `<b class="good">Compagnon</b> : ${esc(e.sk)}`;
+  if (l) { CB.log.push((B.round ? `<span class="tiny dim">T${B.round}</span> ` : "") + l); if (CB.log.length > 300) CB.log.shift(); }
+}
+ACT.cbLogShow = () => modal(`<h2>${ico("scroll", "#e8c878")} Journal du combat</h2><div class="small" style="max-height:60vh;overflow:auto;line-height:1.45" id="cblogbox">${(CB.log || []).slice(-150).join("<br>") || '<span class="dim">Rien pour l\'instant.</span>'}</div>`, { mount: m => { const b = m.querySelector("#cblogbox"); if (b) b.scrollTop = b.scrollHeight; } });
+
+// ── Bestiaire : fiche détaillée d'une créature rencontrée ──
+ACT.monSheet = k => { const M = MONSTERS[k]; if (!M) return;
+  const tags = M.tags.map(t => t === "impie" ? "impie" : t === "bete" ? "bête" : "humain").join(", "), kills = (S.stats.monKills || {})[k] || 0;
+  let skt = ""; try { skt = M.sk.map(sk => `<div class="skl" style="cursor:default">${ico(sk.heal ? "heal" : sk.m ? "sword" : "curse", "#e8b8a0")}<div style="flex:1;min-width:0"><b>${sk.n}</b>${sk.every ? ` <span class="tiny dim">(tous les ${sk.every} tours)</span>` : ""}<div class="tiny">${skillText(sk, null)}</div></div></div>`).join(""); } catch (e) { skt = M.sk.map(sk => `<div class="small">${sk.n}</div>`).join(""); }
+  modal(`<div class="row" style="gap:12px;flex-wrap:wrap;align-items:flex-start"><div style="margin:0 auto">${canvasSlot("mon", 200, 200)}</div><div style="flex:1;min-width:220px"><h2 style="margin:0">${M.n}</h2><div class="tiny dim">${M.boss ? "Gardien" : M.elite ? "Élite" : "Créature"} · ${tags}</div>
+    <div class="statgrid" style="margin-top:8px"><div>PV de base <b>${M.hp}</b></div><div>Dégâts <b>${M.dmg[0]}–${M.dmg[1]}</b></div><div>Protection <b>${Math.round((M.prot || 0) * 100)} %</b></div><div>Vitesse <b>${M.spd}</b></div><div>Esquive <b>${M.dodge || 0}</b></div><div>Résistance <b>${M.res || 0}</b></div></div>
+    <p class="tiny dim" style="margin-top:6px">Rangs : ${(M.rk || []).join(", ")} · rencontré ${S.seen.monsters[k] || 0} fois${kills ? ` · ${kills} vaincus` : ""}${M.tags.includes("impie") ? " · sensible aux armes saintes" : ""}</p></div></div>
+    <h3 style="margin-top:10px">Compétences</h3><div class="col">${skt}</div>`, { wide: 1, onClose: null, mount: m => fillCanvases(m, c => paintMon(c, k)) });
+};
+
+// ── Fiche du héros : stress, talents ──
+function stressHTML(h) {
+  const s = Math.round(h.stress || 0), A = h.affl && AFFLICTIONS[h.affl];
+  if (!s && !A) return "";
+  return `<div class="panel" style="padding:10px;margin-top:10px"><div class="row sp"><b>${ico("skull", "#c87a7a", 14)} Stress ${s} / 100</b>${A ? `<span class="tag ${A.bad ? "bad" : "good"}" ${tipAttr(A.n, A.d)}>${A.n}</span>` : ""}</div><div class="bar" style="margin:4px 0"><i style="width:${s}%;background:linear-gradient(90deg,#6a2a6a,#c03a3a)"></i></div>
+    <div class="tiny dim">${A ? gl(A.d) + " " : ""}Le stress monte dans les combats éprouvants (agonies, alliés tombés, gardiens) ; à 100, le héros craque (ou se révèle). Le feu de camp l'apaise ; la Taverne l'efface.</div></div>`;
+}
+function talentsHTML(h) {
+  const P = talentPoints(h); if (!P) return `<div class="panel" style="padding:10px;margin-top:10px"><b>${ico("star", "#9a8c7a", 14)} Talents</b> <span class="tiny dim">— un point par niveau à partir du niveau 15.</span></div>`;
+  const left = P - talentSpent(h), T = h.talents || {};
+  return `<div class="panel" style="padding:10px;margin-top:10px"><div class="row sp"><b>${ico("star", "#e8c878", 14)} Talents</b><span class="small ${left ? "gold" : "dim"}">${left} point${left > 1 ? "s" : ""} à placer</span></div>
+    <div class="grid" style="--min:180px;margin-top:6px">${Object.entries(TALENTS).map(([k, X]) => `<div class="card" style="cursor:default"><div class="row sp"><b>${ico(X.ic, "#e8c878", 14)} ${X.n} <span class="gold">${T[k] || 0}</span></b><button class="btn sm ${left ? "gold" : "off"}" data-a="talentAdd" data-v="${h.id}:${k}">+1</button></div><div class="tiny dim">${X.d}</div></div>`).join("")}</div></div>`;
+}
+ACT.talentAdd = v => { const [id, k] = v.split(":"), h = heroById(id); if (!h || !talentAdd(h, k)) return toast("Aucun point disponible.", "bad"); sfx("level"); save(); refresh(); };
+function tavernCalmHTML() {
+  const hs = S.heroes.filter(h => (h.stress || 0) >= 20 || (h.affl && AFFLICTIONS[h.affl].bad));
+  return `<h3 style="margin-top:12px">${ico("skull", "#c87a7a", 14)} Se changer les idées</h3><p class="tiny dim">Une nuit à la taverne efface le stress et les afflictions (les vertus restent).</p>${hs.length ? hs.map(h => `<div class="row sp card" style="cursor:default"><div style="flex:1;min-width:0"><b>${esc(h.name)}</b> <span class="small dim">· stress ${Math.round(h.stress || 0)}${h.affl ? " · " + AFFLICTIONS[h.affl].n : ""}</span></div><button class="btn sm" data-a="calmHero" data-v="${h.id}">${calmCost(h)} or</button></div>`).join("") : '<div class="empty">Personne n\'a besoin de boire pour oublier.</div>'}`;
+}
+ACT.calmHero = id => { const h = heroById(id), r = calmHero(h); if (r.err) return toast(r.err, "bad"); sfx("coin"); save(); renderHud(); toast(`${esc(h.name)} a les idées claires.`, "good"); openBuilding("taverne"); };
+
+// ── Colporteur : revendre le butin de l'expédition ──
+const sellPrice = it => Math.round((20 + it.tier * 25 + it.rar * 45) * (it.kind === "tr" ? .8 : 1));
+function shopSellHTML() {
+  const L = (S.run && S.run.loot) || []; if (!L.length) return "";
+  return `<h3 style="margin-top:12px">${ico("coin", "#e8c060", 14)} Revendre le butin</h3><div class="col">${L.map(it => `<div class="row card" style="cursor:default">${slotHTML(it, "itemInfo", it.id)}<div style="flex:1;min-width:0"><b class="rar${it.rar}">${gearName(it)}</b><div class="tiny dim">${itemLine(it)}</div></div><button class="btn sm" data-a="sellLoot" data-v="${it.id}">+${sellPrice(it)} or</button></div>`).join("")}</div>`;
+}
+ACT.sellLoot = id => { const run = S.run, i = run.loot.findIndex(x => x.id === id); if (i < 0) return; const it = run.loot[i]; run.loot.splice(i, 1); run.gold += sellPrice(it); sfx("coin"); save(); renderHud(); showShop(UI.shopNode); };
+
+// ── Archives : défis de classe ──
+function classChCodexHTML() {
+  const W = S.classWins || {};
+  return `<p class="small dim">Vaincre des gardiens avec une classe dans le groupe : 3, 10 et 25 victoires rapportent de l'or et des éclats.</p><div class="grid" style="--min:230px">${CLASS_IDS.map(c => { const n = W[c] || 0, g = CLASS_GOALS.find(x => x > n); return `<div class="card" style="cursor:default"><b>${CLASSES[c].n}</b><div class="bar xp" style="margin:4px 0"><i style="width:${g ? 100 * n / g : 100}%"></i></div><div class="tiny ${g ? "dim" : "good"}">${n} victoire${n > 1 ? "s" : ""}${g ? ` · prochain palier : ${g}` : " · tous les paliers atteints"}</div></div>`; }).join("")}</div>`;
+}
+function showLines(title, lines, done) { showScene(null, done, { t: title, lines }); }

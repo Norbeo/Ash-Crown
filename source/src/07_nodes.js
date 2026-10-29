@@ -120,6 +120,7 @@ const CAMP = [
 ];
 function doCamp(run, k) {
   if (k === "rest") healParty(run, .45 * (run.week && weekRule() && weekRule().campX || 1));
+  for (const h of runParty()) h.stress = Math.max(0, (h.stress || 0) - (k === "rest" ? 30 : 15)); // le feu apaise
   if (k === "train") { const xp = 30 + runLevel(run, null) * 8; for (const h of runParty()) if (!run.fallen.includes(h.id)) giveXp(h, xp); }
   if (k === "watch") { run.light = clamp(run.light + 35, 0, 100); run.morale = clamp((run.morale || 0) + 10, -30, 30); }
 }
@@ -138,6 +139,7 @@ function battleFor(run, node, enc) {
 }
 function afterBattle(run, B) {
   run.buff = 0; run.morale = 0;
+  if (typeof stressAfterBattle === "function") stressAfterBattle(run, B);
   // PV conservés, héros tombés
   for (const u of [...B.heroes, ...B.fallen]) { const h = heroById(u.hid); if (!h) continue; h.hp = u.fallen ? 0 : u.hp; if (u.fallen && !run.fallen.includes(h.id)) { run.fallen.push(h.id); run.flawless = false; } }
   const rh = relicHooks(run);

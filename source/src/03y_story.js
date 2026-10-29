@@ -60,3 +60,12 @@ const SCENE_END = {
   marais: [["voix", "Allez, maintenant. Allez lui rendre visite. Et dites-lui que sa reine l'attend au fond de l'eau."]],
   citadelle: [["capitaine", "C'est fini…"], ["anselme", "Non, Capitaine. Écoutez. Sous nos pieds. Ça vient de commencer."]],
 };
+// ── Scènes du Bastion : quand un bâtiment grandit, ses occupants le commentent ──
+const BLD_SCENES = {
+  forge: { 3: [["maugrin", "Le nouveau soufflet tire comme un dragon. Rapportez-moi du bon fer et je vous forgerai des armures dignes d'un roi."], ["ysolde", "Pas d'un roi. On en a déjà un, et il est mort deux fois."]], 5: [["maugrin", "Cette enclume a été bénie par trois prêtres et maudite par un quatrième. C'est ce qu'il faut pour travailler l'acier des cendres."]] },
+  chapelle: { 3: [["anselme", "J'ai rallumé les cierges de la nef. La lumière tient mieux, maintenant. Les blessés dorment sans cris."]], 5: [["anselme", "Le fragment de la Couronne ne chuchote plus quand je prie à côté. Je ne sais pas si c'est bon signe."]] },
+  taverne: { 3: [["ysolde", "La taverne se remplit. Des déserteurs, des veuves, des fous. Exactement ce qu'il nous faut."]], 5: [["ysolde", "On refuse du monde, Capitaine. Le bruit court qu'au Bastion, on rend les coups à la Cendre."]] },
+  academie: { 3: [["ysolde", "J'ai trouvé deux vieux maîtres d'armes dans les ruines. Ils boitent, mais ils frappent juste."]], 5: [["anselme", "La bibliothèque de l'ordre est presque complète. Il manque un seul livre : celui qui raconte la fin d'Aldemar."]] },
+  menagerie: { 3: [["ysolde", "Les bêtes sentent la Cendre avant nous. Écoutez-les quand elles grognent dans le noir."]] },
+  fonderie: { 3: [["maugrin", "La fonderie tourne même la nuit. Les âmes coincées dans le minerai, ça chauffe bien, faut croire."]] },
+};

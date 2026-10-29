@@ -167,6 +167,64 @@ def fx_step(): return lp(noise(.12), 500) * env(int(SR * .12), .003, .05, 5) * .
 def fx_bell(): return reverb(bell(196, 4) * .7, 3, .5)
 def fx_open(): return reverb(mix(lp(noise(.5), 1200) * env(int(SR * .5), .05, .3, 3) * .4, thud(110, .2) * .3), 1, .3)
 
+# ── version sombre (oct. 2026) : sons plus graves, plus organiques, sans arpèges « jouets » ──
+def saw(f, d): t = T(d); ph = np.cumsum(2 * np.pi * np.broadcast_to(f, t.shape) / SR); return ((ph / np.pi) % 2 - 1)
+def creak(d=.9, f0=90):  # bois qui grince
+    t = T(d); f = f0 + 40 * np.sin(t * 7) + 25 * np.sin(t * 23); s = saw(f, d) * np.sin(np.pi * t / d) ** 2
+    return bp(s, 200, 1800) * .25
+def howl(d=3.2, f0=310):  # hurlement lointain
+    t = T(d); f = f0 * (1 + .25 * np.sin(np.pi * t / d)) * (1 - .15 * t / d); x = np.sin(np.cumsum(2 * np.pi * f / SR)) + .3 * np.sin(np.cumsum(4 * np.pi * f / SR))
+    return lp(x * np.sin(np.pi * t / d) ** 1.5, 1400) * .3
+def choir(d, fs, att=.4):  # chœur grave : sinus désaccordés + souffle
+    t = T(d); x = sum(np.sin(2 * np.pi * f * (1 + dv) * t) for f in fs for dv in (-.004, 0, .005)) / (3 * len(fs))
+    br = bp(noise(d), 300, 1200) * .15; e = np.minimum(1, t / att) * np.minimum(1, (d - t) / (d * .5))
+    return (x + br * slow(len(t), 3, .6, .4)) * e
+def fx_slash(): x = whoosh(.26, 700, 4000) * .75; place(x, bp(noise(.12), 2500, 6000) * env(int(SR * .12), .002, .08) * .25, .06); return reverb(x, .7, .12)
+def fx_hit():
+    x = np.zeros(int(SR * .8)); place(x, thud(70, .3) * 1.1, 0); place(x, lp(noise(.12), 900) * env(int(SR * .12), .001, .07, 4) * .9, 0); place(x, metal(310, .35, .12), .004)
+    return reverb(x, .9, .15)
+def fx_heavy():
+    x = np.zeros(int(SR * 1.2)); place(x, whoosh(.22, 200, 1400) * .5, 0); place(x, thud(48, .6) * 1.3, .18); place(x, lp(noise(.45), 400) * env(int(SR * .45), .002, .25) * .7, .18)
+    return reverb(x, 1.5, .25)
+def fx_crit():
+    x = np.zeros(int(SR * 1.6)); place(x, whoosh(.18, 900, 5000) * .55, 0); place(x, thud(52, .55) * 1.3, .15); place(x, lp(noise(.2), 1200) * env(int(SR * .2), .001, .1) * .8, .15); place(x, metal(220, 1.2, .35), .15)
+    return reverb(x, 1.9, .3)
+def fx_shoot(): x = np.zeros(int(SR * .7)); place(x, thud(160, .06) * .6, 0); place(x, creak(.05, 220) * 2, 0); place(x, whoosh(.25, 1200, 5000) * .45, .02); return reverb(x, .6, .1)
+def fx_miss(): return whoosh(.32, 900, 4000) * .45
+def fx_fire(): n = noise(1.1); e = env(len(n), .05, .7, 2); x = lp(n, 600) * e * .9 + fire(1.1) * .4 * e; place(x, thud(55, .5) * .3, 0); return reverb(x, 1.8, .3)
+def fx_holy(): x = choir(2.4, [146.8, 174.6, 220.0, 293.7], .5) * .9; place(x, reverb(bell(98, 3), 3, .5)[:int(SR * 2.4)] * .25, 0); return reverb(x, 3, .55)
+def fx_dark():
+    t = T(1.6); x = np.sin(2 * np.pi * 41 * t * (1 - t * .15)) * env(len(t), .1, 1, 2) * .8 + bp(noise(1.6), 80, 400) * env(len(t), .2, 1, 2) * .7
+    place(x, howl(1.4, 140) * .5, .1); return reverb(x, 3, .55)
+def fx_heal(): x = choir(1.8, [196.0, 233.1, 293.7], .35) * .8; place(x, bp(noise(1.2), 1500, 4000) * env(int(SR * 1.2), .3, .8, 3) * .06, .2); return reverb(x, 2.4, .5)
+def fx_die():
+    t = T(1.4); f = 110 * (1 - .55 * t / 1.4); s = lp(saw(f, 1.4), 700) * .5 + lp(noise(1.4), 500) * .35
+    x = s * env(len(t), .03, 1, 2); place(x, thud(45, .6) * 1.2, .9); return reverb(x, 2.4, .45)
+def fx_coin(): x = np.zeros(int(SR * .7)); place(x, lp(metal(1500, .3, .5), 3500), 0); place(x, lp(metal(1850, .3, .4), 3500), .08); place(x, thud(220, .05) * .2, .02); return reverb(x, 1, .25)
+def fx_forge(): x = np.zeros(int(SR * 1.8)); place(x, metal(820, 1.2, .7), 0); place(x, thud(95, .15) * .8, 0); place(x, bp(noise(.06), 1500, 6000) * .35, 0); return reverb(x, 1.8, .35)
+def fx_bell(): return reverb(bell(98, 5) * .8, 3.5, .55)
+def amb_foret():
+    x = wind(D, 150, 1500, .3) * .45 + drone(D, 46, (1, 1.5, 2)) * .05
+    for k in range(9): place(x, reverb(creak(1 + rng.random(), 70 + rng.random() * 50), 2, .4)[:SR * 3] * .45, rng.random() * (D - 3))
+    for k in range(2): place(x, reverb(howl(3 + rng.random(), 280 + rng.random() * 60), 3.5, .7)[:SR * 5] * .35, 4 + rng.random() * (D - 9))
+    for k in range(2): place(x, reverb(hoot(), 2.5, .5)[:SR * 3] * .25, 4 + rng.random() * (D - 8))
+    for k in range(25): place(x, crack(.03) * .15, rng.random() * (D - .1))
+    return reverb(x, 2.4, .3)[:int(SR * D)]
+def amb_marais():
+    x = lp(noise(D), 220) * .3 * slow(int(SR * D), .15, .5) + wind(D, 120, 800, .2) * .25 + drone(D, 38, (1, 1.5, 2.01)) * .07
+    for k in range(18): place(x, croak(60 + rng.random() * 40) * .3, rng.random() * (D - .6))
+    for k in range(30):
+        t = T(.12); place(x, lp(np.sin(2 * np.pi * (120 + 400 * t / .12) * t) * env(len(t), .003, .08), 800) * .3, rng.random() * (D - .2))
+    for k in range(4): place(x, reverb(creak(1.2, 60), 2.5, .5)[:SR * 3] * .3, rng.random() * (D - 3))
+    return reverb(x, 2.6, .35)[:int(SR * D)]
+def amb_bastion():
+    x = fire(D) * .45 + wind(D, 100, 500, .15) * .35 + drone(D, 49, (1, 1.5, 2)) * .04
+    for k in range(7):
+        t0 = 3 + rng.random() * (D - 6)
+        for j in range(3): place(x, reverb(mix(metal(800, .6, .45), thud(95, .12)), 1.8, .5)[:SR * 2] * .12, t0 + j * .6)
+    for k in range(2): place(x, reverb(bell(98, 5), 3.5, .6)[:SR * 6] * .12, 6 + rng.random() * (D - 12))
+    return reverb(x, 1.8, .25)[:int(SR * D)]
+
 if __name__ == "__main__":
     for k, f in [("bourg", amb_bourg), ("foret", amb_foret), ("catacombes", amb_catacombes), ("marais", amb_marais), ("citadelle", amb_citadelle), ("abime", amb_abime), ("bastion", amb_bastion)]:
         save("amb_" + k, f(), "48k", loop=True)

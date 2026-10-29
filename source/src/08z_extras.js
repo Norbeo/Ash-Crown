@@ -82,6 +82,8 @@ function startRush(partyIds, petId) {
 // ── fin d'expédition : quêtes, marques, saison, rush ──
 function extrasEndRun(run, outcome, res) {
   seeRelics(run);
+  if (outcome === "victory" && !run.rush) res.classCh = classChallengeTick(run);
+  for (const h of run.party.map(heroById).filter(Boolean)) if (outcome !== "wipe") h.stress = Math.max(0, (h.stress || 0) - 10);
   const party = run.party.map(heroById).filter(Boolean), done = run.questsDone || [];
   for (const h of party) {
     if (!run.fallen.includes(h.id) && outcome !== "wipe") { const r = questProgress(h, "survive", 1); if (r) done.push(r); }
@@ -101,3 +103,41 @@ function extrasEndRun(run, outcome, res) {
     const B0 = S.rush || { best: 0, time: 0, alive: 0, runs: 0 }; B0.runs++; res.rush = { n, mins, alive, record: n > B0.best || (n === B0.best && mins < B0.time) };
     if (res.rush.record) { B0.best = n; B0.time = mins; B0.alive = alive; } S.rush = B0; }
 }
+
+// ── Stress : chaque combat éprouvant use les nerfs ; à 100, le héros craque (affliction) ou se révèle (vertu) ──
+const AFFLICTIONS = {
+  paranoia: { n: "Paranoïaque", bad: 1, d: "−8 de précision, −6 d'esquive.", pas: [{ k: "stat", s: "acc", v: -8 }, { k: "stat", s: "dodge", v: -6 }] },
+  desespoir: { n: "Désespéré", bad: 1, d: "−12 % de dégâts.", pas: [{ k: "stat", s: "dmg", v: -.12 }] },
+  rage: { n: "Rage aveugle", bad: 1, d: "+8 % de dégâts, mais −8 % de protection et −10 de résistance.", pas: [{ k: "stat", s: "dmg", v: .08 }, { k: "stat", s: "prot", v: -.08 }, { k: "stat", s: "res", v: -10 }] },
+  terreur: { n: "Terrorisé", bad: 1, d: "−2 de vitesse, −10 % de PV.", pas: [{ k: "stat", s: "spd", v: -2 }, { k: "stat", s: "hp", v: -.1 }] },
+  inebranlable: { n: "Inébranlable", d: "Vertu : +10 % de dégâts, +15 de résistance.", pas: [{ k: "stat", s: "dmg", v: .1 }, { k: "stat", s: "res", v: 15 }] },
+  vigilant: { n: "Vigilant", d: "Vertu : +2 de vitesse, +8 d'esquive.", pas: [{ k: "stat", s: "spd", v: 2 }, { k: "stat", s: "dodge", v: 8 }] },
+};
+function stressAfterBattle(run, B) {
+  const fallen = B.fallen.length, long = B.round > 10 ? 10 : 0; run.stressLog = [];
+  for (const u of [...B.heroes, ...B.fallen]) { const h = heroById(u.hid); if (!h) continue;
+    const add = (u.agonyN || 0) * 22 + fallen * 12 + long + (u.hp > 0 && u.hp / u.hpMax < .25 ? 8 : 0) + ([...B.enemies, ...(B.dead || [])].some(e => e.boss) ? 6 : 2);
+    h.stress = clamp((h.stress || 0) + add, 0, 100);
+    if (h.stress >= 100 && !h.affl) { const virt = chance(.25), pool = Object.keys(AFFLICTIONS).filter(k => !!AFFLICTIONS[k].bad !== virt); h.affl = pick(pool); h.stress = virt ? 40 : 70; run.stressLog.push({ name: h.name, a: h.affl }); }
+  }
+}
+const calmCost = h => 80 + h.lvl * 15;
+function calmHero(h) { const c = calmCost(h); if (S.gold < c) return { err: "Pas assez d'or." }; S.gold -= c; h.stress = 0; if (h.affl && AFFLICTIONS[h.affl].bad) h.affl = null; return { ok: 1 }; }
+
+// ── Arbre de talents : un point par niveau au-delà du 14e, trois voies sans limite ──
+const TALENTS = {
+  off: { n: "Lame", d: "+3 % de dégâts et +0,5 % de critique par point.", ic: "sword" },
+  def: { n: "Bouclier", d: "+3 % de PV et +1 % de protection par point (max +20 %).", ic: "shield" },
+  mas: { n: "Maîtrise", d: "+3 % de soins prodigués, +4 de résistance et +1 de vitesse tous les 4 points.", ic: "book" },
+};
+const talentPoints = h => Math.max(0, h.lvl - 14);
+const talentSpent = h => h.talents ? (h.talents.off || 0) + (h.talents.def || 0) + (h.talents.mas || 0) : 0;
+function talentPas(h) { const T = h.talents || {}, o = T.off || 0, d = T.def || 0, m = T.mas || 0;
+  return [{ k: "stat", s: "dmg", v: .03 * o }, { k: "stat", s: "crit", v: .5 * o }, { k: "stat", s: "hp", v: .03 * d }, { k: "stat", s: "prot", v: Math.min(.2, .01 * d) }, { k: "stat", s: "healPow", v: .03 * m }, { k: "stat", s: "res", v: 4 * m }, { k: "stat", s: "spd", v: Math.floor(m / 4) }].filter(p => p.v); }
+function talentAdd(h, k) { if (!TALENTS[k] || talentSpent(h) >= talentPoints(h)) return false; h.talents = h.talents || {}; h.talents[k] = (h.talents[k] || 0) + 1; return true; }
+
+// ── Défis de classe : gagner des gardiens avec chaque classe ──
+const CLASS_GOALS = [3, 10, 25];
+function classChallengeTick(run) { const won = S.classWins = S.classWins || {}, out = [];
+  for (const h of run.party.map(heroById).filter(Boolean)) { const c = h.cls; won[c] = (won[c] || 0) + 1; const g = CLASS_GOALS.indexOf(won[c]); if (g >= 0) { const gold = [300, 900, 2500][g], sh = [1, 3, 6][g]; S.gold += gold; S.shards += sh; out.push({ cls: c, g, gold, sh }); } }
+  return out; }

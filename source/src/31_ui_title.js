@@ -8,12 +8,23 @@ const PWA = { prompt: null,
 if (HASWIN) { addEventListener("beforeinstallprompt", e => { e.preventDefault(); PWA.prompt = e; if (UI.screen === "title" || UI.screen === "options") refresh(); }); addEventListener("appinstalled", () => { PWA.prompt = null; toast("Couronne de Cendres est installée !", "good"); }); }
 SCREENS.title = {
   noHud: 1, noNav: 1,
-  scene: () => backdrop("titre", { align: .6, after: (x, t) => { const w = SC.w, h = SC.h; glow(x, w / 2, h * .32, Math.min(w, h) * .45, "#ff5a1a", .12 + Math.sin(t * 1.3) * .04); } }),
+  scene: () => { const ash = []; let last = 0;
+    return backdrop("titre", { align: .6, after: (x, t) => { const w = SC.w, h = SC.h, dt = Math.min(.05, t - last || 0); last = t;
+      glow(x, w / 2, h * .32, Math.min(w, h) * .45, "#ff5a1a", .12 + Math.sin(t * 1.3) * .04);
+      // braises qui montent et cendre qui tombe
+      while (ash.length < Math.min(140, w / 6)) ash.push({ x: Math.random() * w, y: Math.random() * h, v: 10 + Math.random() * 40, s: .6 + Math.random() * 1.8, ember: Math.random() < .35, ph: Math.random() * 6 });
+      for (const a of ash) { a.y += (a.ember ? -1 : 1) * a.v * dt; a.x += Math.sin(t * .7 + a.ph) * 12 * dt; if (a.y < -10) { a.y = h + 10; a.x = Math.random() * w; } if (a.y > h + 10) { a.y = -10; a.x = Math.random() * w; }
+        if (a.ember) glow(x, a.x, a.y, a.s * 3.5, "#ff8a2a", .55 + Math.sin(t * 4 + a.ph) * .25); else { x.fillStyle = `rgba(190,180,170,${.25 + .2 * Math.sin(t + a.ph)})`; x.fillRect(a.x, a.y, a.s, a.s); } }
+      // vignette sombre
+      const g = x.createRadialGradient(w / 2, h / 2, Math.min(w, h) * .3, w / 2, h / 2, Math.max(w, h) * .75); g.addColorStop(0, "rgba(0,0,0,0)"); g.addColorStop(1, "rgba(0,0,0,.7)"); x.fillStyle = g; x.fillRect(0, 0, w, h); } }); },
   html: () => {
     const has = !!load();
     return `<div class="titlebox">
+      ${artHas("ui_emblem") ? `<img src="assets/ui_emblem.webp" alt="" style="width:84px;height:84px;object-fit:contain;filter:drop-shadow(0 0 16px #ff7a2a88);margin-bottom:-6px">` : ""}
       <div class="logo">Couronne<br>de Cendres<small>LE DERNIER BASTION</small></div>
       <p class="lore" style="max-width:460px;margin:6px 0 14px">Un royaume maudit. Une couronne brisée. Des héros perdus, et vous pour les mener dans l'ombre.</p>
+      ${has ? (() => { const d = load(); const ch = REGIONS.filter(r => d.prog && d.prog[r.id] && d.prog[r.id].clears).length, top = (d.heroes || []).slice().sort((a, b) => b.lvl - a.lvl)[0];
+        return `<div class="panel" style="padding:8px 14px;margin-bottom:8px;max-width:340px;text-align:left"><div class="small"><b class="gold">${ch ? "Chapitre " + ["I", "II", "III", "IV", "V", "V"][Math.min(5, ch)] + (ch >= 5 ? " terminé" : "") : "Chapitre I"}</b> · ${(d.heroes || []).length} héros${top ? ` · ${esc(top.name.split(" ")[0])} niv ${top.lvl}` : ""}</div><div class="tiny dim">${d.run ? "Une expédition est en cours." : "Le Bastion vous attend."}</div></div>`; })() : ""}
       ${has ? `<button class="btn main glow" data-a="continue">${ico("castle")}Continuer</button>` : ""}
       <button class="btn ${has ? "" : "main glow"}" data-a="newgame">${ico("plus")}Nouvelle partie</button>
       ${PWA.standalone ? "" : `<button class="btn ghost" data-a="install">${ico("install")}Installer l'appli</button>`}

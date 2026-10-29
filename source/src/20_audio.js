@@ -92,11 +92,11 @@ function musicPlay(kind) {
     const c = SND.ctx; if (!c) return; const M = MUSIC[SND.mKind] || MUSIC.bastion, root = M[0], sc = M[1];
     const t = c.currentTime;
     if (step % 4 === 0) { // nappe
-      for (const iv of [0, sc[1], sc[2]]) { const f = root * Math.pow(2, (iv + (step % 16 >= 8 ? sc[3] - sc[2] : 0)) / 12); const o = c.createOscillator(), g = c.createGain(), fl = c.createBiquadFilter(); o.type = "sawtooth"; o.frequency.value = f / 2; fl.type = "lowpass"; fl.frequency.value = 500; g.gain.setValueAtTime(0, t); g.gain.linearRampToValueAtTime(.05, t + 1.5); g.gain.linearRampToValueAtTime(0, t + 6.2); o.connect(fl); fl.connect(g); g.connect(SND.music); g.connect(SND.rev); o.start(t); o.stop(t + 6.5); }
+      for (const iv of [0, sc[1], sc[2]]) { const f = root * Math.pow(2, (iv + (step % 16 >= 8 ? sc[3] - sc[2] : 0)) / 12); const o = c.createOscillator(), g = c.createGain(), fl = c.createBiquadFilter(); o.type = "sawtooth"; o.frequency.value = f / 2; fl.type = "lowpass"; fl.frequency.value = 340; g.gain.setValueAtTime(0, t); g.gain.linearRampToValueAtTime(.05, t + 1.5); g.gain.linearRampToValueAtTime(0, t + 6.2); o.connect(fl); fl.connect(g); g.connect(SND.music); g.connect(SND.rev); o.start(t); o.stop(t + 6.5); }
     }
-    if (Math.random() < (SND.mKind === "combat" || SND.mKind === "boss" ? .7 : .45)) { // cloche / harpe
-      const iv = sc[Math.floor(Math.random() * sc.length)] + (Math.random() < .4 ? 12 : 0); const f = root * 2 * Math.pow(2, iv / 12);
-      const o = c.createOscillator(), g = c.createGain(); o.type = "triangle"; o.frequency.value = f; g.gain.setValueAtTime(0, t); g.gain.linearRampToValueAtTime(.05, t + .01); g.gain.exponentialRampToValueAtTime(.0005, t + 2.4); o.connect(g); g.connect(SND.music); g.connect(SND.rev); o.start(t); o.stop(t + 2.5);
+    if (Math.random() < (SND.mKind === "combat" || SND.mKind === "boss" ? .3 : .22)) { // glas grave, rare (plus de « harpe » aiguë)
+      const iv = sc[Math.floor(Math.random() * sc.length)]; const f = root * Math.pow(2, iv / 12);
+      const o = c.createOscillator(), g = c.createGain(); o.type = "sine"; o.frequency.value = f; g.gain.setValueAtTime(0, t); g.gain.linearRampToValueAtTime(.045, t + .04); g.gain.exponentialRampToValueAtTime(.0005, t + 4); o.connect(g); g.connect(SND.music); g.connect(SND.rev); o.start(t); o.stop(t + 4.1);
     }
     if ((SND.mKind === "combat" || SND.mKind === "boss") && step % 2 === 0) { // tambour
       const o = c.createOscillator(), g = c.createGain(); o.frequency.setValueAtTime(70, t); o.frequency.exponentialRampToValueAtTime(35, t + .3); g.gain.setValueAtTime(.18, t); g.gain.exponentialRampToValueAtTime(.001, t + .35); o.connect(g); g.connect(SND.music); o.start(t); o.stop(t + .4);

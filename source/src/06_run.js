@@ -118,7 +118,8 @@ function beatenBosses() { const b = S.beaten = S.beaten || {}; for (const r of R
 // la rencontre est tirée une seule fois par salle : quitter puis reprendre redonne les mêmes ennemis (et le même gardien)
 function genEncounter(run, node, rng = RNG) {
   if (node.enc) return node.enc.map(e => Object.assign({}, e));
-  const enc = genEncounter0(run, node, rng); node.enc = enc.map(e => Object.assign({}, e)); return enc;
+  const enc = genEncounter0(run, node, rng);
+  if (run.threat >= 3) for (const e of enc) if (!MONSTERS[e.key].boss && rng.chance(run.threat >= 4 ? .45 : .3)) e.corrupt = 1; /* menace IV–V : créatures corrompues (+30 % PV, +20 % dégâts, meilleur butin) */ node.enc = enc.map(e => Object.assign({}, e)); return enc;
 }
 function genEncounter0(run, node, rng = RNG) {
   const R = regionById(run.region), lvl = runLevel(run, node);
@@ -151,10 +152,11 @@ function genEncounter0(run, node, rng = RNG) {
 
 // ── récompenses ──
 function rewardFor(run, node, rng = RNG) {
-  const lvl = runLevel(run, node), rh = relicHooks(run), luck = run.light < 30 ? .05 : 0;
+  const lvl = runLevel(run, node), rh = relicHooks(run), luck0 = run.light < 30 ? .05 : 0; let luck = luck0;
   const goldM = 1 + (rh.gold || 0) + run.party.map(heroById).filter(Boolean).reduce((a, h) => a + heroPassives(h).filter(p => p.k === "gold").reduce((b, p) => b + p.v, 0), 0) + (run.pet && PETS[run.pet].gold ? PETS[run.pet].gold : 0) + (run.daily ? .25 : 0) + run.oaths.length * .15 + run.threat * .3;
   const R = { gold: 0, xp: 0, loot: [], relic: null, mats: { fer: 0, essence: 0, cendre: 0 }, shards: 0, petXp: 0 };
   const t = node.type;
+  const corr = node.enc ? node.enc.filter(e => e.corrupt).length : 0; if (corr) luck += .04 * corr;
   if (t === "combat") { R.gold = (14 + lvl * 4.5) * (0.85 + rng() * .3); R.xp = 26 + lvl * 7; R.mats.fer = rng.chance(.6) ? 1 : 0; if (rng.chance(.22 + luck)) R.loot.push(lootGear(lvl, luck)); }
   if (t === "elite") { R.gold = (34 + lvl * 9) * (0.9 + rng() * .3); R.xp = 50 + lvl * 12; R.mats.fer = 2; R.mats.essence = 1; R.loot.push(lootGear(lvl + 2, .12 + luck, null, 1)); if (rng.chance(.5)) R.relic = randRelic(run, rng, 1); } // élite : jamais de commun, qualités hautes favorisées
   if (t === "elite" && run.week && weekRule() && weekRule().eliteLoot) R.loot.push(lootGear(lvl + 2, .12, null, 1));

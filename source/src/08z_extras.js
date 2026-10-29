@@ -63,7 +63,7 @@ function seasonCheck() {
   const k = seasonKey(); if (S.season && S.season.key === k) return false;
   if (S.season && S.season.best) (S.seasons = S.seasons || []).push({ key: S.season.key, n: S.season.n, best: S.season.best });
   const rng = mkRng(k * 29 + 3);
-  S.season = { key: k, n: "Saison " + rng.pick(SEASON_NAMES), boss: rng.pick(ALL_BOSSES), relic: rng.pick(Object.keys(TRINKETS).filter(t => TRINKETS[t].r >= 2)), best: 0, claimed: 0 };
+  S.season = { key: k, n: "Saison " + rng.pick(SEASON_NAMES), boss: rng.pick(ALL_BOSSES), relic: rng.pick(Object.keys(TRINKETS).filter(t => TRINKETS[t].r >= 3)), best: 0, claimed: 0 };
   return true;
 }
 function seasonDaysLeft(d = new Date()) { const k = seasonKey(d); let n = 0; const t = new Date(d); while (seasonKey(t) === k && n < 40) { t.setDate(t.getDate() + 1); n++; } return n; }

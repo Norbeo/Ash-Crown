@@ -14,7 +14,7 @@ const HPOSE = {
 function whiteOf(sp) { if (sp.white) return sp.white; const c = mkCanvas(sp.width, sp.height), x = c.getContext("2d"); x.drawImage(sp, 0, 0); x.globalCompositeOperation = "source-in"; x.fillStyle = "#fff6e8"; x.fillRect(0, 0, c.width, c.height); return sp.white = c; }
 function heroPoseFor(u, key) { const C = CLASSES[u.cls]; const st = STANCE[C.wpn] || STANCE.masse; return (HPOSE[key] || HPOSE.idle)(st); }
 function unitSprite(u, key) {
-  const V = CB.vis[u.uid]; const sc = u.side === "h" && CB.port && CB.hScale ? CB.hScale : CB.scale;
+  const V = CB.vis[u.uid]; const sc = u.side === "h" && CB.port && CB.hScale ? CB.hScale : CB.port && (u.sz || 1) > 1 ? CB.scale * .74 : CB.scale; // portrait : gardiens réduits pour tenir dans le cadre
   const ck = key + ":" + sc.toFixed(3) + (u.side === "h" ? ":" + V.lookKey : "");
   V.cache = V.cache || {};
   if (V.cache[ck]) return V.cache[ck];
@@ -65,7 +65,7 @@ async function startCombat(node) {
   SC.click = cbClick; SC.hover = cbHover;
   musicPlay(node.type === "boss" ? "boss" : "combat");
   for (const e of B.enemies) S.seen.monsters[e.key] = S.seen.monsters[e.key] || 0;
-  $("#cb-flee").style.display = node.type === "boss" ? "none" : "";
+  $("#cb-flee").style.display = "";
   cbTopLeft(); cbBar(null);
   if (node.type === "boss") { const bs = B.enemies.find(e => e.boss); await showBanner(bs.name, "Gardien", "#ff4a3a", 1800); }
   else if (node.type === "elite") await showBanner("Élite", B.enemies.find(e => e.elite)?.name || "", "#ff8a4a", 1100);
@@ -90,7 +90,7 @@ async function combatLoop() {
         if (CB.auto) { await wait(220); a = autoChoice(u); } else a = await playerChoice(u);
         if (!CB.B) return;
         let ev;
-        if (a.flee) { const ok = chance(.75); if (ok) { await showBanner("Retraite !", "", "#c8b8a0", 800); return combatEnd("flee"); } ev = [{ k: "act", u: u.uid, sk: "Fuite ratée", anim: "move" }]; toast("La fuite échoue !", "bad"); }
+        if (a.flee) { const ok = chance(CB.node.type === "boss" ? .5 : .75); if (ok) { await showBanner("Retraite !", "", "#c8b8a0", 800); return combatEnd("flee"); } ev = [{ k: "act", u: u.uid, sk: "Fuite ratée", anim: "move" }]; toast("La fuite échoue !", "bad"); }
         else if (a.potion) ev = usePotion(B, S.run, u, a.tgt);
         else if (a.move) ev = swapHero(B, u, a.move);
         else if (a.pass) ev = [{ k: "act", u: u.uid, sk: "Attend", anim: "idle" }];
@@ -161,7 +161,7 @@ ACT.cbSk = id => {
 ACT.cbPotion = () => { const u = CB.actor; if (!u || !CB.resolve) return; if (S.run.potions <= 0) return toast("Plus de potion.", "bad"); CB.sel = { potion: 1, tg: CB.B.heroes.filter(alive) }; $("#cb-desc").innerHTML = `<b class="gold">Potion de soin</b> (${S.run.potions})<br><span class="small">Soigne 40 % des PV, purge les altérations et sauve de l'agonie. Utilise le tour.</span>`; document.querySelectorAll("#cb-skills .sk").forEach(b => b.classList.toggle("on", b.dataset.v === "potion")); };
 ACT.cbMove = d => { const u = CB.actor; if (!u || !CB.resolve) return; const r = rankOf(CB.B, u), n = CB.B.heroes.length; if ((+d < 0 && r <= 1) || (+d > 0 && r >= n)) return; choose({ move: +d }); };
 ACT.cbPass = () => { if (CB.resolve) choose({ pass: 1 }); };
-ACT.cbFlee = () => { if (!CB.resolve) return toast("Attendez votre tour.", "bad"); confirmBox("Tenter de fuir ? (75 % de réussite, aucune récompense)", () => choose({ flee: 1 }), { yes: "Fuir" }); };
+ACT.cbFlee = () => { if (!CB.resolve) return toast("Attendez votre tour.", "bad"); confirmBox(CB.node && CB.node.type === "boss" ? "Fuir le gardien ? (50 % de réussite) L'expédition s'arrête : vous rentrez au Bastion avec l'or et le butin, sans la victoire." : "Tenter de fuir ? (75 % de réussite, aucune récompense)", () => choose({ flee: 1 }), { yes: "Fuir" }); };
 ACT.cbSpeed = () => { CB.speed = CB.speed >= 3 ? 1 : CB.speed + 1; S.opts.speed = CB.speed; save(); $("#cb-spd").textContent = "×" + CB.speed; };
 ACT.cbAuto = (v, el) => { CB.auto = !CB.auto; S.opts.auto = CB.auto ? 1 : 0; save(); $("#cb-auto").textContent = CB.auto ? "Auto" : "Manuel"; el.classList.toggle("on", CB.auto); if (CB.auto && CB.resolve && CB.actor) choose(autoChoice(CB.actor)); };
 function cbBar(u) {
@@ -296,6 +296,7 @@ async function combatEnd(over) {
   const B = CB.B, run = S.run, node = CB.node; if (!B) return;
   CB.B = null; CB.resolve = null;
   afterBattle(run, B);
+  if (over === "flee" && node.type === "boss") { save(); toast("Vous fuyez le gardien et rentrez au Bastion.", "bad"); finishRun("retreat"); return; } // fuir un gardien met fin à l'expédition (sans victoire)
   if (over === "flee") { node.done = 1; save(); go("map"); return; }
   if (over === "win") {
     await new Promise(r => setTimeout(r, 300));

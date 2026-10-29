@@ -35,7 +35,7 @@ function craft(cls, kind, tier, evo) {
   if (kind === "arm" && tier >= 6 && !(evo && CLASSES[cls].evos[evo])) return { err: "Choisissez la voie de l'armure." };
   if (kind === "arm" && tier >= 6 && !S.heroes.some(h => h.cls === cls && h.evo === evo)) return { err: "Faites d'abord évoluer un héros dans cette voie." };
   const it = makeGear(kind, cls, tier, rollRarity(.04 + S.bld.forge * .015), null, evo); S.inv.push(it); S.stats.crafts++;
-  if (tier >= 5) S.stats.tier5 = 1; if (it.rar >= 3) S.stats.legend++;
+  if (tier >= 5) S.stats.tier5 = 1; if (it.rar >= 4) S.stats.legend++;
   checkAchievements(); return { ok: it };
 }
 // évolution et compétences

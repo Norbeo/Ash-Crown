@@ -81,10 +81,10 @@ const heroPower = h => { const s = heroStats(h); return Math.round(s.hp * .6 + (
 
 // ── Équipement ──
 function makeGear(kind, cls, tier, rar, key, evo) {
-  const it = { id: uid("i"), kind, tier: clamp(tier, 1, 6), rar: clamp(rar, 0, 5), up: 0, aff: [] };
+  const it = { id: uid("i"), kind, tier: clamp(tier, 1, 6), rar: clamp(rar, 0, 6), up: 0, aff: [] };
   if (kind === "arm" && it.tier >= 6 && evo) it.evo = evo; // armure Ascendante : propre à une voie d'évolution
   if (kind === "tr") {
-    const pool = Object.keys(TRINKETS).filter(k => TRINKETS[k].r === rar);
+    let pool = []; for (let q = rar; q >= 0 && !pool.length; q--) pool = Object.keys(TRINKETS).filter(k => TRINKETS[k].r === q); // qualité sans bibelot : la plus proche en dessous
     it.key = key || pick(pool.length ? pool : Object.keys(TRINKETS)); it.rar = TRINKETS[it.key].r; it.tier = 1;
   } else it.cls = cls;
   const nAff = kind === "tr" ? 0 : RARITY[it.rar].aff;
@@ -98,9 +98,10 @@ function gearName(it) {
   const L = GEAR_NAMES[it.cls][it.kind === "wpn" ? "wpn" : "arm"], n = it.tier >= 6 ? (it.evo && CLASSES[it.cls].evos[it.evo] ? "Armure ascendante : " + CLASSES[it.cls].evos[it.evo].n : "Ascendant : " + L[4]) : L[it.tier - 1];
   return n + (it.up ? " +" + it.up : "");
 }
-const rollRarity = (luck = 0) => { const r = rnd() - luck; return r < .003 ? 5 : r < .01 ? 4 : r < .03 ? 3 : r < .12 ? 2 : r < .38 ? 1 : 0; };
+const rollRarity = (luck = 0) => { const r = rnd() * 100 - luck * 100; let acc = 0; for (let q = RARITY.length - 1; q >= 1; q--) { acc += RARITY[q].p; if (r < acc) return q; } return 0; }; // taux dans RARITY[q].p
 function lootGear(lvl, luck = 0, cls) {
-  const tier = clamp(Math.floor(lvl / 4.2) + 1 + (chance(.25) ? 1 : 0), 1, 5);
+  const base = TIER_LVL.filter(l => l <= lvl).length - 1; // palier que le niveau permet de porter
+  const tier = clamp(base + (chance(.25) ? 1 : 0), 1, typeof lootTierCap === "function" ? lootTierCap() : 5);
   const r = rnd(), rar = rollRarity(luck);
   if (r < .3) return makeGear("tr", null, 1, rar);
   const owned = S ? [...new Set(S.heroes.map(h => h.cls))] : [];
@@ -109,7 +110,7 @@ function lootGear(lvl, luck = 0, cls) {
 }
 const upCost = it => ({ gold: Math.round(60 * it.tier * (1 + it.up * .7)), fer: 1 + Math.floor(it.up / 2) + (it.tier >= 3 ? 1 : 0), essence: it.up >= 3 ? 1 + (it.up >= 5 ? 1 : 0) : 0 });
 const craftCost = tier => ({ gold: [0, 80, 220, 520, 1100, 2200, 4500][tier], fer: [0, 3, 5, 8, 12, 16, 22][tier], essence: [0, 0, 1, 3, 5, 8, 12][tier], cendre: [0, 0, 0, 0, 1, 3, 6][tier] });
-const salvage = it => ({ fer: it.kind === "tr" ? 1 : 1 + it.tier + it.up, essence: it.rar >= 1 ? it.rar : 0, cendre: it.rar >= 3 ? 1 : 0, gold: 10 * it.tier * (1 + it.rar) });
+const salvage = it => ({ fer: it.kind === "tr" ? 1 : 1 + it.tier + it.up, essence: it.rar >= 1 ? it.rar : 0, cendre: it.rar >= 4 ? 1 : 0, gold: 10 * it.tier * (1 + it.rar) });
 
 // ── Compagnons ──
 function petLvl(id) { return (S && S.pets.lvl[id]) || 1; }
@@ -144,6 +145,8 @@ function migrate(s) {
   for (const k in base.opts) if (s.opts[k] === undefined) s.opts[k] = base.opts[k];
   // le nom et le sexe suivent l'illustration de la classe (anciennes sauvegardes : héroïne dessinée en homme, surnom mal accordé…)
   for (const h of (s.heroes || []).concat(s.recruits || [])) fixHeroName(h);
+  // qualité « Peu commun » insérée en 2e position : décale les anciennes qualités
+  if (!s.rarV) { const items = [...(s.inv || []), ...(s.run ? s.run.loot || [] : [])]; for (const h of s.heroes || []) for (const k in h.gear || {}) if (h.gear[k]) items.push(h.gear[k]); for (const it of new Set(items)) if (it.rar >= 1) it.rar++; s.rarV = 2; }
   return s;
 }
 // difficulté : ennemis (PV, dégâts) et récompenses (or, expérience)

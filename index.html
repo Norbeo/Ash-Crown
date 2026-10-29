@@ -93,8 +93,8 @@ p{margin:6px 0;line-height:1.45}
 .bar{height:8px;background:#000a;border:1px solid #000;border-radius:5px;overflow:hidden;position:relative;box-shadow:inset 0 1px 3px #000}
 .bar>i{position:absolute;inset:0 auto 0 0;background:linear-gradient(#e04a3a,#7a1410);border-radius:5px;transition:width .4s}
 .bar.xp>i{background:linear-gradient(#e8c870,#8a6420)}.bar.blue>i{background:linear-gradient(#7ab0ff,#2a4a8a)}
-.rar4{color:#ff5a7a;text-shadow:0 0 9px #ff2a4a99}.rar5{color:#8af4ff;text-shadow:0 0 10px #3ae0ff,0 0 3px #fff}.slot.r4{border-color:#d03a5a;box-shadow:inset 0 0 12px #000,0 0 12px #ff2a4a88}.slot.r5{border-color:#5ae0f0;box-shadow:inset 0 0 12px #000,0 0 14px #3ae0ffaa}
-.rar0{color:#c8beaa}.rar1{color:#6ab0ff}.rar2{color:#c87aff}.rar3{color:#ffb848;text-shadow:0 0 8px #ff8a2a88}
+.rar0{color:#c8beaa}.rar1{color:#8ad07a}.rar2{color:#6ab0ff}.rar3{color:#c87aff}.rar4{color:#ffb848;text-shadow:0 0 8px #ff8a2a88}.rar5{color:#ff5a7a;text-shadow:0 0 9px #ff2a4a99}.rar6{color:#8af4ff;text-shadow:0 0 10px #3ae0ff,0 0 3px #fff}
+.slot.r5{border-color:#d03a5a;box-shadow:inset 0 0 12px #000,0 0 12px #ff2a4a88}.slot.r6{border-color:#5ae0f0;box-shadow:inset 0 0 12px #000,0 0 14px #3ae0ffaa}
 .slot{width:58px;height:58px;border-radius:4px;background:radial-gradient(#2a201c,#0e0a0a);border:1px solid #3a2a22;display:flex;align-items:center;justify-content:center;position:relative;cursor:pointer;box-shadow:inset 0 0 12px #000}
 .slot .ic{width:30px;height:30px}
 .eqrow{display:flex;flex-direction:column;gap:4px;padding:7px 9px;margin-top:6px;border:1px solid #3a2e24;border-left:3px solid #4a3a2a;border-radius:4px;background:#0f0b09}
@@ -107,7 +107,7 @@ p{margin:6px 0;line-height:1.45}
 .synr{display:flex;align-items:baseline;gap:6px;flex-wrap:wrap;padding:5px 9px;border:1px solid #3a2e24;border-radius:4px;background:#120e0c;cursor:pointer}
 .synr.on{border-color:#8a6a2a;background:linear-gradient(90deg,#2a1e10,#120e0c)}.synr .ic{align-self:center}
 .slot img.itimg{width:100%;height:100%;object-fit:contain;padding:2px;pointer-events:none}
-.slot.r1{border-color:#3a6aaa;box-shadow:inset 0 0 12px #000,0 0 8px #3a6aaa55}.slot.r2{border-color:#8a4ac0;box-shadow:inset 0 0 12px #000,0 0 10px #8a4ac066}.slot.r3{border-color:#d0902a;box-shadow:inset 0 0 12px #000,0 0 14px #ffa03a88}
+.slot.r1{border-color:#4a7a3a;box-shadow:inset 0 0 12px #000,0 0 6px #5a9a4a55}.slot.r2{border-color:#3a6aaa;box-shadow:inset 0 0 12px #000,0 0 8px #3a6aaa55}.slot.r3{border-color:#8a4ac0;box-shadow:inset 0 0 12px #000,0 0 10px #8a4ac066}.slot.r4{border-color:#d0902a;box-shadow:inset 0 0 12px #000,0 0 14px #ffa03a88}
 .slot .tier{position:absolute;bottom:1px;right:3px;font-family:var(--f-head);font-size:10px;color:var(--gold2)}
 .slot .up{position:absolute;top:1px;left:3px;font-size:10px;color:var(--good);font-weight:800}
 /* fenêtre modale */
@@ -866,14 +866,14 @@ const REGIONS = [
     d: "Le village de Morvaine pourrit sous la peste. Les morts ne restent pas couchés.", sky: ["#1a1d14", "#3a3a24"], fog: "#9aa06a", accent: "#a8c05a" },
   { id: "foret", n: "La Forêt des Pendus", sub: "Chapitre II", lvl: 5, pool: ["loup_noir", "araignee", "brigand", "archer_brig", "dryade", "pendu"], elite: ["alpha"], boss: "mere_ronces",
     d: "Chaque arbre porte un pendu. La forêt, elle, a faim.", sky: ["#0e1612", "#24342a"], fog: "#6a8a70", accent: "#6ad08a" },
-  { id: "catacombes", n: "Les Catacombes de Saint-Morne", sub: "Chapitre III", lvl: 9, pool: ["squelette", "archer_os", "spectre", "necrophage", "gargouille", "moine_flagellant", "thuriferaire", "hallebardier_os"], elite: ["chevalier_os", "prieur"], boss: "liche", boss2: "abbe",
+  { id: "catacombes", n: "Les Catacombes de Saint-Morne", sub: "Chapitre III", lvl: 10, pool: ["squelette", "archer_os", "spectre", "necrophage", "gargouille", "moine_flagellant", "thuriferaire", "hallebardier_os"], elite: ["chevalier_os", "prieur"], boss: "liche", boss2: "abbe",
     d: "Sous l'abbaye dorment dix mille moines. Ils se réveillent.", sky: ["#0e0e14", "#262632"], fog: "#7a8aa8", accent: "#7adcc0" },
-  { id: "marais", n: "Le Marais des Noyés", sub: "Chapitre IV", lvl: 13, pool: ["noye", "crapaud_geant", "sangsue", "feu_follet_e", "profond", "sorciere_marais", "pecheur"], elite: ["hydre", "ogre"], boss: "mere_noyes", boss2: "reine_sabbat",
+  { id: "marais", n: "Le Marais des Noyés", sub: "Chapitre IV", lvl: 15, pool: ["noye", "crapaud_geant", "sangsue", "feu_follet_e", "profond", "sorciere_marais", "pecheur"], elite: ["hydre", "ogre"], boss: "mere_noyes", boss2: "reine_sabbat",
     d: "L'eau noire garde ceux qu'elle prend. Et elle prend tout.", sky: ["#0a1214", "#1e3034"], fog: "#5a8a8a", accent: "#5ac0c0" },
-  { id: "citadelle", n: "La Citadelle de Cendres", sub: "Chapitre V", lvl: 17, pool: ["chevalier_dechu", "inquisiteur_fou", "diablotin", "golem_cendre"], elite: ["bourreau"], boss: "roi_cendres",
+  { id: "citadelle", n: "La Citadelle de Cendres", sub: "Chapitre V", lvl: 20, pool: ["chevalier_dechu", "inquisiteur_fou", "diablotin", "golem_cendre"], elite: ["bourreau"], boss: "roi_cendres",
     d: "Le trône du Roi brûle depuis cent ans. Il est temps d'éteindre la couronne.", sky: ["#180a08", "#3a1a10"], fog: "#c0704a", accent: "#ff8a4a" },
 ];
-const ABYSS = { id: "abime", n: "L'Abîme", sub: "Sans fin", lvl: 20, pool: ["horreur", "oeil", "chevalier_dechu", "spectre", "noye", "necrophage", "diablotin", "gargouille", "profond"], elite: ["bourreau", "hydre", "chevalier_os", "alpha"], boss: "sans_nom",
+const ABYSS = { id: "abime", n: "L'Abîme", sub: "Sans fin", lvl: 25, pool: ["horreur", "oeil", "chevalier_dechu", "spectre", "noye", "necrophage", "diablotin", "gargouille", "profond"], elite: ["bourreau", "hydre", "chevalier_os", "alpha"], boss: "sans_nom",
   bosses: ["docteur_peste", "mere_ronces", "liche", "abbe", "mere_noyes", "reine_sabbat", "roi_cendres", "sans_nom"], d: "Sous la Citadelle, il n'y a pas de fond. Seulement plus d'ombre.", sky: ["#08060c", "#1e1428"], fog: "#8a6aaa", accent: "#b48cff" };
 const regionById = id => id === "abime" ? ABYSS : REGIONS.find(r => r.id === id);
 
@@ -888,12 +888,14 @@ const STORY = {
 };
 /* ═══════════════════════ Équipement, reliques, événements, bâtiments ═══════════════════════ */
 const RARITY = [
-  { n: "Commun", c: "#a8a090", aff: 0 },
-  { n: "Rare", c: "#5aa0ff", aff: 1 },
-  { n: "Épique", c: "#c070ff", aff: 2 },
-  { n: "Légendaire", c: "#ffb040", aff: 3 },
-  { n: "Mythique", c: "#ff4a6a", aff: 4 },
-  { n: "Divin", c: "#7af0ff", aff: 5 },
+  // taux de base (sans chance) : commun 50 %, peu commun 30 %, rare 12 %, épique 5 %, légendaire 2,2 %, mythique 0,6 %, divin 0,2 % (voir rollRarity)
+  { n: "Commun", c: "#a8a090", aff: 0, p: 50 },
+  { n: "Peu commun", c: "#7ac86a", aff: 1, p: 30 },
+  { n: "Rare", c: "#5aa0ff", aff: 2, p: 12 },
+  { n: "Épique", c: "#c070ff", aff: 3, p: 5 },
+  { n: "Légendaire", c: "#ffb040", aff: 4, p: 2.2 },
+  { n: "Mythique", c: "#ff4a6a", aff: 5, p: .6 },
+  { n: "Divin", c: "#7af0ff", aff: 6, p: .2 },
 ];
 const TIER_N = ["", "Rustique", "Forgé", "Trempé", "Noble", "Royal", "Ascendant"];
 // nom de l'arme et de l'armure de chaque classe, par palier (1 à 5) : le palier change aussi l'apparence du héros
@@ -932,47 +934,47 @@ const TRINKETS = {
   bourse_cuir: { n: "Bourse de cuir", r: 0, ic: "bag", pas: [{ k: "gold", v: .08 }], d: "+8 % d'or." },
   clou_cercueil: { n: "Clou de cercueil", r: 0, ic: "skull", pas: [{ k: "stat", s: "dmg", v: .04 }], d: "+4 % de dégâts." },
   fiole_sel: { n: "Fiole de sel", r: 0, ic: "flask", pas: [{ k: "stat", s: "res", v: 15 }], d: "+15 de résistance." },
-  gantelet_rouille: { n: "Gantelet rouillé", r: 1, ic: "glove", pas: [{ k: "stat", s: "prot", v: .06 }, { k: "stat", s: "spd", v: -1 }], d: "+6 % de protection, −1 de vitesse." },
-  sablier_noir: { n: "Sablier noir", r: 1, ic: "hourglass", pas: [{ k: "stat", s: "spd", v: 2 }], d: "+2 de vitesse." },
-  coeur_seche: { n: "Cœur séché", r: 1, ic: "heart", pas: [{ k: "stat", s: "hp", v: .1 }], d: "+10 % de PV." },
-  dague_rituelle: { n: "Dague rituelle", r: 1, ic: "dagger", pas: [{ k: "stat", s: "crit", v: 6 }, { k: "stat", s: "dmg", v: .03 }], d: "+6 % de critique, +3 % de dégâts." },
-  encens_noir: { n: "Encens noir", r: 1, ic: "ember", pas: [{ k: "stat", s: "healPow", v: .12 }], d: "+12 % de soins prodigués." },
-  sceau_abbe: { n: "Sceau de l'abbé", r: 2, ic: "seal", pas: [{ k: "stat", s: "res", v: 25 }, { k: "stat", s: "prot", v: .05 }], d: "+25 de résistance, +5 % de protection." },
-  crane_dore: { n: "Crâne doré", r: 2, ic: "skull", pas: [{ k: "stat", s: "dmg", v: .1 }, { k: "stat", s: "hp", v: -.05 }], d: "+10 % de dégâts, −5 % de PV." },
-  manteau_givre: { n: "Agrafe de givre", r: 2, ic: "cloak", pas: [{ k: "stat", s: "dodge", v: 8 }, { k: "stat", s: "spd", v: 1 }], d: "+8 d'esquive, +1 de vitesse." },
-  dent_vampire: { n: "Dent de vampire", r: 2, ic: "fang", pas: [{ k: "stat", s: "leech", v: .08 }], d: "+8 % de vol de vie." },
-  larme_sainte: { n: "Larme de la Sainte", r: 3, ic: "gem", pas: [{ k: "stat", s: "healPow", v: .25 }, { k: "stat", s: "res", v: 15 }], d: "+25 % de soins prodigués, +15 de résistance." },
-  oeil_roi: { n: "Œil du Roi de Cendres", r: 3, ic: "eye", pas: [{ k: "stat", s: "crit", v: 10 }, { k: "stat", s: "acc", v: 8 }], d: "+10 % de critique, +8 de précision." },
+  gantelet_rouille: { n: "Gantelet rouillé", r: 2, ic: "glove", pas: [{ k: "stat", s: "prot", v: .06 }, { k: "stat", s: "spd", v: -1 }], d: "+6 % de protection, −1 de vitesse." },
+  sablier_noir: { n: "Sablier noir", r: 2, ic: "hourglass", pas: [{ k: "stat", s: "spd", v: 2 }], d: "+2 de vitesse." },
+  coeur_seche: { n: "Cœur séché", r: 2, ic: "heart", pas: [{ k: "stat", s: "hp", v: .1 }], d: "+10 % de PV." },
+  dague_rituelle: { n: "Dague rituelle", r: 2, ic: "dagger", pas: [{ k: "stat", s: "crit", v: 6 }, { k: "stat", s: "dmg", v: .03 }], d: "+6 % de critique, +3 % de dégâts." },
+  encens_noir: { n: "Encens noir", r: 2, ic: "ember", pas: [{ k: "stat", s: "healPow", v: .12 }], d: "+12 % de soins prodigués." },
+  sceau_abbe: { n: "Sceau de l'abbé", r: 3, ic: "seal", pas: [{ k: "stat", s: "res", v: 25 }, { k: "stat", s: "prot", v: .05 }], d: "+25 de résistance, +5 % de protection." },
+  crane_dore: { n: "Crâne doré", r: 3, ic: "skull", pas: [{ k: "stat", s: "dmg", v: .1 }, { k: "stat", s: "hp", v: -.05 }], d: "+10 % de dégâts, −5 % de PV." },
+  manteau_givre: { n: "Agrafe de givre", r: 3, ic: "cloak", pas: [{ k: "stat", s: "dodge", v: 8 }, { k: "stat", s: "spd", v: 1 }], d: "+8 d'esquive, +1 de vitesse." },
+  dent_vampire: { n: "Dent de vampire", r: 3, ic: "fang", pas: [{ k: "stat", s: "leech", v: .08 }], d: "+8 % de vol de vie." },
+  larme_sainte: { n: "Larme de la Sainte", r: 4, ic: "gem", pas: [{ k: "stat", s: "healPow", v: .25 }, { k: "stat", s: "res", v: 15 }], d: "+25 % de soins prodigués, +15 de résistance." },
+  oeil_roi: { n: "Œil du Roi de Cendres", r: 4, ic: "eye", pas: [{ k: "stat", s: "crit", v: 10 }, { k: "stat", s: "acc", v: 8 }], d: "+10 % de critique, +8 de précision." },
   // mythiques et divins
-  fragment_couronne: { n: "Fragment de la Couronne", r: 4, ic: "crown", pas: [{ k: "stat", s: "dmg", v: .15 }, { k: "stat", s: "hp", v: .1 }], d: "+15 % de dégâts, +10 % de PV." },
-  coeur_abime: { n: "Cœur de l'Abîme", r: 4, ic: "heart", pas: [{ k: "stat", s: "leech", v: .1 }, { k: "stat", s: "crit", v: 8 }], d: "+10 % de vol de vie, +8 % de critique." },
-  aube_eternelle: { n: "Aube éternelle", r: 5, ic: "sun", pas: [{ k: "stat", s: "dmg", v: .2 }, { k: "stat", s: "hp", v: .15 }, { k: "stat", s: "spd", v: 2 }], d: "+20 % de dégâts, +15 % de PV, +2 de vitesse." },
-  larme_dieu: { n: "Larme d'un dieu mort", r: 5, ic: "gem", pas: [{ k: "stat", s: "healPow", v: .35 }, { k: "stat", s: "prot", v: .1 }, { k: "stat", s: "res", v: 30 }], d: "+35 % de soins, +10 % de protection, +30 de résistance." },
+  fragment_couronne: { n: "Fragment de la Couronne", r: 5, ic: "crown", pas: [{ k: "stat", s: "dmg", v: .15 }, { k: "stat", s: "hp", v: .1 }], d: "+15 % de dégâts, +10 % de PV." },
+  coeur_abime: { n: "Cœur de l'Abîme", r: 5, ic: "heart", pas: [{ k: "stat", s: "leech", v: .1 }, { k: "stat", s: "crit", v: 8 }], d: "+10 % de vol de vie, +8 % de critique." },
+  aube_eternelle: { n: "Aube éternelle", r: 6, ic: "sun", pas: [{ k: "stat", s: "dmg", v: .2 }, { k: "stat", s: "hp", v: .15 }, { k: "stat", s: "spd", v: 2 }], d: "+20 % de dégâts, +15 % de PV, +2 de vitesse." },
+  larme_dieu: { n: "Larme d'un dieu mort", r: 6, ic: "gem", pas: [{ k: "stat", s: "healPow", v: .35 }, { k: "stat", s: "prot", v: .1 }, { k: "stat", s: "res", v: 30 }], d: "+35 % de soins, +10 % de protection, +30 de résistance." },
   dent_loup: { n: "Dent de loup", r: 0, ic: "fang", pas: [{ k: "stat", s: "crit", v: 4 }], d: "+4 % de critique." },
   chapelet: { n: "Chapelet usé", r: 0, ic: "rosary", pas: [{ k: "stat", s: "res", v: 12 }], d: "+12 de résistance." },
   bague_fer: { n: "Bague de fer", r: 0, ic: "ring", pas: [{ k: "stat", s: "prot", v: .05 }], d: "+5 % de protection." },
   plume_corbeau: { n: "Plume de corbeau", r: 0, ic: "feather", pas: [{ k: "stat", s: "spd", v: 2 }], d: "+2 de vitesse." },
   fiole_sang: { n: "Fiole de sang", r: 0, ic: "vial", pas: [{ k: "stat", s: "hp", v: .1 }], d: "+10 % de PV." },
   oeil_verre: { n: "Œil de verre", r: 0, ic: "eye", pas: [{ k: "stat", s: "acc", v: 8 }], d: "+8 de précision." },
-  amulette_sel: { n: "Amulette de sel", r: 1, ic: "amulet", pas: [{ k: "stat", s: "dmg", v: .1 }, { k: "vsTag", tag: "impie", v: .15 }], d: "+10 % de dégâts, +15 % contre les impies." },
-  gant_bourreau: { n: "Gant du bourreau", r: 1, ic: "glove", pas: [{ k: "execute", v: .3 }], d: "+30 % de dégâts contre les cibles sous 40 % de PV." },
-  cloche_morte: { n: "Clochette des morts", r: 1, ic: "bell", pas: [{ k: "debuffPow", v: .2 }, { k: "stat", s: "acc", v: 5 }], d: "+20 % de chances d'altération." },
-  pierre_ame: { n: "Pierre d'âme", r: 1, ic: "gem", pas: [{ k: "ultGain", v: .3 }], d: "La jauge d'ultime monte 30 % plus vite." },
-  herbe_rare: { n: "Herbe des tombes", r: 1, ic: "herb", pas: [{ k: "stat", s: "healPow", v: .2 }], d: "+20 % de soins prodigués." },
-  cape_brume: { n: "Fermoir de brume", r: 1, ic: "cloak", pas: [{ k: "stat", s: "dodge", v: 10 }], d: "+10 d'esquive." },
-  sceau_rouge: { n: "Sceau rouge", r: 1, ic: "seal", pas: [{ k: "dotPow", v: .25 }], d: "+25 % de dégâts sur la durée." },
-  ecu_brise: { n: "Écu brisé", r: 1, ic: "shield", pas: [{ k: "thornsP", v: .25 }], d: "Renvoie 25 % des dégâts de mêlée subis." },
-  coeur_braise: { n: "Cœur de braise", r: 2, ic: "heart", pas: [{ k: "burnPow", v: .4 }, { k: "stat", s: "dmg", v: .08 }], d: "+40 % de brûlure, +8 % de dégâts." },
-  crane_saint: { n: "Crâne de saint", r: 2, ic: "skull", pas: [{ k: "cheatDeath", v: 1 }], d: "Une fois par combat : survit à un coup fatal avec 1 PV." },
-  couronne_epines: { n: "Couronne d'épines", r: 2, ic: "crown", pas: [{ k: "lowHpDmg", v: .4 }, { k: "stat", s: "hp", v: -.05 }], d: "+40 % de dégâts sous 50 % de PV." },
-  sablier: { n: "Sablier noir", r: 2, ic: "hourglass", pas: [{ k: "stat", s: "spd", v: 4 }, { k: "stat", s: "dodge", v: 5 }], d: "+4 de vitesse, +5 d'esquive." },
-  relique_aube: { n: "Relique de l'Aube", r: 2, ic: "sun", pas: [{ k: "stat", s: "healPow", v: .3 }, { k: "overhealShield", v: .4 }], d: "+30 % de soins ; le surplus devient bouclier." },
-  croc_vampire: { n: "Croc de vampire", r: 2, ic: "fang", pas: [{ k: "stat", s: "leech", v: .12 }], d: "+12 % de vol de vie." },
-  griffe_ombre: { n: "Griffe d'ombre", r: 2, ic: "claw", pas: [{ k: "critBleed", v: .5 }, { k: "stat", s: "crit", v: 4 }], d: "Les critiques font saigner." },
-  coeur_roi: { n: "Cœur du Roi", r: 3, ic: "heart", pas: [{ k: "stat", s: "dmg", v: .2 }, { k: "stat", s: "hp", v: .2 }], d: "+20 % de dégâts et de PV." },
-  oeil_abime: { n: "Œil de l'Abîme", r: 3, ic: "eye", pas: [{ k: "stat", s: "crit", v: 12 }, { k: "critDmg", v: .5 }], d: "+12 % de critique, critiques +50 %." },
-  phylactere: { n: "Phylactère", r: 3, ic: "gem", pas: [{ k: "cheatDeath", v: 2 }, { k: "stat", s: "res", v: 20 }], d: "Deux fois par combat : survit à un coup fatal." },
-  fragment_couronne: { n: "Éclat de la Couronne", r: 3, ic: "crown", pas: [{ k: "ultGain", v: .5 }, { k: "stat", s: "dmg", v: .12 }], d: "Ultime +50 % plus vite, +12 % de dégâts." },
+  amulette_sel: { n: "Amulette de sel", r: 2, ic: "amulet", pas: [{ k: "stat", s: "dmg", v: .1 }, { k: "vsTag", tag: "impie", v: .15 }], d: "+10 % de dégâts, +15 % contre les impies." },
+  gant_bourreau: { n: "Gant du bourreau", r: 2, ic: "glove", pas: [{ k: "execute", v: .3 }], d: "+30 % de dégâts contre les cibles sous 40 % de PV." },
+  cloche_morte: { n: "Clochette des morts", r: 2, ic: "bell", pas: [{ k: "debuffPow", v: .2 }, { k: "stat", s: "acc", v: 5 }], d: "+20 % de chances d'altération." },
+  pierre_ame: { n: "Pierre d'âme", r: 2, ic: "gem", pas: [{ k: "ultGain", v: .3 }], d: "La jauge d'ultime monte 30 % plus vite." },
+  herbe_rare: { n: "Herbe des tombes", r: 2, ic: "herb", pas: [{ k: "stat", s: "healPow", v: .2 }], d: "+20 % de soins prodigués." },
+  cape_brume: { n: "Fermoir de brume", r: 2, ic: "cloak", pas: [{ k: "stat", s: "dodge", v: 10 }], d: "+10 d'esquive." },
+  sceau_rouge: { n: "Sceau rouge", r: 2, ic: "seal", pas: [{ k: "dotPow", v: .25 }], d: "+25 % de dégâts sur la durée." },
+  ecu_brise: { n: "Écu brisé", r: 2, ic: "shield", pas: [{ k: "thornsP", v: .25 }], d: "Renvoie 25 % des dégâts de mêlée subis." },
+  coeur_braise: { n: "Cœur de braise", r: 3, ic: "heart", pas: [{ k: "burnPow", v: .4 }, { k: "stat", s: "dmg", v: .08 }], d: "+40 % de brûlure, +8 % de dégâts." },
+  crane_saint: { n: "Crâne de saint", r: 3, ic: "skull", pas: [{ k: "cheatDeath", v: 1 }], d: "Une fois par combat : survit à un coup fatal avec 1 PV." },
+  couronne_epines: { n: "Couronne d'épines", r: 3, ic: "crown", pas: [{ k: "lowHpDmg", v: .4 }, { k: "stat", s: "hp", v: -.05 }], d: "+40 % de dégâts sous 50 % de PV." },
+  sablier: { n: "Sablier noir", r: 3, ic: "hourglass", pas: [{ k: "stat", s: "spd", v: 4 }, { k: "stat", s: "dodge", v: 5 }], d: "+4 de vitesse, +5 d'esquive." },
+  relique_aube: { n: "Relique de l'Aube", r: 3, ic: "sun", pas: [{ k: "stat", s: "healPow", v: .3 }, { k: "overhealShield", v: .4 }], d: "+30 % de soins ; le surplus devient bouclier." },
+  croc_vampire: { n: "Croc de vampire", r: 3, ic: "fang", pas: [{ k: "stat", s: "leech", v: .12 }], d: "+12 % de vol de vie." },
+  griffe_ombre: { n: "Griffe d'ombre", r: 3, ic: "claw", pas: [{ k: "critBleed", v: .5 }, { k: "stat", s: "crit", v: 4 }], d: "Les critiques font saigner." },
+  coeur_roi: { n: "Cœur du Roi", r: 4, ic: "heart", pas: [{ k: "stat", s: "dmg", v: .2 }, { k: "stat", s: "hp", v: .2 }], d: "+20 % de dégâts et de PV." },
+  oeil_abime: { n: "Œil de l'Abîme", r: 4, ic: "eye", pas: [{ k: "stat", s: "crit", v: 12 }, { k: "critDmg", v: .5 }], d: "+12 % de critique, critiques +50 %." },
+  phylactere: { n: "Phylactère", r: 4, ic: "gem", pas: [{ k: "cheatDeath", v: 2 }, { k: "stat", s: "res", v: 20 }], d: "Deux fois par combat : survit à un coup fatal." },
+  fragment_couronne: { n: "Éclat de la Couronne", r: 4, ic: "crown", pas: [{ k: "ultGain", v: .5 }, { k: "stat", s: "dmg", v: .12 }], d: "Ultime +50 % plus vite, +12 % de dégâts." },
 };
 // reliques : bonus temporaires d'une expédition, qui se combinent entre elles
 const RELICS = {
@@ -1465,10 +1467,10 @@ const heroPower = h => { const s = heroStats(h); return Math.round(s.hp * .6 + (
 
 // ── Équipement ──
 function makeGear(kind, cls, tier, rar, key, evo) {
-  const it = { id: uid("i"), kind, tier: clamp(tier, 1, 6), rar: clamp(rar, 0, 5), up: 0, aff: [] };
+  const it = { id: uid("i"), kind, tier: clamp(tier, 1, 6), rar: clamp(rar, 0, 6), up: 0, aff: [] };
   if (kind === "arm" && it.tier >= 6 && evo) it.evo = evo; // armure Ascendante : propre à une voie d'évolution
   if (kind === "tr") {
-    const pool = Object.keys(TRINKETS).filter(k => TRINKETS[k].r === rar);
+    let pool = []; for (let q = rar; q >= 0 && !pool.length; q--) pool = Object.keys(TRINKETS).filter(k => TRINKETS[k].r === q); // qualité sans bibelot : la plus proche en dessous
     it.key = key || pick(pool.length ? pool : Object.keys(TRINKETS)); it.rar = TRINKETS[it.key].r; it.tier = 1;
   } else it.cls = cls;
   const nAff = kind === "tr" ? 0 : RARITY[it.rar].aff;
@@ -1482,9 +1484,10 @@ function gearName(it) {
   const L = GEAR_NAMES[it.cls][it.kind === "wpn" ? "wpn" : "arm"], n = it.tier >= 6 ? (it.evo && CLASSES[it.cls].evos[it.evo] ? "Armure ascendante : " + CLASSES[it.cls].evos[it.evo].n : "Ascendant : " + L[4]) : L[it.tier - 1];
   return n + (it.up ? " +" + it.up : "");
 }
-const rollRarity = (luck = 0) => { const r = rnd() - luck; return r < .003 ? 5 : r < .01 ? 4 : r < .03 ? 3 : r < .12 ? 2 : r < .38 ? 1 : 0; };
+const rollRarity = (luck = 0) => { const r = rnd() * 100 - luck * 100; let acc = 0; for (let q = RARITY.length - 1; q >= 1; q--) { acc += RARITY[q].p; if (r < acc) return q; } return 0; }; // taux dans RARITY[q].p
 function lootGear(lvl, luck = 0, cls) {
-  const tier = clamp(Math.floor(lvl / 4.2) + 1 + (chance(.25) ? 1 : 0), 1, 5);
+  const base = TIER_LVL.filter(l => l <= lvl).length - 1; // palier que le niveau permet de porter
+  const tier = clamp(base + (chance(.25) ? 1 : 0), 1, typeof lootTierCap === "function" ? lootTierCap() : 5);
   const r = rnd(), rar = rollRarity(luck);
   if (r < .3) return makeGear("tr", null, 1, rar);
   const owned = S ? [...new Set(S.heroes.map(h => h.cls))] : [];
@@ -1493,7 +1496,7 @@ function lootGear(lvl, luck = 0, cls) {
 }
 const upCost = it => ({ gold: Math.round(60 * it.tier * (1 + it.up * .7)), fer: 1 + Math.floor(it.up / 2) + (it.tier >= 3 ? 1 : 0), essence: it.up >= 3 ? 1 + (it.up >= 5 ? 1 : 0) : 0 });
 const craftCost = tier => ({ gold: [0, 80, 220, 520, 1100, 2200, 4500][tier], fer: [0, 3, 5, 8, 12, 16, 22][tier], essence: [0, 0, 1, 3, 5, 8, 12][tier], cendre: [0, 0, 0, 0, 1, 3, 6][tier] });
-const salvage = it => ({ fer: it.kind === "tr" ? 1 : 1 + it.tier + it.up, essence: it.rar >= 1 ? it.rar : 0, cendre: it.rar >= 3 ? 1 : 0, gold: 10 * it.tier * (1 + it.rar) });
+const salvage = it => ({ fer: it.kind === "tr" ? 1 : 1 + it.tier + it.up, essence: it.rar >= 1 ? it.rar : 0, cendre: it.rar >= 4 ? 1 : 0, gold: 10 * it.tier * (1 + it.rar) });
 
 // ── Compagnons ──
 function petLvl(id) { return (S && S.pets.lvl[id]) || 1; }
@@ -1528,6 +1531,8 @@ function migrate(s) {
   for (const k in base.opts) if (s.opts[k] === undefined) s.opts[k] = base.opts[k];
   // le nom et le sexe suivent l'illustration de la classe (anciennes sauvegardes : héroïne dessinée en homme, surnom mal accordé…)
   for (const h of (s.heroes || []).concat(s.recruits || [])) fixHeroName(h);
+  // qualité « Peu commun » insérée en 2e position : décale les anciennes qualités
+  if (!s.rarV) { const items = [...(s.inv || []), ...(s.run ? s.run.loot || [] : [])]; for (const h of s.heroes || []) for (const k in h.gear || {}) if (h.gear[k]) items.push(h.gear[k]); for (const it of new Set(items)) if (it.rar >= 1) it.rar++; s.rarV = 2; }
   return s;
 }
 // difficulté : ennemis (PV, dégâts) et récompenses (or, expérience)
@@ -1565,9 +1570,10 @@ function heroUnit(h, relicH) {
   return u;
 }
 function monUnit(key, lvl, mods = {}) {
-  const M = MONSTERS[key], L = lvl - 1;
+  // les chapitres couvrent 5 niveaux chacun (I : 1–5, II : 5–10…) : la force des monstres suit un niveau effectif un peu tassé
+  const M = MONSTERS[key], L = (lvl - 1) * .78, eL = 1 + L;
   // difficulté : les combats ordinaires mordent dès le chapitre II, les derniers gardiens sont de vrais murs
-  const late = lvl >= 11 ? 1 : 0, early = lvl <= 3 ? 1 : 0;
+  const late = eL >= 11 ? 1 : 0, early = eL <= 3 ? 1 : 0;
   const hpM = 1.2 * (1 + (M.boss ? .12 : .2) * L) * (mods.hp || 1) * (M.boss ? (1 + (mods.bossHp || 0)) * (late ? 1.75 : 1) : early ? 1 : 1.2),
     dM = 1.4 * (1 + .11 * L) * (mods.dmg || 1) * (M.boss ? (late ? 1.38 : 1.1) : early ? 1.08 : 1.45);
   const u = { uid: uid("E"), side: "e", key, name: M.name || M.n, art: M.art, tags: M.tags, sz: M.sz || 1, boss: !!M.boss, elite: !!M.elite, lvl,
@@ -1804,7 +1810,9 @@ function applyDamage(B, src, x, d, ev, o = {}) {
   }
   x.hp -= d;
   if (x.hp <= 0) {
-    if (x.side === "h") { x.hp = 0; x.agony = true; ev.push({ k: "agony", u: x.uid }); changeMorale(B, -8, ev); }
+    if (x.side === "h") { x.hp = 0; x.agonyN = (x.agonyN || 0) + 1;
+      if (x.agonyN >= 3) { ev.push({ k: "agony", u: x.uid }); fallHero(B, x, ev, true); } // 3e agonie du combat : le corps lâche
+      else { x.agony = true; ev.push({ k: "agony", u: x.uid }); changeMorale(B, -8, ev); } }
     else { x.hp = 0; x.dead = true; B.kills++; ev.push({ k: "die", u: x.uid, boss: x.boss }); B.enemies = B.enemies.filter(e => e !== x); B.dead = (B.dead || []).concat([x]);
       if (src && src.side === "h") { src.kills = (src.kills || 0) + 1; changeMorale(B, 5 + (src.hooks.killMorale || 0), ev); if (src.hooks.killStealth) addSt(B, src, src, { k: "stealth", t: 1 }, ev); if (B.relicH.killHeal) healUnit(B, src, src, src.hpMax * B.relicH.killHeal, ev); gainUlt(src, 10); }
     }
@@ -1813,8 +1821,8 @@ function applyDamage(B, src, x, d, ev, o = {}) {
   }
   return Math.min(d, before);
 }
-function fallHero(B, x, ev) {
-  if (B.relicH.revive && !B.revived) { B.revived = 1; x.agony = false; x.hp = Math.round(x.hpMax * B.relicH.revive); ev.push({ k: "revive", u: x.uid }); return; }
+function fallHero(B, x, ev, worn) {
+  if (B.relicH.revive && !B.revived && !worn) { B.revived = 1; x.agony = false; x.hp = Math.round(x.hpMax * B.relicH.revive); ev.push({ k: "revive", u: x.uid }); return; }
   x.fallen = true; x.agony = false; x.hp = 0; B.heroes = B.heroes.filter(h => h !== x); B.fallen.push(x);
   ev.push({ k: "fall", u: x.uid });
   changeMorale(B, -15, ev);
@@ -2076,10 +2084,13 @@ function relicHooks(run = S.run) {
 }
 function runLevel(run, node) {
   const R = regionById(run.region);
-  let l = R.lvl + Math.floor((node ? node.c : 0) / (R.lvl === 1 ? 4 : 3)) + run.threat * 2;
-  if (run.region === "abime") l = 20 + Math.floor((run.floor - 1) * 1.2) + Math.floor((node ? node.c : 0) / 2);
+  // chaque chapitre couvre 5 niveaux (I : 1–5, II : 5–10, III : 10–15…), du premier au dernier pas
+  let l = R.lvl + Math.round((node ? node.c : 0) / Math.max(1, run.map.length - 1) * (R.lvl === 1 ? 4 : 5)) + run.threat * 2;
+  if (run.region === "abime") l = 25 + Math.floor((run.floor - 1) * 1.2) + Math.floor((node ? node.c : 0) / 2);
   return l;
 }
+// butin plafonné au palier du chapitre : chapitre I → palier II (niveau 5) max, chapitre II → palier III, etc.
+function lootTierCap(run = S && S.run) { if (!run) return 6; if (run.region === "abime") return 5; const i = REGIONS.findIndex(r => r.id === run.region); return i < 0 ? 5 : Math.min(5, i + 2); }
 function availableNodes(run = S.run) {
   if (!run.pos) return run.map[0].map(n => n);
   const cur = run.map[run.pos.c][run.pos.i];
@@ -2095,15 +2106,24 @@ function monNorm(key, ref) {
   if (!ref || key === ref) return null; const M = MONSTERS[key], R = MONSTERS[ref], avg = m => (m.dmg[0] + m.dmg[1]) / 2;
   return { hp: R.hp / M.hp * .92, dmg: avg(R) / avg(M) * .95, prot: (R.prot || 0) - (M.prot || 0) };
 }
+// gardiens déjà vaincus (anciennes sauvegardes : ceux des chapitres terminés)
+function beatenBosses() { const b = S.beaten = S.beaten || {}; for (const r of REGIONS) if (S.prog[r.id] && S.prog[r.id].clears) b[r.boss] = 1; return Object.keys(b).filter(k => MONSTERS[k] && MONSTERS[k].boss); }
+// la rencontre est tirée une seule fois par salle : quitter puis reprendre redonne les mêmes ennemis (et le même gardien)
 function genEncounter(run, node, rng = RNG) {
+  if (node.enc) return node.enc.map(e => Object.assign({}, e));
+  const enc = genEncounter0(run, node, rng); node.enc = enc.map(e => Object.assign({}, e)); return enc;
+}
+function genEncounter0(run, node, rng = RNG) {
   const R = regionById(run.region), lvl = runLevel(run, node);
   const pool = R.pool.slice(), out = [];
   const pickFor = rank => { const ok = pool.filter(k => MONSTERS[k].rk.includes(rank)); return rng.pick(ok.length ? ok : pool); };
   if (node.type === "boss") {
     // gardien tiré parmi tous les gardiens du jeu (jamais deux fois de suite le même ici), ramené à la force du gardien du chapitre
     const ref = run.region === "abime" ? R.bosses[(run.floor - 1) % R.bosses.length] : R.boss2 && S.prog[R.id] && S.prog[R.id].clears && rng.chance(.5) ? R.boss2 : R.boss;
-    const last = (S.lastBoss || (S.lastBoss = {}))[R.id], cand = ALL_BOSSES.filter(k => k !== last);
-    const bk = run.region === "abime" && run.floor % 5 === 0 && S.season && S.season.boss ? S.season.boss : rng.pick(cand); S.lastBoss[R.id] = bk; // l'Abîme : gardien de la saison tous les 5 étages
+    // 1re fois : le gardien de l'histoire ; ensuite, au hasard parmi les gardiens déjà vaincus (jamais deux fois de suite le même)
+    const last = (S.lastBoss || (S.lastBoss = {}))[R.id], beaten = beatenBosses(), firstTime = run.region !== "abime" && !(S.prog[R.id] && S.prog[R.id].clears);
+    const cand = beaten.filter(k => k !== last), pool = cand.length ? cand : beaten.length ? beaten : [ref];
+    const bk = firstTime ? R.boss : run.region === "abime" && run.floor % 5 === 0 && S.season && S.season.boss ? S.season.boss : rng.pick(pool); S.lastBoss[R.id] = bk; // l'Abîme : gardien de la saison tous les 5 étages
     out.push({ key: pickFor(1), lvl });
     out.push({ key: bk, lvl: lvl + 1, f: monNorm(bk, ref) });
     if (run.region === "abime" || R.lvl >= 9) out.push({ key: pickFor(4), lvl });
@@ -2139,6 +2159,7 @@ function rewardFor(run, node, rng = RNG) {
     R.shards = first ? 3 : 1 + (run.region === "abime" && run.floor % 3 === 0 ? 1 : 0) + Math.floor(run.oaths.length / 3); R.relic = randRelic(run, rng, 2);
   }
   R.gold = Math.round(R.gold * goldM * diffOf().gold); R.xp = Math.round(R.xp * (1 + run.threat * .2) * diffOf().xp); R.petXp = Math.round(R.xp * .8);
+  R.tome = t === "boss" ? 1 : t === "elite" ? (rng.chance(.22) ? 1 : 0) : t === "treasure" ? (rng.chance(.14) ? 1 : 0) : 0; // tome d'expérience
   return R;
 }
 function randRelic(run, rng = RNG, minR = 0) {
@@ -2149,6 +2170,7 @@ function grantReward(run, R) {
   run.gold += R.gold; for (const m in R.mats) run.mats[m] += R.mats[m]; run.shards += R.shards;
   for (const it of R.loot) run.loot.push(it);
   if (R.relic) run.relics.push(R.relic);
+  if (R.tome) S.tomes = (S.tomes || 0) + R.tome;
   const ups = [];
   if (R.xp) for (const h of runParty()) { if (run.fallen.includes(h.id)) continue; const u = giveXp(h, R.xp); if (u) ups.push(h); }
   if (R.petXp && run.pet) givePetXp(run.pet, R.petXp);
@@ -2172,9 +2194,9 @@ function givePetXp(id, v) {
 
 // équiper un objet du butin pendant l'expédition (l'ancien rejoint le butin ; annulé en cas de déroute)
 function runEquipTargets(it, run = S.run) { if (!run || !it) return []; return runParty().filter(h => !run.fallen.includes(h.id) && canEquip(h, it) && !(it.kind === "tr" && [h.gear.tr1, h.gear.tr2].some(x => x && x.key === it.key))); }
-function runEquip(h, it, run = S.run) {
+function runEquip(h, it, run = S.run, want) {
   const i = run.loot.indexOf(it); if (i < 0 || !runEquipTargets(it, run).includes(h)) return false;
-  const slot = it.kind === "wpn" ? "wpn" : it.kind === "arm" ? "arm" : !h.gear.tr1 ? "tr1" : !h.gear.tr2 ? "tr2" : "tr1";
+  const slot = it.kind === "wpn" ? "wpn" : it.kind === "arm" ? "arm" : want === "tr1" || want === "tr2" ? want : !h.gear.tr1 ? "tr1" : !h.gear.tr2 ? "tr2" : "tr1";
   const before = heroStats(h, relicHooks(run)).hp;
   run.loot.splice(i, 1); const old = h.gear[slot]; h.gear[slot] = it; if (old) run.loot.push(old);
   (run.swaps = run.swaps || []).push({ hid: h.id, slot, old: old ? old.id : null, nu: it.id });
@@ -2198,6 +2220,7 @@ function endRun(outcome) {
     const p = S.prog[run.region] = S.prog[run.region] || { clears: 0, best: 0 };
     if (!p.clears) res.story = STORY[run.region];
     const tm = threatMax(run.region); if (p.clears) p.threat = Math.max(p.threat || 0, run.threat || 0); else p.threat = 0;
+    { const bn = run.map[run.map.length - 1][0], bm = bn && bn.enc && bn.enc.find(e => MONSTERS[e.key].boss); (S.beaten = S.beaten || {})[bm ? bm.key : regionById(run.region).boss] = 1; }
     p.clears++; if (threatMax(run.region) > tm) res.threatUp = { region: run.region, t: threatMax(run.region) };
     S.stats["boss_" + run.region] = (S.stats["boss_" + run.region] || 0) + 1;
   }
@@ -2209,7 +2232,7 @@ function endRun(outcome) {
     const nx = REGIONS[after]; if (nx) res.unlocks.push({ k: "region", id: nx.id }); if (after === 1) res.unlocks.push({ k: "region", id: "abime" });
   }
   S.gold += res.gold; for (const m in res.mats) S.mats[m] += res.mats[m]; S.shards += res.shards;
-  for (const it of res.loot) { S.inv.push(it); if (it.rar >= 3) S.stats.legend++; }
+  for (const it of res.loot) { S.inv.push(it); if (it.rar >= 4) S.stats.legend++; }
   // retour au Bastion : soins, blessures
   for (const h of S.heroes) {
     if (run.party.includes(h.id)) {
@@ -2525,7 +2548,7 @@ function craft(cls, kind, tier, evo) {
   if (kind === "arm" && tier >= 6 && !(evo && CLASSES[cls].evos[evo])) return { err: "Choisissez la voie de l'armure." };
   if (kind === "arm" && tier >= 6 && !S.heroes.some(h => h.cls === cls && h.evo === evo)) return { err: "Faites d'abord évoluer un héros dans cette voie." };
   const it = makeGear(kind, cls, tier, rollRarity(.04 + S.bld.forge * .015), null, evo); S.inv.push(it); S.stats.crafts++;
-  if (tier >= 5) S.stats.tier5 = 1; if (it.rar >= 3) S.stats.legend++;
+  if (tier >= 5) S.stats.tier5 = 1; if (it.rar >= 4) S.stats.legend++;
   checkAchievements(); return { ok: it };
 }
 // évolution et compétences
@@ -2630,7 +2653,7 @@ function seasonCheck() {
   const k = seasonKey(); if (S.season && S.season.key === k) return false;
   if (S.season && S.season.best) (S.seasons = S.seasons || []).push({ key: S.season.key, n: S.season.n, best: S.season.best });
   const rng = mkRng(k * 29 + 3);
-  S.season = { key: k, n: "Saison " + rng.pick(SEASON_NAMES), boss: rng.pick(ALL_BOSSES), relic: rng.pick(Object.keys(TRINKETS).filter(t => TRINKETS[t].r >= 2)), best: 0, claimed: 0 };
+  S.season = { key: k, n: "Saison " + rng.pick(SEASON_NAMES), boss: rng.pick(ALL_BOSSES), relic: rng.pick(Object.keys(TRINKETS).filter(t => TRINKETS[t].r >= 3)), best: 0, claimed: 0 };
   return true;
 }
 function seasonDaysLeft(d = new Date()) { const k = seasonKey(d); let n = 0; const t = new Date(d); while (seasonKey(t) === k && n < 40) { t.setDate(t.getDate() + 1); n++; } return n; }
@@ -3181,7 +3204,7 @@ const GLOSS = {
   evolution: { n: "Évolution", ic: "crown", d: "Au niveau 15, chaque héros choisit l'une de ses deux voies : nouvelles compétences et une aura. Son aspect final se révèle quand il porte une armure de palier VI." },
   apogee: { n: "Apogée", ic: "crown", d: "Au niveau 18, un héros évolué atteint l'apogée de sa voie : un bonus passif puissant." },
   palier: { n: "Palier", ic: "armor", d: "Qualité de l'équipement, de I à VI. Un palier plus élevé donne plus de dégâts (arme) ou de PV et de protection (armure). La Forge débloque les paliers. Le palier VI (ascendant) ne se porte qu'après l'évolution : l'armure ascendante révèle l'aspect final du héros dans sa voie." },
-  rarete: { n: "Rareté", ic: "gem", d: "Commun, rare, épique, légendaire : plus l'objet est rare, plus il porte de bonus supplémentaires." },
+  rarete: { n: "Rareté", ic: "gem", d: "Commun (≈ 50 % des objets trouvés), peu commun (≈ 30 %), rare (≈ 12 %), épique (≈ 5 %), légendaire (≈ 2 %), mythique (≈ 0,6 %), divin (≈ 0,2 %). Plus l'objet est rare, plus il porte de bonus supplémentaires. La chance (lueur basse, élites, gardiens, Forge) améliore les tirages." },
   serment: { n: "Serments", ic: "seal", d: "Dans l'Abîme, des contraintes volontaires qui rendent l'expédition plus dure en échange de meilleures récompenses." },
   compagnon: { n: "Compagnon", ic: "paw", d: "L'animal qui suit le groupe : il frappe ou soutient à chaque tour et évolue au niveau 10." },
   // ── ressources ──
@@ -3319,6 +3342,8 @@ function modal(html, o = {}) {
   if (o.mount) o.mount(m);
   UI.modalClose = o.onClose || null; UI.modalOut = o.close === false ? o.outside || null : closeModal; // un clic à côté de la fenêtre la ferme
 }
+// fenêtre ouverte depuis un bâtiment (inventaire de la forge, fiche à la taverne…) : en la fermant, on revient au bâtiment
+function bldBack() { const m = $("#modal"); if (!m || m.hidden || !UI.bldOpen) return null; const k = UI.bldOpen, t = UI.bldTab; return () => setTimeout(() => { if ($("#modal").hidden && UI.screen === "bastion") openBuilding(k, t); }, 0); }
 function closeModal() { const m = $("#modal"); m.hidden = true; m.innerHTML = ""; const f = UI.modalClose; UI.modalClose = null; if (f) f(); }
 ACT.closeModal = closeModal;
 function confirmBox(text, yes, o = {}) {
@@ -3579,9 +3604,9 @@ function openBuilding(k, tab) {
       const owned = [...new Set(S.heroes.map(h => h.cls))];
       body = head + `<p class="lore">L'enclume chante. Plus la forge est grande, plus l'acier est noble — et plus vos héros sont redoutables à voir.</p>
       <div class="row">${owned.map(c => `<button class="btn sm ${c === cls ? "on gold" : "ghost"}" data-a="forgeCls" data-v="${c}">${CLASSES[c].n}</button>`).join("")}</div>
-      <div class="grid" style="--min:250px;margin-top:10px">${[1, 2, 3, 4, 5, 6].map(t => { const c = craftCost(t), lock = t > S.bld.forge; return `<div class="card ${lock ? "lock" : ""}" style="cursor:default"><div class="row">${t >= 6 ? Object.keys(CLASSES[cls].evos).map(k => canvasSlot("tier:" + cls + ":6:" + k, 60, 95)).join("") : canvasSlot("tier:" + cls + ":" + t, 76, 95)}<div style="flex:1"><h3>${TIER_N[t]} ${lock ? ico("lock", "#9a8c7a", 14) : ""}</h3><div class="tiny gold">Héros niveau ${TIER_LVL[t]}+</div><div class="tiny dim">${t >= 6 ? "Ascendant : " + GEAR_NAMES[cls].wpn[4] + "<br>" + Object.values(CLASSES[cls].evos).map(E => "Armure ascendante : " + E.n).join("<br>") + '<br><span class="gold">Réservé aux héros évolués : chaque voie a son armure, qui révèle son aspect final</span>' : GEAR_NAMES[cls].wpn[t - 1] + "<br>" + GEAR_NAMES[cls].arm[t - 1]}</div><div class="tiny" style="margin-top:4px">${c.gold} or · ${c.fer} fer${c.essence ? ` · ${c.essence} ess.` : ""}${c.cendre ? ` · ${c.cendre} cendre` : ""}</div></div></div>${lock ? `<p class="tiny dim">Forge niveau ${t} requise</p>` : `<div class="row" style="margin-top:6px"><button class="btn sm ${canPay(c) ? "" : "off"}" data-a="craft" data-v="${cls}:wpn:${t}">${ico("weapon")}Arme</button>${t >= 6 ? Object.entries(CLASSES[cls].evos).map(([k, E]) => `<button class="btn sm ${canPay(c) && S.heroes.some(h => h.cls === cls && h.evo === k) ? "" : "off"}" data-a="craft" data-v="${cls}:arm:6:${k}" ${S.heroes.some(h => h.cls === cls && h.evo === k) ? "" : 'title="Faites d\'abord évoluer un héros dans cette voie"'}>${ico("armor")}${E.n}</button>`).join("") : `<button class="btn sm ${canPay(c) ? "" : "off"}" data-a="craft" data-v="${cls}:arm:${t}">${ico("armor")}Armure</button>`}</div>`}</div>`; }).join("")}</div>`;
+      <div class="grid" style="--min:250px;margin-top:10px">${[1, 2, 3, 4, 5, 6].map(t => { const c = craftCost(t), lock = t > S.bld.forge; return `<div class="card ${lock ? "lock" : ""}" style="cursor:default"><div class="row">${t >= 6 ? Object.keys(CLASSES[cls].evos).map(k => `<span data-a="tierZoom" data-v="${cls}:6:${k}" style="cursor:zoom-in">${canvasSlot("tier:" + cls + ":6:" + k, 60, 95)}</span>`).join("") : `<span data-a="tierZoom" data-v="${cls}:${t}" style="cursor:zoom-in">${canvasSlot("tier:" + cls + ":" + t, 76, 95)}</span>`}<div style="flex:1"><h3>${TIER_N[t]} ${lock ? ico("lock", "#9a8c7a", 14) : ""}</h3><div class="tiny gold">Héros niveau ${TIER_LVL[t]}+</div><div class="tiny dim">${t >= 6 ? "Ascendant : " + GEAR_NAMES[cls].wpn[4] + "<br>" + Object.values(CLASSES[cls].evos).map(E => "Armure ascendante : " + E.n).join("<br>") + '<br><span class="gold">Réservé aux héros évolués : chaque voie a son armure, qui révèle son aspect final</span>' : GEAR_NAMES[cls].wpn[t - 1] + "<br>" + GEAR_NAMES[cls].arm[t - 1]}</div><div class="tiny" style="margin-top:4px">${c.gold} or · ${c.fer} fer${c.essence ? ` · ${c.essence} ess.` : ""}${c.cendre ? ` · ${c.cendre} cendre` : ""}</div></div></div>${lock ? `<p class="tiny dim">Forge niveau ${t} requise</p>` : `<div class="row" style="margin-top:6px"><button class="btn sm ${canPay(c) ? "" : "off"}" data-a="craft" data-v="${cls}:wpn:${t}">${ico("weapon")}Arme</button>${t >= 6 ? Object.entries(CLASSES[cls].evos).map(([k, E]) => `<button class="btn sm ${canPay(c) && S.heroes.some(h => h.cls === cls && h.evo === k) ? "" : "off"}" data-a="craft" data-v="${cls}:arm:6:${k}" ${S.heroes.some(h => h.cls === cls && h.evo === k) ? "" : 'title="Faites d\'abord évoluer un héros dans cette voie"'}>${ico("armor")}${E.n}</button>`).join("") : `<button class="btn sm ${canPay(c) ? "" : "off"}" data-a="craft" data-v="${cls}:arm:${t}">${ico("armor")}Armure</button>`}</div>`}</div>`; }).join("")}</div>`;
     } else {
-      const junk = S.inv.filter(it => !itemUseful(it));
+      const junk = S.inv.filter(it => !itemUseful(it) && !itemFuture(it));
       body = head + (S.inv.length ? `<div class="row sp" style="margin-bottom:8px"><span class="tiny dim">${junk.length ? `${junk.length} objet${junk.length > 1 ? "s" : ""} moins bon${junk.length > 1 ? "s" : ""} que ce que portent vos héros` : "Tout l'inventaire peut encore servir."}</span><button class="btn sm ${junk.length ? "gold" : "ghost off"}" data-a="salvAll">${ico("iron")}Recyclage rapide</button></div>` : "") + invList();
     }
   }
@@ -3606,8 +3631,12 @@ function openBuilding(k, tab) {
   UI.bldOpen = k;
 }
 ACT.bldTab = v => { const [k, t] = v.split(":"); UI.bldTab = t; openBuilding(k, t); };
+// Forge : l'aperçu du palier en grand, pour voir le détail de l'armure
+ACT.tierZoom = v => { const [cls, t, evo] = v.split(":"), back = bldBack(), W = Math.min(innerWidth - 60, 420), H = Math.round(W * 1.25);
+  modal(`<h2>${CLASSES[cls].n} — ${TIER_N[+t]}${evo ? " : " + CLASSES[cls].evos[evo].n : ""}</h2><div style="text-align:center">${canvasSlot("zoom", W, H)}</div><p class="tiny dim" style="text-align:center">${GEAR_NAMES[cls].arm[Math.min(4, +t - 1)]} · héros niveau ${TIER_LVL[+t]}+</p>`,
+    { onClose: back, mount: m => fillCanvases(m, c => { const x = c.getContext("2d"); const sp = heroSprite({ cls, tier: +t, wtier: +t, evo: evo || null, skin: SKINS[1], hair: 1, hairCol: HAIRCOL[1], beard: 0 }, {}, 0, c.width / 230 * 1.05); x.drawImage(sp, c.width / 2 - sp.ax, c.height - 6 - sp.ay); }) }); };
 ACT.forgeCls = c => { UI.forgeCls = c; openBuilding("forge", "craft"); };
-ACT.craft = v => { const [c, kind, t, evo] = v.split(":"); const r = craft(c, kind, +t, evo); if (r.err) return toast(r.err, "bad"); sfx("forge"); const it = r.ok; toast(`Forgé : <span class="rar${it.rar}">${gearName(it)}</span> (${RARITY[it.rar].n})`, it.rar >= 2 ? "epic" : "good"); const h = S.heroes.find(h => h.cls === c && canEquip(h, it) && h.gear[kind] && h.gear[kind].tier < it.tier); if (h) { equip(h, it); toast(`${esc(h.name)} s'en équipe.`); } save(); renderHud(); openBuilding("forge", "craft"); };
+ACT.craft = v => { const [c, kind, t, evo] = v.split(":"); const r = craft(c, kind, +t, evo); if (r.err) return toast(r.err, "bad"); sfx("forge"); const it = r.ok; toast(`Forgé : <span class="rar${it.rar}">${gearName(it)}</span> (${RARITY[it.rar].n})`, it.rar >= 3 ? "epic" : "good"); const h = S.heroes.find(h => h.cls === c && canEquip(h, it) && h.gear[kind] && h.gear[kind].tier < it.tier); if (h) { equip(h, it); toast(`${esc(h.name)} s'en équipe.`); } save(); renderHud(); openBuilding("forge", "craft"); };
 ACT.recruit = i => { const r = recruit(+i); if (r.err) return toast(r.err, "bad"); sfx("coin"); toast(`${esc(r.ok.name)} rejoint le Bastion.`, "good"); save(); renderHud(); openBuilding("taverne"); };
 ACT.reroll = () => { if (!rerollRecruits()) return toast("Pas assez d'or.", "bad"); save(); renderHud(); openBuilding("taverne"); };
 ACT.heal = id => { if (!healInjured(id)) return toast("Pas assez d'or.", "bad"); sfx("heal"); save(); renderHud(); openBuilding("chapelle"); };
@@ -3669,8 +3698,8 @@ function itemArt(it) {
       const ang = src0.width / src0.height > .8 ? -.15 : .45;
       const src = rotatedCopy(src0, ang);
       cv = cropDraw(src, W, 6);
-      if (it.rar >= 2) { const o = mkCanvas(W, W), ox = o.getContext("2d"), r = W / 2;
-        const gr = ox.createRadialGradient(r, r, 3, r, r, r); gr.addColorStop(0, it.rar >= 3 ? "rgba(255,120,40,.55)" : "rgba(170,110,255,.42)"); gr.addColorStop(1, "rgba(0,0,0,0)");
+      if (it.rar >= 3) { const o = mkCanvas(W, W), ox = o.getContext("2d"), r = W / 2;
+        const gr = ox.createRadialGradient(r, r, 3, r, r, r); gr.addColorStop(0, it.rar >= 4 ? "rgba(255,120,40,.55)" : "rgba(170,110,255,.42)"); gr.addColorStop(1, "rgba(0,0,0,0)");
         ox.fillStyle = gr; ox.fillRect(0, 0, W, W); ox.drawImage(cv, 0, 0); cv = o; }
     } else if (tim) { // bibelot peint, halo selon la rareté
       const t0 = mkCanvas(tim.width, tim.height); t0.getContext("2d").drawImage(tim, 0, 0);
@@ -3711,23 +3740,41 @@ ACT.upItem = id => { const it = findItem(id); const r = upgradeItem(it); if (!r 
 ACT.salv = id => { const it = findItem(id); if (!it) return; const go2 = () => { const r = salvageItem(it); sfx("forge"); toast(`Recyclé : +${r.fer} fer${r.essence ? `, +${r.essence} ess.` : ""}${r.cendre ? ", +1 cendre" : ""}, +${r.gold} or`); save(); renderHud(); openBuilding("forge", "inv"); }; if (it.rar >= 2) confirmBox(`Recycler <b class="rar${it.rar}">${gearName(it)}</b> ?`, go2); else go2(); };
 // un objet sert encore s'il améliore au moins un héros de la caserne (les légendaires sont toujours gardés)
 function itemUseful(it) {
-  if (it.rar >= 3) return true;
+  if (it.rar >= 4) return true;
   return S.heroes.some(h => {
     if (!canEquip(h, it)) return false;
     if (it.kind === "tr") { const t = [h.gear.tr1, h.gear.tr2]; if (t.some(x => x && x.key === it.key)) return false; if (!t[0] || !t[1]) return true; return it.rar > Math.min(t[0].rar, t[1].rar); }
     return gearDelta(h, it).score > 0;
   });
 }
+// objet gardé pour plus tard : un héros de la classe existe mais n'a pas encore le niveau pour ce palier
+function itemFuture(it) { if (it.kind === "tr") return false; const hs = S.heroes.filter(h => h.cls === it.cls); return hs.length > 0 && hs.every(h => h.lvl < TIER_LVL[it.tier]) && hs.some(h => !h.gear[it.kind] || h.gear[it.kind].tier < it.tier); }
+function salvCandidates(rars, keepUseful) { return S.inv.filter(it => rars.includes(it.rar) && !itemFuture(it) && !(keepUseful && itemUseful(it))); }
 ACT.salvAll = () => {
-  const junk = S.inv.filter(it => !itemUseful(it)); if (!junk.length) return toast("Rien d'inutile à recycler.");
-  const tot = { fer: 0, essence: 0, cendre: 0, gold: 0 }; for (const it of junk) { const r = salvage(it); for (const k in tot) tot[k] += r[k]; }
-  const gain = `+${tot.gold} or, +${tot.fer} fer${tot.essence ? `, +${tot.essence} ess.` : ""}${tot.cendre ? `, +${tot.cendre} cendre` : ""}`;
-  confirmBox(`Recycler <b>${junk.length}</b> objet${junk.length > 1 ? "s" : ""} qu'aucun héros n'a intérêt à porter ?<br><span class="small dim">${gain}. Les objets qui amélioreraient un héros et les légendaires sont gardés.</span>`, () => {
-    for (const it of junk) salvageItem(it); sfx("forge"); toast(`Recyclé : ${gain}`, "good"); save(); renderHud(); openBuilding("forge", "inv");
-  }, { yes: "Recycler" });
+  UI.salv = UI.salv || { rars: [0, 1], keep: 1 };
+  const draw = () => {
+    const R = UI.salv, list = salvCandidates(R.rars, R.keep), tot = { fer: 0, essence: 0, cendre: 0, gold: 0 }; for (const it of list) { const r = salvage(it); for (const k in tot) tot[k] += r[k]; }
+    const fut = S.inv.filter(itemFuture).length;
+    modal(`<h2>${ico("iron", "#c8c8c8")} Recyclage rapide</h2><p class="small">Choisissez les qualités à recycler.</p>
+      <div class="col" style="gap:4px">${RARITY.map((Q, q) => { const n = S.inv.filter(it => it.rar === q).length; return n ? `<label class="row sp card" style="cursor:pointer;padding:6px 10px"><span class="rar${q}"><b>${Q.n}</b></span><span class="tiny dim">${n} objet${n > 1 ? "s" : ""}</span><input type="checkbox" data-salvq="${q}" ${R.rars.includes(q) ? "checked" : ""}></label>` : ""; }).join("")}</div>
+      <label class="row sp" style="margin-top:8px"><span class="small">Garder ce qui améliorerait un héros</span><input type="checkbox" id="salvkeep" ${R.keep ? "checked" : ""}></label>
+      ${fut ? `<p class="tiny dim">${fut} objet${fut > 1 ? "s" : ""} de palier supérieur ${fut > 1 ? "sont gardés" : "est gardé"} : vos héros pourront ${fut > 1 ? "les" : "le"} porter en montant de niveau.</p>` : ""}
+      <div class="row sp" style="margin-top:10px"><span class="small">${list.length} objet${list.length > 1 ? "s" : ""} · +${tot.gold} or, +${tot.fer} fer${tot.essence ? `, +${tot.essence} ess.` : ""}${tot.cendre ? `, +${tot.cendre} cendre` : ""}</span><button class="btn main ${list.length ? "" : "off"}" data-a="salvGo">Recycler</button></div>`,
+      { onClose: () => setTimeout(() => { if ($("#modal").hidden && UI.screen === "bastion") openBuilding("forge", "inv"); }, 0), mount: m => { m.querySelectorAll("[data-salvq]").forEach(c => c.onchange = () => { const q = +c.dataset.salvq; R.rars = c.checked ? [...new Set([...R.rars, q])] : R.rars.filter(x => x !== q); draw(); }); const k = m.querySelector("#salvkeep"); if (k) k.onchange = () => { R.keep = k.checked ? 1 : 0; draw(); }; } });
+  };
+  ACT.salvGo = () => { const list = salvCandidates(UI.salv.rars, UI.salv.keep); if (!list.length) return; let g = 0; for (const it of list) g += salvageItem(it).gold || 0; sfx("forge"); toast(`${list.length} objet${list.length > 1 ? "s" : ""} recyclé${list.length > 1 ? "s" : ""}.`, "good"); save(); renderHud(); UI.modalClose = null; openBuilding("forge", "inv"); };
+  draw();
 };
-ACT.equipPick = id => { const it = findItem(id); const hs = S.heroes.filter(h => canEquip(h, it)); if (!hs.length) return toast("Aucun héros ne peut porter cet objet.", "bad"); modal(`<h2>Équiper ${gearName(it)}</h2><div class="row" style="gap:10px;margin-bottom:8px">${slotHTML(it, "itemInfo", it.id)}<div style="flex:1;min-width:0"><b class="rar${it.rar}">${gearName(it)}</b><div class="tiny dim">${itemLine(it)}</div></div></div><div class="col">${hs.sort((a, b) => gearDelta(b, it).score - gearDelta(a, it).score).map(h => equipRow(h, it, "equipTo", it.id + ":" + h.id)).join("")}</div>`, { mount: m => fillCanvases(m, (c, i) => paintHero(c, heroById(i.split(":")[1]))) }); };
-ACT.equipTo = v => { const [iid, hid] = v.split(":"); const it = findItem(iid), h = heroById(hid); if (!equip(h, it)) return toast("Impossible (deux fois le même bibelot ?).", "bad"); sfx("forge"); toast(`${esc(h.name)} : ${gearName(it)}`, "good"); save(); closeModal(); if (UI.screen === "hero") refresh(); else openBuilding("forge", "inv"); };
+ACT.equipPick = id => { const it = findItem(id); const hs = S.heroes.filter(h => canEquip(h, it)); if (!hs.length) return toast("Aucun héros ne peut porter cet objet.", "bad"); modal(`<h2>Équiper ${gearName(it)}</h2><div class="row" style="gap:10px;margin-bottom:8px">${slotHTML(it, "itemInfo", it.id)}<div style="flex:1;min-width:0"><b class="rar${it.rar}">${gearName(it)}</b><div class="tiny dim">${itemLine(it)}</div></div></div><div class="col">${hs.sort((a, b) => gearDelta(b, it).score - gearDelta(a, it).score).map(h => equipRow(h, it, "equipTo", it.id + ":" + h.id)).join("")}</div>`, { onClose: bldBack(), mount: m => fillCanvases(m, (c, i) => paintHero(c, heroById(i.split(":")[1]))) }); };
+// bibelot : si les deux emplacements sont pris, on choisit lequel remplacer
+function askTrSlot(h, it, cb) {
+  if (it.kind !== "tr" || !h.gear.tr1 || !h.gear.tr2) return cb(null);
+  const back = UI.screen === "hero" ? null : bldBack();
+  modal(`<h2>${ico("gem", "#e8c878")} Quel bibelot remplacer ?</h2><p class="small">${esc(h.name)} porte déjà deux bibelots. <b class="rar${it.rar}">${gearName(it)}</b> prendra la place de :</p>
+    ${["tr1", "tr2"].map(s => { const o = h.gear[s]; return `<div class="row card" data-a="trSlotPick" data-v="${s}">${slotHTML(o, "", "")}<div style="flex:1;min-width:0"><b class="rar${o.rar}">${gearName(o)}</b><div class="tiny dim">${itemLine(o)}</div></div><button class="btn sm">${ico("swap")}Remplacer</button></div>`; }).join("")}`, { onClose: back });
+  ACT.trSlotPick = s => { UI.modalClose = null; closeModal(); cb(s); };
+}
+ACT.equipTo = v => { const [iid, hid, sl] = v.split(":"); const it = findItem(iid), h = heroById(hid); if (it && h && it.kind === "tr" && !sl && h.gear.tr1 && h.gear.tr2) return askTrSlot(h, it, s => ACT.equipTo(iid + ":" + hid + ":" + s)); if (!equip(h, it, sl || undefined)) return toast("Impossible (deux fois le même bibelot ?).", "bad"); sfx("forge"); toast(`${esc(h.name)} : ${gearName(it)}`, "good"); save(); closeModal(); if (UI.screen === "hero") refresh(); else openBuilding("forge", "inv"); };
 /* ═══════════════════════ Héros : caserne et fiche ═══════════════════════ */
 SCREENS.heroes = {
   title: "Les Héros", tab: "heroes",
@@ -3758,14 +3805,14 @@ SCREENS.hero = {
         <div class="bar xp" style="margin:8px 0 2px"><i style="width:${h.lvl >= MAX_LVL ? 100 : 100 * h.xp / xpNeed(h.lvl)}%"></i></div><div class="tiny dim">${h.lvl >= MAX_LVL ? "Niveau maximal" : `${h.xp} / ${xpNeed(h.lvl)} XP`}</div>
         <p class="lore small">${C.lore}</p>
         <div class="row small">${h.traits.map(t => `<span class="tag ${TRAITS[t].good ? "good" : "bad"}" ${tipAttr(TRAITS[t].n, TRAITS[t].d)}>${TRAITS[t].n}</span>`).join("")}</div>
-        <div class="statgrid" style="margin-top:8px"><div>PV <b>${st.hp}</b></div><div>Dégâts <b>${st.dmgLo}–${st.dmgHi}</b></div><div>Protection <b>${Math.round(st.prot * 100)} %</b></div><div>Vitesse <b>${st.spd}</b></div><div>Critique <b>${Math.round(st.crit)} %</b></div><div>Esquive <b>${Math.round(st.dodge)}</b></div><div>Précision <b>${Math.round(st.acc)}</b></div><div>Résistance <b>${Math.round(st.res)}</b></div>${st.healPow > 1.01 ? `<div>Soins <b>${Math.round(st.healPow * 100)} %</b></div>` : ""}${st.leech ? `<div>Vol de vie <b>${Math.round(st.leech * 100)} %</b></div>` : ""}</div>
+        <div class="statgrid" style="margin-top:8px"><div>PV <b>${Math.round(st.hp)}</b></div><div>Dégâts <b>${Math.round(st.dmgLo)}–${Math.round(st.dmgHi)}</b></div><div>Protection <b>${Math.round(st.prot * 100)} %</b></div><div>Vitesse <b>${Math.round(st.spd)}</b></div><div>Critique <b>${Math.round(st.crit)} %</b></div><div>Esquive <b>${Math.round(st.dodge)}</b></div><div>Précision <b>${Math.round(st.acc)}</b></div><div>Résistance <b>${Math.round(st.res)}</b></div>${st.healPow > 1.01 ? `<div>Soins <b>${Math.round(st.healPow * 100)} %</b></div>` : ""}${st.leech ? `<div>Vol de vie <b>${Math.round(st.leech * 100)} %</b></div>` : ""}</div>
         <p class="tiny dim" style="margin-top:6px">Rangs préférés : ${C.rk.join(", ")} · Armure ${C.armor} · Puissance ${heroPower(h)}</p>
       </div>
     </div>
     <h2 style="margin-top:14px">Compétences <span class="small dim" style="font-family:var(--f-body)">(${h.skills.length}/4 équipées — touchez pour équiper)</span></h2>
     <div class="col">${pool.map(k => { const sk = skillDef(h, k), on = h.skills.includes(k), r = h.skr[k] || 1, c = skillUpCost(r); return `<div class="skl ${on ? "on" : ""}" data-a="toggleSk" data-v="${h.id}:${k}">${ico(sk.ic, on ? "#e8c878" : "#9a8c7a")}<div style="flex:1"><div class="row sp"><b>${sk.n}</b><span>${rankPips(sk.use, sk.t === "e" || sk.t === "ae" ? sk.at : null)}</span></div><div class="tiny">${skillText(Object.assign({ id: k }, sk), h)}</div><div class="row sp tiny" style="margin-top:3px"><span class="ranks">${[1, 2, 3, 4, 5].map(i => `<i class="${i <= r ? "u" : ""}"></i>`).join("")}</span>${r < 5 ? `<button class="btn ghost sm ${r >= skillRankMax(h) || !canPay(c) ? "off" : ""}" data-a="skUp" data-v="${h.id}:${k}" title="${r >= skillRankMax(h) ? "Salle des maîtres ou niveau du héros insuffisant" : ""}">Rang ${r + 1} · ${c.gold} or${c.essence ? ` ${c.essence} ess.` : ""}</button>` : '<span class="gold">Maîtrisée</span>'}</div></div></div>`; }).join("")}</div>
     <div class="skl" style="margin-top:8px;border-color:#a05a2a;cursor:default">${ico(ult.ic, "#ff9a4a")}<div><b>Ultime : ${ult.n}</b><div class="tiny">${skillText(Object.assign({ isUlt: 1 }, ult), h)}</div><div class="tiny dim">La jauge d'ultime se remplit en agissant, en frappant et en encaissant.</div></div></div>
-    ${questMarkHTML(h)}
+    ${questMarkHTML(h)}${tomeHTML(h)}
     ${evoBlock}
     <div class="row" style="margin-top:14px;justify-content:space-between"><span class="tiny dim">${h.runs} expéditions · ${h.kills} victimes</span><button class="btn ghost sm" data-a="dismiss" data-v="${h.id}">Renvoyer</button></div></div>`;
   },
@@ -3775,7 +3822,7 @@ SCREENS.hero = {
 function pasText(pas) {
   const N = { dmg: "dégâts", hp: "PV", prot: "protection", spd: "vitesse", crit: "critique", dodge: "esquive", acc: "précision", res: "résistance", healPow: "soins", leech: "vol de vie" };
   const H = { guardProt: "protection quand il protège", burnPow: "brûlures", dodgeRiposte: "riposte en esquivant", lowHpDmg: "dégâts sous 50 % PV", overhealShield: "surplus de soin en bouclier", regenPow: "régénération", dotPow: "dégâts sur la durée", buffPow: "renforcements", moralePow: "résolution", debuffPow: "altérations", markDmg: "dégâts contre les marqués", critBleed: "critiques qui font saigner", killMorale: "résolution par victime", critDmg: "dégâts critiques", killStealth: "furtivité après une victime", dodgeBleed: "saignement en esquivant", petDmg: "dégâts du compagnon", aoeDmg: "dégâts de zone", cheatDeath: "survie à un coup fatal", shieldPow: "boucliers", healTaken: "soins reçus", ultGain: "charge de l'ultime", xp: "expérience", gold: "or", execute: "dégâts sur les blessés", thornsP: "renvoi des dégâts" };
-  return gl(pas.map(p => { if (p.k === "stat") { const pc = ["dmg", "hp", "prot", "healPow", "leech"].includes(p.s); return `${p.v > 0 ? "+" : ""}${pc ? Math.round(p.v * 100) + " %" : p.v} ${N[p.s]}`; } if (p.k === "cheatDeath") return `survit ${p.v > 1 ? p.v + " fois" : "une fois"} à un coup fatal`; return `+${p.v < 2 ? Math.round(p.v * 100) + " %" : p.v} ${H[p.k] || p.k}`; }).join(" · "));
+  return gl(pas.map(p => { if (p.k === "stat") { const pc = ["dmg", "hp", "prot", "healPow", "leech"].includes(p.s); return `${p.v > 0 ? "+" : ""}${pc ? Math.round(p.v * 100) + " %" : Math.round(p.v)} ${N[p.s]}`; } if (p.k === "cheatDeath") return `survit ${p.v > 1 ? p.v + " fois" : "une fois"} à un coup fatal`; return `+${p.v < 2 ? Math.round(p.v * 100) + " %" : p.v} ${H[p.k] || p.k}`; }).join(" · "));
 }
 ACT.toggleSk = (v, el, e) => { if (e && e.target.closest("[data-a=skUp]")) return; const [id, k] = v.split(":"); const h = heroById(id); if (h.skills.includes(k)) { if (h.skills.length <= 1) return; h.skills = h.skills.filter(x => x !== k); } else { if (h.skills.length >= 4) return toast("4 compétences au maximum : retirez-en une d'abord.", "bad"); h.skills.push(k); } save(); refresh(); };
 ACT.skUp = (v, el, e) => { e && e.stopPropagation(); const [id, k] = v.split(":"); const h = heroById(id); const r = skillUp(h, k); if (r.err) return toast(r.err, "bad"); sfx("level"); save(); renderHud(); refresh(); };
@@ -3787,7 +3834,7 @@ ACT.gearSlot = v => {
   const items = S.inv.filter(it => it.kind === kind && canEquip(h, it)).sort((a, b) => b.rar - a.rar || b.tier - a.tier);
   const cur = h.gear[slot];
   modal(`<h2>${{ wpn: "Arme", arm: "Armure", tr: "Bibelot" }[kind]} — ${esc(h.name)}</h2>${cur ? `<div class="row card" style="cursor:default">${slotHTML(cur, "itemInfo", cur.id)}<div style="flex:1"><b class="rar${cur.rar}">${gearName(cur)}</b><div class="tiny">${itemLine(cur)}</div></div>${kind !== "tr" ? `<button class="btn sm" data-a="upItem" data-v="${cur.id}">${ico("up")}+1 · ${upCost(cur).gold} or</button>` : `<button class="btn ghost sm" data-a="unequip" data-v="${id}:${slot}">Retirer</button>`}</div>` : ""}
-  <h3 style="margin-top:10px">Inventaire</h3>${items.length ? items.map(it => `<div class="row card" data-a="equipTo" data-v="${it.id}:${h.id}" style="align-items:flex-start">${slotHTML(it, "itemInfo", it.id)}<div style="flex:1;min-width:0"><b class="rar${it.rar}">${gearName(it)}</b><div class="tiny dim">${itemLine(it)}</div><div class="chips" style="margin-top:4px">${deltaChips(gearDelta(h, it))}</div></div></div>`).join("") : '<div class="empty small">Rien à équiper ici. Forgez ou explorez.</div>'}`);
+  <h3 style="margin-top:10px">Inventaire</h3>${items.length ? items.map(it => `<div class="row card" data-a="equipTo" data-v="${it.id}:${h.id}${kind === "tr" ? ":" + slot : ""}" style="align-items:flex-start">${slotHTML(it, "itemInfo", it.id)}<div style="flex:1;min-width:0"><b class="rar${it.rar}">${gearName(it)}</b><div class="tiny dim">${itemLine(it)}</div><div class="chips" style="margin-top:4px">${deltaChips(gearDelta(h, it))}</div></div></div>`).join("") : '<div class="empty small">Rien à équiper ici. Forgez ou explorez.</div>'}`);
 };
 ACT.unequip = v => { const [id, slot] = v.split(":"); unequip(heroById(id), slot); save(); closeModal(); refresh(); };
 // ── fiches de consultation : héros à recruter ou à choisir, compagnons ──
@@ -3801,7 +3848,7 @@ function heroSheetHTML(h, foot = "") {
       <div class="row" style="gap:4px;margin:4px 0">${roleTag(C.role)}<span class="tag gold">${heroTitle(h)}</span><span class="tag">Niveau ${h.lvl}</span></div>
       <p class="lore small" style="margin:4px 0">${C.lore}</p>
       <div class="col" style="gap:2px">${h.traits.map(t => `<div class="tiny"><b class="${TRAITS[t].good ? "good" : "bad"}">${TRAITS[t].n}</b> — ${gl(TRAITS[t].d)}</div>`).join("")}</div>
-      <div class="statgrid" style="margin-top:8px"><div>PV <b>${st.hp}</b></div><div>Dégâts <b>${st.dmgLo}–${st.dmgHi}</b></div><div>Protection <b>${Math.round(st.prot * 100)} %</b></div><div>Vitesse <b>${st.spd}</b></div><div>Critique <b>${Math.round(st.crit)} %</b></div><div>Esquive <b>${Math.round(st.dodge)}</b></div></div>
+      <div class="statgrid" style="margin-top:8px"><div>PV <b>${Math.round(st.hp)}</b></div><div>Dégâts <b>${Math.round(st.dmgLo)}–${Math.round(st.dmgHi)}</b></div><div>Protection <b>${Math.round(st.prot * 100)} %</b></div><div>Vitesse <b>${Math.round(st.spd)}</b></div><div>Critique <b>${Math.round(st.crit)} %</b></div><div>Esquive <b>${Math.round(st.dodge)}</b></div></div>
       <p class="tiny dim" style="margin:6px 0 0">Rangs préférés : ${C.rk.join(", ")} · Armure ${C.armor}</p>
     </div></div>
     ${questMarkHTML(h)}
@@ -3811,7 +3858,7 @@ function heroSheetHTML(h, foot = "") {
     ${h.evo ? "" : `<h3 style="margin-top:12px">Évolutions au niveau ${EVO_LVL}</h3><div class="grid" style="--min:220px">${Object.values(C.evos).map(E => `<div class="card" style="cursor:default"><b class="gold">${E.n}</b><p class="tiny lore" style="margin:2px 0">${gl(E.d)}</p><div class="tiny">${pasText(E.pas)}</div><div class="tiny dim" style="margin-top:3px">Compétences : ${Object.values(E.skills).map(s => s.n).join(", ")} · Ultime : ${E.ult.n}</div></div>`).join("")}</div>`}
     ${foot}`;
 }
-function heroSheet(h, foot) { modal(heroSheetHTML(h, foot), { wide: 1, mount: m => fillCanvases(m, c => paintHero(c, h, true)) }); }
+function heroSheet(h, foot) { modal(heroSheetHTML(h, foot), { wide: 1, onClose: bldBack(), mount: m => fillCanvases(m, c => paintHero(c, h, true)) }); }
 function petSkillText(s) {
   const out = [], tg = { low: "l'allié le plus blessé", aa: "tout le groupe", e: "un ennemi", ae: "les ennemis visés" }[s.t] || "";
   if (s.m) out.push(`Dégâts ${Math.round(s.m * 100)} % sur ${tg}`);
@@ -3831,7 +3878,7 @@ function petSheet(id, foot = "") {
   const P = PETS[id];
   modal(`<div class="row" style="gap:12px;flex-wrap:wrap"><div style="margin:0 auto">${canvasSlot("pet", 200, 150)}</div><div style="flex:1;min-width:220px"><h2 style="margin:0">${P.n}</h2><div class="row" style="gap:4px;margin:4px 0">${roleTag(P.role)}${P.gold ? `<span class="tag gold">+${Math.round(P.gold * 100)} % d'or</span>` : ""}</div><p class="lore small">${P.d}</p><p class="tiny dim">Le compagnon agit seul à la fin de chaque tour. Il gagne des niveaux avec le groupe et évolue au niveau ${PET_EVO_LVL}.</p></div></div>
     <h3 style="margin-top:10px">Compétences</h3><div class="col">${P.sk.map(s => `<div class="skl" style="cursor:default">${ico(s.m ? "claw" : s.heal ? "heal" : s.shield ? "shield" : "star", "#e8c878")}<div><b>${s.n}</b><div class="tiny">${petSkillText(s)}</div></div></div>`).join("")}</div>
-    <h3 style="margin-top:10px">Évolution : ${P.evo.n}</h3><p class="tiny lore">${P.evo.d}</p><div class="skl" style="cursor:default;border-color:#a05a2a">${ico("star", "#ff9a4a")}<div><b>${P.evo.sk.n}</b><div class="tiny">${petSkillText(Object.assign({ every: 2 }, P.evo.sk))}</div></div></div>${foot}`, { wide: 1, mount: m => fillCanvases(m, c => paintPet(c, id, 0)) });
+    <h3 style="margin-top:10px">Évolution : ${P.evo.n}</h3><p class="tiny lore">${P.evo.d}</p><div class="skl" style="cursor:default;border-color:#a05a2a">${ico("star", "#ff9a4a")}<div><b>${P.evo.sk.n}</b><div class="tiny">${petSkillText(Object.assign({ every: 2 }, P.evo.sk))}</div></div></div>${foot}`, { wide: 1, onClose: bldBack(), mount: m => fillCanvases(m, c => paintPet(c, id, 0)) });
 }
 ACT.petInfo = (id, el, e) => { e && e.stopPropagation(); petSheet(id, `<div class="row" style="justify-content:flex-end;margin-top:10px"><button class="btn" data-a="bld" data-v="menagerie">Retour à la Ménagerie</button></div>`); };
 ACT.recruitInfo = (i, el, e) => { e && e.stopPropagation(); const h = S.recruits[+i]; if (!h) return; const c = recruitPrice(+i); heroSheet(h, `<div class="row" style="justify-content:flex-end;gap:6px;margin-top:12px"><button class="btn ghost" data-a="bld" data-v="taverne">Retour</button><button class="btn main" data-a="recruit" data-v="${i}">Recruter · ${c === 0 ? "gratuit" : c + " or"}</button></div>`); };
@@ -4029,10 +4076,12 @@ function runEquipBtns(it) {
   return `<div class="runeq">${hs.sort((a, b) => gearDelta(b, it, rh).score - gearDelta(a, it, rh).score).map(h => equipRow(h, it, "runEquip", it.id + ":" + h.id, rh)).join("")}</div>`;
 }
 ACT.runEquip = (v, el, e) => {
-  e && e.stopPropagation(); const [id, hid] = v.split(":"); const run = S.run; if (!run) return;
+  e && e.stopPropagation(); const [id, hid, sl] = v.split(":"); const run = S.run; if (!run) return;
   const it = run.loot.find(x => x.id === id), h = heroById(hid); if (!it || !h) return;
+  if (it.kind === "tr" && !sl && h.gear.tr1 && h.gear.tr2) { // deux bibelots portés : choisir lequel remplacer, sur place
+    const row = el.closest(".eqrow"); if (row) row.querySelector(".eqcmp").innerHTML = `<span class="tiny">Remplacer :</span> ${["tr1", "tr2"].map(s => `<button class="btn sm ghost" data-a="runEquip" data-v="${id}:${hid}:${s}"><span class="rar${h.gear[s].rar}">${gearName(h.gear[s])}</span></button>`).join(" ")}`; return; }
   const old = it.kind === "tr" ? null : h.gear[it.kind];
-  if (!runEquip(h, it)) return toast("Impossible d'équiper cet objet.", "bad");
+  if (!runEquip(h, it, run, sl)) return toast("Impossible d'équiper cet objet.", "bad");
   sfx("forge"); save();
   const row = el.closest(".runeq"); if (row) row.outerHTML = `<div class="tiny good" style="margin-top:6px">${ico("up", "#8ad06a", 12)} Équipé sur ${esc(h.name)} (${heroTitle(h)})${old ? ` · ${gearName(old)} rangé dans le butin` : ""}</div>`;
   if (UI.screen === "map" && $("#bagList")) ACT.runBag();
@@ -4050,6 +4099,7 @@ function rewardModal(title, text, R, ups = [], onClose) {
   ${it.map(i => `<div class="reward" style="align-items:flex-start">${slotHTML(i, "itemInfo", i.id)}<div style="flex:1;min-width:0"><b class="rar${i.rar}">${gearName(i)}</b><div class="tiny dim">${RARITY[i.rar].n}${i.cls ? " · " + CLASSES[i.cls].n : ""} — ${itemLine(i)}</div>${runEquipBtns(i)}</div></div>`).join("")}
   ${R.relic ? `<div class="reward">${ico("gem", "#c87aff", 22)}<div><b>Relique : ${RELICS[R.relic].n}</b><div class="tiny">${gl(RELICS[R.relic].d)}</div></div></div>` : ""}
   ${R.mats && (R.mats.fer || R.mats.essence || R.mats.cendre) ? `<div class="reward">${ico("iron", "#a8a8a8", 22)}<span>${[R.mats.fer && "+" + R.mats.fer + " ferraille", R.mats.essence && "+" + R.mats.essence + " essence", R.mats.cendre && "+" + R.mats.cendre + " cendre royale"].filter(Boolean).join(", ")}</span></div>` : ""}
+  ${R.tome ? `<div class="reward">${ico("book", "#9ad0ff", 22)}<b>+${R.tome} tome d'expérience</b> <span class="tiny dim">(fiche d'un héros moins aguerri)</span></div>` : ""}
   ${R.shards ? `<div class="reward">${ico("shard", "#c090ff", 22)}<b>+${R.shards} éclat${R.shards > 1 ? "s" : ""} de couronne</b></div>` : ""}
   <div class="row" style="justify-content:flex-end;margin-top:10px"><button class="btn main" data-a="closeModal">Continuer</button></div>`, { close: false, onClose: onClose || (() => refresh()) });
   if (ups.length) sfx("level");
@@ -4124,7 +4174,7 @@ const HPOSE = {
 function whiteOf(sp) { if (sp.white) return sp.white; const c = mkCanvas(sp.width, sp.height), x = c.getContext("2d"); x.drawImage(sp, 0, 0); x.globalCompositeOperation = "source-in"; x.fillStyle = "#fff6e8"; x.fillRect(0, 0, c.width, c.height); return sp.white = c; }
 function heroPoseFor(u, key) { const C = CLASSES[u.cls]; const st = STANCE[C.wpn] || STANCE.masse; return (HPOSE[key] || HPOSE.idle)(st); }
 function unitSprite(u, key) {
-  const V = CB.vis[u.uid]; const sc = u.side === "h" && CB.port && CB.hScale ? CB.hScale : CB.scale;
+  const V = CB.vis[u.uid]; const sc = u.side === "h" && CB.port && CB.hScale ? CB.hScale : CB.port && (u.sz || 1) > 1 ? CB.scale * .74 : CB.scale; // portrait : gardiens réduits pour tenir dans le cadre
   const ck = key + ":" + sc.toFixed(3) + (u.side === "h" ? ":" + V.lookKey : "");
   V.cache = V.cache || {};
   if (V.cache[ck]) return V.cache[ck];
@@ -4175,7 +4225,7 @@ async function startCombat(node) {
   SC.click = cbClick; SC.hover = cbHover;
   musicPlay(node.type === "boss" ? "boss" : "combat");
   for (const e of B.enemies) S.seen.monsters[e.key] = S.seen.monsters[e.key] || 0;
-  $("#cb-flee").style.display = node.type === "boss" ? "none" : "";
+  $("#cb-flee").style.display = "";
   cbTopLeft(); cbBar(null);
   if (node.type === "boss") { const bs = B.enemies.find(e => e.boss); await showBanner(bs.name, "Gardien", "#ff4a3a", 1800); }
   else if (node.type === "elite") await showBanner("Élite", B.enemies.find(e => e.elite)?.name || "", "#ff8a4a", 1100);
@@ -4200,7 +4250,7 @@ async function combatLoop() {
         if (CB.auto) { await wait(220); a = autoChoice(u); } else a = await playerChoice(u);
         if (!CB.B) return;
         let ev;
-        if (a.flee) { const ok = chance(.75); if (ok) { await showBanner("Retraite !", "", "#c8b8a0", 800); return combatEnd("flee"); } ev = [{ k: "act", u: u.uid, sk: "Fuite ratée", anim: "move" }]; toast("La fuite échoue !", "bad"); }
+        if (a.flee) { const ok = chance(CB.node.type === "boss" ? .5 : .75); if (ok) { await showBanner("Retraite !", "", "#c8b8a0", 800); return combatEnd("flee"); } ev = [{ k: "act", u: u.uid, sk: "Fuite ratée", anim: "move" }]; toast("La fuite échoue !", "bad"); }
         else if (a.potion) ev = usePotion(B, S.run, u, a.tgt);
         else if (a.move) ev = swapHero(B, u, a.move);
         else if (a.pass) ev = [{ k: "act", u: u.uid, sk: "Attend", anim: "idle" }];
@@ -4271,7 +4321,7 @@ ACT.cbSk = id => {
 ACT.cbPotion = () => { const u = CB.actor; if (!u || !CB.resolve) return; if (S.run.potions <= 0) return toast("Plus de potion.", "bad"); CB.sel = { potion: 1, tg: CB.B.heroes.filter(alive) }; $("#cb-desc").innerHTML = `<b class="gold">Potion de soin</b> (${S.run.potions})<br><span class="small">Soigne 40 % des PV, purge les altérations et sauve de l'agonie. Utilise le tour.</span>`; document.querySelectorAll("#cb-skills .sk").forEach(b => b.classList.toggle("on", b.dataset.v === "potion")); };
 ACT.cbMove = d => { const u = CB.actor; if (!u || !CB.resolve) return; const r = rankOf(CB.B, u), n = CB.B.heroes.length; if ((+d < 0 && r <= 1) || (+d > 0 && r >= n)) return; choose({ move: +d }); };
 ACT.cbPass = () => { if (CB.resolve) choose({ pass: 1 }); };
-ACT.cbFlee = () => { if (!CB.resolve) return toast("Attendez votre tour.", "bad"); confirmBox("Tenter de fuir ? (75 % de réussite, aucune récompense)", () => choose({ flee: 1 }), { yes: "Fuir" }); };
+ACT.cbFlee = () => { if (!CB.resolve) return toast("Attendez votre tour.", "bad"); confirmBox(CB.node && CB.node.type === "boss" ? "Fuir le gardien ? (50 % de réussite) L'expédition s'arrête : vous rentrez au Bastion avec l'or et le butin, sans la victoire." : "Tenter de fuir ? (75 % de réussite, aucune récompense)", () => choose({ flee: 1 }), { yes: "Fuir" }); };
 ACT.cbSpeed = () => { CB.speed = CB.speed >= 3 ? 1 : CB.speed + 1; S.opts.speed = CB.speed; save(); $("#cb-spd").textContent = "×" + CB.speed; };
 ACT.cbAuto = (v, el) => { CB.auto = !CB.auto; S.opts.auto = CB.auto ? 1 : 0; save(); $("#cb-auto").textContent = CB.auto ? "Auto" : "Manuel"; el.classList.toggle("on", CB.auto); if (CB.auto && CB.resolve && CB.actor) choose(autoChoice(CB.actor)); };
 function cbBar(u) {
@@ -4406,6 +4456,7 @@ async function combatEnd(over) {
   const B = CB.B, run = S.run, node = CB.node; if (!B) return;
   CB.B = null; CB.resolve = null;
   afterBattle(run, B);
+  if (over === "flee" && node.type === "boss") { save(); toast("Vous fuyez le gardien et rentrez au Bastion.", "bad"); finishRun("retreat"); return; } // fuir un gardien met fin à l'expédition (sans victoire)
   if (over === "flee") { node.done = 1; save(); go("map"); return; }
   if (over === "win") {
     await new Promise(r => setTimeout(r, 300));
@@ -4749,7 +4800,7 @@ function cbInfo(u, what, px, py) {
   const B = CB.B; if (!B || !u) return;
   const seen = {}, sts = u.st.filter(s => !seen[s.k] && (seen[s.k] = 1));
   let h = `<div class="row sp" style="flex-wrap:nowrap"><b>${esc(u.name)}</b><span class="tiny dim">${u.side === "e" ? `niv ${u.lvl}${u.tags.includes("impie") ? " · impie" : ""}` : CLASSES[u.cls] ? CLASSES[u.cls].n : ""} · rang ${rankOf(B, u)}</span></div>`;
-  if (what !== "st") h += `<div class="tiny">PV ${Math.ceil(u.hp)}/${u.hpMax} · Protection ${Math.round(effProt(u) * 100)} % · Vitesse ${effSpd(u)} · Esquive ${Math.round(effDodge(u))}</div>`;
+  if (what !== "st") h += `<div class="tiny">PV ${Math.ceil(u.hp)}/${u.hpMax} · Protection ${Math.round(effProt(u) * 100)} % · Vitesse ${Math.round(effSpd(u))} · Esquive ${Math.round(effDodge(u))}</div>`;
   if (what === "intent") h += intentHTML(u);
   if (what !== "intent") h += sts.length ? `<div class="cbi-list">${sts.map(stLine).join("")}</div>` : `<div class="tiny dim" style="margin-top:4px">Aucune altération.</div>`;
   if (what === "unit" && u.side === "e") h += intentHTML(u);
@@ -4781,6 +4832,16 @@ function scenesCodexHTML() {
   const seen = S.seenScene || {};
   return Object.keys(SCENES).filter(k => seen[k]).map(k => `<div class="panel" style="padding:12px;margin-top:10px"><h3>${SCENES[k].t}</h3>${SCENES[k].lines.map(sceneLineHTML).join("")}${S.prog[k] && S.prog[k].clears && SCENE_END[k] ? `<div class="sep"></div>${SCENE_END[k].map(sceneLineHTML).join("")}` : ""}</div>`).join("") || '<p class="tiny dim">Les dialogues des chapitres apparaîtront ici au fil de l\'aventure.</p>';
 }
+
+// ── Tomes d'expérience : réservés aux héros moins aguerris que le plus haut niveau du roster ──
+function tomeCap() { return Math.max(1, ...S.heroes.map(h => h.lvl)); }
+function tomeHTML(h) {
+  const n = S.tomes || 0; if (!n) return "";
+  const ok = h.lvl < tomeCap();
+  return `<div class="panel" style="padding:10px;margin-top:10px"><div class="row sp"><div><b>${ico("book", "#9ad0ff", 14)} Tomes d'expérience : ${n}</b><div class="tiny dim">${ok ? `Un tome fait gagner un niveau, jusqu'au niveau ${tomeCap()} (le plus haut de votre compagnie).` : "Réservés aux héros d'un niveau inférieur au plus aguerri de la compagnie."}</div></div><button class="btn sm ${ok ? "gold" : "off"}" data-a="readTome" data-v="${h.id}">Lire</button></div></div>`;
+}
+ACT.readTome = id => { const h = heroById(id); if (!h || !(S.tomes > 0)) return; if (h.lvl >= tomeCap()) return toast("Ce héros est déjà parmi les plus aguerris.", "bad");
+  S.tomes--; const need = xpNeed(h.lvl) - h.xp; giveXp(h, Math.max(1, Math.ceil(need / Math.max(.5, 1 + heroPassives(h).filter(p => p.k === "xp").reduce((a, p) => a + p.v, 0))))); sfx("level"); toast(`${esc(h.name)} passe niveau ${h.lvl}.`, "good"); save(); refresh(); };
 /* ═══════════════════════ Démarrage ═══════════════════════ */
 if (HASWIN) {
   const boot = () => {

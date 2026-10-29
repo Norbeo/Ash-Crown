@@ -86,9 +86,9 @@ function openBuilding(k, tab) {
       const owned = [...new Set(S.heroes.map(h => h.cls))];
       body = head + `<p class="lore">L'enclume chante. Plus la forge est grande, plus l'acier est noble — et plus vos héros sont redoutables à voir.</p>
       <div class="row">${owned.map(c => `<button class="btn sm ${c === cls ? "on gold" : "ghost"}" data-a="forgeCls" data-v="${c}">${CLASSES[c].n}</button>`).join("")}</div>
-      <div class="grid" style="--min:250px;margin-top:10px">${[1, 2, 3, 4, 5, 6].map(t => { const c = craftCost(t), lock = t > S.bld.forge; return `<div class="card ${lock ? "lock" : ""}" style="cursor:default"><div class="row">${t >= 6 ? Object.keys(CLASSES[cls].evos).map(k => canvasSlot("tier:" + cls + ":6:" + k, 60, 95)).join("") : canvasSlot("tier:" + cls + ":" + t, 76, 95)}<div style="flex:1"><h3>${TIER_N[t]} ${lock ? ico("lock", "#9a8c7a", 14) : ""}</h3><div class="tiny gold">Héros niveau ${TIER_LVL[t]}+</div><div class="tiny dim">${t >= 6 ? "Ascendant : " + GEAR_NAMES[cls].wpn[4] + "<br>" + Object.values(CLASSES[cls].evos).map(E => "Armure ascendante : " + E.n).join("<br>") + '<br><span class="gold">Réservé aux héros évolués : chaque voie a son armure, qui révèle son aspect final</span>' : GEAR_NAMES[cls].wpn[t - 1] + "<br>" + GEAR_NAMES[cls].arm[t - 1]}</div><div class="tiny" style="margin-top:4px">${c.gold} or · ${c.fer} fer${c.essence ? ` · ${c.essence} ess.` : ""}${c.cendre ? ` · ${c.cendre} cendre` : ""}</div></div></div>${lock ? `<p class="tiny dim">Forge niveau ${t} requise</p>` : `<div class="row" style="margin-top:6px"><button class="btn sm ${canPay(c) ? "" : "off"}" data-a="craft" data-v="${cls}:wpn:${t}">${ico("weapon")}Arme</button>${t >= 6 ? Object.entries(CLASSES[cls].evos).map(([k, E]) => `<button class="btn sm ${canPay(c) && S.heroes.some(h => h.cls === cls && h.evo === k) ? "" : "off"}" data-a="craft" data-v="${cls}:arm:6:${k}" ${S.heroes.some(h => h.cls === cls && h.evo === k) ? "" : 'title="Faites d\'abord évoluer un héros dans cette voie"'}>${ico("armor")}${E.n}</button>`).join("") : `<button class="btn sm ${canPay(c) ? "" : "off"}" data-a="craft" data-v="${cls}:arm:${t}">${ico("armor")}Armure</button>`}</div>`}</div>`; }).join("")}</div>`;
+      <div class="grid" style="--min:250px;margin-top:10px">${[1, 2, 3, 4, 5, 6].map(t => { const c = craftCost(t), lock = t > S.bld.forge; return `<div class="card ${lock ? "lock" : ""}" style="cursor:default"><div class="row">${t >= 6 ? Object.keys(CLASSES[cls].evos).map(k => `<span data-a="tierZoom" data-v="${cls}:6:${k}" style="cursor:zoom-in">${canvasSlot("tier:" + cls + ":6:" + k, 60, 95)}</span>`).join("") : `<span data-a="tierZoom" data-v="${cls}:${t}" style="cursor:zoom-in">${canvasSlot("tier:" + cls + ":" + t, 76, 95)}</span>`}<div style="flex:1"><h3>${TIER_N[t]} ${lock ? ico("lock", "#9a8c7a", 14) : ""}</h3><div class="tiny gold">Héros niveau ${TIER_LVL[t]}+</div><div class="tiny dim">${t >= 6 ? "Ascendant : " + GEAR_NAMES[cls].wpn[4] + "<br>" + Object.values(CLASSES[cls].evos).map(E => "Armure ascendante : " + E.n).join("<br>") + '<br><span class="gold">Réservé aux héros évolués : chaque voie a son armure, qui révèle son aspect final</span>' : GEAR_NAMES[cls].wpn[t - 1] + "<br>" + GEAR_NAMES[cls].arm[t - 1]}</div><div class="tiny" style="margin-top:4px">${c.gold} or · ${c.fer} fer${c.essence ? ` · ${c.essence} ess.` : ""}${c.cendre ? ` · ${c.cendre} cendre` : ""}</div></div></div>${lock ? `<p class="tiny dim">Forge niveau ${t} requise</p>` : `<div class="row" style="margin-top:6px"><button class="btn sm ${canPay(c) ? "" : "off"}" data-a="craft" data-v="${cls}:wpn:${t}">${ico("weapon")}Arme</button>${t >= 6 ? Object.entries(CLASSES[cls].evos).map(([k, E]) => `<button class="btn sm ${canPay(c) && S.heroes.some(h => h.cls === cls && h.evo === k) ? "" : "off"}" data-a="craft" data-v="${cls}:arm:6:${k}" ${S.heroes.some(h => h.cls === cls && h.evo === k) ? "" : 'title="Faites d\'abord évoluer un héros dans cette voie"'}>${ico("armor")}${E.n}</button>`).join("") : `<button class="btn sm ${canPay(c) ? "" : "off"}" data-a="craft" data-v="${cls}:arm:${t}">${ico("armor")}Armure</button>`}</div>`}</div>`; }).join("")}</div>`;
     } else {
-      const junk = S.inv.filter(it => !itemUseful(it));
+      const junk = S.inv.filter(it => !itemUseful(it) && !itemFuture(it));
       body = head + (S.inv.length ? `<div class="row sp" style="margin-bottom:8px"><span class="tiny dim">${junk.length ? `${junk.length} objet${junk.length > 1 ? "s" : ""} moins bon${junk.length > 1 ? "s" : ""} que ce que portent vos héros` : "Tout l'inventaire peut encore servir."}</span><button class="btn sm ${junk.length ? "gold" : "ghost off"}" data-a="salvAll">${ico("iron")}Recyclage rapide</button></div>` : "") + invList();
     }
   }
@@ -113,8 +113,12 @@ function openBuilding(k, tab) {
   UI.bldOpen = k;
 }
 ACT.bldTab = v => { const [k, t] = v.split(":"); UI.bldTab = t; openBuilding(k, t); };
+// Forge : l'aperçu du palier en grand, pour voir le détail de l'armure
+ACT.tierZoom = v => { const [cls, t, evo] = v.split(":"), back = bldBack(), W = Math.min(innerWidth - 60, 420), H = Math.round(W * 1.25);
+  modal(`<h2>${CLASSES[cls].n} — ${TIER_N[+t]}${evo ? " : " + CLASSES[cls].evos[evo].n : ""}</h2><div style="text-align:center">${canvasSlot("zoom", W, H)}</div><p class="tiny dim" style="text-align:center">${GEAR_NAMES[cls].arm[Math.min(4, +t - 1)]} · héros niveau ${TIER_LVL[+t]}+</p>`,
+    { onClose: back, mount: m => fillCanvases(m, c => { const x = c.getContext("2d"); const sp = heroSprite({ cls, tier: +t, wtier: +t, evo: evo || null, skin: SKINS[1], hair: 1, hairCol: HAIRCOL[1], beard: 0 }, {}, 0, c.width / 230 * 1.05); x.drawImage(sp, c.width / 2 - sp.ax, c.height - 6 - sp.ay); }) }); };
 ACT.forgeCls = c => { UI.forgeCls = c; openBuilding("forge", "craft"); };
-ACT.craft = v => { const [c, kind, t, evo] = v.split(":"); const r = craft(c, kind, +t, evo); if (r.err) return toast(r.err, "bad"); sfx("forge"); const it = r.ok; toast(`Forgé : <span class="rar${it.rar}">${gearName(it)}</span> (${RARITY[it.rar].n})`, it.rar >= 2 ? "epic" : "good"); const h = S.heroes.find(h => h.cls === c && canEquip(h, it) && h.gear[kind] && h.gear[kind].tier < it.tier); if (h) { equip(h, it); toast(`${esc(h.name)} s'en équipe.`); } save(); renderHud(); openBuilding("forge", "craft"); };
+ACT.craft = v => { const [c, kind, t, evo] = v.split(":"); const r = craft(c, kind, +t, evo); if (r.err) return toast(r.err, "bad"); sfx("forge"); const it = r.ok; toast(`Forgé : <span class="rar${it.rar}">${gearName(it)}</span> (${RARITY[it.rar].n})`, it.rar >= 3 ? "epic" : "good"); const h = S.heroes.find(h => h.cls === c && canEquip(h, it) && h.gear[kind] && h.gear[kind].tier < it.tier); if (h) { equip(h, it); toast(`${esc(h.name)} s'en équipe.`); } save(); renderHud(); openBuilding("forge", "craft"); };
 ACT.recruit = i => { const r = recruit(+i); if (r.err) return toast(r.err, "bad"); sfx("coin"); toast(`${esc(r.ok.name)} rejoint le Bastion.`, "good"); save(); renderHud(); openBuilding("taverne"); };
 ACT.reroll = () => { if (!rerollRecruits()) return toast("Pas assez d'or.", "bad"); save(); renderHud(); openBuilding("taverne"); };
 ACT.heal = id => { if (!healInjured(id)) return toast("Pas assez d'or.", "bad"); sfx("heal"); save(); renderHud(); openBuilding("chapelle"); };
@@ -176,8 +180,8 @@ function itemArt(it) {
       const ang = src0.width / src0.height > .8 ? -.15 : .45;
       const src = rotatedCopy(src0, ang);
       cv = cropDraw(src, W, 6);
-      if (it.rar >= 2) { const o = mkCanvas(W, W), ox = o.getContext("2d"), r = W / 2;
-        const gr = ox.createRadialGradient(r, r, 3, r, r, r); gr.addColorStop(0, it.rar >= 3 ? "rgba(255,120,40,.55)" : "rgba(170,110,255,.42)"); gr.addColorStop(1, "rgba(0,0,0,0)");
+      if (it.rar >= 3) { const o = mkCanvas(W, W), ox = o.getContext("2d"), r = W / 2;
+        const gr = ox.createRadialGradient(r, r, 3, r, r, r); gr.addColorStop(0, it.rar >= 4 ? "rgba(255,120,40,.55)" : "rgba(170,110,255,.42)"); gr.addColorStop(1, "rgba(0,0,0,0)");
         ox.fillStyle = gr; ox.fillRect(0, 0, W, W); ox.drawImage(cv, 0, 0); cv = o; }
     } else if (tim) { // bibelot peint, halo selon la rareté
       const t0 = mkCanvas(tim.width, tim.height); t0.getContext("2d").drawImage(tim, 0, 0);
@@ -218,20 +222,38 @@ ACT.upItem = id => { const it = findItem(id); const r = upgradeItem(it); if (!r 
 ACT.salv = id => { const it = findItem(id); if (!it) return; const go2 = () => { const r = salvageItem(it); sfx("forge"); toast(`Recyclé : +${r.fer} fer${r.essence ? `, +${r.essence} ess.` : ""}${r.cendre ? ", +1 cendre" : ""}, +${r.gold} or`); save(); renderHud(); openBuilding("forge", "inv"); }; if (it.rar >= 2) confirmBox(`Recycler <b class="rar${it.rar}">${gearName(it)}</b> ?`, go2); else go2(); };
 // un objet sert encore s'il améliore au moins un héros de la caserne (les légendaires sont toujours gardés)
 function itemUseful(it) {
-  if (it.rar >= 3) return true;
+  if (it.rar >= 4) return true;
   return S.heroes.some(h => {
     if (!canEquip(h, it)) return false;
     if (it.kind === "tr") { const t = [h.gear.tr1, h.gear.tr2]; if (t.some(x => x && x.key === it.key)) return false; if (!t[0] || !t[1]) return true; return it.rar > Math.min(t[0].rar, t[1].rar); }
     return gearDelta(h, it).score > 0;
   });
 }
+// objet gardé pour plus tard : un héros de la classe existe mais n'a pas encore le niveau pour ce palier
+function itemFuture(it) { if (it.kind === "tr") return false; const hs = S.heroes.filter(h => h.cls === it.cls); return hs.length > 0 && hs.every(h => h.lvl < TIER_LVL[it.tier]) && hs.some(h => !h.gear[it.kind] || h.gear[it.kind].tier < it.tier); }
+function salvCandidates(rars, keepUseful) { return S.inv.filter(it => rars.includes(it.rar) && !itemFuture(it) && !(keepUseful && itemUseful(it))); }
 ACT.salvAll = () => {
-  const junk = S.inv.filter(it => !itemUseful(it)); if (!junk.length) return toast("Rien d'inutile à recycler.");
-  const tot = { fer: 0, essence: 0, cendre: 0, gold: 0 }; for (const it of junk) { const r = salvage(it); for (const k in tot) tot[k] += r[k]; }
-  const gain = `+${tot.gold} or, +${tot.fer} fer${tot.essence ? `, +${tot.essence} ess.` : ""}${tot.cendre ? `, +${tot.cendre} cendre` : ""}`;
-  confirmBox(`Recycler <b>${junk.length}</b> objet${junk.length > 1 ? "s" : ""} qu'aucun héros n'a intérêt à porter ?<br><span class="small dim">${gain}. Les objets qui amélioreraient un héros et les légendaires sont gardés.</span>`, () => {
-    for (const it of junk) salvageItem(it); sfx("forge"); toast(`Recyclé : ${gain}`, "good"); save(); renderHud(); openBuilding("forge", "inv");
-  }, { yes: "Recycler" });
+  UI.salv = UI.salv || { rars: [0, 1], keep: 1 };
+  const draw = () => {
+    const R = UI.salv, list = salvCandidates(R.rars, R.keep), tot = { fer: 0, essence: 0, cendre: 0, gold: 0 }; for (const it of list) { const r = salvage(it); for (const k in tot) tot[k] += r[k]; }
+    const fut = S.inv.filter(itemFuture).length;
+    modal(`<h2>${ico("iron", "#c8c8c8")} Recyclage rapide</h2><p class="small">Choisissez les qualités à recycler.</p>
+      <div class="col" style="gap:4px">${RARITY.map((Q, q) => { const n = S.inv.filter(it => it.rar === q).length; return n ? `<label class="row sp card" style="cursor:pointer;padding:6px 10px"><span class="rar${q}"><b>${Q.n}</b></span><span class="tiny dim">${n} objet${n > 1 ? "s" : ""}</span><input type="checkbox" data-salvq="${q}" ${R.rars.includes(q) ? "checked" : ""}></label>` : ""; }).join("")}</div>
+      <label class="row sp" style="margin-top:8px"><span class="small">Garder ce qui améliorerait un héros</span><input type="checkbox" id="salvkeep" ${R.keep ? "checked" : ""}></label>
+      ${fut ? `<p class="tiny dim">${fut} objet${fut > 1 ? "s" : ""} de palier supérieur ${fut > 1 ? "sont gardés" : "est gardé"} : vos héros pourront ${fut > 1 ? "les" : "le"} porter en montant de niveau.</p>` : ""}
+      <div class="row sp" style="margin-top:10px"><span class="small">${list.length} objet${list.length > 1 ? "s" : ""} · +${tot.gold} or, +${tot.fer} fer${tot.essence ? `, +${tot.essence} ess.` : ""}${tot.cendre ? `, +${tot.cendre} cendre` : ""}</span><button class="btn main ${list.length ? "" : "off"}" data-a="salvGo">Recycler</button></div>`,
+      { onClose: () => setTimeout(() => { if ($("#modal").hidden && UI.screen === "bastion") openBuilding("forge", "inv"); }, 0), mount: m => { m.querySelectorAll("[data-salvq]").forEach(c => c.onchange = () => { const q = +c.dataset.salvq; R.rars = c.checked ? [...new Set([...R.rars, q])] : R.rars.filter(x => x !== q); draw(); }); const k = m.querySelector("#salvkeep"); if (k) k.onchange = () => { R.keep = k.checked ? 1 : 0; draw(); }; } });
+  };
+  ACT.salvGo = () => { const list = salvCandidates(UI.salv.rars, UI.salv.keep); if (!list.length) return; let g = 0; for (const it of list) g += salvageItem(it).gold || 0; sfx("forge"); toast(`${list.length} objet${list.length > 1 ? "s" : ""} recyclé${list.length > 1 ? "s" : ""}.`, "good"); save(); renderHud(); UI.modalClose = null; openBuilding("forge", "inv"); };
+  draw();
 };
-ACT.equipPick = id => { const it = findItem(id); const hs = S.heroes.filter(h => canEquip(h, it)); if (!hs.length) return toast("Aucun héros ne peut porter cet objet.", "bad"); modal(`<h2>Équiper ${gearName(it)}</h2><div class="row" style="gap:10px;margin-bottom:8px">${slotHTML(it, "itemInfo", it.id)}<div style="flex:1;min-width:0"><b class="rar${it.rar}">${gearName(it)}</b><div class="tiny dim">${itemLine(it)}</div></div></div><div class="col">${hs.sort((a, b) => gearDelta(b, it).score - gearDelta(a, it).score).map(h => equipRow(h, it, "equipTo", it.id + ":" + h.id)).join("")}</div>`, { mount: m => fillCanvases(m, (c, i) => paintHero(c, heroById(i.split(":")[1]))) }); };
-ACT.equipTo = v => { const [iid, hid] = v.split(":"); const it = findItem(iid), h = heroById(hid); if (!equip(h, it)) return toast("Impossible (deux fois le même bibelot ?).", "bad"); sfx("forge"); toast(`${esc(h.name)} : ${gearName(it)}`, "good"); save(); closeModal(); if (UI.screen === "hero") refresh(); else openBuilding("forge", "inv"); };
+ACT.equipPick = id => { const it = findItem(id); const hs = S.heroes.filter(h => canEquip(h, it)); if (!hs.length) return toast("Aucun héros ne peut porter cet objet.", "bad"); modal(`<h2>Équiper ${gearName(it)}</h2><div class="row" style="gap:10px;margin-bottom:8px">${slotHTML(it, "itemInfo", it.id)}<div style="flex:1;min-width:0"><b class="rar${it.rar}">${gearName(it)}</b><div class="tiny dim">${itemLine(it)}</div></div></div><div class="col">${hs.sort((a, b) => gearDelta(b, it).score - gearDelta(a, it).score).map(h => equipRow(h, it, "equipTo", it.id + ":" + h.id)).join("")}</div>`, { onClose: bldBack(), mount: m => fillCanvases(m, (c, i) => paintHero(c, heroById(i.split(":")[1]))) }); };
+// bibelot : si les deux emplacements sont pris, on choisit lequel remplacer
+function askTrSlot(h, it, cb) {
+  if (it.kind !== "tr" || !h.gear.tr1 || !h.gear.tr2) return cb(null);
+  const back = UI.screen === "hero" ? null : bldBack();
+  modal(`<h2>${ico("gem", "#e8c878")} Quel bibelot remplacer ?</h2><p class="small">${esc(h.name)} porte déjà deux bibelots. <b class="rar${it.rar}">${gearName(it)}</b> prendra la place de :</p>
+    ${["tr1", "tr2"].map(s => { const o = h.gear[s]; return `<div class="row card" data-a="trSlotPick" data-v="${s}">${slotHTML(o, "", "")}<div style="flex:1;min-width:0"><b class="rar${o.rar}">${gearName(o)}</b><div class="tiny dim">${itemLine(o)}</div></div><button class="btn sm">${ico("swap")}Remplacer</button></div>`; }).join("")}`, { onClose: back });
+  ACT.trSlotPick = s => { UI.modalClose = null; closeModal(); cb(s); };
+}
+ACT.equipTo = v => { const [iid, hid, sl] = v.split(":"); const it = findItem(iid), h = heroById(hid); if (it && h && it.kind === "tr" && !sl && h.gear.tr1 && h.gear.tr2) return askTrSlot(h, it, s => ACT.equipTo(iid + ":" + hid + ":" + s)); if (!equip(h, it, sl || undefined)) return toast("Impossible (deux fois le même bibelot ?).", "bad"); sfx("forge"); toast(`${esc(h.name)} : ${gearName(it)}`, "good"); save(); closeModal(); if (UI.screen === "hero") refresh(); else openBuilding("forge", "inv"); };

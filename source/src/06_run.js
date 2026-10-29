@@ -91,10 +91,13 @@ function relicHooks(run = S.run) {
 }
 function runLevel(run, node) {
   const R = regionById(run.region);
-  let l = R.lvl + Math.floor((node ? node.c : 0) / (R.lvl === 1 ? 4 : 3)) + run.threat * 2;
-  if (run.region === "abime") l = 20 + Math.floor((run.floor - 1) * 1.2) + Math.floor((node ? node.c : 0) / 2);
+  // chaque chapitre couvre 5 niveaux (I : 1–5, II : 5–10, III : 10–15…), du premier au dernier pas
+  let l = R.lvl + Math.round((node ? node.c : 0) / Math.max(1, run.map.length - 1) * (R.lvl === 1 ? 4 : 5)) + run.threat * 2;
+  if (run.region === "abime") l = 25 + Math.floor((run.floor - 1) * 1.2) + Math.floor((node ? node.c : 0) / 2);
   return l;
 }
+// butin plafonné au palier du chapitre : chapitre I → palier II (niveau 5) max, chapitre II → palier III, etc.
+function lootTierCap(run = S && S.run) { if (!run) return 6; if (run.region === "abime") return 5; const i = REGIONS.findIndex(r => r.id === run.region); return i < 0 ? 5 : Math.min(5, i + 2); }
 function availableNodes(run = S.run) {
   if (!run.pos) return run.map[0].map(n => n);
   const cur = run.map[run.pos.c][run.pos.i];
@@ -110,15 +113,24 @@ function monNorm(key, ref) {
   if (!ref || key === ref) return null; const M = MONSTERS[key], R = MONSTERS[ref], avg = m => (m.dmg[0] + m.dmg[1]) / 2;
   return { hp: R.hp / M.hp * .92, dmg: avg(R) / avg(M) * .95, prot: (R.prot || 0) - (M.prot || 0) };
 }
+// gardiens déjà vaincus (anciennes sauvegardes : ceux des chapitres terminés)
+function beatenBosses() { const b = S.beaten = S.beaten || {}; for (const r of REGIONS) if (S.prog[r.id] && S.prog[r.id].clears) b[r.boss] = 1; return Object.keys(b).filter(k => MONSTERS[k] && MONSTERS[k].boss); }
+// la rencontre est tirée une seule fois par salle : quitter puis reprendre redonne les mêmes ennemis (et le même gardien)
 function genEncounter(run, node, rng = RNG) {
+  if (node.enc) return node.enc.map(e => Object.assign({}, e));
+  const enc = genEncounter0(run, node, rng); node.enc = enc.map(e => Object.assign({}, e)); return enc;
+}
+function genEncounter0(run, node, rng = RNG) {
   const R = regionById(run.region), lvl = runLevel(run, node);
   const pool = R.pool.slice(), out = [];
   const pickFor = rank => { const ok = pool.filter(k => MONSTERS[k].rk.includes(rank)); return rng.pick(ok.length ? ok : pool); };
   if (node.type === "boss") {
     // gardien tiré parmi tous les gardiens du jeu (jamais deux fois de suite le même ici), ramené à la force du gardien du chapitre
     const ref = run.region === "abime" ? R.bosses[(run.floor - 1) % R.bosses.length] : R.boss2 && S.prog[R.id] && S.prog[R.id].clears && rng.chance(.5) ? R.boss2 : R.boss;
-    const last = (S.lastBoss || (S.lastBoss = {}))[R.id], cand = ALL_BOSSES.filter(k => k !== last);
-    const bk = run.region === "abime" && run.floor % 5 === 0 && S.season && S.season.boss ? S.season.boss : rng.pick(cand); S.lastBoss[R.id] = bk; // l'Abîme : gardien de la saison tous les 5 étages
+    // 1re fois : le gardien de l'histoire ; ensuite, au hasard parmi les gardiens déjà vaincus (jamais deux fois de suite le même)
+    const last = (S.lastBoss || (S.lastBoss = {}))[R.id], beaten = beatenBosses(), firstTime = run.region !== "abime" && !(S.prog[R.id] && S.prog[R.id].clears);
+    const cand = beaten.filter(k => k !== last), pool = cand.length ? cand : beaten.length ? beaten : [ref];
+    const bk = firstTime ? R.boss : run.region === "abime" && run.floor % 5 === 0 && S.season && S.season.boss ? S.season.boss : rng.pick(pool); S.lastBoss[R.id] = bk; // l'Abîme : gardien de la saison tous les 5 étages
     out.push({ key: pickFor(1), lvl });
     out.push({ key: bk, lvl: lvl + 1, f: monNorm(bk, ref) });
     if (run.region === "abime" || R.lvl >= 9) out.push({ key: pickFor(4), lvl });
@@ -154,6 +166,7 @@ function rewardFor(run, node, rng = RNG) {
     R.shards = first ? 3 : 1 + (run.region === "abime" && run.floor % 3 === 0 ? 1 : 0) + Math.floor(run.oaths.length / 3); R.relic = randRelic(run, rng, 2);
   }
   R.gold = Math.round(R.gold * goldM * diffOf().gold); R.xp = Math.round(R.xp * (1 + run.threat * .2) * diffOf().xp); R.petXp = Math.round(R.xp * .8);
+  R.tome = t === "boss" ? 1 : t === "elite" ? (rng.chance(.22) ? 1 : 0) : t === "treasure" ? (rng.chance(.14) ? 1 : 0) : 0; // tome d'expérience
   return R;
 }
 function randRelic(run, rng = RNG, minR = 0) {
@@ -164,6 +177,7 @@ function grantReward(run, R) {
   run.gold += R.gold; for (const m in R.mats) run.mats[m] += R.mats[m]; run.shards += R.shards;
   for (const it of R.loot) run.loot.push(it);
   if (R.relic) run.relics.push(R.relic);
+  if (R.tome) S.tomes = (S.tomes || 0) + R.tome;
   const ups = [];
   if (R.xp) for (const h of runParty()) { if (run.fallen.includes(h.id)) continue; const u = giveXp(h, R.xp); if (u) ups.push(h); }
   if (R.petXp && run.pet) givePetXp(run.pet, R.petXp);
@@ -187,9 +201,9 @@ function givePetXp(id, v) {
 
 // équiper un objet du butin pendant l'expédition (l'ancien rejoint le butin ; annulé en cas de déroute)
 function runEquipTargets(it, run = S.run) { if (!run || !it) return []; return runParty().filter(h => !run.fallen.includes(h.id) && canEquip(h, it) && !(it.kind === "tr" && [h.gear.tr1, h.gear.tr2].some(x => x && x.key === it.key))); }
-function runEquip(h, it, run = S.run) {
+function runEquip(h, it, run = S.run, want) {
   const i = run.loot.indexOf(it); if (i < 0 || !runEquipTargets(it, run).includes(h)) return false;
-  const slot = it.kind === "wpn" ? "wpn" : it.kind === "arm" ? "arm" : !h.gear.tr1 ? "tr1" : !h.gear.tr2 ? "tr2" : "tr1";
+  const slot = it.kind === "wpn" ? "wpn" : it.kind === "arm" ? "arm" : want === "tr1" || want === "tr2" ? want : !h.gear.tr1 ? "tr1" : !h.gear.tr2 ? "tr2" : "tr1";
   const before = heroStats(h, relicHooks(run)).hp;
   run.loot.splice(i, 1); const old = h.gear[slot]; h.gear[slot] = it; if (old) run.loot.push(old);
   (run.swaps = run.swaps || []).push({ hid: h.id, slot, old: old ? old.id : null, nu: it.id });
@@ -213,6 +227,7 @@ function endRun(outcome) {
     const p = S.prog[run.region] = S.prog[run.region] || { clears: 0, best: 0 };
     if (!p.clears) res.story = STORY[run.region];
     const tm = threatMax(run.region); if (p.clears) p.threat = Math.max(p.threat || 0, run.threat || 0); else p.threat = 0;
+    { const bn = run.map[run.map.length - 1][0], bm = bn && bn.enc && bn.enc.find(e => MONSTERS[e.key].boss); (S.beaten = S.beaten || {})[bm ? bm.key : regionById(run.region).boss] = 1; }
     p.clears++; if (threatMax(run.region) > tm) res.threatUp = { region: run.region, t: threatMax(run.region) };
     S.stats["boss_" + run.region] = (S.stats["boss_" + run.region] || 0) + 1;
   }
@@ -224,7 +239,7 @@ function endRun(outcome) {
     const nx = REGIONS[after]; if (nx) res.unlocks.push({ k: "region", id: nx.id }); if (after === 1) res.unlocks.push({ k: "region", id: "abime" });
   }
   S.gold += res.gold; for (const m in res.mats) S.mats[m] += res.mats[m]; S.shards += res.shards;
-  for (const it of res.loot) { S.inv.push(it); if (it.rar >= 3) S.stats.legend++; }
+  for (const it of res.loot) { S.inv.push(it); if (it.rar >= 4) S.stats.legend++; }
   // retour au Bastion : soins, blessures
   for (const h of S.heroes) {
     if (run.party.includes(h.id)) {

@@ -192,10 +192,12 @@ function runEquipBtns(it) {
   return `<div class="runeq">${hs.sort((a, b) => gearDelta(b, it, rh).score - gearDelta(a, it, rh).score).map(h => equipRow(h, it, "runEquip", it.id + ":" + h.id, rh)).join("")}</div>`;
 }
 ACT.runEquip = (v, el, e) => {
-  e && e.stopPropagation(); const [id, hid] = v.split(":"); const run = S.run; if (!run) return;
+  e && e.stopPropagation(); const [id, hid, sl] = v.split(":"); const run = S.run; if (!run) return;
   const it = run.loot.find(x => x.id === id), h = heroById(hid); if (!it || !h) return;
+  if (it.kind === "tr" && !sl && h.gear.tr1 && h.gear.tr2) { // deux bibelots portés : choisir lequel remplacer, sur place
+    const row = el.closest(".eqrow"); if (row) row.querySelector(".eqcmp").innerHTML = `<span class="tiny">Remplacer :</span> ${["tr1", "tr2"].map(s => `<button class="btn sm ghost" data-a="runEquip" data-v="${id}:${hid}:${s}"><span class="rar${h.gear[s].rar}">${gearName(h.gear[s])}</span></button>`).join(" ")}`; return; }
   const old = it.kind === "tr" ? null : h.gear[it.kind];
-  if (!runEquip(h, it)) return toast("Impossible d'équiper cet objet.", "bad");
+  if (!runEquip(h, it, run, sl)) return toast("Impossible d'équiper cet objet.", "bad");
   sfx("forge"); save();
   const row = el.closest(".runeq"); if (row) row.outerHTML = `<div class="tiny good" style="margin-top:6px">${ico("up", "#8ad06a", 12)} Équipé sur ${esc(h.name)} (${heroTitle(h)})${old ? ` · ${gearName(old)} rangé dans le butin` : ""}</div>`;
   if (UI.screen === "map" && $("#bagList")) ACT.runBag();
@@ -213,6 +215,7 @@ function rewardModal(title, text, R, ups = [], onClose) {
   ${it.map(i => `<div class="reward" style="align-items:flex-start">${slotHTML(i, "itemInfo", i.id)}<div style="flex:1;min-width:0"><b class="rar${i.rar}">${gearName(i)}</b><div class="tiny dim">${RARITY[i.rar].n}${i.cls ? " · " + CLASSES[i.cls].n : ""} — ${itemLine(i)}</div>${runEquipBtns(i)}</div></div>`).join("")}
   ${R.relic ? `<div class="reward">${ico("gem", "#c87aff", 22)}<div><b>Relique : ${RELICS[R.relic].n}</b><div class="tiny">${gl(RELICS[R.relic].d)}</div></div></div>` : ""}
   ${R.mats && (R.mats.fer || R.mats.essence || R.mats.cendre) ? `<div class="reward">${ico("iron", "#a8a8a8", 22)}<span>${[R.mats.fer && "+" + R.mats.fer + " ferraille", R.mats.essence && "+" + R.mats.essence + " essence", R.mats.cendre && "+" + R.mats.cendre + " cendre royale"].filter(Boolean).join(", ")}</span></div>` : ""}
+  ${R.tome ? `<div class="reward">${ico("book", "#9ad0ff", 22)}<b>+${R.tome} tome d'expérience</b> <span class="tiny dim">(fiche d'un héros moins aguerri)</span></div>` : ""}
   ${R.shards ? `<div class="reward">${ico("shard", "#c090ff", 22)}<b>+${R.shards} éclat${R.shards > 1 ? "s" : ""} de couronne</b></div>` : ""}
   <div class="row" style="justify-content:flex-end;margin-top:10px"><button class="btn main" data-a="closeModal">Continuer</button></div>`, { close: false, onClose: onClose || (() => refresh()) });
   if (ups.length) sfx("level");

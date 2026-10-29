@@ -21,9 +21,10 @@ function heroUnit(h, relicH) {
   return u;
 }
 function monUnit(key, lvl, mods = {}) {
-  const M = MONSTERS[key], L = lvl - 1;
+  // les chapitres couvrent 5 niveaux chacun (I : 1–5, II : 5–10…) : la force des monstres suit un niveau effectif un peu tassé
+  const M = MONSTERS[key], L = (lvl - 1) * .78, eL = 1 + L;
   // difficulté : les combats ordinaires mordent dès le chapitre II, les derniers gardiens sont de vrais murs
-  const late = lvl >= 11 ? 1 : 0, early = lvl <= 3 ? 1 : 0;
+  const late = eL >= 11 ? 1 : 0, early = eL <= 3 ? 1 : 0;
   const hpM = 1.2 * (1 + (M.boss ? .12 : .2) * L) * (mods.hp || 1) * (M.boss ? (1 + (mods.bossHp || 0)) * (late ? 1.75 : 1) : early ? 1 : 1.2),
     dM = 1.4 * (1 + .11 * L) * (mods.dmg || 1) * (M.boss ? (late ? 1.38 : 1.1) : early ? 1.08 : 1.45);
   const u = { uid: uid("E"), side: "e", key, name: M.name || M.n, art: M.art, tags: M.tags, sz: M.sz || 1, boss: !!M.boss, elite: !!M.elite, lvl,
@@ -260,7 +261,9 @@ function applyDamage(B, src, x, d, ev, o = {}) {
   }
   x.hp -= d;
   if (x.hp <= 0) {
-    if (x.side === "h") { x.hp = 0; x.agony = true; ev.push({ k: "agony", u: x.uid }); changeMorale(B, -8, ev); }
+    if (x.side === "h") { x.hp = 0; x.agonyN = (x.agonyN || 0) + 1;
+      if (x.agonyN >= 3) { ev.push({ k: "agony", u: x.uid }); fallHero(B, x, ev, true); } // 3e agonie du combat : le corps lâche
+      else { x.agony = true; ev.push({ k: "agony", u: x.uid }); changeMorale(B, -8, ev); } }
     else { x.hp = 0; x.dead = true; B.kills++; ev.push({ k: "die", u: x.uid, boss: x.boss }); B.enemies = B.enemies.filter(e => e !== x); B.dead = (B.dead || []).concat([x]);
       if (src && src.side === "h") { src.kills = (src.kills || 0) + 1; changeMorale(B, 5 + (src.hooks.killMorale || 0), ev); if (src.hooks.killStealth) addSt(B, src, src, { k: "stealth", t: 1 }, ev); if (B.relicH.killHeal) healUnit(B, src, src, src.hpMax * B.relicH.killHeal, ev); gainUlt(src, 10); }
     }
@@ -269,8 +272,8 @@ function applyDamage(B, src, x, d, ev, o = {}) {
   }
   return Math.min(d, before);
 }
-function fallHero(B, x, ev) {
-  if (B.relicH.revive && !B.revived) { B.revived = 1; x.agony = false; x.hp = Math.round(x.hpMax * B.relicH.revive); ev.push({ k: "revive", u: x.uid }); return; }
+function fallHero(B, x, ev, worn) {
+  if (B.relicH.revive && !B.revived && !worn) { B.revived = 1; x.agony = false; x.hp = Math.round(x.hpMax * B.relicH.revive); ev.push({ k: "revive", u: x.uid }); return; }
   x.fallen = true; x.agony = false; x.hp = 0; B.heroes = B.heroes.filter(h => h !== x); B.fallen.push(x);
   ev.push({ k: "fall", u: x.uid });
   changeMorale(B, -15, ev);

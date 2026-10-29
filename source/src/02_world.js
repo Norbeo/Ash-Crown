@@ -178,14 +178,14 @@ const REGIONS = [
     d: "Le village de Morvaine pourrit sous la peste. Les morts ne restent pas couchés.", sky: ["#1a1d14", "#3a3a24"], fog: "#9aa06a", accent: "#a8c05a" },
   { id: "foret", n: "La Forêt des Pendus", sub: "Chapitre II", lvl: 5, pool: ["loup_noir", "araignee", "brigand", "archer_brig", "dryade", "pendu"], elite: ["alpha"], boss: "mere_ronces",
     d: "Chaque arbre porte un pendu. La forêt, elle, a faim.", sky: ["#0e1612", "#24342a"], fog: "#6a8a70", accent: "#6ad08a" },
-  { id: "catacombes", n: "Les Catacombes de Saint-Morne", sub: "Chapitre III", lvl: 9, pool: ["squelette", "archer_os", "spectre", "necrophage", "gargouille", "moine_flagellant", "thuriferaire", "hallebardier_os"], elite: ["chevalier_os", "prieur"], boss: "liche", boss2: "abbe",
+  { id: "catacombes", n: "Les Catacombes de Saint-Morne", sub: "Chapitre III", lvl: 10, pool: ["squelette", "archer_os", "spectre", "necrophage", "gargouille", "moine_flagellant", "thuriferaire", "hallebardier_os"], elite: ["chevalier_os", "prieur"], boss: "liche", boss2: "abbe",
     d: "Sous l'abbaye dorment dix mille moines. Ils se réveillent.", sky: ["#0e0e14", "#262632"], fog: "#7a8aa8", accent: "#7adcc0" },
-  { id: "marais", n: "Le Marais des Noyés", sub: "Chapitre IV", lvl: 13, pool: ["noye", "crapaud_geant", "sangsue", "feu_follet_e", "profond", "sorciere_marais", "pecheur"], elite: ["hydre", "ogre"], boss: "mere_noyes", boss2: "reine_sabbat",
+  { id: "marais", n: "Le Marais des Noyés", sub: "Chapitre IV", lvl: 15, pool: ["noye", "crapaud_geant", "sangsue", "feu_follet_e", "profond", "sorciere_marais", "pecheur"], elite: ["hydre", "ogre"], boss: "mere_noyes", boss2: "reine_sabbat",
     d: "L'eau noire garde ceux qu'elle prend. Et elle prend tout.", sky: ["#0a1214", "#1e3034"], fog: "#5a8a8a", accent: "#5ac0c0" },
-  { id: "citadelle", n: "La Citadelle de Cendres", sub: "Chapitre V", lvl: 17, pool: ["chevalier_dechu", "inquisiteur_fou", "diablotin", "golem_cendre"], elite: ["bourreau"], boss: "roi_cendres",
+  { id: "citadelle", n: "La Citadelle de Cendres", sub: "Chapitre V", lvl: 20, pool: ["chevalier_dechu", "inquisiteur_fou", "diablotin", "golem_cendre"], elite: ["bourreau"], boss: "roi_cendres",
     d: "Le trône du Roi brûle depuis cent ans. Il est temps d'éteindre la couronne.", sky: ["#180a08", "#3a1a10"], fog: "#c0704a", accent: "#ff8a4a" },
 ];
-const ABYSS = { id: "abime", n: "L'Abîme", sub: "Sans fin", lvl: 20, pool: ["horreur", "oeil", "chevalier_dechu", "spectre", "noye", "necrophage", "diablotin", "gargouille", "profond"], elite: ["bourreau", "hydre", "chevalier_os", "alpha"], boss: "sans_nom",
+const ABYSS = { id: "abime", n: "L'Abîme", sub: "Sans fin", lvl: 25, pool: ["horreur", "oeil", "chevalier_dechu", "spectre", "noye", "necrophage", "diablotin", "gargouille", "profond"], elite: ["bourreau", "hydre", "chevalier_os", "alpha"], boss: "sans_nom",
   bosses: ["docteur_peste", "mere_ronces", "liche", "abbe", "mere_noyes", "reine_sabbat", "roi_cendres", "sans_nom"], d: "Sous la Citadelle, il n'y a pas de fond. Seulement plus d'ombre.", sky: ["#08060c", "#1e1428"], fog: "#8a6aaa", accent: "#b48cff" };
 const regionById = id => id === "abime" ? ABYSS : REGIONS.find(r => r.id === id);
 

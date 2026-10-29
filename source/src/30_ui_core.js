@@ -78,6 +78,8 @@ function modal(html, o = {}) {
   if (o.mount) o.mount(m);
   UI.modalClose = o.onClose || null; UI.modalOut = o.close === false ? o.outside || null : closeModal; // un clic à côté de la fenêtre la ferme
 }
+// fenêtre ouverte depuis un bâtiment (inventaire de la forge, fiche à la taverne…) : en la fermant, on revient au bâtiment
+function bldBack() { const m = $("#modal"); if (!m || m.hidden || !UI.bldOpen) return null; const k = UI.bldOpen, t = UI.bldTab; return () => setTimeout(() => { if ($("#modal").hidden && UI.screen === "bastion") openBuilding(k, t); }, 0); }
 function closeModal() { const m = $("#modal"); m.hidden = true; m.innerHTML = ""; const f = UI.modalClose; UI.modalClose = null; if (f) f(); }
 ACT.closeModal = closeModal;
 function confirmBox(text, yes, o = {}) {

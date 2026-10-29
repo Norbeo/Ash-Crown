@@ -53,7 +53,7 @@ const GLOSS = {
   evolution: { n: "Évolution", ic: "crown", d: "Au niveau 15, chaque héros choisit l'une de ses deux voies : nouvelles compétences et une aura. Son aspect final se révèle quand il porte une armure de palier VI." },
   apogee: { n: "Apogée", ic: "crown", d: "Au niveau 18, un héros évolué atteint l'apogée de sa voie : un bonus passif puissant." },
   palier: { n: "Palier", ic: "armor", d: "Qualité de l'équipement, de I à VI. Un palier plus élevé donne plus de dégâts (arme) ou de PV et de protection (armure). La Forge débloque les paliers. Le palier VI (ascendant) ne se porte qu'après l'évolution : l'armure ascendante révèle l'aspect final du héros dans sa voie." },
-  rarete: { n: "Rareté", ic: "gem", d: "Commun, rare, épique, légendaire : plus l'objet est rare, plus il porte de bonus supplémentaires." },
+  rarete: { n: "Rareté", ic: "gem", d: "Commun (≈ 50 % des objets trouvés), peu commun (≈ 30 %), rare (≈ 12 %), épique (≈ 5 %), légendaire (≈ 2 %), mythique (≈ 0,6 %), divin (≈ 0,2 %). Plus l'objet est rare, plus il porte de bonus supplémentaires. La chance (lueur basse, élites, gardiens, Forge) améliore les tirages." },
   serment: { n: "Serments", ic: "seal", d: "Dans l'Abîme, des contraintes volontaires qui rendent l'expédition plus dure en échange de meilleures récompenses." },
   compagnon: { n: "Compagnon", ic: "paw", d: "L'animal qui suit le groupe : il frappe ou soutient à chaque tour et évolue au niveau 10." },
   // ── ressources ──

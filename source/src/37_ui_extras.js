@@ -118,7 +118,7 @@ function cbInfo(u, what, px, py) {
   const B = CB.B; if (!B || !u) return;
   const seen = {}, sts = u.st.filter(s => !seen[s.k] && (seen[s.k] = 1));
   let h = `<div class="row sp" style="flex-wrap:nowrap"><b>${esc(u.name)}</b><span class="tiny dim">${u.side === "e" ? `niv ${u.lvl}${u.tags.includes("impie") ? " · impie" : ""}` : CLASSES[u.cls] ? CLASSES[u.cls].n : ""} · rang ${rankOf(B, u)}</span></div>`;
-  if (what !== "st") h += `<div class="tiny">PV ${Math.ceil(u.hp)}/${u.hpMax} · Protection ${Math.round(effProt(u) * 100)} % · Vitesse ${effSpd(u)} · Esquive ${Math.round(effDodge(u))}</div>`;
+  if (what !== "st") h += `<div class="tiny">PV ${Math.ceil(u.hp)}/${u.hpMax} · Protection ${Math.round(effProt(u) * 100)} % · Vitesse ${Math.round(effSpd(u))} · Esquive ${Math.round(effDodge(u))}</div>`;
   if (what === "intent") h += intentHTML(u);
   if (what !== "intent") h += sts.length ? `<div class="cbi-list">${sts.map(stLine).join("")}</div>` : `<div class="tiny dim" style="margin-top:4px">Aucune altération.</div>`;
   if (what === "unit" && u.side === "e") h += intentHTML(u);
@@ -150,3 +150,13 @@ function scenesCodexHTML() {
   const seen = S.seenScene || {};
   return Object.keys(SCENES).filter(k => seen[k]).map(k => `<div class="panel" style="padding:12px;margin-top:10px"><h3>${SCENES[k].t}</h3>${SCENES[k].lines.map(sceneLineHTML).join("")}${S.prog[k] && S.prog[k].clears && SCENE_END[k] ? `<div class="sep"></div>${SCENE_END[k].map(sceneLineHTML).join("")}` : ""}</div>`).join("") || '<p class="tiny dim">Les dialogues des chapitres apparaîtront ici au fil de l\'aventure.</p>';
 }
+
+// ── Tomes d'expérience : réservés aux héros moins aguerris que le plus haut niveau du roster ──
+function tomeCap() { return Math.max(1, ...S.heroes.map(h => h.lvl)); }
+function tomeHTML(h) {
+  const n = S.tomes || 0; if (!n) return "";
+  const ok = h.lvl < tomeCap();
+  return `<div class="panel" style="padding:10px;margin-top:10px"><div class="row sp"><div><b>${ico("book", "#9ad0ff", 14)} Tomes d'expérience : ${n}</b><div class="tiny dim">${ok ? `Un tome fait gagner un niveau, jusqu'au niveau ${tomeCap()} (le plus haut de votre compagnie).` : "Réservés aux héros d'un niveau inférieur au plus aguerri de la compagnie."}</div></div><button class="btn sm ${ok ? "gold" : "off"}" data-a="readTome" data-v="${h.id}">Lire</button></div></div>`;
+}
+ACT.readTome = id => { const h = heroById(id); if (!h || !(S.tomes > 0)) return; if (h.lvl >= tomeCap()) return toast("Ce héros est déjà parmi les plus aguerris.", "bad");
+  S.tomes--; const need = xpNeed(h.lvl) - h.xp; giveXp(h, Math.max(1, Math.ceil(need / Math.max(.5, 1 + heroPassives(h).filter(p => p.k === "xp").reduce((a, p) => a + p.v, 0))))); sfx("level"); toast(`${esc(h.name)} passe niveau ${h.lvl}.`, "good"); save(); refresh(); };

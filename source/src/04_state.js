@@ -98,11 +98,12 @@ function gearName(it) {
   const L = GEAR_NAMES[it.cls][it.kind === "wpn" ? "wpn" : "arm"], n = it.tier >= 6 ? (it.evo && CLASSES[it.cls].evos[it.evo] ? "Armure ascendante : " + CLASSES[it.cls].evos[it.evo].n : "Ascendant : " + L[4]) : L[it.tier - 1];
   return n + (it.up ? " +" + it.up : "");
 }
-const rollRarity = (luck = 0) => { const r = rnd() * 100 - luck * 100; let acc = 0; for (let q = RARITY.length - 1; q >= 1; q--) { acc += RARITY[q].p; if (r < acc) return q; } return 0; }; // taux dans RARITY[q].p
-function lootGear(lvl, luck = 0, cls) {
+// tirage de qualité : poids RARITY[q].p ; la chance (0 à ~0,4) renforce les qualités hautes de façon progressive, le plancher retire les basses
+const rollRarity = (luck = 0, floor = 0) => { const w = RARITY.map((R, q) => q < floor ? 0 : R.p * Math.pow(1 + Math.max(0, luck) * 6, q / 2)); let r = rnd() * w.reduce((a, b) => a + b, 0); for (let q = 0; q < w.length; q++) { r -= w[q]; if (r < 0) return q; } return floor; };
+function lootGear(lvl, luck = 0, cls, floor = 0) {
   const base = TIER_LVL.filter(l => l <= lvl).length - 1; // palier que le niveau permet de porter
   const tier = clamp(base + (chance(.25) ? 1 : 0), 1, typeof lootTierCap === "function" ? lootTierCap() : 5);
-  const r = rnd(), rar = rollRarity(luck);
+  const r = rnd(), rar = rollRarity(luck, floor);
   if (r < .3) return makeGear("tr", null, 1, rar);
   const owned = S ? [...new Set(S.heroes.map(h => h.cls))] : [];
   const c = cls || (owned.length && chance(.85) ? pick(owned) : pick(CLASS_IDS));

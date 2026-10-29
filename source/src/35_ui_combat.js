@@ -364,6 +364,7 @@ function drawCombat(x, t, dt) {
     // sprite
     let pose = v.pose || "idle"; if (u.side === "h" && u.agony && pose === "idle") pose = "agony";
     const sp = unitSprite(u, pose);
+    if (pose === "idle" || v.top == null) { const bb = spriteBox(sp); if (bb) v.top = py - sp.ay + bb.y; } // haut réel de l'illustration (intentions, cible)
     x.save(); x.globalAlpha = v.a;
     const br = pose === "idle" ? 1 + Math.sin(t * 2.2 + (u.uid.length * 1.7)) * .012 : 1;
     x.translate(px, py); if (u.side === "e") x.scale(-1, 1);
@@ -449,11 +450,11 @@ function drawUnitUI(x, u, v, t) {
   if (u.side === "e" && u.intent && u.intent.sk && !B.over) {
     const sk = u.intent.sk, tt = sk.t || "e";
     const kind = sk.heal || tt === "allies" ? ["heart", "#8fe07a"] : tt === "self" ? ["shield", "#a0c8ff"] : !sk.m ? ["curse", "#c090ff"] : tt === "ae" ? ["flames", "#ff8a4a"] : ["swords", "#ff5a4a"];
-    const iy = v.y - 200 * CB.scale * (u.sz > 1 ? 1.5 : 1) - 8 + Math.sin(t * 3) * 2;
+    const iy = Math.max(14 * s, (v.top != null ? v.top - 16 * s : v.y - 200 * CB.scale * (u.sz > 1 ? 1.5 : 1) - 8)) + Math.sin(t * 3) * 2; // au-dessus de la tête, jamais sur le corps
     x.fillStyle = "rgba(0,0,0,.75)"; x.beginPath(); x.arc(v.x, iy, 11 * s, 0, 7); x.fill(); x.strokeStyle = rgba(kind[1], .8); x.lineWidth = 1.5; x.stroke();
     drawIcon(x, kind[0], v.x, iy, .62 * s, kind[1], 2);
     (CB.zones = CB.zones || []).push({ x0: v.x - 16 * s, x1: v.x + 16 * s, y0: iy - 16 * s, y1: iy + 16 * s, u, k: "intent" });
-    if (u.intent.tgt) { const tv = CB.vis[u.intent.tgt], tu = unitById(B, u.intent.tgt); if (tv && tu && alive(tu)) { x.fillStyle = rgba("#ff3a2a", .85); const ty = tv.y - 192 * CB.scale - 6; x.beginPath(); x.moveTo(tv.x - 5, ty); x.lineTo(tv.x + 5, ty); x.lineTo(tv.x, ty + 7); x.fill(); } }
+    if (u.intent.tgt) { const tv = CB.vis[u.intent.tgt], tu = unitById(B, u.intent.tgt); if (tv && tu && alive(tu)) { x.fillStyle = rgba("#ff3a2a", .85); const ty = tv.top != null ? tv.top - 8 : tv.y - 192 * CB.scale - 6; x.beginPath(); x.moveTo(tv.x - 5, ty); x.lineTo(tv.x + 5, ty); x.lineTo(tv.x, ty + 7); x.fill(); } }
   }
 }
 function drawPetInCombat(x, t, dt) {

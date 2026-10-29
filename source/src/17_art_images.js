@@ -27,15 +27,27 @@ function artPump() {
   }
 }
 // précharge tout en tâche de fond (après les images demandées par l'écran courant)
-function artPreload() { if (typeof Image === "undefined") return; PIC.total = ART_SET.size; for (const n of [...ART_SET].sort((a, b) => /^(tr|wpn|map)_/.test(b) - /^(tr|wpn|map)_/.test(a))) if (!PIC.img[n]) { PIC.img[n] = { ok: 0 }; PIC.queue.push(n); } artPump(); artProgress(); }
+function artPreload() { if (typeof Image === "undefined") return; PIC.total = ART_SET.size; if (!PIC.total) return bootDone(); for (const n of [...ART_SET].sort((a, b) => /^(tr|wpn|map)_/.test(b) - /^(tr|wpn|map)_/.test(a))) if (!PIC.img[n]) { PIC.img[n] = { ok: 0 }; PIC.queue.push(n); } artPump(); artProgress(); }
 // barre de chargement discrète (premier lancement : ensuite tout vient du cache de l'appli)
 function artProgress() {
   if (typeof document === "undefined" || !PIC.total) return;
   const el = document.getElementById("artload"); if (!el) return;
   const k = Math.min(1, PIC.done / PIC.total);
+  bootProgress(k);
   if (k >= 1) { el.classList.add("done"); return; }
+  if (document.getElementById("boot")) return; // l'écran de chargement affiche déjà la progression
   el.hidden = false; el.firstElementChild.style.width = (k * 100).toFixed(1) + "%"; el.lastElementChild.textContent = "Illustrations " + Math.min(PIC.done, PIC.total) + " / " + PIC.total;
 }
+// écran de chargement : attend les illustrations (instantané ensuite, tout vient du cache), avec une issue si le réseau traîne
+const BOOT_TXT = ["Les braises s'allument…", "On aiguise les lames…", "Les morts se retournent dans leurs tombes…", "La Cendre retombe sur Morvaine…", "Le Bastion ouvre ses portes…"];
+function bootProgress(k) {
+  const b = document.getElementById("boot"); if (!b || b.classList.contains("out")) return;
+  b.querySelector(".bootbar i").style.width = (k * 100).toFixed(1) + "%";
+  const t = b.querySelector(".boottxt"); if (t) t.textContent = BOOT_TXT[Math.min(BOOT_TXT.length - 1, Math.floor(k * BOOT_TXT.length))] + " " + Math.round(k * 100) + " %";
+  if (k >= 1) bootDone();
+}
+function bootDone() { const b = document.getElementById("boot"); if (!b || b.classList.contains("out")) return; b.classList.add("out"); setTimeout(() => b.remove(), 1000); }
+if (typeof document !== "undefined") { setTimeout(() => { const s = document.getElementById("bootskip"); if (s) { s.style.display = ""; s.onclick = bootDone; } }, 9000); setTimeout(bootDone, 45000); }
 const ART_REPAINT = [];
 // une image vient d'arriver : on vide les caches de sprites et on repeint les vignettes encore à l'écran
 function artChanged() {

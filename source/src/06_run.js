@@ -156,13 +156,13 @@ function rewardFor(run, node, rng = RNG) {
   const R = { gold: 0, xp: 0, loot: [], relic: null, mats: { fer: 0, essence: 0, cendre: 0 }, shards: 0, petXp: 0 };
   const t = node.type;
   if (t === "combat") { R.gold = (14 + lvl * 4.5) * (0.85 + rng() * .3); R.xp = 26 + lvl * 7; R.mats.fer = rng.chance(.6) ? 1 : 0; if (rng.chance(.22 + luck)) R.loot.push(lootGear(lvl, luck)); }
-  if (t === "elite") { R.gold = (34 + lvl * 9) * (0.9 + rng() * .3); R.xp = 50 + lvl * 12; R.mats.fer = 2; R.mats.essence = 1; R.loot.push(lootGear(lvl + 2, .08 + luck)); if (rng.chance(.5)) R.relic = randRelic(run, rng, 1); }
-  if (t === "elite" && run.week && weekRule() && weekRule().eliteLoot) R.loot.push(lootGear(lvl + 2, .1));
+  if (t === "elite") { R.gold = (34 + lvl * 9) * (0.9 + rng() * .3); R.xp = 50 + lvl * 12; R.mats.fer = 2; R.mats.essence = 1; R.loot.push(lootGear(lvl + 2, .12 + luck, null, 1)); if (rng.chance(.5)) R.relic = randRelic(run, rng, 1); } // élite : jamais de commun, qualités hautes favorisées
+  if (t === "elite" && run.week && weekRule() && weekRule().eliteLoot) R.loot.push(lootGear(lvl + 2, .12, null, 1));
   if (t === "treasure") { R.gold = (30 + lvl * 7) * (0.8 + rng() * .5); R.loot.push(lootGear(lvl + 1, .05 + luck)); R.mats.fer = 1; if (rng.chance(.4)) R.relic = randRelic(run, rng); }
   if (t === "boss") {
     const first = run.region !== "abime" && !(S.prog[run.region] && S.prog[run.region].clears);
     R.gold = (120 + lvl * 22) * (first ? 1.5 : 1); R.xp = 120 + lvl * 22; R.mats.fer = 3; R.mats.essence = 2 + Math.floor(lvl / 8); R.mats.cendre = lvl >= 13 ? 1 : 0;
-    R.loot.push(lootGear(lvl + 3, .15)); if (rng.chance(.5)) R.loot.push(lootGear(lvl + 2, .1));
+    R.loot.push(lootGear(lvl + 3, .25, null, 2)); if (rng.chance(.5)) R.loot.push(lootGear(lvl + 2, .2, null, 2)); // gardien : rare au minimum
     R.shards = first ? 3 : 1 + (run.region === "abime" && run.floor % 3 === 0 ? 1 : 0) + Math.floor(run.oaths.length / 3); R.relic = randRelic(run, rng, 2);
   }
   R.gold = Math.round(R.gold * goldM * diffOf().gold); R.xp = Math.round(R.xp * (1 + run.threat * .2) * diffOf().xp); R.petXp = Math.round(R.xp * .8);

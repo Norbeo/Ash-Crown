@@ -71,6 +71,7 @@ function startRun(regionId, partyIds, petId, opt = {}) {
   const run = { region: regionId, seed, party: partyIds.slice(), pet: petId, floor: abyss ? (opt.floor || 1) : 0, map: genMap(rng, abyss ? 6 : 9, { elite: oaths.includes("elite") }), pos: null,
     light: 100, relics: (opt.relics || []).slice(), potions: potionMax() - (oaths.includes("jeune") ? 1 : 0), gold: 0, loot: [], mats: { fer: 0, essence: 0, cendre: 0 }, shards: 0,
     kills: 0, fallen: [], oaths, week: opt.week ? S.week.rule : null, daily: !!opt.daily, threat: opt.threat || 0, startedAt: Date.now(), xpGain: {}, flawless: true, combats: 0, log: [] };
+  if (opt.night) { run.night = 1; run.light = 60; run.flags = (run.flags || []).concat(["nuit"]); } // expédition de nuit : moins de lueur, ennemis plus forts, meilleur butin
   S.run = run;
   if (run.week) { const W = weekRule(); if (W.light != null) run.light = W.light; if (W.potions != null) run.potions = W.potions === 0 ? 0 : run.potions * W.potions; }
   for (const id of partyIds) { const h = heroById(id); h.hp = isInjured(h) ? Math.round(heroStats(h).hp * .5) : null; }
@@ -87,6 +88,7 @@ function relicHooks(run = S.run) {
   const H = {};
   for (const k of (run ? run.relics : [])) { const R = RELICS[k]; if (!R) continue; for (const h in R.h) H[h] = (H[h] || 0) + R.h[h]; }
   for (const k of (run ? runSynergies(run) : [])) { const Y = SYNERGIES[k]; for (const h in Y.h) H[h] = (H[h] || 0) + Y.h[h]; }
+  const duo = typeof petDuo === "function" ? petDuo(run) : null; if (duo) for (const h in duo.h) H[h] = (H[h] || 0) + duo.h[h]; // compagnon en duo
   return H;
 }
 function runLevel(run, node) {
@@ -153,7 +155,7 @@ function genEncounter0(run, node, rng = RNG) {
 
 // ── récompenses ──
 function rewardFor(run, node, rng = RNG) {
-  const lvl = runLevel(run, node), rh = relicHooks(run), luck0 = run.light < 30 ? .05 : 0; let luck = luck0;
+  const lvl = runLevel(run, node), rh = relicHooks(run), luck0 = (run.light < 30 ? .05 : 0) + (run.night ? .08 : 0); let luck = luck0;
   const goldM = 1 + (rh.gold || 0) + run.party.map(heroById).filter(Boolean).reduce((a, h) => a + heroPassives(h).filter(p => p.k === "gold").reduce((b, p) => b + p.v, 0), 0) + (run.pet && PETS[run.pet].gold ? PETS[run.pet].gold : 0) + (run.daily ? .25 : 0) + run.oaths.length * .15 + run.threat * .3;
   const R = { gold: 0, xp: 0, loot: [], relic: null, mats: { fer: 0, essence: 0, cendre: 0 }, shards: 0, petXp: 0 };
   const t = node.type;
@@ -168,7 +170,7 @@ function rewardFor(run, node, rng = RNG) {
     R.loot.push(lootGear(lvl + 3, .25, null, 2)); if (rng.chance(.5)) R.loot.push(lootGear(lvl + 2, .2, null, 2)); // gardien : rare au minimum
     R.shards = first ? 3 : 1 + (run.region === "abime" && run.floor % 3 === 0 ? 1 : 0) + Math.floor(run.oaths.length / 3); R.relic = randRelic(run, rng, 2);
   }
-  R.gold = Math.round(R.gold * goldM * diffOf().gold); R.xp = Math.round(R.xp * (1 + run.threat * .2) * diffOf().xp); R.petXp = Math.round(R.xp * .8);
+  R.gold = Math.round(R.gold * goldM * diffOf().gold * (run.night ? 1.35 : 1)); R.xp = Math.round(R.xp * (1 + run.threat * .2) * diffOf().xp); R.petXp = Math.round(R.xp * .8);
   R.tome = t === "boss" ? 1 : t === "elite" ? (rng.chance(.22) ? 1 : 0) : t === "treasure" ? (rng.chance(.14) ? 1 : 0) : 0; // tome d'expérience
   return R;
 }
@@ -179,7 +181,7 @@ function randRelic(run, rng = RNG, minR = 0) {
 function grantReward(run, R) {
   run.gold += R.gold; for (const m in R.mats) run.mats[m] += R.mats[m]; run.shards += R.shards;
   for (const it of R.loot) run.loot.push(it);
-  if (R.relic) run.relics.push(R.relic);
+  if (R.relic) addRelic(run, R.relic);
   if (R.tome) S.tomes = (S.tomes || 0) + R.tome;
   const ups = [];
   if (R.xp) for (const h of runParty()) { if (run.fallen.includes(h.id)) continue; const u = giveXp(h, R.xp); if (u) ups.push(h); }
@@ -251,7 +253,7 @@ function endRun(outcome) {
     }
     h.hp = null;
   }
-  if (S.opts.hardcore) { const dead = S.heroes.filter(h => h.dead); S.stats.deaths += dead.length; S.graves = (S.graves || []).concat(dead.map(h => ({ name: h.name, cls: h.cls, lvl: h.lvl, at: Date.now() }))); S.heroes = S.heroes.filter(h => !h.dead); }
+  if (S.opts.hardcore) { const dead = S.heroes.filter(h => h.dead); S.stats.deaths += dead.length; for (const h of dead) engrave(h, "Tombé dans « " + regionById(run.region).n + " »", run); S.heroes = S.heroes.filter(h => !h.dead); }
   if (run.flawless && outcome === "victory") S.stats.flawless++;
   if (run.daily && outcome === "victory") { S.daily.done = 1; S.stats.daily++; }
   if (run.week && outcome === "victory" && S.week && !S.week.done) { const W = weekReward(); S.week.done = 1; res.week = W; S.gold += W.gold; S.shards += W.shards; S.mats.essence += W.essence; S.stats.weeks = (S.stats.weeks || 0) + 1; }

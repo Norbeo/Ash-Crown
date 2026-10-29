@@ -53,7 +53,7 @@ RPG tactique dark fantasy médiéval, vanilla JS + Canvas 2D, PWA installable (m
 - Sauvegarde : localStorage `couronne-de-cendres-v1`.
 
 ## Publication
-- Depuis le 29 oct. 2026 : ne plus publier le jeu au fur et à mesure. Tester et committer localement, puis publier une seule fois (cp dist à la racine, push, artefact) quand toutes les tâches prévues sont terminées.
+- Depuis le 30 oct. 2026 (0 h 21) : publier de nouveau au fur et à mesure (cp dist à la racine, push, artefact) après chaque lot testé.
 
 ## Commits
 Auteur `Norbeo`, et terminer les messages par :

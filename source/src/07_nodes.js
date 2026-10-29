@@ -1,5 +1,5 @@
 /* ═══════════════════════ Salles : événements, camp, colporteur, combats ═══════════════════════ */
-function lightCost(run) { let c = 7; const rh = relicHooks(run); if (rh.lightSave) c *= 1 - rh.lightSave; if (run.oaths.includes("nuit")) c *= 2; return c; }
+function lightCost(run) { let c = 7; const rh = relicHooks(run); if (rh.lightSave) c *= 1 - rh.lightSave; if (run.oaths.includes("nuit")) c *= 2; if (rh.lightDrain) c *= 2; if (run.night) c *= 1.3; return c; }
 function enterNode(run, node) {
   run.pos = { c: node.c, i: node.i };
   run.light = clamp(run.light - lightCost(run), 0, 100);
@@ -61,7 +61,7 @@ function resolveEvent(run, evId, ci) {
     if (f.gold) { run.gold += f.gold; out.text.push("+" + f.gold + " or"); }
     if (f.hurt) { for (const h of party) { const mx = heroStats(h, relicHooks(run)).hp; h.hp = Math.max(1, Math.round((h.hp == null ? mx : h.hp) - mx * f.hurt)); } out.text.push("Le groupe est blessé."); }
     if (f.heal) { healParty(run, f.heal); out.text.push("Le groupe reprend des forces."); }
-    if (f.relic) { const r = randRelic(run); if (r) { run.relics.push(r); out.text.push("Relique obtenue : " + RELICS[r].n); out.relic = r; } }
+    if (f.relic) { const r = randRelic(run); if (r) { addRelic(run, r); out.text.push("Relique obtenue : " + RELICS[r].n); out.relic = r; } }
     if (f.loot) { const it = lootGear(runLevel(run, null) + 1, .05); run.loot.push(it); out.text.push("Butin : " + gearName(it)); out.item = it; }
     if (f.trinket) { const it = makeGear("tr", null, 1, rollRarity(.05)); run.loot.push(it); out.text.push("Bibelot : " + gearName(it)); out.item = it; }
     if (f.mat) { run.mats.fer += f.mat; out.text.push("+" + f.mat + " ferraille"); }
@@ -108,7 +108,7 @@ function shopBuy(run, node, idx) {
   if (o.k === "potion") run.potions++;
   if (o.k === "heal") healParty(run, .35);
   if (o.k === "light") run.light = clamp(run.light + 40, 0, 100);
-  if (o.k === "relic") run.relics.push(o.id);
+  if (o.k === "relic") addRelic(run, o.id);
   if (o.k === "item") run.loot.push(o.it);
   return true;
 }
@@ -128,6 +128,7 @@ function doCamp(run, k) {
 function battleFor(run, node, enc) {
   const party = runParty().filter(h => !run.fallen.includes(h.id));
   const D = diffOf(), mods = { hp: D.hp, dmg: D.dmg * (1 + (run.curse || 0) * .1), prot: 0, spd: 0 };
+  if (run.night) { mods.hp *= 1.15; mods.dmg *= 1.15; } // expédition de nuit
   if (run.region === "abime") { mods.hp *= 1 + run.floor * .04; mods.dmg *= 1 + run.floor * .025; }
   for (const o of run.oaths) { if (o === "sang") mods.dmg *= 1 + OATHS.sang.v; if (o === "fer") mods.hp *= 1 + OATHS.fer.v; if (o === "hate") mods.spd += OATHS.hate.v; if (o === "pierre") mods.prot += OATHS.pierre.v; }
   const rh = relicHooks(run);
@@ -163,7 +164,7 @@ function afterBattle(run, B) {
 // une potion : soigne 40 % et purge (utilisée à la place d'une action)
 function usePotion(B, run, u, tgt) {
   if (run.potions <= 0) return null;
-  run.potions--;
+  run.potions--; run.potionsUsed = (run.potionsUsed || 0) + 1;
   const ev = [{ k: "act", u: u.uid, sk: "Potion", anim: "potion", tgt: tgt.uid, t: "a" }];
   healUnit(B, null, tgt, tgt.hpMax * .4, ev); cleanse(tgt, ev);
   return ev;

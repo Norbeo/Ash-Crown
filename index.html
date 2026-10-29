@@ -194,6 +194,7 @@ p{margin:6px 0;line-height:1.45}
 @media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
 ::-webkit-scrollbar{width:8px}::-webkit-scrollbar-thumb{background:#3a2a22;border-radius:4px}::-webkit-scrollbar-track{background:transparent}
 #modal .scnbox{max-height:55vh;overflow:auto}.scn{margin:8px 0;line-height:1.35}
+#cb-ord{position:absolute;left:50%;transform:translateX(-50%);top:calc(env(safe-area-inset-top) + 52px);z-index:6;pointer-events:none}.cbord{display:flex;gap:3px}.cbord span{font-size:10px;padding:2px 5px;border-radius:3px;background:#000b;border:1px solid #ffffff22;color:#d8c8a8;white-space:nowrap}.cbord span.h{border-color:#4a7a3a}.cbord span.e{border-color:#8a2a2a;color:#ffb0a0}.cbord span.now{outline:1px solid #e8c878;color:#ffe08a}
 #cbinfo{position:fixed;z-index:60;background:linear-gradient(#1c1410f2,#0c0806f5);border:1px solid #6a4a2a;border-radius:6px;padding:9px 11px;box-shadow:0 6px 24px #000c;color:var(--txt);font-size:14px;max-height:70vh;overflow:auto}
 #cbinfo .cbi-st{display:flex;gap:8px;align-items:flex-start;margin-top:6px}#cbinfo .cbi-ic{flex:0 0 26px;height:26px;border:1px solid;border-radius:50%;display:flex;align-items:center;justify-content:center;background:#000a}
 #cbinfo .cbi-int{margin-top:6px;padding-top:6px;border-top:1px solid #ffffff14}
@@ -926,6 +927,10 @@ REGIONS.push({ id: "terres", n: "Les Terres Brûlées", sub: "Chapitre VI", lvl:
   d: "Au-delà de la Citadelle, la terre brûle encore. Le Cardinal y emporte les fragments volés.", sky: ["#1a0806", "#4a1a0a"], fog: "#d0602a", accent: "#ff6a3a" });
 ABYSS.lvl = 30;
 const THREAT_BOSS = { 1: "sans_visage", 2: "matrone_os", 3: "devoreur_lumiere", 4: "archonte_cendres" };
+
+// gardiens à mécaniques : invocation de renforts (une place libre, 3 fois par combat au plus)
+const BOSS_SUMMON = { docteur_peste: ["Appel de la vermine", ["rat", "pestifere"]], liche: ["Réveil des moines", ["squelette", "moine_flagellant"]], mere_ronces: ["Les pendus descendent", ["pendu", "araignee"]], reine_sabbat: ["Le sabbat s'assemble", ["sorciere_marais", "noye"]], matrone_os: ["Enfants des tombes", ["squelette", "archer_os"]], cardinal: ["Fidèles ardents", ["penitent_ardent", "pretre_suie"]], sans_nom: ["Ce qui rampe en dessous", ["horreur", "oeil"]], roi_cendres: ["Garde royale", ["chevalier_dechu"]] };
+for (const k in BOSS_SUMMON) if (MONSTERS[k]) MONSTERS[k].sk.push({ n: BOSS_SUMMON[k][0], t: "self", summon: BOSS_SUMMON[k][1].filter(m => MONSTERS[m]), cd: 3, w: .7 });
 /* ═══════════════════════ Compagnons supplémentaires (×3) ═══════════════════════
    Chaque compagnon suit un modèle par rôle, avec sa propre altération. */
 const PET_MORE = [
@@ -1555,7 +1560,8 @@ function heroPassives(h) {
   for (const s of ["tr1", "tr2"]) { const it = h.gear[s]; if (it && TRINKETS[it.key]) out.push(...TRINKETS[it.key].pas); }
   if (h.mark && typeof GUARD_MARKS !== "undefined" && GUARD_MARKS[h.mark]) out.push(...GUARD_MARKS[h.mark].pas); // marque d'un gardien vaincu
   if (h.affl && typeof AFFLICTIONS !== "undefined" && AFFLICTIONS[h.affl]) out.push(...AFFLICTIONS[h.affl].pas); // stress : affliction ou vertu
-  if (h.talents && typeof talentPas === "function") out.push(...talentPas(h)); // arbre de talents (après le niveau 15)
+  if (h.talents && typeof talentPas === "function") out.push(...talentPas(h));
+  if (h.vet && typeof VET_TITLES !== "undefined" && VET_TITLES[h.vet]) out.push(...VET_TITLES[h.vet].pas); // titre de vétéran // arbre de talents (après le niveau 15)
   return out;
 }
 
@@ -1791,6 +1797,7 @@ function act(B, u, sk, tgt) {
   const rk = 1 + .1 * ((sk.rank || 1) - 1);
   ev.push({ k: "act", u: u.uid, sk: sk.n, ult: !!sk.isUlt, anim: skillAnim(u, sk), tgt: tgt && tgt.uid, t });
   B.curSk = sk.n;
+  if (sk.summon && u.side === "e") { const k = Array.isArray(sk.summon) ? sk.summon[Math.floor(Math.random() * sk.summon.length)] : sk.summon; if (MONSTERS[k]) { const m = monUnit(k, Math.max(1, (u.lvl || 1) - 1), B.opt.mods || {}); B.enemies.push(m); B.summoned = (B.summoned || 0) + 1; ev.push({ k: "summon", u: m.uid, src: u.uid }); } if (sk.cd) u.cds[sk.id] = sk.cd + 1; return ev; }
   if (sk.isUlt) u.ultV = 0; else { gainUlt(u, 18); if (sk.cd) u.cds[sk.id] = sk.cd + 1; }
   if (sk.selfDmg) { const d = Math.min(u.hp - 1, Math.round(u.hpMax * sk.selfDmg)); if (d > 0) { u.hp -= d; ev.push({ k: "hit", u: u.uid, dmg: d, self: 1 }); } }
   // cibles
@@ -2052,6 +2059,7 @@ function chooseEnemyAction(B, e) {
   const opts = e.skills.filter(sk => {
     if (e.cds[sk.id] > 0) return false;
     const t = sk.t || "e";
+    if (sk.summon) return B.enemies.filter(alive).reduce((a, x) => a + (x.sz || 1), 0) <= 3 && !(B.summoned >= 3); // invocation : une place libre, 3 fois max
     if (t === "allies") return hurtAlly;
     if (t === "self") return !(sk.sfx || []).every(f => hasSt(e, f.k)) || (sk.heal && e.hp / e.hpMax < .7);
     return validTargets(B, e, sk).length > 0;
@@ -2181,6 +2189,7 @@ function startRun(regionId, partyIds, petId, opt = {}) {
   const run = { region: regionId, seed, party: partyIds.slice(), pet: petId, floor: abyss ? (opt.floor || 1) : 0, map: genMap(rng, abyss ? 6 : 9, { elite: oaths.includes("elite") }), pos: null,
     light: 100, relics: (opt.relics || []).slice(), potions: potionMax() - (oaths.includes("jeune") ? 1 : 0), gold: 0, loot: [], mats: { fer: 0, essence: 0, cendre: 0 }, shards: 0,
     kills: 0, fallen: [], oaths, week: opt.week ? S.week.rule : null, daily: !!opt.daily, threat: opt.threat || 0, startedAt: Date.now(), xpGain: {}, flawless: true, combats: 0, log: [] };
+  if (opt.night) { run.night = 1; run.light = 60; run.flags = (run.flags || []).concat(["nuit"]); } // expédition de nuit : moins de lueur, ennemis plus forts, meilleur butin
   S.run = run;
   if (run.week) { const W = weekRule(); if (W.light != null) run.light = W.light; if (W.potions != null) run.potions = W.potions === 0 ? 0 : run.potions * W.potions; }
   for (const id of partyIds) { const h = heroById(id); h.hp = isInjured(h) ? Math.round(heroStats(h).hp * .5) : null; }
@@ -2197,6 +2206,7 @@ function relicHooks(run = S.run) {
   const H = {};
   for (const k of (run ? run.relics : [])) { const R = RELICS[k]; if (!R) continue; for (const h in R.h) H[h] = (H[h] || 0) + R.h[h]; }
   for (const k of (run ? runSynergies(run) : [])) { const Y = SYNERGIES[k]; for (const h in Y.h) H[h] = (H[h] || 0) + Y.h[h]; }
+  const duo = typeof petDuo === "function" ? petDuo(run) : null; if (duo) for (const h in duo.h) H[h] = (H[h] || 0) + duo.h[h]; // compagnon en duo
   return H;
 }
 function runLevel(run, node) {
@@ -2263,7 +2273,7 @@ function genEncounter0(run, node, rng = RNG) {
 
 // ── récompenses ──
 function rewardFor(run, node, rng = RNG) {
-  const lvl = runLevel(run, node), rh = relicHooks(run), luck0 = run.light < 30 ? .05 : 0; let luck = luck0;
+  const lvl = runLevel(run, node), rh = relicHooks(run), luck0 = (run.light < 30 ? .05 : 0) + (run.night ? .08 : 0); let luck = luck0;
   const goldM = 1 + (rh.gold || 0) + run.party.map(heroById).filter(Boolean).reduce((a, h) => a + heroPassives(h).filter(p => p.k === "gold").reduce((b, p) => b + p.v, 0), 0) + (run.pet && PETS[run.pet].gold ? PETS[run.pet].gold : 0) + (run.daily ? .25 : 0) + run.oaths.length * .15 + run.threat * .3;
   const R = { gold: 0, xp: 0, loot: [], relic: null, mats: { fer: 0, essence: 0, cendre: 0 }, shards: 0, petXp: 0 };
   const t = node.type;
@@ -2278,7 +2288,7 @@ function rewardFor(run, node, rng = RNG) {
     R.loot.push(lootGear(lvl + 3, .25, null, 2)); if (rng.chance(.5)) R.loot.push(lootGear(lvl + 2, .2, null, 2)); // gardien : rare au minimum
     R.shards = first ? 3 : 1 + (run.region === "abime" && run.floor % 3 === 0 ? 1 : 0) + Math.floor(run.oaths.length / 3); R.relic = randRelic(run, rng, 2);
   }
-  R.gold = Math.round(R.gold * goldM * diffOf().gold); R.xp = Math.round(R.xp * (1 + run.threat * .2) * diffOf().xp); R.petXp = Math.round(R.xp * .8);
+  R.gold = Math.round(R.gold * goldM * diffOf().gold * (run.night ? 1.35 : 1)); R.xp = Math.round(R.xp * (1 + run.threat * .2) * diffOf().xp); R.petXp = Math.round(R.xp * .8);
   R.tome = t === "boss" ? 1 : t === "elite" ? (rng.chance(.22) ? 1 : 0) : t === "treasure" ? (rng.chance(.14) ? 1 : 0) : 0; // tome d'expérience
   return R;
 }
@@ -2289,7 +2299,7 @@ function randRelic(run, rng = RNG, minR = 0) {
 function grantReward(run, R) {
   run.gold += R.gold; for (const m in R.mats) run.mats[m] += R.mats[m]; run.shards += R.shards;
   for (const it of R.loot) run.loot.push(it);
-  if (R.relic) run.relics.push(R.relic);
+  if (R.relic) addRelic(run, R.relic);
   if (R.tome) S.tomes = (S.tomes || 0) + R.tome;
   const ups = [];
   if (R.xp) for (const h of runParty()) { if (run.fallen.includes(h.id)) continue; const u = giveXp(h, R.xp); if (u) ups.push(h); }
@@ -2361,7 +2371,7 @@ function endRun(outcome) {
     }
     h.hp = null;
   }
-  if (S.opts.hardcore) { const dead = S.heroes.filter(h => h.dead); S.stats.deaths += dead.length; S.graves = (S.graves || []).concat(dead.map(h => ({ name: h.name, cls: h.cls, lvl: h.lvl, at: Date.now() }))); S.heroes = S.heroes.filter(h => !h.dead); }
+  if (S.opts.hardcore) { const dead = S.heroes.filter(h => h.dead); S.stats.deaths += dead.length; for (const h of dead) engrave(h, "Tombé dans « " + regionById(run.region).n + " »", run); S.heroes = S.heroes.filter(h => !h.dead); }
   if (run.flawless && outcome === "victory") S.stats.flawless++;
   if (run.daily && outcome === "victory") { S.daily.done = 1; S.stats.daily++; }
   if (run.week && outcome === "victory" && S.week && !S.week.done) { const W = weekReward(); S.week.done = 1; res.week = W; S.gold += W.gold; S.shards += W.shards; S.mats.essence += W.essence; S.stats.weeks = (S.stats.weeks || 0) + 1; }
@@ -2441,7 +2451,7 @@ function checkAchievements() {
   return out;
 }
 /* ═══════════════════════ Salles : événements, camp, colporteur, combats ═══════════════════════ */
-function lightCost(run) { let c = 7; const rh = relicHooks(run); if (rh.lightSave) c *= 1 - rh.lightSave; if (run.oaths.includes("nuit")) c *= 2; return c; }
+function lightCost(run) { let c = 7; const rh = relicHooks(run); if (rh.lightSave) c *= 1 - rh.lightSave; if (run.oaths.includes("nuit")) c *= 2; if (rh.lightDrain) c *= 2; if (run.night) c *= 1.3; return c; }
 function enterNode(run, node) {
   run.pos = { c: node.c, i: node.i };
   run.light = clamp(run.light - lightCost(run), 0, 100);
@@ -2503,7 +2513,7 @@ function resolveEvent(run, evId, ci) {
     if (f.gold) { run.gold += f.gold; out.text.push("+" + f.gold + " or"); }
     if (f.hurt) { for (const h of party) { const mx = heroStats(h, relicHooks(run)).hp; h.hp = Math.max(1, Math.round((h.hp == null ? mx : h.hp) - mx * f.hurt)); } out.text.push("Le groupe est blessé."); }
     if (f.heal) { healParty(run, f.heal); out.text.push("Le groupe reprend des forces."); }
-    if (f.relic) { const r = randRelic(run); if (r) { run.relics.push(r); out.text.push("Relique obtenue : " + RELICS[r].n); out.relic = r; } }
+    if (f.relic) { const r = randRelic(run); if (r) { addRelic(run, r); out.text.push("Relique obtenue : " + RELICS[r].n); out.relic = r; } }
     if (f.loot) { const it = lootGear(runLevel(run, null) + 1, .05); run.loot.push(it); out.text.push("Butin : " + gearName(it)); out.item = it; }
     if (f.trinket) { const it = makeGear("tr", null, 1, rollRarity(.05)); run.loot.push(it); out.text.push("Bibelot : " + gearName(it)); out.item = it; }
     if (f.mat) { run.mats.fer += f.mat; out.text.push("+" + f.mat + " ferraille"); }
@@ -2550,7 +2560,7 @@ function shopBuy(run, node, idx) {
   if (o.k === "potion") run.potions++;
   if (o.k === "heal") healParty(run, .35);
   if (o.k === "light") run.light = clamp(run.light + 40, 0, 100);
-  if (o.k === "relic") run.relics.push(o.id);
+  if (o.k === "relic") addRelic(run, o.id);
   if (o.k === "item") run.loot.push(o.it);
   return true;
 }
@@ -2570,6 +2580,7 @@ function doCamp(run, k) {
 function battleFor(run, node, enc) {
   const party = runParty().filter(h => !run.fallen.includes(h.id));
   const D = diffOf(), mods = { hp: D.hp, dmg: D.dmg * (1 + (run.curse || 0) * .1), prot: 0, spd: 0 };
+  if (run.night) { mods.hp *= 1.15; mods.dmg *= 1.15; } // expédition de nuit
   if (run.region === "abime") { mods.hp *= 1 + run.floor * .04; mods.dmg *= 1 + run.floor * .025; }
   for (const o of run.oaths) { if (o === "sang") mods.dmg *= 1 + OATHS.sang.v; if (o === "fer") mods.hp *= 1 + OATHS.fer.v; if (o === "hate") mods.spd += OATHS.hate.v; if (o === "pierre") mods.prot += OATHS.pierre.v; }
   const rh = relicHooks(run);
@@ -2605,7 +2616,7 @@ function afterBattle(run, B) {
 // une potion : soigne 40 % et purge (utilisée à la place d'une action)
 function usePotion(B, run, u, tgt) {
   if (run.potions <= 0) return null;
-  run.potions--;
+  run.potions--; run.potionsUsed = (run.potionsUsed || 0) + 1;
   const ev = [{ k: "act", u: u.uid, sk: "Potion", anim: "potion", tgt: tgt.uid, t: "a" }];
   healUnit(B, null, tgt, tgt.hpMax * .4, ev); cleanse(tgt, ev);
   return ev;
@@ -2710,6 +2721,99 @@ function advXp() { const st = S.stats || {}; return (st.wins || 0) + (st.runs ||
 function advLevel() { return 1 + Math.floor(Math.sqrt(advXp() / 3)); }
 function advNext() { const l = advLevel(); return { l, cur: advXp() - 3 * (l - 1) * (l - 1), need: 3 * l * l - 3 * (l - 1) * (l - 1) }; }
 const bldAdvReq = k => Math.max(1, S.bld[k] * 3);
+/* ═══════════════════════ Extensions II : reliques maudites, vétérans, mémorial, nuit, marchand, tenues, duos, succès cachés ═══════════════════════ */
+// ── Reliques maudites : puissantes, mais avec un prix ──
+Object.assign(RELICS, {
+  coeur_noir: { n: "Cœur noir", r: 2, cursed: 1, d: "+25 % de dégâts. Malédiction : −1 potion.", h: { dmg: .25 }, onGet: run => { run.potions = Math.max(0, run.potions - 1); } },
+  lanterne_avide: { n: "Lanterne avide", r: 2, cursed: 1, d: "+30 % d'or et +10 % de critique. Malédiction : la lueur baisse deux fois plus vite.", h: { gold: .3, crit: 10, lightDrain: 1 } },
+  sang_impur: { n: "Sang impur", r: 2, cursed: 1, d: "+12 % de vol de vie. Malédiction : −12 % de PV maximum.", h: { leech: .12, hp: -.12 } },
+  couronne_epines: { n: "Couronne d'épines", r: 2, cursed: 1, d: "30 % des dégâts de mêlée renvoyés. Malédiction : −25 % de soins reçus.", h: { thorns: .3, heal: -.25 } },
+  oeil_fou: { n: "Œil du fou", r: 2, cursed: 1, d: "+3 de vitesse et +15 % de dégâts. Malédiction : −20 de résolution au début des combats.", h: { spd: 3, dmg: .15, morale: -20 } },
+  pacte_sang: { n: "Pacte de sang", r: 2, cursed: 1, d: "Les ennemis commencent affaiblis et un héros tombé se relève une fois. Malédiction : −1 potion et −8 % de protection.", h: { startWeak: 1, revive: .3, prot: -.08 }, onGet: run => { run.potions = Math.max(0, run.potions - 1); } },
+});
+function addRelic(run, k) { if (!k || !RELICS[k]) return; run.relics.push(k); if (RELICS[k].onGet) RELICS[k].onGet(run); }
+
+// ── Héros vétérans : un titre après 10 expéditions, selon ce qu'il a accompli ──
+const VET_TITLES = {
+  boucher: { n: "le Boucher", d: "+6 % de dégâts.", pas: [{ k: "stat", s: "dmg", v: .06 }], test: h => (h.kills || 0) >= 80 },
+  main_sainte: { n: "la Main sainte", d: "+12 % de soins prodigués.", pas: [{ k: "stat", s: "healPow", v: .12 }], test: h => CLASSES[h.cls].role === "soin" },
+  roc: { n: "le Roc", d: "+8 % de PV et +3 % de protection.", pas: [{ k: "stat", s: "hp", v: .08 }, { k: "stat", s: "prot", v: .03 }], test: h => CLASSES[h.cls].role === "tank" },
+  voix: { n: "la Voix", d: "+10 de résistance et +1 de vitesse.", pas: [{ k: "stat", s: "res", v: 10 }, { k: "stat", s: "spd", v: 1 }], test: h => CLASSES[h.cls].role === "soutien" },
+  survivant: { n: "le Survivant", d: "+10 % de PV.", pas: [{ k: "stat", s: "hp", v: .1 }], test: () => true },
+};
+function vetCheck(h, run) {
+  if (h.vet || (h.runs || 0) < 10) return null;
+  const k = Object.keys(VET_TITLES).find(t => VET_TITLES[t].test(h)) || "survivant";
+  const R = regionById(run.region); h.vet = k; h.vetOf = R ? R.n.replace(/^(Le |La |Les |L')/, "") : "";
+  return k;
+}
+const vetTitle = h => h.vet ? `${VET_TITLES[h.vet].n}${h.vetOf ? " de " + h.vetOf : ""}` : "";
+
+// ── Mémorial : épitaphe et exploits des héros morts ou partis ──
+const EPITAPHS = ["Il n'a jamais reculé.", "Elle a tenu jusqu'au bout.", "La Cendre l'a pris, pas sa mémoire.", "Mort debout.", "Il riait encore en tombant.", "Que la lumière lui soit douce.", "Le Bastion se souvient.", "Il a payé pour les autres."];
+function engrave(h, cause, run) {
+  (S.graves = S.graves || []).push({ name: h.name, cls: h.cls, lvl: h.lvl, at: Date.now(), cause, kills: h.kills || 0, runs: h.runs || 0, title: vetTitle(h), where: run ? regionById(run.region).n : "", epi: pick(EPITAPHS) });
+}
+
+// ── Marchand ambulant au Bastion : une boutique par jour, un objet de haute qualité garanti ──
+function merchantStock() {
+  const d = S.daily; if (d.merchant && d.merchant.key === d.key) return d.merchant;
+  const top = Math.max(1, ...S.heroes.map(h => h.lvl)), items = [];
+  for (let i = 0; i < 3; i++) items.push(lootGear(top + i, .05 + i * .05));
+  const best = lootGear(top + 2, .3, null, 4); items.push(best);
+  d.merchant = { key: d.key, items: items.map(it => ({ it, cost: Math.round((90 + it.tier * 60 + it.rar * it.rar * 70) * 1.2), sold: 0 })) };
+  return d.merchant;
+}
+function merchantBuy(i) { const M = merchantStock(), o = M.items[i]; if (!o || o.sold) return { err: "Déjà vendu." }; if (S.gold < o.cost) return { err: "Pas assez d'or." }; S.gold -= o.cost; o.sold = 1; S.inv.push(o.it); return { ok: o.it }; }
+
+// ── Tenues alternatives : une teinte d'armure, débloquée par les défis de classe ──
+const OUTFITS = [{ k: "", n: "Tenue d'origine", need: 0 }, { k: "deuil", n: "Tenue de deuil", need: 3, tint: "rgba(40,45,80,.35)" }, { k: "sang", n: "Tenue écarlate", need: 10, tint: "rgba(150,20,20,.26)" }, { k: "cendre", n: "Tenue de cendre", need: 25, tint: "rgba(140,135,128,.5)" }];
+const outfitOk = (h, k) => { const O = OUTFITS.find(o => o.k === k); return O && ((S.classWins || {})[h.cls] || 0) >= O.need; };
+
+// ── Compagnons en duo : bonus quand le compagnon s'entend avec une classe du groupe ──
+const PET_DUOS = {
+  loup: { cls: ["berserker", "chasseur_sorcieres"], h: { dmg: .08 }, d: "+8 % de dégâts" }, corbeau: { cls: ["necromancien", "ombre"], h: { markDmg: .15 }, d: "+15 % sur les cibles marquées" },
+  chouette: { cls: ["pretresse", "exorciste"], h: { heal: .12 }, d: "+12 % de soins" }, molosse: { cls: ["templier", "revenant"], h: { prot: .05 }, d: "+5 % de protection" },
+  renard: { cls: ["ombre", "arbaletriere"], h: { crit: 6 }, d: "+6 % de critique" }, ours: { cls: ["gardien_runes", "hallebardier"], h: { hp: .08 }, d: "+8 % de PV" },
+  cerf: { cls: ["sorciere", "medecin_peste"], h: { roundHeal: .015 }, d: "1,5 % de PV rendus par tour" }, vipere: { cls: ["medecin_peste", "sorciere"], h: { poisonT: 1 }, d: "poisons prolongés" },
+  salamandre: { cls: ["pyromancien"], h: { burnT: 1 }, d: "brûlures prolongées" }, chauve_souris: { cls: ["revenant", "necromancien"], h: { leech: .05 }, d: "+5 % de vol de vie" },
+  feu_follet: { cls: ["menestrel", "pretresse"], h: { morale: 10 }, d: "+10 de résolution" }, gargouille: { cls: ["templier", "gardien_runes"], h: { thorns: .1 }, d: "10 % des dégâts renvoyés" },
+  belette: { cls: ["ombre", "berserker"], h: { bleedT: 1 }, d: "saignements prolongés" },
+};
+function petDuo(run) { const D = run && run.pet && PET_DUOS[run.pet]; if (!D) return null; const cl = run.party.map(id => { const h = heroById(id); return h && h.cls; }); return D.cls.some(c => cl.includes(c)) ? D : null; }
+
+// ── Succès cachés ──
+const HIDDEN_ACH = [
+  { id: "sans_soin", n: "Sans prières", d: "Vaincre un gardien de chapitre sans soigneur dans le groupe.", gold: 400, shards: 2 },
+  { id: "sans_potion", n: "Abstinence", d: "Terminer un chapitre sans boire une seule potion.", gold: 400, shards: 2 },
+  { id: "solitaire", n: "Le dernier debout", d: "Vaincre un gardien avec un seul héros encore en vie.", gold: 500, shards: 3 },
+  { id: "intact", n: "Sans une égratignure", d: "Vaincre un gardien sans qu'aucun héros ne tombe à l'agonie.", gold: 400, shards: 2 },
+  { id: "nuit_noire", n: "Enfant de la nuit", d: "Terminer une expédition de nuit.", gold: 350, shards: 2 },
+  { id: "maudit", n: "Collectionneur de malédictions", d: "Terminer une expédition avec trois reliques maudites.", gold: 500, shards: 3 },
+];
+function hiddenAch(id) { S.ach = S.ach || {}; if (S.ach[id]) return null; const A = HIDDEN_ACH.find(a => a.id === id); if (!A) return null; S.ach[id] = Date.now(); S.gold += A.gold || 0; S.shards += A.shards || 0; return A; }
+function hiddenEndRun(run, outcome, res) {
+  const got = [], party = run.party.map(heroById).filter(Boolean), roles = party.map(h => CLASSES[h.cls].role);
+  if (outcome === "victory" && !run.rush) {
+    if (!roles.includes("soin")) got.push(hiddenAch("sans_soin"));
+    if (!run.potionsUsed && run.region !== "abime") got.push(hiddenAch("sans_potion"));
+    if (party.filter(h => !run.fallen.includes(h.id)).length === 1) got.push(hiddenAch("solitaire"));
+    if (!run.agonies) got.push(hiddenAch("intact"));
+  }
+  if (outcome !== "wipe" && run.night) got.push(hiddenAch("nuit_noire"));
+  if (outcome !== "wipe" && run.relics.filter(k => RELICS[k] && RELICS[k].cursed).length >= 3) got.push(hiddenAch("maudit"));
+  res.hidden = got.filter(Boolean);
+  // vétérans
+  res.vets = party.map(h => vetCheck(h, run) ? { name: h.name, t: vetTitle(h), d: VET_TITLES[h.vet].d } : null).filter(Boolean);
+}
+
+// ── Événements de nuit (seulement en expédition de nuit) ──
+EVENTS.push(
+  { id: "n_lune", need: "nuit", n: "La lune rouge", t: "La lune se lève, rouge comme une plaie. Dans sa lumière, les morts dansent au loin.", ch: [{ n: "Les rejoindre un instant", fx: { gamble: [.5, { relic: 1, morale: 10 }, { hurt: .15, curse: 1 }] } }, { n: "Se cacher jusqu'à l'aube", fx: { light: -10, heal: .1 } }] },
+  { id: "n_chasse", need: "nuit", n: "La chasse sauvage", t: "Des cors résonnent dans le ciel. Une meute de cavaliers spectraux passe au-dessus de vous.", ch: [{ n: "Les défier", fx: { fight: 1, loot: 1 } }, { n: "Se jeter au sol", fx: { morale: -10 } }] },
+  { id: "n_lanterne", need: "nuit", n: "Le porteur de lanterne", t: "Un vieillard sans visage tend une lanterne. « Elle brûle avec ce que tu lui donnes. »", ch: [{ n: "Lui donner de l'or (100)", fx: { cost: 100, light: 40 } }, { n: "Lui donner du sang", fx: { hurt: .1, light: 30, relic: 1 } }, { n: "Refuser", fx: {} }] },
+  { id: "n_veillee", need: "nuit", n: "La veillée des pendus", t: "Des cordes pendent d'un arbre noir. Aux pieds des pendus, des offrandes encore fraîches.", ch: [{ n: "Prendre les offrandes", fx: { gold: 160, curse: 1 } }, { n: "Prier pour eux", fx: { morale: 15, xp: 40 } }] },
+);
 /* ═══════════════════════ Extensions : quêtes, marques, saisons, boss rush, reliques vues ═══════════════════════ */
 
 // ── Reliques découvertes (codex) ──
@@ -2795,6 +2899,7 @@ function startRush(partyIds, petId) {
 // ── fin d'expédition : quêtes, marques, saison, rush ──
 function extrasEndRun(run, outcome, res) {
   seeRelics(run);
+  if (typeof hiddenEndRun === "function") hiddenEndRun(run, outcome, res);
   if (outcome === "victory" && !run.rush) res.classCh = classChallengeTick(run);
   for (const h of run.party.map(heroById).filter(Boolean)) if (outcome !== "wipe") h.stress = Math.max(0, (h.stress || 0) - 10);
   const party = run.party.map(heroById).filter(Boolean), done = run.questsDone || [];
@@ -2827,6 +2932,7 @@ const AFFLICTIONS = {
   vigilant: { n: "Vigilant", d: "Vertu : +2 de vitesse, +8 d'esquive.", pas: [{ k: "stat", s: "spd", v: 2 }, { k: "stat", s: "dodge", v: 8 }] },
 };
 function stressAfterBattle(run, B) {
+  run.agonies = (run.agonies || 0) + [...B.heroes, ...B.fallen].reduce((a, u) => a + (u.agonyN || 0), 0);
   const fallen = B.fallen.length, long = B.round > 10 ? 10 : 0; run.stressLog = [];
   for (const u of [...B.heroes, ...B.fallen]) { const h = heroById(u.hid); if (!h) continue;
     const add = (u.agonyN || 0) * 22 + fallen * 12 + long + (u.hp > 0 && u.hp / u.hpMax < .25 ? 8 : 0) + ([...B.enemies, ...(B.dead || [])].some(e => e.boss) ? 6 : 2);
@@ -2886,7 +2992,7 @@ const STANCE = {
 function heroLook(h) {
   const wt = h.gear && h.gear.wpn ? h.gear.wpn.tier : 1, at = h.gear && h.gear.arm ? h.gear.arm.tier : 1;
   const rar = Math.max(h.gear && h.gear.arm ? h.gear.arm.rar : 0, h.gear && h.gear.wpn ? h.gear.wpn.rar : 0);
-  return { cls: h.cls, tier: at, wtier: wt, rar, evo: h.evo, apex: h.lvl >= APEX_LVL && !!h.evo, female: h.female, skin: h.look.skin, hair: h.look.hair, hairCol: h.look.hairCol, beard: h.female ? -1 : h.look.beard, scar: h.look.scar, key: [h.cls, at, wt, h.evo, h.female ? 1 : 0, h.look.hair, h.look.beard, h.look.skin, h.look.hairCol, h.lvl >= APEX_LVL ? 1 : 0].join("|") };
+  return { cls: h.cls, tier: at, wtier: wt, rar, evo: h.evo, apex: h.lvl >= APEX_LVL && !!h.evo, female: h.female, skin: h.look.skin, hair: h.look.hair, hairCol: h.look.hairCol, beard: h.female ? -1 : h.look.beard, scar: h.look.scar, tint: h.outfit && typeof OUTFITS !== "undefined" ? (OUTFITS.find(o => o.k === h.outfit) || {}).tint || null : null, key: [h.outfit || "", h.cls, at, wt, h.evo, h.female ? 1 : 0, h.look.hair, h.look.beard, h.look.skin, h.look.hairCol, h.lvl >= APEX_LVL ? 1 : 0].join("|") };
 }
 function rotatedCopy(src, ang, W, H) { W = H = Math.ceil(Math.hypot(src.width, src.height)); const cv = mkCanvas(W, H), x = cv.getContext("2d"); x.translate(W / 2, H / 2); x.rotate(ang); x.drawImage(src, -src.width / 2, -src.height / 2); return cv; }
 function blankSprite(w, h, sc) { const cv = mkCanvas(Math.ceil(w * sc), Math.ceil(h * sc)); cv.ax = cv.width / 2; cv.ay = cv.height - 22 * sc; cv.sc = sc; cv.blank = 1; return cv; }
@@ -3038,6 +3144,7 @@ function imgSprite(im, o) {
   x.save(); x.translate(ax + dx, ay + dy); x.rotate(rot); x.scale(sx * (o.flip ? -1 : 1), sy);
   x.drawImage(im, -iw / 2, -ih, iw, ih);
   x.restore();
+  if (o.hue) { const cp = document.createElement("canvas"); cp.width = W; cp.height = H; cp.getContext("2d").drawImage(x.canvas, 0, 0); x.save(); x.globalCompositeOperation = "color"; x.fillStyle = o.hue; x.fillRect(0, 0, W, H); x.globalCompositeOperation = "destination-in"; x.drawImage(cp, 0, 0); x.restore(); } // tenue : recoloration qui garde les ombres
   if (o.tint) { x.save(); x.globalCompositeOperation = "source-atop"; x.fillStyle = o.tint; x.fillRect(0, 0, W, H); x.restore(); }
   cv.ax = ax; cv.ay = ay; cv.sc = sc; cv.art = 1; return cv;
 }
@@ -3057,7 +3164,7 @@ function heroImgSprite(L, pose, sc, o = {}) {
   const hurt = pose.lean < -.25 && pose.hx < 0, agony = pose.hy > 15;
   const nm = heroArtName(L), evoArt = nm.indexOf("_t") < 0 || !/_t\d$/.test(nm);
   return imgSprite(im, { sc, h: 182, maxW: 260, top: ART_META[nm] || ART_META["hero_" + L.cls + "_t3"] || 0, flip: ART_FLIP.has(nm), aura: evoArt && !L.apex ? null : evoAura(L), auraA: L.apex ? .45 : .28,
-    pose: Object.assign({}, pose, { agony, cast: pose.free || pose.aBs > 1.5 }), tint: o.tint || (agony ? "rgba(70,8,8,.38)" : hurt ? "rgba(160,20,20,.16)" : null) });
+    pose: Object.assign({}, pose, { agony, cast: pose.free || pose.aBs > 1.5 }), tint: o.tint || (agony ? "rgba(70,8,8,.38)" : hurt ? "rgba(160,20,20,.16)" : null), hue: L.tint || null });
 }
 function monImgSprite(key, pose, sc) {
   const M = MONSTERS[key] || {}, n = "mon_" + (M.art || key), im = artImg(n); if (!im) return null;
@@ -3751,6 +3858,7 @@ SCREENS.bastion = {
     if (UI.hideDaily == null) UI.hideDaily = (SC.w || innerWidth) < (SC.h || innerHeight);
     return `${L.map(b => { const hh = b.s * (b.k === "porte" ? 1.62 : b.k === "academie" ? 2.0 : b.k === "chapelle" ? 1.9 : 1.3); return `<button class="hot" style="left:${b.x}px;top:${b.y - off - hh}px;width:${b.s * 1.3}px;height:${hh}px" data-a="bld" data-v="${b.k}"><span class="lbl">${note(b.k) ? '<i class="dotn"></i>' : ""}${names[b.k]}${b.k !== "porte" ? ` <b>${"I II III IV V VI".split(" ")[S.bld[b.k] - 1]}</b>` : ""}</span></button>`; }).join("")}
     <div class="panel" style="position:absolute;left:10px;top:6px;width:min(300px,calc(100vw - 20px));padding:10px 12px" id="dailyp">
+      <button class="btn sm gold" style="width:100%;margin-bottom:6px" data-a="merchant">${ico("coin", "#e8c060", 14)}Marchand ambulant</button>
       ${(() => { const A = advNext(); return `<div class="small" data-tipn="Niveau d'aventure" data-tipd="Monte avec les combats gagnés, les expéditions, les gardiens vaincus et la profondeur de l'Abîme. Il conditionne l'amélioration des bâtiments."><b class="gold">${ico("crown", "#e8c878", 14)} Niveau d'aventure ${A.l}</b><div class="bar xp" style="margin:3px 0 8px"><i style="width:${100 * A.cur / A.need}%"></i></div></div>`; })()}<div class="row sp"><h3 style="margin:0">${ico("daily", "#e8c878", 16)} Défis du jour</h3><button class="btn ghost sm" data-a="toggleDaily">${UI.hideDaily ? "+" : "–"}</button></div>
       ${UI.hideDaily ? "" : ct.map((c, i) => `<div style="margin-top:6px"><div class="row sp small"><span>${c.n}</span><span class="${c.p >= c.goal ? "good" : "dim"}">${c.p}/${c.goal}</span></div><div class="row" style="gap:6px"><div class="bar xp" style="flex:1"><i style="width:${100 * c.p / c.goal}%"></i></div>${c.claimed ? '<span class="tiny good">✓</span>' : c.p >= c.goal ? `<button class="btn gold sm" data-a="claimCt" data-v="${i}">+${c.gold}</button>` : `<span class="tiny dim">${c.gold} or</span>`}</div></div>`).join("") + `<div class="sep" style="margin:8px 0"></div><button class="btn ${S.daily.done ? "ghost off" : "main"} sm" style="width:100%" data-a="dailyRun">${ico("star")}${S.daily.done ? "Expédition du jour accomplie" : "Expédition du jour (+récompenses)"}</button>` + weekPanel()}
     </div>`;
@@ -3998,7 +4106,7 @@ SCREENS.hero = {
     <h2 style="margin-top:14px">Compétences <span class="small dim" style="font-family:var(--f-body)">(${h.skills.length}/4 équipées — touchez pour équiper)</span></h2>
     <div class="col">${pool.map(k => { const sk = skillDef(h, k), on = h.skills.includes(k), r = h.skr[k] || 1, c = skillUpCost(r); return `<div class="skl ${on ? "on" : ""}" data-a="toggleSk" data-v="${h.id}:${k}">${ico(sk.ic, on ? "#e8c878" : "#9a8c7a")}<div style="flex:1"><div class="row sp"><b>${sk.n}</b><span>${rankPips(sk.use, sk.t === "e" || sk.t === "ae" ? sk.at : null)}</span></div><div class="tiny">${skillText(Object.assign({ id: k }, sk), h)}</div><div class="row sp tiny" style="margin-top:3px"><span class="ranks">${[1, 2, 3, 4, 5].map(i => `<i class="${i <= r ? "u" : ""}"></i>`).join("")}</span>${r < 5 ? `<button class="btn ghost sm ${r >= skillRankMax(h) || !canPay(c) ? "off" : ""}" data-a="skUp" data-v="${h.id}:${k}" title="${r >= skillRankMax(h) ? "Salle des maîtres ou niveau du héros insuffisant" : ""}">Rang ${r + 1} · ${c.gold} or${c.essence ? ` ${c.essence} ess.` : ""}</button>` : '<span class="gold">Maîtrisée</span>'}</div></div></div>`; }).join("")}</div>
     <div class="skl" style="margin-top:8px;border-color:#a05a2a;cursor:default">${ico(ult.ic, "#ff9a4a")}<div><b>Ultime : ${ult.n}</b><div class="tiny">${skillText(Object.assign({ isUlt: 1 }, ult), h)}</div><div class="tiny dim">La jauge d'ultime se remplit en agissant, en frappant et en encaissant.</div></div></div>
-    ${questMarkHTML(h)}${tomeHTML(h)}${stressHTML(h)}${talentsHTML(h)}
+    ${vetOutfitHTML(h)}${questMarkHTML(h)}${tomeHTML(h)}${stressHTML(h)}${talentsHTML(h)}
     ${evoBlock}
     <div class="row" style="margin-top:14px;justify-content:space-between"><span class="tiny dim">${h.runs} expéditions · ${h.kills} victimes</span><button class="btn ghost sm" data-a="dismiss" data-v="${h.id}">Renvoyer</button></div></div>`;
   },
@@ -4095,12 +4203,13 @@ SCREENS.expe = {
     ${E.daily ? `<div class="panel" style="padding:10px;margin-bottom:10px;border-color:#c9a24a"><b class="gold">${ico("star", "#e8c878", 14)} Expédition du jour</b> <span class="small">— ${R.n}, reliques offertes : ${E.daily.relics.map(k => RELICS[k].n).join(", ")}. Récompenses +25 %.</span> <button class="btn ghost sm" data-a="noDaily">Annuler</button></div>` : ""}
     <h2>Destination</h2><div class="grid" style="--min:200px">${regs.map(r => { const un = regionUnlocked(r.id), p = S.prog[r.id]; return `<div class="card ${E.region === r.id ? "sel" : ""} ${un ? "" : "lock"}" data-a="${un && !E.daily ? "pickReg" : ""}" data-v="${r.id}" style="padding:0">${canvasSlot("reg:" + r.id, 280, 120)}<div style="padding:8px 10px"><div class="tiny dim">${r.sub}${r.id === "abime" ? ` · record ${S.abyss.best}` : ` · niv ${r.lvl}+`}</div><h3 style="margin:0">${r.n} ${!un ? ico("lock", "#9a8c7a", 14) : p && p.clears ? ico("crown", "#e8c878", 14) : ""}</h3><p class="tiny dim" style="margin:2px 0 0">${un ? r.d : "Terminez le chapitre précédent."}</p></div></div>`; }).join("")}</div>
     ${E.region === "abime" ? seasonPanelHTML() + abyssOpts(E) : cleared && !E.daily ? `<div class="row" style="margin-top:8px"><span class="small">Menace :</span>${[0, 1, 2, 3, 4].map(t => { const ok = t <= threatMax(E.region); return `<button class="btn sm ${E.threat === t ? "gold" : "ghost"} ${ok ? "" : "off"}" data-a="threat" data-v="${t}" title="${ok ? "" : "Vainquez le gardien en menace " + THREAT_N[t - 1]}">${ok ? "" : ico("lock", "#9a8c7a", 12)}${THREAT_N[t]}</button>`; }).join("")}<span class="tiny dim">Ennemis +${E.threat * 2} niveaux, récompenses +${E.threat * 30} %${threatMax(E.region) < 4 ? ` · vainquez le gardien en menace ${THREAT_N[threatMax(E.region)]} pour débloquer la ${THREAT_N[threatMax(E.region) + 1]}` : ""}</span></div>` : ""}
+    ${nightToggleHTML(E)}
     <div style="margin-top:10px">${rushPanelHTML(E)}</div>
     <h2 style="margin-top:14px">Ordre de marche</h2><p class="tiny dim" style="margin-top:-4px">Le rang 1 est en première ligne, face à l'ennemi. Touchez un héros pour l'ajouter ou le retirer, et une flèche pour changer son rang.</p>
     <div class="partyrow">${[3, 2, 1, 0].map(i => { const h = heroById(E.party[i]); return `<div class="card" style="text-align:center;padding:6px 3px" data-a="${h ? "unparty" : ""}" data-v="${i}"><div class="tiny gold">Rang ${i + 1}</div>${h ? canvasSlot("pt:" + h.id, 96, 120) + `<div class="tiny"><b>${esc(h.name.split(" ")[0])}</b></div><div class="tiny dim">${CLASSES[h.cls].n} ${h.lvl}</div>${isInjured(h) ? '<div class="tiny bad">Blessé (50 % PV)</div>' : ""}<div class="row" style="justify-content:center;gap:2px;margin-top:3px"><button class="btn ghost sm" data-a="mvParty" data-v="${i}:1" ${i >= 3 || !E.party[i + 1] ? "disabled" : ""}>◀</button><button class="btn ghost sm" data-a="mvParty" data-v="${i}:-1" ${i <= 0 ? "disabled" : ""}>▶</button></div>` : '<div class="empty" style="padding:40px 4px">vide</div>'}</div>`; }).join("")}</div>
     ${warn.length ? `<div class="small bad" style="text-align:center">${warn.join("<br>")}</div>` : ""}
     ${synergyHTML(E.party.map(id => heroById(id).cls), S.heroes.filter(h => !E.party.includes(h.id)).map(h => h.cls))}
-    ${teamsHTML(E)}
+    ${teamsHTML(E)}${duoHTML(E)}
     <div class="row" style="gap:6px;margin-top:8px">${S.heroes.filter(h => !E.party.includes(h.id)).map(h => `<div class="card" style="padding:4px 8px" data-a="addParty" data-v="${h.id}"><div class="row" style="gap:6px;flex-wrap:nowrap">${canvasSlot("ro:" + h.id, 40, 40)}<div class="tiny"><b>${esc(h.name.split(" ")[0])}</b><br><span class="dim">${CLASSES[h.cls].n} ${h.lvl}${isInjured(h) ? ' · <span class="bad">blessé</span>' : ""}</span></div></div></div>`).join("")}<button class="btn ghost sm" data-a="autoParty">${ico("auto")}Composition auto</button></div>
     <h2 style="margin-top:14px">Compagnon</h2><div class="row">${S.pets.owned.map(id => `<div class="card ${E.pet === id ? "sel" : ""}" style="padding:4px 10px;text-align:center" data-a="pickPet" data-v="${id}">${canvasSlot("pe:" + id, 90, 64)}<div class="tiny"><b>${petName(id)}</b> niv ${petLvl(id)}</div></div>`).join("")}</div>
     <div class="stickybar"><span class="small dim">${ico("potion", "#e86a5a", 16)} ${potionMax() - (E.region === "abime" && (S.abyss.oaths || []).includes("jeune") ? 1 : 0)} potions</span><button class="btn main glow" data-a="launch" ${E.party.length ? "" : "disabled"}>${ico("map")}Commencer l'expédition</button></div></div>`;
@@ -4129,7 +4238,7 @@ ACT.autoParty = () => { UI.expe.party = autoParty(); refresh(); };
 ACT.pickPet = id => { UI.expe.pet = id; S.pet = id; refresh(); };
 ACT.launch = () => {
   const E = UI.expe; if (!E.party.length) return;
-  const opt = { threat: E.region === "abime" ? 0 : E.threat, floor: E.region === "abime" ? E.floor : 1 };
+  const opt = { threat: E.region === "abime" ? 0 : E.threat, floor: E.region === "abime" ? E.floor : 1, night: E.region !== "abime" && !E.daily && E.night ? 1 : 0 };
   if (E.week) { const err = weekPartyOk(E.party); if (err) return toast(err, "bad"); if (E.region !== S.week.region) E.week = null; else { opt.week = 1; opt.seed = S.week.seed; } }
   if (E.daily) { opt.relics = E.daily.relics; opt.seed = E.daily.seed; opt.daily = 1; }
   if (E.rush && rushAvailable()) { startRush(E.party, E.pet); E.rush = 0; save(); sfx("door"); musicPlay("map"); go("map"); toast("Boss rush : les gardiens vous attendent.", "good"); return; }
@@ -4159,7 +4268,7 @@ SCREENS.map = {
         <span class="tag" data-tip="potion">${ico("potion", "#e86a5a")}${run.potions}</span><span class="tag" data-tip="or">${ico("coin", "#e8c060")}${fmt(run.gold)}</span><span class="tag" style="cursor:pointer" data-a="runBag" title="Butin : voir et équiper">${ico("chest", "#c8a070")}${run.loot.length}</span>
       </div><button class="btn ghost sm" data-a="retreat">${ico("flee")}Rentrer</button></div>
       ${runSynergies(run).length ? `<div class="row" style="gap:4px;margin-top:6px">${runSynergies(run).map(k => `<span class="tag gold" style="cursor:pointer" ${tipAttr(SYNERGIES[k].n, SYNERGIES[k].d)}>${ico("link", "#e8c878")}${SYNERGIES[k].n}</span>`).join("")}</div>` : ""}
-      ${run.relics.length ? `<div class="row" style="gap:4px;margin-top:6px">${run.relics.map(k => `<span class="tag" style="cursor:pointer" ${tipAttr(RELICS[k].n, RELICS[k].d)}>${ico("gem", ["#c8beaa", "#6ab0ff", "#c87aff"][RELICS[k].r])}${RELICS[k].n}</span>`).join("")}</div>` : ""}</div>
+      ${run.relics.length ? `<div class="row" style="gap:4px;margin-top:6px">${run.relics.map(k => `<span class="tag" style="cursor:pointer" ${tipAttr(RELICS[k].n, RELICS[k].d)}>${ico(RELICS[k].cursed ? "skull" : "gem", RELICS[k].cursed ? "#e05050" : ["#c8beaa", "#6ab0ff", "#c87aff"][RELICS[k].r])}${RELICS[k].n}${RELICS[k].cursed ? ' <span class="bad tiny">maudite</span>' : ""}</span>`).join("")}</div>` : ""}</div>
       <div class="mapwrap" style="width:${W}px;height:${H}px;margin-top:8px"><canvas data-cv="mapbg" width="${Math.round(W * Math.min(2, devicePixelRatio || 1))}" height="${Math.round(H * Math.min(2, devicePixelRatio || 1))}" style="position:absolute;inset:0;width:${W}px;height:${H}px"></canvas>${nodes}${pawn && pawnArt ? `<img class="pawn" src="${pawnArt}" alt="" style="left:${pawn[0]}px;top:${pawn[1]}px">` : ""}</div>
       <div class="row" style="justify-content:center;gap:6px;margin-top:6px;flex-wrap:nowrap">${party.map(h => { const mx = heroStats(h, relicHooks(run)).hp, hp = h.hp == null ? mx : h.hp, fallen = run.fallen.includes(h.id); return `<div class="panel" style="padding:4px;width:84px;text-align:center;${fallen ? "filter:grayscale(1) brightness(.5)" : ""}">${canvasSlot("mh:" + h.id, 64, 64)}<div class="tiny"><b>${esc(h.name.split(" ")[0])}</b></div><div class="bar" style="height:6px"><i style="width:${100 * hp / mx}%"></i></div><div class="tiny dim">${fallen ? "Tombé" : hp + "/" + mx}</div></div>`; }).join("")}</div>
       <p class="tiny dim" style="text-align:center">${run.region === "abime" ? "Chaque gardien vaincu ouvre un passage plus profond." : "Atteignez le gardien au bout du chemin."} Touchez une salle lumineuse pour avancer.</p></div>`;
@@ -4330,7 +4439,7 @@ SCREENS.results = {
       ${res.unlocks.map(u => `<div class="reward" style="color:var(--gold2)">${ico("star", "#e8c878", 22)}<b>${u.k === "class" ? "Nouvelle classe à la Taverne : " + CLASSES[u.id].n : u.k === "pet" ? "Nouveau compagnon à la Ménagerie : " + PETS[u.id].n : "Nouvelle destination : " + regionById(u.id).n}</b></div>`).join("")}
       ${res.threatUp ? `<div class="reward" style="color:var(--gold2)">${ico("skull", "#ff8a6a", 22)}<b>Menace ${THREAT_N[res.threatUp.t]} débloquée : ${regionById(res.threatUp.region).n}</b></div>` : ""}
       ${res.week ? `<div class="reward" style="color:var(--gold2)">${ico("trophy", "#e8c878", 22)}<b>Défi de la semaine relevé ! +${res.week.gold} or · +${res.week.shards} éclats · +${res.week.essence} essence</b></div>` : ""}
-      ${extrasResultsHTML(res)}${(res.classCh || []).map(c => `<div class="reward" style="color:var(--gold2)">${ico("trophy", "#e8c878", 22)}<b>Défi de classe — ${CLASSES[c.cls].n} : ${CLASS_GOALS[c.g]} gardiens vaincus ! +${c.gold} or, +${c.sh} éclats</b></div>`).join("")}
+      ${extrasResultsHTML(res)}${(res.hidden || []).map(a => `<div class="reward" style="color:var(--gold2)">${ico("star", "#e8c878", 22)}<b>Succès caché : ${a.n} — ${a.d} (+${a.gold} or, +${a.shards} éclats)</b></div>`).join("")}${(res.vets || []).map(v => `<div class="reward" style="color:var(--gold2)">${ico("crown", "#e8c878", 22)}<b>${esc(v.name.split(" ")[0])} devient ${esc(v.t)} : ${v.d}</b></div>`).join("")}${(res.classCh || []).map(c => `<div class="reward" style="color:var(--gold2)">${ico("trophy", "#e8c878", 22)}<b>Défi de classe — ${CLASSES[c.cls].n} : ${CLASS_GOALS[c.g]} gardiens vaincus ! +${c.gold} or, +${c.sh} éclats</b></div>`).join("")}
       ${res.sum ? runSummaryHTML(res) : ""}
       ${res.region === "abime" ? `<p class="small" style="text-align:center">Record de l'Abîme : <b>${S.abyss.best}</b></p>` : ""}
       <div class="row" style="justify-content:center;margin-top:12px"><button class="btn main" data-go="bastion">${ico("castle")}Au Bastion</button></div></div></div>`;
@@ -4397,7 +4506,7 @@ function cbLayout() {
 SCREENS.combat = {
   noNav: 1, noHud: 1, pass: 1,
   scene: () => drawCombat,
-  html: () => `<div class="ctop l" id="cb-tl"></div><div class="ctop" id="cb-tr"><button class="btn ghost sm" data-a="cbSpeed" title="Vitesse">${ico("speed")}<span id="cb-spd">×${S.opts.speed || 1}</span></button><button class="btn ghost sm ${S.opts.auto ? "on" : ""}" data-a="cbAuto" title="Combat automatique">${ico("auto")}<span id="cb-auto">${S.opts.auto ? "Auto" : "Manuel"}</span></button><button class="btn ghost sm" data-a="cbLogShow" title="Journal du combat">${ico("scroll")}</button><button class="btn ghost sm" data-a="cbFlee" id="cb-flee" title="Fuir">${ico("flee")}</button></div><div id="cbar"><div class="skdesc" id="cb-desc"></div><div class="skills" id="cb-skills"></div></div>`,
+  html: () => `<div class="ctop l" id="cb-tl"></div><div id="cb-ord"></div><div class="ctop" id="cb-tr"><button class="btn ghost sm" data-a="cbSpeed" title="Vitesse">${ico("speed")}<span id="cb-spd">×${S.opts.speed || 1}</span></button><button class="btn ghost sm ${S.opts.auto ? "on" : ""}" data-a="cbAuto" title="Combat automatique">${ico("auto")}<span id="cb-auto">${S.opts.auto ? "Auto" : "Manuel"}</span></button><button class="btn ghost sm" data-a="cbLogShow" title="Journal du combat">${ico("scroll")}</button><button class="btn ghost sm" data-a="cbFlee" id="cb-flee" title="Fuir">${ico("flee")}</button></div><div id="cbar"><div class="skdesc" id="cb-desc"></div><div class="skills" id="cb-skills"></div></div>`,
   mount: arg => startCombat(arg.node),
   leave: () => { CB.B = null; CB.resolve = null; { const ci = $("#cbinfo"); if (ci) ci.remove(); } const c = $("#coach"); if (c) c.remove(); UI.coach = null; document.querySelectorAll(".coachon").forEach(e => e.classList.remove("coachon")); },
   resize: () => { if (CB.B) { CB.barH = $("#cbar") ? $("#cbar").offsetHeight + 6 : 150; cbLayout(); } },
@@ -4526,7 +4635,7 @@ function cbBar(u) {
   CB.barH = $("#cbar").offsetHeight + 6; cbLayout();
 }
 function cbTopLeft() {
-  const B = CB.B, el = $("#cb-tl"); if (!el || !B) return;
+  const B = CB.B, el = $("#cb-tl"); if (!el || !B) return; const ord = $("#cb-ord"); if (ord) ord.innerHTML = turnOrderHTML();
   const mc = B.morale >= 80 ? "#ffd27a" : B.morale <= 20 ? "#ff5a4a" : "#c8b8a0";
   el.innerHTML = `<div class="panel" style="padding:5px 8px;font-size:12px"><div class="row" style="gap:6px;flex-wrap:nowrap"><span data-tip="resolution" style="display:contents">${ico("banner", mc, 16)}</span><div class="bar" style="width:70px"><i style="width:${B.morale}%;background:linear-gradient(${mc},#6a4a2a)"></i></div><span class="gl" data-tip="resolution" style="color:${mc}">${B.morale >= 80 ? "Exaltés" : B.morale <= 20 ? "Ébranlés" : "Résolus"}</span></div><div class="row" style="gap:6px;margin-top:3px;flex-wrap:nowrap"><span class="row" data-tip="lueur" style="gap:4px;flex-wrap:nowrap">${ico("torch", B.light < 30 ? "#ff5a3a" : "#ffb050", 16)}<span class="tiny">${Math.round(B.light)}</span></span><span class="tiny dim">Tour ${B.round}</span></div></div>`;
 }
@@ -4626,6 +4735,7 @@ async function playEvents(ev) {
       case "revive": { popText(e.u, "Se relève !", "#ffe08a", true); sfx("holy"); cbLayout(); const v = V(e.u); if (v) { v.dying = 0; v.a = 1; glowAt(v, "#ffe08a", 1.5); } await wait(400); break; }
       case "die": { const v = V(e.u); if (cur && U(cur.u) && U(cur.u).side === "h" && alive(U(cur.u))) bark(cur.u, "kill"); if (v) { v.dying = 1; burst(v.x, v.y - 80 * CB.scale, "#2a1a1a", 20, { add: false, g: 200 }); burst(v.x, v.y - 80 * CB.scale, "#ffb070", 10, { up: 140, g: -30 }); } sfx("die"); await wait(e.boss ? 900 : 380); cbLayout(); break; }
       case "move": cbLayout(); sfx("step"); await wait(200); break;
+      case "summon": { cbLayout(); sfx("dark"); const v = V(e.u); if (v) { v.a = 0; glowAt(v, "#9a3aff", 1.4); } popText(e.u, "Renfort !", "#c89aff", true); await wait(500); break; }
       case "morale": if (Math.abs(e.d) >= 8) { const pc = e.d > 0 ? "#ffd27a" : "#ff6a5a"; CB.txt.push({ x: SC.w / 2, y: CB.stageH * .2, text: (e.d > 0 ? "Résolution +" : "Résolution ") + Math.round(e.d), col: pc, t: 0, life: 1.2 }); } cbTopLeft(); break;
       case "phase": sfx("dark"); CB.flash = .8; await showBanner(e.text, "", "#ff4a3a", 1500); break;
       case "pet": { sfx(e.t === "aa" || e.t === "low" ? "heal" : "slash"); CB.petAct = { t: 0, name: e.sk }; await wait(280); break; }
@@ -4830,11 +4940,13 @@ SCREENS.codex = {
   scene: () => backdrop("catacombes", { dark: .6 }),
   html: () => {
     const tab = UI.codexTab || "classes";
-    const T = [["classes", "helm", "Classes"], ["bestiaire", "skull", "Bestiaire"], ["synergies", "link", "Synergies"], ["reliques", "gem", "Reliques"], ["defis", "trophy", "Défis de classe"], ["histoire", "scroll", "Chroniques"], ["succes", "trophy", "Succès"], ["records", "cup", "Registres"], ["glossaire", "book", "Glossaire"]];
+    const T = [["classes", "helm", "Classes"], ["bestiaire", "skull", "Bestiaire"], ["synergies", "link", "Synergies"], ["reliques", "gem", "Reliques"], ["defis", "trophy", "Défis de classe"], ["memorial", "skull", "Mémorial"], ["histoire", "scroll", "Chroniques"], ["succes", "trophy", "Succès"], ["records", "cup", "Registres"], ["glossaire", "book", "Glossaire"]];
     let body = "";
     if (tab === "glossaire") body = glossaryHTML();
     if (tab === "reliques") body = relicsCodexHTML();
     if (tab === "defis") body = classChCodexHTML();
+    if (tab === "memorial") body = memorialHTML();
+    if (tab === "succes") body += hiddenAchHTML();
     if (tab === "classes") body = `<div class="grid" style="--min:280px">${CLASS_IDS.map(k => { const C = CLASSES[k], un = classUnlocked(k); return `<div class="card ${un ? "" : "lock"}" style="cursor:default"><div class="row" style="flex-wrap:nowrap;gap:8px">${canvasSlot("cl:" + k, 90, 112)}<div style="flex:1"><h3 style="margin:0">${C.n} ${un ? "" : ico("lock", "#9a8c7a", 13)}</h3>${roleTag(C.role)}<p class="tiny lore" style="margin:4px 0">${C.lore}</p><div class="tiny">Voies : ${Object.values(C.evos).map(e => `<b class="gold">${e.n}</b>`).join(" ou ")}</div>${un ? "" : `<div class="tiny dim">Débloquée au chapitre ${C.unlock}</div>`}</div></div></div>`; }).join("")}</div>`;
     if (tab === "synergies") body = `<p class="small dim">Certaines classes se complètent. Quand elles partent ensemble en expédition, tout le groupe en profite.</p><div class="grid" style="--min:260px">${Object.keys(SYNERGIES).map(k => { const Y = SYNERGIES[k]; return `<div class="card" style="cursor:default"><h3 style="margin:0">${ico("link", "#e8c878", 15)} ${Y.n}</h3><div class="tiny gold" style="margin:3px 0">${synergyNeedText(Y)}</div><p class="small" style="margin:0">${gl(Y.d)}</p></div>`; }).join("")}</div>`;
     if (tab === "bestiaire") { const ks = Object.keys(MONSTERS); body = `<p class="small dim">${ks.filter(k => S.seen.monsters[k] != null).length}/${ks.length} créatures rencontrées.</p><div class="grid" style="--min:170px">${ks.map(k => { const M = MONSTERS[k], seen = S.seen.monsters[k] != null; return `<div class="card ${seen ? "" : "lock"}" style="text-align:center;cursor:${seen ? "pointer" : "default"}" ${seen ? `data-a="monSheet" data-v="${k}"` : ""}>${seen ? canvasSlot("mo:" + k, 150, 150) : `<div style="height:150px;display:flex;align-items:center;justify-content:center">${ico("quest", "#5a4a3a", 48)}</div>`}<h3 style="margin:0">${seen ? M.n : "???"}</h3>${seen ? `<div class="tiny dim">${M.boss ? "Gardien" : M.elite ? "Élite" : "Créature"} · ${M.tags.map(t => t === "impie" ? "impie" : t === "bete" ? "bête" : "humain").join(", ")}</div><div class="tiny">PV ${M.hp} · ${M.sk.map(s => s.n).join(", ")}</div><div class="tiny dim">${S.seen.monsters[k] || 0} vaincus</div>` : ""}</div>`; }).join("")}</div>`; }
@@ -5106,6 +5218,45 @@ function classChCodexHTML() {
   return `<p class="small dim">Vaincre des gardiens avec une classe dans le groupe : 3, 10 et 25 victoires rapportent de l'or et des éclats.</p><div class="grid" style="--min:230px">${CLASS_IDS.map(c => { const n = W[c] || 0, g = CLASS_GOALS.find(x => x > n); return `<div class="card" style="cursor:default"><b>${CLASSES[c].n}</b><div class="bar xp" style="margin:4px 0"><i style="width:${g ? 100 * n / g : 100}%"></i></div><div class="tiny ${g ? "dim" : "good"}">${n} victoire${n > 1 ? "s" : ""}${g ? ` · prochain palier : ${g}` : " · tous les paliers atteints"}</div></div>`; }).join("")}</div>`;
 }
 function showLines(title, lines, done) { showScene(null, done, { t: title, lines }); }
+
+// ── Frise de l'ordre des tours ──
+function turnOrderHTML() {
+  const B = CB.B; if (!B || !B.order) return "";
+  const next = []; for (let i = Math.max(0, B.turn); i < B.order.length && next.length < 7; i++) { const u = unitById(B, B.order[i]); if (u && alive(u)) next.push(u); }
+  return `<div class="cbord">${next.map((u, i) => `<span class="${u.side === "h" ? "h" : "e"} ${i === 0 ? "now" : ""}" title="${esc(u.name)}">${esc(u.name.split(" ")[0].slice(0, 7))}</span>`).join("")}</div>`;
+}
+// ── Expédition : nuit, duo du compagnon ──
+function nightToggleHTML(E) {
+  if (E.region === "abime" || E.daily || E.rush) return "";
+  return `<div class="row" style="margin-top:6px"><button class="btn sm ${E.night ? "gold" : "ghost"}" data-a="toggleNight">${ico("moon", E.night ? "#e8c878" : "#9a8c7a", 14)}Expédition de nuit</button><span class="tiny dim">Lueur réduite, ennemis +15 %, butin et or améliorés, événements de nuit.</span></div>`;
+}
+ACT.toggleNight = () => { UI.expe.night = !UI.expe.night; refresh(); };
+function duoHTML(E) {
+  const D = PET_DUOS[E.pet]; if (!D) return "";
+  const cl = E.party.map(id => heroById(id) && heroById(id).cls), on = D.cls.some(c => cl.includes(c));
+  return `<div class="tiny ${on ? "good" : "dim"}" style="margin-top:4px">${ico("paw", on ? "#8ad06a" : "#9a8c7a", 12)} Duo : ${petName(E.pet)} s'entend avec ${D.cls.map(c => CLASSES[c].n).join(" ou ")} — ${D.d}${on ? " (actif)" : ""}</div>`;
+}
+// ── Bastion : marchand ambulant ──
+ACT.merchant = () => {
+  const M = merchantStock();
+  modal(`<h2>${ico("coin", "#e8c060")} Le marchand ambulant</h2><p class="lore">« Je ne reste qu'un jour. Demain, je serai loin… ou mort. »</p><p class="small">Or : <b class="gold">${fmt(S.gold)}</b> · nouvelle marchandise chaque jour, dont un objet légendaire ou mieux.</p>
+    <div class="col">${M.items.map((o, i) => `<div class="row card" style="cursor:default;${o.sold ? "opacity:.45" : ""}">${slotHTML(o.it, "itemInfo", o.it.id)}<div style="flex:1;min-width:0"><b class="rar${o.it.rar}">${gearName(o.it)}</b> <span class="tiny dim">${RARITY[o.it.rar].n}</span><div class="tiny dim">${itemLine(o.it)}</div></div><button class="btn sm ${o.sold || S.gold < o.cost ? "off" : "gold"}" data-a="merchantBuy" data-v="${i}">${o.sold ? "Vendu" : o.cost + " or"}</button></div>`).join("")}</div>`);
+};
+ACT.merchantBuy = i => { const r = merchantBuy(+i); if (r.err) return toast(r.err, "bad"); sfx("coin"); save(); renderHud(); toast(`Acheté : <span class="rar${r.ok.rar}">${gearName(r.ok)}</span> — dans l'inventaire de la forge.`, "good"); ACT.merchant(); };
+// ── Archives : mémorial ──
+function memorialHTML() {
+  const G = (S.graves || []).slice().reverse();
+  return G.length ? `<p class="small dim">Ici reposent ceux qui ne sont pas revenus.</p><div class="grid" style="--min:240px">${G.map(g => `<div class="card" style="cursor:default"><div class="row" style="gap:6px">${ico("skull", "#9a8c7a", 18)}<b>${esc(g.name)}</b></div><div class="tiny dim">${CLASSES[g.cls] ? CLASSES[g.cls].n : ""} · niveau ${g.lvl}${g.title ? " · " + esc(g.title) : ""}</div><div class="tiny">${esc(g.cause || "Tombé au combat")}${g.where ? "" : ""}</div><div class="tiny dim">${g.runs || 0} expéditions · ${g.kills || 0} ennemis abattus</div><p class="lore tiny" style="margin:4px 0 0">« ${esc(g.epi || "Le Bastion se souvient.")} »</p></div>`).join("")}</div>` : '<p class="small dim">Le cimetière est vide. Pour l\'instant. (En mode Hardi, les héros tombés y reposent.)</p>';
+}
+// ── Archives : succès cachés ──
+function hiddenAchHTML() { return `<h3 style="margin-top:14px">Succès cachés</h3><div class="grid" style="--min:240px">${HIDDEN_ACH.map(a => { const ok = S.ach && S.ach[a.id]; return `<div class="card ${ok ? "" : "lock"}" style="cursor:default"><b>${ok ? a.n : "???"}</b><div class="tiny">${ok ? a.d : "Un défi secret. Jouez autrement pour le découvrir."}</div>${ok ? `<div class="tiny gold">+${a.gold} or · +${a.shards} éclats</div>` : ""}</div>`; }).join("")}</div>`; }
+// ── Fiche du héros : titre de vétéran et tenue ──
+function vetOutfitHTML(h) {
+  const t = h.vet ? `<div class="small" style="margin-top:6px">${ico("crown", "#e8c878", 14)} <b class="gold">${esc(h.name.split(" ")[0])} ${esc(vetTitle(h))}</b> <span class="tiny dim">— ${VET_TITLES[h.vet].d}</span></div>` : `<div class="tiny dim" style="margin-top:6px">${ico("crown", "#9a8c7a", 12)} Titre de vétéran après 10 expéditions (${h.runs || 0}/10).</div>`;
+  const o = `<div class="row" style="gap:4px;margin-top:6px"><span class="tiny dim">Tenue :</span>${OUTFITS.map(O => { const ok = outfitOk(h, O.k); return `<button class="btn sm ${(h.outfit || "") === O.k ? "gold" : "ghost"} ${ok ? "" : "off"}" data-a="setOutfit" data-v="${h.id}:${O.k}" title="${ok ? "" : `Défi de classe : ${O.need} gardiens vaincus avec un ${CLASSES[h.cls].n}`}">${ok ? "" : ico("lock", "#9a8c7a", 11)}${O.n}</button>`; }).join("")}</div>`;
+  return `<div class="panel" style="padding:10px;margin-top:10px">${t}${o}</div>`;
+}
+ACT.setOutfit = v => { const [id, k] = v.split(":"), h = heroById(id); if (!h || !outfitOk(h, k)) return toast("Tenue pas encore débloquée.", "bad"); h.outfit = k || null; save(); refresh(); };
 /* ═══════════════════════ Démarrage ═══════════════════════ */
 if (HASWIN) {
   const boot = () => {

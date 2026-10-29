@@ -23,7 +23,7 @@ const STANCE = {
 function heroLook(h) {
   const wt = h.gear && h.gear.wpn ? h.gear.wpn.tier : 1, at = h.gear && h.gear.arm ? h.gear.arm.tier : 1;
   const rar = Math.max(h.gear && h.gear.arm ? h.gear.arm.rar : 0, h.gear && h.gear.wpn ? h.gear.wpn.rar : 0);
-  return { cls: h.cls, tier: at, wtier: wt, rar, evo: h.evo, apex: h.lvl >= APEX_LVL && !!h.evo, female: h.female, skin: h.look.skin, hair: h.look.hair, hairCol: h.look.hairCol, beard: h.female ? -1 : h.look.beard, scar: h.look.scar, key: [h.cls, at, wt, h.evo, h.female ? 1 : 0, h.look.hair, h.look.beard, h.look.skin, h.look.hairCol, h.lvl >= APEX_LVL ? 1 : 0].join("|") };
+  return { cls: h.cls, tier: at, wtier: wt, rar, evo: h.evo, apex: h.lvl >= APEX_LVL && !!h.evo, female: h.female, skin: h.look.skin, hair: h.look.hair, hairCol: h.look.hairCol, beard: h.female ? -1 : h.look.beard, scar: h.look.scar, tint: h.outfit && typeof OUTFITS !== "undefined" ? (OUTFITS.find(o => o.k === h.outfit) || {}).tint || null : null, key: [h.outfit || "", h.cls, at, wt, h.evo, h.female ? 1 : 0, h.look.hair, h.look.beard, h.look.skin, h.look.hairCol, h.lvl >= APEX_LVL ? 1 : 0].join("|") };
 }
 function rotatedCopy(src, ang, W, H) { W = H = Math.ceil(Math.hypot(src.width, src.height)); const cv = mkCanvas(W, H), x = cv.getContext("2d"); x.translate(W / 2, H / 2); x.rotate(ang); x.drawImage(src, -src.width / 2, -src.height / 2); return cv; }
 function blankSprite(w, h, sc) { const cv = mkCanvas(Math.ceil(w * sc), Math.ceil(h * sc)); cv.ax = cv.width / 2; cv.ay = cv.height - 22 * sc; cv.sc = sc; cv.blank = 1; return cv; }

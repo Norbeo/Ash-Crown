@@ -55,7 +55,8 @@ function heroPassives(h) {
   for (const s of ["tr1", "tr2"]) { const it = h.gear[s]; if (it && TRINKETS[it.key]) out.push(...TRINKETS[it.key].pas); }
   if (h.mark && typeof GUARD_MARKS !== "undefined" && GUARD_MARKS[h.mark]) out.push(...GUARD_MARKS[h.mark].pas); // marque d'un gardien vaincu
   if (h.affl && typeof AFFLICTIONS !== "undefined" && AFFLICTIONS[h.affl]) out.push(...AFFLICTIONS[h.affl].pas); // stress : affliction ou vertu
-  if (h.talents && typeof talentPas === "function") out.push(...talentPas(h)); // arbre de talents (après le niveau 15)
+  if (h.talents && typeof talentPas === "function") out.push(...talentPas(h));
+  if (h.vet && typeof VET_TITLES !== "undefined" && VET_TITLES[h.vet]) out.push(...VET_TITLES[h.vet].pas); // titre de vétéran // arbre de talents (après le niveau 15)
   return out;
 }
 

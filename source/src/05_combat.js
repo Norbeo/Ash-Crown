@@ -125,6 +125,7 @@ function act(B, u, sk, tgt) {
   const rk = 1 + .1 * ((sk.rank || 1) - 1);
   ev.push({ k: "act", u: u.uid, sk: sk.n, ult: !!sk.isUlt, anim: skillAnim(u, sk), tgt: tgt && tgt.uid, t });
   B.curSk = sk.n;
+  if (sk.summon && u.side === "e") { const k = Array.isArray(sk.summon) ? sk.summon[Math.floor(Math.random() * sk.summon.length)] : sk.summon; if (MONSTERS[k]) { const m = monUnit(k, Math.max(1, (u.lvl || 1) - 1), B.opt.mods || {}); B.enemies.push(m); B.summoned = (B.summoned || 0) + 1; ev.push({ k: "summon", u: m.uid, src: u.uid }); } if (sk.cd) u.cds[sk.id] = sk.cd + 1; return ev; }
   if (sk.isUlt) u.ultV = 0; else { gainUlt(u, 18); if (sk.cd) u.cds[sk.id] = sk.cd + 1; }
   if (sk.selfDmg) { const d = Math.min(u.hp - 1, Math.round(u.hpMax * sk.selfDmg)); if (d > 0) { u.hp -= d; ev.push({ k: "hit", u: u.uid, dmg: d, self: 1 }); } }
   // cibles
@@ -386,6 +387,7 @@ function chooseEnemyAction(B, e) {
   const opts = e.skills.filter(sk => {
     if (e.cds[sk.id] > 0) return false;
     const t = sk.t || "e";
+    if (sk.summon) return B.enemies.filter(alive).reduce((a, x) => a + (x.sz || 1), 0) <= 3 && !(B.summoned >= 3); // invocation : une place libre, 3 fois max
     if (t === "allies") return hurtAlly;
     if (t === "self") return !(sk.sfx || []).every(f => hasSt(e, f.k)) || (sk.heal && e.hp / e.hpMax < .7);
     return validTargets(B, e, sk).length > 0;

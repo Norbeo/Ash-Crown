@@ -35,3 +35,7 @@ REGIONS.push({ id: "terres", n: "Les Terres Brûlées", sub: "Chapitre VI", lvl:
   d: "Au-delà de la Citadelle, la terre brûle encore. Le Cardinal y emporte les fragments volés.", sky: ["#1a0806", "#4a1a0a"], fog: "#d0602a", accent: "#ff6a3a" });
 ABYSS.lvl = 30;
 const THREAT_BOSS = { 1: "sans_visage", 2: "matrone_os", 3: "devoreur_lumiere", 4: "archonte_cendres" };
+
+// gardiens à mécaniques : invocation de renforts (une place libre, 3 fois par combat au plus)
+const BOSS_SUMMON = { docteur_peste: ["Appel de la vermine", ["rat", "pestifere"]], liche: ["Réveil des moines", ["squelette", "moine_flagellant"]], mere_ronces: ["Les pendus descendent", ["pendu", "araignee"]], reine_sabbat: ["Le sabbat s'assemble", ["sorciere_marais", "noye"]], matrone_os: ["Enfants des tombes", ["squelette", "archer_os"]], cardinal: ["Fidèles ardents", ["penitent_ardent", "pretre_suie"]], sans_nom: ["Ce qui rampe en dessous", ["horreur", "oeil"]], roi_cendres: ["Garde royale", ["chevalier_dechu"]] };
+for (const k in BOSS_SUMMON) if (MONSTERS[k]) MONSTERS[k].sk.push({ n: BOSS_SUMMON[k][0], t: "self", summon: BOSS_SUMMON[k][1].filter(m => MONSTERS[m]), cd: 3, w: .7 });

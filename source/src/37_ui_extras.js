@@ -234,3 +234,42 @@ function classChCodexHTML() {
   return `<p class="small dim">Vaincre des gardiens avec une classe dans le groupe : 3, 10 et 25 victoires rapportent de l'or et des éclats.</p><div class="grid" style="--min:230px">${CLASS_IDS.map(c => { const n = W[c] || 0, g = CLASS_GOALS.find(x => x > n); return `<div class="card" style="cursor:default"><b>${CLASSES[c].n}</b><div class="bar xp" style="margin:4px 0"><i style="width:${g ? 100 * n / g : 100}%"></i></div><div class="tiny ${g ? "dim" : "good"}">${n} victoire${n > 1 ? "s" : ""}${g ? ` · prochain palier : ${g}` : " · tous les paliers atteints"}</div></div>`; }).join("")}</div>`;
 }
 function showLines(title, lines, done) { showScene(null, done, { t: title, lines }); }
+
+// ── Frise de l'ordre des tours ──
+function turnOrderHTML() {
+  const B = CB.B; if (!B || !B.order) return "";
+  const next = []; for (let i = Math.max(0, B.turn); i < B.order.length && next.length < 7; i++) { const u = unitById(B, B.order[i]); if (u && alive(u)) next.push(u); }
+  return `<div class="cbord">${next.map((u, i) => `<span class="${u.side === "h" ? "h" : "e"} ${i === 0 ? "now" : ""}" title="${esc(u.name)}">${esc(u.name.split(" ")[0].slice(0, 7))}</span>`).join("")}</div>`;
+}
+// ── Expédition : nuit, duo du compagnon ──
+function nightToggleHTML(E) {
+  if (E.region === "abime" || E.daily || E.rush) return "";
+  return `<div class="row" style="margin-top:6px"><button class="btn sm ${E.night ? "gold" : "ghost"}" data-a="toggleNight">${ico("moon", E.night ? "#e8c878" : "#9a8c7a", 14)}Expédition de nuit</button><span class="tiny dim">Lueur réduite, ennemis +15 %, butin et or améliorés, événements de nuit.</span></div>`;
+}
+ACT.toggleNight = () => { UI.expe.night = !UI.expe.night; refresh(); };
+function duoHTML(E) {
+  const D = PET_DUOS[E.pet]; if (!D) return "";
+  const cl = E.party.map(id => heroById(id) && heroById(id).cls), on = D.cls.some(c => cl.includes(c));
+  return `<div class="tiny ${on ? "good" : "dim"}" style="margin-top:4px">${ico("paw", on ? "#8ad06a" : "#9a8c7a", 12)} Duo : ${petName(E.pet)} s'entend avec ${D.cls.map(c => CLASSES[c].n).join(" ou ")} — ${D.d}${on ? " (actif)" : ""}</div>`;
+}
+// ── Bastion : marchand ambulant ──
+ACT.merchant = () => {
+  const M = merchantStock();
+  modal(`<h2>${ico("coin", "#e8c060")} Le marchand ambulant</h2><p class="lore">« Je ne reste qu'un jour. Demain, je serai loin… ou mort. »</p><p class="small">Or : <b class="gold">${fmt(S.gold)}</b> · nouvelle marchandise chaque jour, dont un objet légendaire ou mieux.</p>
+    <div class="col">${M.items.map((o, i) => `<div class="row card" style="cursor:default;${o.sold ? "opacity:.45" : ""}">${slotHTML(o.it, "itemInfo", o.it.id)}<div style="flex:1;min-width:0"><b class="rar${o.it.rar}">${gearName(o.it)}</b> <span class="tiny dim">${RARITY[o.it.rar].n}</span><div class="tiny dim">${itemLine(o.it)}</div></div><button class="btn sm ${o.sold || S.gold < o.cost ? "off" : "gold"}" data-a="merchantBuy" data-v="${i}">${o.sold ? "Vendu" : o.cost + " or"}</button></div>`).join("")}</div>`);
+};
+ACT.merchantBuy = i => { const r = merchantBuy(+i); if (r.err) return toast(r.err, "bad"); sfx("coin"); save(); renderHud(); toast(`Acheté : <span class="rar${r.ok.rar}">${gearName(r.ok)}</span> — dans l'inventaire de la forge.`, "good"); ACT.merchant(); };
+// ── Archives : mémorial ──
+function memorialHTML() {
+  const G = (S.graves || []).slice().reverse();
+  return G.length ? `<p class="small dim">Ici reposent ceux qui ne sont pas revenus.</p><div class="grid" style="--min:240px">${G.map(g => `<div class="card" style="cursor:default"><div class="row" style="gap:6px">${ico("skull", "#9a8c7a", 18)}<b>${esc(g.name)}</b></div><div class="tiny dim">${CLASSES[g.cls] ? CLASSES[g.cls].n : ""} · niveau ${g.lvl}${g.title ? " · " + esc(g.title) : ""}</div><div class="tiny">${esc(g.cause || "Tombé au combat")}${g.where ? "" : ""}</div><div class="tiny dim">${g.runs || 0} expéditions · ${g.kills || 0} ennemis abattus</div><p class="lore tiny" style="margin:4px 0 0">« ${esc(g.epi || "Le Bastion se souvient.")} »</p></div>`).join("")}</div>` : '<p class="small dim">Le cimetière est vide. Pour l\'instant. (En mode Hardi, les héros tombés y reposent.)</p>';
+}
+// ── Archives : succès cachés ──
+function hiddenAchHTML() { return `<h3 style="margin-top:14px">Succès cachés</h3><div class="grid" style="--min:240px">${HIDDEN_ACH.map(a => { const ok = S.ach && S.ach[a.id]; return `<div class="card ${ok ? "" : "lock"}" style="cursor:default"><b>${ok ? a.n : "???"}</b><div class="tiny">${ok ? a.d : "Un défi secret. Jouez autrement pour le découvrir."}</div>${ok ? `<div class="tiny gold">+${a.gold} or · +${a.shards} éclats</div>` : ""}</div>`; }).join("")}</div>`; }
+// ── Fiche du héros : titre de vétéran et tenue ──
+function vetOutfitHTML(h) {
+  const t = h.vet ? `<div class="small" style="margin-top:6px">${ico("crown", "#e8c878", 14)} <b class="gold">${esc(h.name.split(" ")[0])} ${esc(vetTitle(h))}</b> <span class="tiny dim">— ${VET_TITLES[h.vet].d}</span></div>` : `<div class="tiny dim" style="margin-top:6px">${ico("crown", "#9a8c7a", 12)} Titre de vétéran après 10 expéditions (${h.runs || 0}/10).</div>`;
+  const o = `<div class="row" style="gap:4px;margin-top:6px"><span class="tiny dim">Tenue :</span>${OUTFITS.map(O => { const ok = outfitOk(h, O.k); return `<button class="btn sm ${(h.outfit || "") === O.k ? "gold" : "ghost"} ${ok ? "" : "off"}" data-a="setOutfit" data-v="${h.id}:${O.k}" title="${ok ? "" : `Défi de classe : ${O.need} gardiens vaincus avec un ${CLASSES[h.cls].n}`}">${ok ? "" : ico("lock", "#9a8c7a", 11)}${O.n}</button>`; }).join("")}</div>`;
+  return `<div class="panel" style="padding:10px;margin-top:10px">${t}${o}</div>`;
+}
+ACT.setOutfit = v => { const [id, k] = v.split(":"), h = heroById(id); if (!h || !outfitOk(h, k)) return toast("Tenue pas encore débloquée.", "bad"); h.outfit = k || null; save(); refresh(); };

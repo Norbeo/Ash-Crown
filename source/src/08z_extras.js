@@ -83,6 +83,7 @@ function startRush(partyIds, petId) {
 // ── fin d'expédition : quêtes, marques, saison, rush ──
 function extrasEndRun(run, outcome, res) {
   seeRelics(run);
+  if (typeof hiddenEndRun === "function") hiddenEndRun(run, outcome, res);
   if (outcome === "victory" && !run.rush) res.classCh = classChallengeTick(run);
   for (const h of run.party.map(heroById).filter(Boolean)) if (outcome !== "wipe") h.stress = Math.max(0, (h.stress || 0) - 10);
   const party = run.party.map(heroById).filter(Boolean), done = run.questsDone || [];
@@ -115,6 +116,7 @@ const AFFLICTIONS = {
   vigilant: { n: "Vigilant", d: "Vertu : +2 de vitesse, +8 d'esquive.", pas: [{ k: "stat", s: "spd", v: 2 }, { k: "stat", s: "dodge", v: 8 }] },
 };
 function stressAfterBattle(run, B) {
+  run.agonies = (run.agonies || 0) + [...B.heroes, ...B.fallen].reduce((a, u) => a + (u.agonyN || 0), 0);
   const fallen = B.fallen.length, long = B.round > 10 ? 10 : 0; run.stressLog = [];
   for (const u of [...B.heroes, ...B.fallen]) { const h = heroById(u.hid); if (!h) continue;
     const add = (u.agonyN || 0) * 22 + fallen * 12 + long + (u.hp > 0 && u.hp / u.hpMax < .25 ? 8 : 0) + ([...B.enemies, ...(B.dead || [])].some(e => e.boss) ? 6 : 2);

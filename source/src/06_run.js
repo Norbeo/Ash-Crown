@@ -71,6 +71,7 @@ function startRun(regionId, partyIds, petId, opt = {}) {
   const run = { region: regionId, seed, party: partyIds.slice(), pet: petId, floor: abyss ? (opt.floor || 1) : 0, map: genMap(rng, abyss ? 6 : 9, { elite: oaths.includes("elite") }), pos: null,
     light: 100, relics: (opt.relics || []).slice(), potions: potionMax() - (oaths.includes("jeune") ? 1 : 0), gold: 0, loot: [], mats: { fer: 0, essence: 0, cendre: 0 }, shards: 0,
     kills: 0, fallen: [], oaths, week: opt.week ? S.week.rule : null, daily: !!opt.daily, threat: opt.threat || 0, startedAt: Date.now(), xpGain: {}, flawless: true, combats: 0, log: [] };
+  if (typeof rollWeather === "function" && !opt.rush) run.weather = rollWeather(run); // météo de l'expédition
   if (opt.night) { run.night = 1; run.light = 60; run.flags = (run.flags || []).concat(["nuit"]); } // expédition de nuit : moins de lueur, ennemis plus forts, meilleur butin
   S.run = run;
   if (run.week) { const W = weekRule(); if (W.light != null) run.light = W.light; if (W.potions != null) run.potions = W.potions === 0 ? 0 : run.potions * W.potions; }
@@ -88,6 +89,7 @@ function relicHooks(run = S.run) {
   const H = {};
   for (const k of (run ? run.relics : [])) { const R = RELICS[k]; if (!R) continue; for (const h in R.h) H[h] = (H[h] || 0) + R.h[h]; }
   for (const k of (run ? runSynergies(run) : [])) { const Y = SYNERGIES[k]; for (const h in Y.h) H[h] = (H[h] || 0) + Y.h[h]; }
+  const tr = typeof trophyHooks === "function" && typeof S !== "undefined" && S ? trophyHooks() : null; if (tr) for (const h in tr) H[h] = (H[h] || 0) + tr[h]; // trophées du Bastion
   const duo = typeof petDuo === "function" ? petDuo(run) : null; if (duo) for (const h in duo.h) H[h] = (H[h] || 0) + duo.h[h]; // compagnon en duo
   return H;
 }
@@ -145,7 +147,7 @@ function genEncounter0(run, node, rng = RNG) {
   let ranks = 0;
   if (node.type === "elite") { // élite tirée parmi toutes les élites, adaptée au niveau du chapitre
     const ref = rng.pick(R.elite), last = (S.lastElite || (S.lastElite = {}))[R.id], cand = ALL_ELITES.filter(k => k !== last);
-    const ek = rng.pick(cand); S.lastElite[R.id] = ek;
+    let ek = rng.pick(cand); const bk = typeof bountyKey === "function" ? bountyKey() : null; if (bk && bk !== last && rng() < .5) ek = bk; S.lastElite[R.id] = ek; // prime : l'élite recherchée se montre souvent
     out.push({ key: ek, lvl: lvl + 1, f: monNorm(ek, ref) }); ranks += MONSTERS[ek].sz || 1; n = Math.min(n, 3); }
   while (out.length < n && ranks < 4) { const k = pickFor(ranks + 1); out.push({ key: k, lvl }); ranks += MONSTERS[k].sz || 1; }
   // les monstres de mêlée devant
@@ -155,7 +157,7 @@ function genEncounter0(run, node, rng = RNG) {
 
 // ── récompenses ──
 function rewardFor(run, node, rng = RNG) {
-  const lvl = runLevel(run, node), rh = relicHooks(run), luck0 = (run.light < 30 ? .05 : 0) + (run.night ? .08 : 0); let luck = luck0;
+  const lvl = runLevel(run, node), rh = relicHooks(run), luck0 = (run.light < 30 ? .05 : 0) + (run.night ? .08 : 0) + (run.weather === "lune" ? .06 : 0); let luck = luck0;
   const goldM = 1 + (rh.gold || 0) + run.party.map(heroById).filter(Boolean).reduce((a, h) => a + heroPassives(h).filter(p => p.k === "gold").reduce((b, p) => b + p.v, 0), 0) + (run.pet && PETS[run.pet].gold ? PETS[run.pet].gold : 0) + (run.daily ? .25 : 0) + run.oaths.length * .15 + run.threat * .3;
   const R = { gold: 0, xp: 0, loot: [], relic: null, mats: { fer: 0, essence: 0, cendre: 0 }, shards: 0, petXp: 0 };
   const t = node.type;
@@ -258,6 +260,7 @@ function endRun(outcome) {
   if (run.daily && outcome === "victory") { S.daily.done = 1; S.stats.daily++; }
   if (run.week && outcome === "victory" && S.week && !S.week.done) { const W = weekReward(); S.week.done = 1; res.week = W; S.gold += W.gold; S.shards += W.shards; S.mats.essence += W.essence; S.stats.weeks = (S.stats.weeks || 0) + 1; }
   extrasEndRun(run, outcome, res);
+  if (typeof bondsAfterRun === "function") { bondsAfterRun(run, res); res.trophies = run.trophyNew || []; res.bounty = run.bountyDone || null; }
   S.stats.goldMax = Math.max(S.stats.goldMax, S.gold);
   S.run = null;
   refreshRecruits();

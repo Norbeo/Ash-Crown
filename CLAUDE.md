@@ -87,6 +87,8 @@ Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
 - `08y_more.js` : reliques maudites (`cursed`, `addRelic`/`onGet`), vétérans (`VET_TITLES`, `vetCheck` à 10 expéditions, passifs dans heroStats), mémorial (`engrave`, `S.graves`, onglet Archives), marchand ambulant quotidien (`merchantStock`/`merchantBuy`, bouton du panneau du Bastion), tenues (`OUTFITS`, recoloration `hue` dans imgSprite, choix sur la fiche), duos compagnon/classe (`PET_DUOS`, `petDuo`), succès cachés (`HIDDEN_ACH`, `hiddenEndRun`), expéditions de nuit (`opt.night`, `run.night`, 4 événements `need:"nuit"`).
 - Gardiens à invocations (`BOSS_SUMMON`, `sk.summon` dans 05_combat) ; frise de l'ordre des tours (`turnOrderHTML`, `#cb-ord`).
 
+- `08v_bonds.js` (30 oct., v44) : liens amis/rivaux (`S.bonds`, `bondsAfterRun` après 3 expéditions côte à côte, `applyBonds` dans newBattle, `bondStress`), trophées de gardiens (`S.trophies`, `trophyHooks` dans relicHooks, `ACT.trophies`), prime du jour (`bountyOf`, élite forcée 1 fois sur 2, `ACT.bounty`), météo (`WEATHERS`, `run.weather`, brouillard/pluie/lune rouge dans battleFor), dernier souffle à la 3e agonie (`lastBreath` dans 05_combat).
+
 ## Reste à faire (prochaine séance)
 1. Armures palier V à repeindre pour chaque classe (progression cohérente IV → V → VI), sans aura.
 2. Un nouveau gardien inédit par niveau de menace (II à V), avec illustrations.

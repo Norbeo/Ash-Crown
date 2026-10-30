@@ -270,6 +270,37 @@ function hiddenAchHTML() { return `<h3 style="margin-top:14px">Succès cachés</
 function vetOutfitHTML(h) {
   const t = h.vet ? `<div class="small" style="margin-top:6px">${ico("crown", "#e8c878", 14)} <b class="gold">${esc(h.name.split(" ")[0])} ${esc(vetTitle(h))}</b> <span class="tiny dim">— ${VET_TITLES[h.vet].d}</span></div>` : `<div class="tiny dim" style="margin-top:6px">${ico("crown", "#9a8c7a", 12)} Titre de vétéran après 10 expéditions (${h.runs || 0}/10).</div>`;
   const o = `<div class="row" style="gap:4px;margin-top:6px"><span class="tiny dim">Tenue :</span>${OUTFITS.map(O => { const ok = outfitOk(h, O.k); return `<button class="btn sm ${(h.outfit || "") === O.k ? "gold" : "ghost"} ${ok ? "" : "off"}" data-a="setOutfit" data-v="${h.id}:${O.k}" title="${ok ? "" : `Défi de classe : ${O.need} gardiens vaincus avec un ${CLASSES[h.cls].n}`}">${ok ? "" : ico("lock", "#9a8c7a", 11)}${O.n}</button>`; }).join("")}</div>`;
-  return `<div class="panel" style="padding:10px;margin-top:10px">${t}${o}</div>`;
+  return `<div class="panel" style="padding:10px;margin-top:10px">${t}${o}${bondsHTML(h)}</div>`;
 }
 ACT.setOutfit = v => { const [id, k] = v.split(":"), h = heroById(id); if (!h || !outfitOk(h, k)) return toast("Tenue pas encore débloquée.", "bad"); h.outfit = k || null; save(); refresh(); };
+
+// ── Trophées, primes, liens, météo, dernier souffle (interface) ──
+ACT.trophies = () => {
+  const T = S.trophies || {}, ks = Object.keys(T).filter(k => MONSTERS[k]), n = Math.min(15, ks.length);
+  modal(`<h2>${ico("trophy", "#e8c878")} Salle des trophées</h2><p class="lore">« Chaque crâne accroché ici est une nuit de moins à craindre. »</p>
+    <p class="small">Bonus permanent : <b class="gold">+${n} % de dégâts</b> et <b class="gold">+${n * 2} % d'or</b> (1 % et 2 % par trophée, 15 au plus).</p>
+    ${ks.length ? `<div class="grid" style="--min:150px">${ks.map(k => `<div class="card" style="cursor:pointer;text-align:center" data-a="monSheet" data-v="${k}">${canvasSlot(k, 130, 130)}<b class="small">${MONSTERS[k].n || MONSTERS[k].name}</b></div>`).join("")}</div>` : '<p class="small dim">Aucun trophée pour l\'instant. Chaque gardien vaincu laisse le sien.</p>'}`,
+    { wide: 1, mount: m => fillCanvases(m, (c, k) => paintMon(c, k)) });
+};
+ACT.bounty = () => {
+  const b = bountyOf(); if (!b) return;
+  modal(`<h2>${ico("skull", "#e05050")} Prime du jour</h2><p class="lore">Une affiche clouée à la porte, encore humide : « Recherché, mort. »</p>
+    <div class="row" style="gap:12px;align-items:center">${canvasSlot(b.key, 140, 140)}<div><b class="gold" style="font-size:18px">${esc(bountyName(b))}</b><div class="tiny dim">Élite — se montre une fois sur deux dans les salles d'élite, quel que soit le chapitre.</div>
+    <div class="small" style="margin-top:6px">Récompense : <b class="gold">${b.gold} or</b> · <b style="color:#c8a0ff">${b.shards} éclats</b></div>
+    <div class="small ${b.done ? "good" : "dim"}" style="margin-top:4px">${b.done ? "✔ Prime encaissée. Une nouvelle affiche demain." : "Pas encore abattu."}</div></div></div>`,
+    { mount: m => fillCanvases(m, (c, k) => paintMon(c, k)) });
+};
+function bastionExtraBtns() {
+  const b = bountyOf();
+  return `<div class="row" style="gap:6px;margin-bottom:6px"><button class="btn sm ${b && !b.done ? "" : "ghost"}" style="flex:1" data-a="bounty">${ico("skull", "#e05050", 13)}Prime${b && b.done ? " ✔" : ""}</button><button class="btn sm ghost" style="flex:1" data-a="trophies">${ico("trophy", "#e8c878", 13)}Trophées (${trophyCount()})</button></div>`;
+}
+function bondsHTML(h) {
+  const L = heroBonds(h);
+  return L.length ? `<div class="small" style="margin-top:6px">${L.map(o => `<span class="tag" ${tipAttr(BOND_T[o.t].n, BOND_T[o.t].d)}>${ico(o.t === "ami" ? "heart" : "sword", o.t === "ami" ? "#8ad06a" : "#e05050", 12)}${BOND_T[o.t].n} : ${esc(o.h.name.split(" ")[0])}</span>`).join(" ")}</div>` : `<div class="tiny dim" style="margin-top:6px">Placés côte à côte pendant ${BOND_N} expéditions, deux héros deviennent amis… ou rivaux.</div>`;
+}
+function weatherTag(run) { const W = run.weather && WEATHERS[run.weather]; return W ? `<span class="tag" ${tipAttr(W.n, W.d)}>${ico(W.ic, "#9ab8d8", 13)}${W.n}</span>` : ""; }
+function bondResultsHTML(res) {
+  return (res.bonds || []).map(b => `<div class="reward">${ico(b.t === "ami" ? "heart" : "sword", b.t === "ami" ? "#8ad06a" : "#e05050", 22)}<b>${esc(b.a.split(" ")[0])} et ${esc(b.b.split(" ")[0])} : ${BOND_T[b.t].n}</b></div>`).join("")
+    + (res.trophies || []).map(t => `<div class="reward" style="color:var(--gold2)">${ico("trophy", "#e8c878", 22)}<b>Nouveau trophée au Bastion : ${esc(t)} (+1 % de dégâts, +2 % d'or)</b></div>`).join("")
+    + (res.bounty ? `<div class="reward" style="color:var(--gold2)">${ico("skull", "#e05050", 22)}<b>Prime encaissée : ${esc(bountyName(res.bounty))} — +${res.bounty.gold} or, +${res.bounty.shards} éclats</b></div>` : "");
+}

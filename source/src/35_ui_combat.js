@@ -279,6 +279,7 @@ async function playEvents(ev) {
       case "revive": { popText(e.u, "Se relève !", "#ffe08a", true); sfx("holy"); cbLayout(); const v = V(e.u); if (v) { v.dying = 0; v.a = 1; glowAt(v, "#ffe08a", 1.5); } await wait(400); break; }
       case "die": { const v = V(e.u); if (cur && U(cur.u) && U(cur.u).side === "h" && alive(U(cur.u))) bark(cur.u, "kill"); if (v) { v.dying = 1; burst(v.x, v.y - 80 * CB.scale, "#2a1a1a", 20, { add: false, g: 200 }); burst(v.x, v.y - 80 * CB.scale, "#ffb070", 10, { up: 140, g: -30 }); } sfx("die"); await wait(e.boss ? 900 : 380); cbLayout(); break; }
       case "move": cbLayout(); sfx("step"); await wait(200); break;
+      case "lastbreath": { const v = V(e.u); if (v) glowAt(v, "#ffd070", 2); popText(e.u, "Dernier souffle !", "#ffd070", true); sfx("ult"); CB.shake = .5; await wait(700); break; }
       case "summon": { cbLayout(); sfx("dark"); const v = V(e.u); if (v) { v.a = 0; glowAt(v, "#9a3aff", 1.4); } popText(e.u, "Renfort !", "#c89aff", true); await wait(500); break; }
       case "morale": if (Math.abs(e.d) >= 8) { const pc = e.d > 0 ? "#ffd27a" : "#ff6a5a"; CB.txt.push({ x: SC.w / 2, y: CB.stageH * .2, text: (e.d > 0 ? "Résolution +" : "Résolution ") + Math.round(e.d), col: pc, t: 0, life: 1.2 }); } cbTopLeft(); break;
       case "phase": sfx("dark"); CB.flash = .8; await showBanner(e.text, "", "#ff4a3a", 1500); break;

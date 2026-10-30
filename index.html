@@ -1724,6 +1724,7 @@ function newBattle(heroes, enemyKeys, opt = {}) {
   for (const k of enemyKeys) { const m = Object.assign({}, opt.mods); if (k.f) { m.hp = (m.hp || 1) * k.f.hp; m.dmg = (m.dmg || 1) * k.f.dmg; m.prot = (m.prot || 0) + k.f.prot * .5; } if (k.corrupt) { m.hp = (m.hp || 1) * 1.3; m.dmg = (m.dmg || 1) * 1.2; } const eu = monUnit(k.key || k, k.lvl || opt.lvl || 1, m); if (k.corrupt) { eu.corrupt = 1; eu.name += " corrompu"; eu.res = (eu.res || 0) + 15; } B.enemies.push(eu); }
   if (opt.pet) B.pet = { id: opt.pet, lvl: petLvl(opt.pet), evo: petEvolved(opt.pet), pw: petPower(opt.pet), n: 0 };
   if (relicH.startWeak) for (const e of B.enemies) addSt(B, null, e, { k: "weak", t: 2 }, []);
+  if (typeof applyBonds === "function") applyBonds(B); // amis et rivaux côte à côte
   return B;
 }
 
@@ -1857,7 +1858,7 @@ function gainUlt(u, v) { if (u.side !== "h") return; u.ultV = Math.min(100, u.ul
 
 function rollHit(B, u, x, sk) {
   if (u.side === x.side) return true;
-  let acc = u.acc + (sk.acc || 0) + stSum(u, "accUp") - stSum(u, "accDn") - effDodge(x);
+  let acc = u.acc + (sk.acc || 0) + stSum(u, "accUp") - stSum(u, "accDn") - effDodge(x) - (B.mods.fog || 0);
   if (u.side === "h" && B.morale <= 20) acc -= 10;
   return rnd() * 100 < clamp(acc, 8, 97);
 }
@@ -1885,7 +1886,9 @@ function strike(B, u, x, sk, mult, ev) {
     if (bn.selfHit && u.hitSince) d *= bn.x;
     if (bn.fallen) d *= 1 + bn.x * B.kills;
   }
+  if (u.bondDmg) mod += u.bondDmg;
   d *= Math.max(.2, mod);
+  if (B.mods.rain && sk.tags && sk.tags.includes("feu")) d *= .75; // pluie : le feu prend mal
   let critC = u.crit + (sk.cr || 0) + stSum(u, "critUp") + (u.side === "h" && B.light < 30 ? 5 : 0) + (u.side === "h" && B.morale >= 80 ? 5 : 0);
   const crit = rnd() * 100 < critC;
   if (crit) { d *= 1.5 + (hk.critDmg || 0); B.crits++; }
@@ -1935,7 +1938,7 @@ function applyDamage(B, src, x, d, ev, o = {}) {
   x.hp -= d;
   if (x.hp <= 0) {
     if (x.side === "h") { x.hp = 0; x.agonyN = (x.agonyN || 0) + 1;
-      if (x.agonyN >= 3) { ev.push({ k: "agony", u: x.uid }); fallHero(B, x, ev, true); } // 3e agonie du combat : le corps lâche
+      if (x.agonyN >= 3) { ev.push({ k: "agony", u: x.uid }); lastBreath(B, x, ev); fallHero(B, x, ev, true); } // 3e agonie du combat : le corps lâche
       else { x.agony = true; ev.push({ k: "agony", u: x.uid }); changeMorale(B, -8, ev); } }
     else { x.hp = 0; x.dead = true; B.kills++; ev.push({ k: "die", u: x.uid, boss: x.boss }); B.enemies = B.enemies.filter(e => e !== x); B.dead = (B.dead || []).concat([x]);
       if (src && src.side === "h") { src.kills = (src.kills || 0) + 1; changeMorale(B, 5 + (src.hooks.killMorale || 0), ev); if (src.hooks.killStealth) addSt(B, src, src, { k: "stealth", t: 1 }, ev); if (B.relicH.killHeal) healUnit(B, src, src, src.hpMax * B.relicH.killHeal, ev); gainUlt(src, 10); }
@@ -1944,6 +1947,12 @@ function applyDamage(B, src, x, d, ev, o = {}) {
     x.phaseDone = true; ev.push({ k: "phase", u: x.uid, text: x.phase.n }); for (const f of x.phase.sfx) x.st.push(Object.assign({}, f));
   }
   return Math.min(d, before);
+}
+function lastBreath(B, x, ev) { // dernier souffle : à la 3e agonie, le héros jette ses dernières forces avant de tomber
+  if (x._lb) return; x._lb = 1; ev.push({ k: "lastbreath", u: x.uid }); B.lastBreaths = (B.lastBreaths || 0) + 1;
+  for (const e of B.enemies.slice()) if (alive(e)) applyDamage(B, x, e, Math.max(1, Math.round(avgDmg(x) * 1.6 * (1 - effProt(e)))), ev);
+  for (const h of B.heroes) if (alive(h) && h !== x) healUnit(B, x, h, h.hpMax * .15, ev);
+  changeMorale(B, 10, ev);
 }
 function fallHero(B, x, ev, worn) {
   if (B.relicH.revive && !B.revived && !worn) { B.revived = 1; x.agony = false; x.hp = Math.round(x.hpMax * B.relicH.revive); ev.push({ k: "revive", u: x.uid }); return; }
@@ -1982,7 +1991,8 @@ function addSt(B, u, x, f, ev, rk = 1) {
   const s = { k: f.k, t: f.t || 1 };
   if (DOTS.includes(f.k)) {
     const pw = 1 + (u ? (u.hooks.dotPow || 0) + (f.k === "burn" ? u.hooks.burnPow || 0 : 0) : 0) + (u && u.side === "h" ? B.relicH.dot || 0 : 0);
-    s.v = Math.max(1, (f.v || .4) * (u ? avgDmg(u) : 3) * pw * rk);
+    const wet = f.k === "burn" && B.mods.rain ? .6 : 1;
+    s.v = Math.max(1, (f.v || .4) * (u ? avgDmg(u) : 3) * pw * rk * wet);
     if (u && u.side === "h") s.t += (f.k === "bleed" ? B.relicH.bleedT || 0 : f.k === "burn" ? B.relicH.burnT || 0 : B.relicH.poisonT || 0);
     if (f.k === "bleed" && x.hooks.bleedTaken) s.t += x.hooks.bleedTaken;
     if (x.st.filter(z => z.k === f.k).length >= 4) { const old = x.st.find(z => z.k === f.k); x.st.splice(x.st.indexOf(old), 1); }
@@ -2189,6 +2199,7 @@ function startRun(regionId, partyIds, petId, opt = {}) {
   const run = { region: regionId, seed, party: partyIds.slice(), pet: petId, floor: abyss ? (opt.floor || 1) : 0, map: genMap(rng, abyss ? 6 : 9, { elite: oaths.includes("elite") }), pos: null,
     light: 100, relics: (opt.relics || []).slice(), potions: potionMax() - (oaths.includes("jeune") ? 1 : 0), gold: 0, loot: [], mats: { fer: 0, essence: 0, cendre: 0 }, shards: 0,
     kills: 0, fallen: [], oaths, week: opt.week ? S.week.rule : null, daily: !!opt.daily, threat: opt.threat || 0, startedAt: Date.now(), xpGain: {}, flawless: true, combats: 0, log: [] };
+  if (typeof rollWeather === "function" && !opt.rush) run.weather = rollWeather(run); // météo de l'expédition
   if (opt.night) { run.night = 1; run.light = 60; run.flags = (run.flags || []).concat(["nuit"]); } // expédition de nuit : moins de lueur, ennemis plus forts, meilleur butin
   S.run = run;
   if (run.week) { const W = weekRule(); if (W.light != null) run.light = W.light; if (W.potions != null) run.potions = W.potions === 0 ? 0 : run.potions * W.potions; }
@@ -2206,6 +2217,7 @@ function relicHooks(run = S.run) {
   const H = {};
   for (const k of (run ? run.relics : [])) { const R = RELICS[k]; if (!R) continue; for (const h in R.h) H[h] = (H[h] || 0) + R.h[h]; }
   for (const k of (run ? runSynergies(run) : [])) { const Y = SYNERGIES[k]; for (const h in Y.h) H[h] = (H[h] || 0) + Y.h[h]; }
+  const tr = typeof trophyHooks === "function" && typeof S !== "undefined" && S ? trophyHooks() : null; if (tr) for (const h in tr) H[h] = (H[h] || 0) + tr[h]; // trophées du Bastion
   const duo = typeof petDuo === "function" ? petDuo(run) : null; if (duo) for (const h in duo.h) H[h] = (H[h] || 0) + duo.h[h]; // compagnon en duo
   return H;
 }
@@ -2263,7 +2275,7 @@ function genEncounter0(run, node, rng = RNG) {
   let ranks = 0;
   if (node.type === "elite") { // élite tirée parmi toutes les élites, adaptée au niveau du chapitre
     const ref = rng.pick(R.elite), last = (S.lastElite || (S.lastElite = {}))[R.id], cand = ALL_ELITES.filter(k => k !== last);
-    const ek = rng.pick(cand); S.lastElite[R.id] = ek;
+    let ek = rng.pick(cand); const bk = typeof bountyKey === "function" ? bountyKey() : null; if (bk && bk !== last && rng() < .5) ek = bk; S.lastElite[R.id] = ek; // prime : l'élite recherchée se montre souvent
     out.push({ key: ek, lvl: lvl + 1, f: monNorm(ek, ref) }); ranks += MONSTERS[ek].sz || 1; n = Math.min(n, 3); }
   while (out.length < n && ranks < 4) { const k = pickFor(ranks + 1); out.push({ key: k, lvl }); ranks += MONSTERS[k].sz || 1; }
   // les monstres de mêlée devant
@@ -2273,7 +2285,7 @@ function genEncounter0(run, node, rng = RNG) {
 
 // ── récompenses ──
 function rewardFor(run, node, rng = RNG) {
-  const lvl = runLevel(run, node), rh = relicHooks(run), luck0 = (run.light < 30 ? .05 : 0) + (run.night ? .08 : 0); let luck = luck0;
+  const lvl = runLevel(run, node), rh = relicHooks(run), luck0 = (run.light < 30 ? .05 : 0) + (run.night ? .08 : 0) + (run.weather === "lune" ? .06 : 0); let luck = luck0;
   const goldM = 1 + (rh.gold || 0) + run.party.map(heroById).filter(Boolean).reduce((a, h) => a + heroPassives(h).filter(p => p.k === "gold").reduce((b, p) => b + p.v, 0), 0) + (run.pet && PETS[run.pet].gold ? PETS[run.pet].gold : 0) + (run.daily ? .25 : 0) + run.oaths.length * .15 + run.threat * .3;
   const R = { gold: 0, xp: 0, loot: [], relic: null, mats: { fer: 0, essence: 0, cendre: 0 }, shards: 0, petXp: 0 };
   const t = node.type;
@@ -2376,6 +2388,7 @@ function endRun(outcome) {
   if (run.daily && outcome === "victory") { S.daily.done = 1; S.stats.daily++; }
   if (run.week && outcome === "victory" && S.week && !S.week.done) { const W = weekReward(); S.week.done = 1; res.week = W; S.gold += W.gold; S.shards += W.shards; S.mats.essence += W.essence; S.stats.weeks = (S.stats.weeks || 0) + 1; }
   extrasEndRun(run, outcome, res);
+  if (typeof bondsAfterRun === "function") { bondsAfterRun(run, res); res.trophies = run.trophyNew || []; res.bounty = run.bountyDone || null; }
   S.stats.goldMax = Math.max(S.stats.goldMax, S.gold);
   S.run = null;
   refreshRecruits();
@@ -2581,6 +2594,7 @@ function battleFor(run, node, enc) {
   const party = runParty().filter(h => !run.fallen.includes(h.id));
   const D = diffOf(), mods = { hp: D.hp, dmg: D.dmg * (1 + (run.curse || 0) * .1), prot: 0, spd: 0 };
   if (run.night) { mods.hp *= 1.15; mods.dmg *= 1.15; } // expédition de nuit
+  const W = run.weather && WEATHERS[run.weather]; if (W) { if (W.mods.fog) mods.fog = W.mods.fog; if (W.mods.rain) mods.rain = 1; if (W.mods.edmgM) mods.dmg *= 1 + W.mods.edmgM; if (W.mods.espd) mods.spd += W.mods.espd; } // météo
   if (run.region === "abime") { mods.hp *= 1 + run.floor * .04; mods.dmg *= 1 + run.floor * .025; }
   for (const o of run.oaths) { if (o === "sang") mods.dmg *= 1 + OATHS.sang.v; if (o === "fer") mods.hp *= 1 + OATHS.fer.v; if (o === "hate") mods.spd += OATHS.hate.v; if (o === "pierre") mods.prot += OATHS.pierre.v; }
   const rh = relicHooks(run);
@@ -2593,6 +2607,7 @@ function battleFor(run, node, enc) {
 function afterBattle(run, B) {
   run.buff = 0; run.morale = 0;
   if (typeof stressAfterBattle === "function") stressAfterBattle(run, B);
+  if (typeof bondStress === "function") { bondStress(B); const t = trophyAfterBattle(B); if (t) (run.trophyNew = run.trophyNew || []).push(t); const b = bountyAfterBattle(B); if (b) run.bountyDone = b; if (B.lastBreaths) run.lastBreaths = (run.lastBreaths || 0) + B.lastBreaths; }
   // PV conservés, héros tombés
   for (const u of [...B.heroes, ...B.fallen]) { const h = heroById(u.hid); if (!h) continue; h.hp = u.fallen ? 0 : u.hp; if (u.fallen && !run.fallen.includes(h.id)) { run.fallen.push(h.id); run.flawless = false; } }
   const rh = relicHooks(run);
@@ -2721,6 +2736,66 @@ function advXp() { const st = S.stats || {}; return (st.wins || 0) + (st.runs ||
 function advLevel() { return 1 + Math.floor(Math.sqrt(advXp() / 3)); }
 function advNext() { const l = advLevel(); return { l, cur: advXp() - 3 * (l - 1) * (l - 1), need: 3 * l * l - 3 * (l - 1) * (l - 1) }; }
 const bldAdvReq = k => Math.max(1, S.bld[k] * 3);
+// ── Liens entre héros, trophées, primes, météo (oct. 2026) ──
+// Liens : deux héros côte à côte pendant 3 expéditions deviennent amis (70 %) ou rivaux.
+const BOND_N = 3;
+const BOND_T = { ami: { n: "Frères d'armes", d: "Côte à côte : +6 % de protection et +4 d'esquive chacun. Si l'un tombe, l'autre accuse le coup (stress)." },
+  rival: { n: "Rivaux", d: "Côte à côte : +7 % de critique et +6 % de dégâts chacun, mais +6 stress par combat." } };
+const bondKey = (a, b) => a < b ? a + "|" + b : b + "|" + a;
+function bondOf(a, b) { const k = (S.bonds || {})[bondKey(a, b)]; return k && k.t ? k : null; }
+function heroBonds(h) { const out = []; for (const k in S.bonds || {}) { const b = S.bonds[k]; if (!b.t) continue; const [x, y] = k.split("|"); if (x === h.id || y === h.id) { const o = heroById(x === h.id ? y : x); if (o) out.push({ h: o, t: b.t }); } } return out; }
+function bondsAfterRun(run, res) {
+  S.bonds = S.bonds || {}; res.bonds = [];
+  const p = run.party.filter(id => heroById(id));
+  for (let i = 0; i < p.length - 1; i++) { const k = bondKey(p[i], p[i + 1]), b = S.bonds[k] || (S.bonds[k] = { n: 0 }); b.n++;
+    if (!b.t && b.n >= BOND_N) { b.t = chance(.7) ? "ami" : "rival"; res.bonds.push({ a: heroById(p[i]).name, b: heroById(p[i + 1]).name, t: b.t }); } }
+}
+function applyBonds(B) {
+  if (typeof S === "undefined" || !S || !S.bonds) return;
+  for (let i = 0; i < B.heroes.length - 1; i++) { const a = B.heroes[i], c = B.heroes[i + 1], b = bondOf(a.hid, c.hid); if (!b) continue;
+    for (const u of [a, c]) { u.bond = b.t; if (b.t === "ami") { u.prot = clamp(u.prot + .06, 0, .85); u.dodge += 4; } else { u.crit += 7; u.bondDmg = .06; } }
+  }
+}
+function bondStress(B) { // appelé après chaque combat
+  for (const u of [...B.heroes, ...B.fallen]) { const h = heroById(u.hid); if (!h) continue;
+    if (u.bond === "rival") h.stress = clamp((h.stress || 0) + 6, 0, 100);
+    for (const f of B.fallen) if (f !== u && bondOf(f.hid, u.hid) && bondOf(f.hid, u.hid).t === "ami") h.stress = clamp((h.stress || 0) + 18, 0, 100);
+  }
+}
+
+// Trophées : chaque gardien vaincu laisse un trophée exposé au Bastion (+1 % de dégâts et +2 % d'or chacun, 15 trophées au plus comptés).
+function trophyCount() { return Object.keys(S.trophies || {}).length; }
+function trophyHooks() { const n = Math.min(15, trophyCount()); return n ? { dmg: n * .01, gold: n * .02 } : null; }
+function trophyAfterBattle(B) {
+  if (B.over !== "win") return null; S.trophies = S.trophies || {}; let nw = null;
+  for (const e of B.dead || []) if (e.boss && !S.trophies[e.key]) { S.trophies[e.key] = { at: Date.now() }; nw = e.name; }
+  return nw;
+}
+
+// Primes : chaque jour, une élite nommée à abattre (elle apparaît une fois sur deux dans les salles d'élite).
+const BOUNTY_NAMES = ["le Boucher", "l'Écorcheur", "la Veuve", "le Sans-Pitié", "le Fléau", "l'Ombre rouge", "le Mangeur d'hommes", "la Hyène"];
+function bountyOf() {
+  const d = S.daily; if (!d) return null;
+  if (!d.bounty) { const rng = mkRng(hashStr("prime" + d.key)), pool = ALL_ELITES.filter(k => !MONSTERS[k].boss);
+    const k = rng.pick(pool), lv = Math.max(1, ...S.heroes.map(h => h.lvl));
+    d.bounty = { key: k, title: rng.pick(BOUNTY_NAMES), gold: 150 + lv * 40, shards: 2 + Math.floor(lv / 5), done: 0 }; }
+  return d.bounty;
+}
+const bountyKey = () => { const b = S.daily && S.daily.bounty; return b && !b.done ? b.key : null; };
+function bountyAfterBattle(B) {
+  const b = S.daily && S.daily.bounty; if (!b || b.done || B.over !== "win") return null;
+  if (!(B.dead || []).some(e => e.key === b.key && e.elite)) return null;
+  b.done = 1; S.gold += b.gold; S.shards = (S.shards || 0) + b.shards; return b;
+}
+const bountyName = b => `${MONSTERS[b.key].name || MONSTERS[b.key].n}, dit « ${b.title.replace(/^(le |la |l')/, m => m) } »`;
+
+// Météo : tirée au départ de chaque expédition (hors Abîme).
+const WEATHERS = {
+  brouillard: { n: "Brouillard", ic: "eye", d: "−10 de précision pour tous.", mods: { fog: 10 } },
+  pluie: { n: "Pluie battante", ic: "rain", d: "Feu affaibli : compétences de feu −25 %, brûlures −40 %.", mods: { rain: 1 } },
+  lune: { n: "Lune rouge", ic: "moon", d: "Ennemis enragés (+15 % de dégâts, +1 vitesse), mais butin amélioré.", mods: { edmgM: .15, espd: 1 }, luck: .06 }
+};
+function rollWeather(run) { if (run.region === "abime") return null; const r = rnd(); return r < .14 ? "brouillard" : r < .28 ? "pluie" : r < .38 ? "lune" : null; }
 /* ═══════════════════════ Extensions II : reliques maudites, vétérans, mémorial, nuit, marchand, tenues, duos, succès cachés ═══════════════════════ */
 // ── Reliques maudites : puissantes, mais avec un prix ──
 Object.assign(RELICS, {
@@ -3859,6 +3934,7 @@ SCREENS.bastion = {
     return `${L.map(b => { const hh = b.s * (b.k === "porte" ? 1.62 : b.k === "academie" ? 2.0 : b.k === "chapelle" ? 1.9 : 1.3); return `<button class="hot" style="left:${b.x}px;top:${b.y - off - hh}px;width:${b.s * 1.3}px;height:${hh}px" data-a="bld" data-v="${b.k}"><span class="lbl">${note(b.k) ? '<i class="dotn"></i>' : ""}${names[b.k]}${b.k !== "porte" ? ` <b>${"I II III IV V VI".split(" ")[S.bld[b.k] - 1]}</b>` : ""}</span></button>`; }).join("")}
     <div class="panel" style="position:absolute;left:10px;top:6px;width:min(300px,calc(100vw - 20px));padding:10px 12px" id="dailyp">
       <button class="btn sm gold" style="width:100%;margin-bottom:6px" data-a="merchant">${ico("coin", "#e8c060", 14)}Marchand ambulant</button>
+      ${bastionExtraBtns()}
       ${(() => { const A = advNext(); return `<div class="small" data-tipn="Niveau d'aventure" data-tipd="Monte avec les combats gagnés, les expéditions, les gardiens vaincus et la profondeur de l'Abîme. Il conditionne l'amélioration des bâtiments."><b class="gold">${ico("crown", "#e8c878", 14)} Niveau d'aventure ${A.l}</b><div class="bar xp" style="margin:3px 0 8px"><i style="width:${100 * A.cur / A.need}%"></i></div></div>`; })()}<div class="row sp"><h3 style="margin:0">${ico("daily", "#e8c878", 16)} Défis du jour</h3><button class="btn ghost sm" data-a="toggleDaily">${UI.hideDaily ? "+" : "–"}</button></div>
       ${UI.hideDaily ? "" : ct.map((c, i) => `<div style="margin-top:6px"><div class="row sp small"><span>${c.n}</span><span class="${c.p >= c.goal ? "good" : "dim"}">${c.p}/${c.goal}</span></div><div class="row" style="gap:6px"><div class="bar xp" style="flex:1"><i style="width:${100 * c.p / c.goal}%"></i></div>${c.claimed ? '<span class="tiny good">✓</span>' : c.p >= c.goal ? `<button class="btn gold sm" data-a="claimCt" data-v="${i}">+${c.gold}</button>` : `<span class="tiny dim">${c.gold} or</span>`}</div></div>`).join("") + `<div class="sep" style="margin:8px 0"></div><button class="btn ${S.daily.done ? "ghost off" : "main"} sm" style="width:100%" data-a="dailyRun">${ico("star")}${S.daily.done ? "Expédition du jour accomplie" : "Expédition du jour (+récompenses)"}</button>` + weekPanel()}
     </div>`;
@@ -4268,6 +4344,7 @@ SCREENS.map = {
         <span class="tag" data-tip="potion">${ico("potion", "#e86a5a")}${run.potions}</span><span class="tag" data-tip="or">${ico("coin", "#e8c060")}${fmt(run.gold)}</span><span class="tag" style="cursor:pointer" data-a="runBag" title="Butin : voir et équiper">${ico("chest", "#c8a070")}${run.loot.length}</span>
       </div><button class="btn ghost sm" data-a="retreat">${ico("flee")}Rentrer</button></div>
       ${runSynergies(run).length ? `<div class="row" style="gap:4px;margin-top:6px">${runSynergies(run).map(k => `<span class="tag gold" style="cursor:pointer" ${tipAttr(SYNERGIES[k].n, SYNERGIES[k].d)}>${ico("link", "#e8c878")}${SYNERGIES[k].n}</span>`).join("")}</div>` : ""}
+      ${run.weather ? `<div class="row" style="gap:4px;margin-top:6px">${weatherTag(run)}</div>` : ""}
       ${run.relics.length ? `<div class="row" style="gap:4px;margin-top:6px">${run.relics.map(k => `<span class="tag" style="cursor:pointer" ${tipAttr(RELICS[k].n, RELICS[k].d)}>${ico(RELICS[k].cursed ? "skull" : "gem", RELICS[k].cursed ? "#e05050" : ["#c8beaa", "#6ab0ff", "#c87aff"][RELICS[k].r])}${RELICS[k].n}${RELICS[k].cursed ? ' <span class="bad tiny">maudite</span>' : ""}</span>`).join("")}</div>` : ""}</div>
       <div class="mapwrap" style="width:${W}px;height:${H}px;margin-top:8px"><canvas data-cv="mapbg" width="${Math.round(W * Math.min(2, devicePixelRatio || 1))}" height="${Math.round(H * Math.min(2, devicePixelRatio || 1))}" style="position:absolute;inset:0;width:${W}px;height:${H}px"></canvas>${nodes}${pawn && pawnArt ? `<img class="pawn" src="${pawnArt}" alt="" style="left:${pawn[0]}px;top:${pawn[1]}px">` : ""}</div>
       <div class="row" style="justify-content:center;gap:6px;margin-top:6px;flex-wrap:nowrap">${party.map(h => { const mx = heroStats(h, relicHooks(run)).hp, hp = h.hp == null ? mx : h.hp, fallen = run.fallen.includes(h.id); return `<div class="panel" style="padding:4px;width:84px;text-align:center;${fallen ? "filter:grayscale(1) brightness(.5)" : ""}">${canvasSlot("mh:" + h.id, 64, 64)}<div class="tiny"><b>${esc(h.name.split(" ")[0])}</b></div><div class="bar" style="height:6px"><i style="width:${100 * hp / mx}%"></i></div><div class="tiny dim">${fallen ? "Tombé" : hp + "/" + mx}</div></div>`; }).join("")}</div>
@@ -4439,7 +4516,7 @@ SCREENS.results = {
       ${res.unlocks.map(u => `<div class="reward" style="color:var(--gold2)">${ico("star", "#e8c878", 22)}<b>${u.k === "class" ? "Nouvelle classe à la Taverne : " + CLASSES[u.id].n : u.k === "pet" ? "Nouveau compagnon à la Ménagerie : " + PETS[u.id].n : "Nouvelle destination : " + regionById(u.id).n}</b></div>`).join("")}
       ${res.threatUp ? `<div class="reward" style="color:var(--gold2)">${ico("skull", "#ff8a6a", 22)}<b>Menace ${THREAT_N[res.threatUp.t]} débloquée : ${regionById(res.threatUp.region).n}</b></div>` : ""}
       ${res.week ? `<div class="reward" style="color:var(--gold2)">${ico("trophy", "#e8c878", 22)}<b>Défi de la semaine relevé ! +${res.week.gold} or · +${res.week.shards} éclats · +${res.week.essence} essence</b></div>` : ""}
-      ${extrasResultsHTML(res)}${(res.hidden || []).map(a => `<div class="reward" style="color:var(--gold2)">${ico("star", "#e8c878", 22)}<b>Succès caché : ${a.n} — ${a.d} (+${a.gold} or, +${a.shards} éclats)</b></div>`).join("")}${(res.vets || []).map(v => `<div class="reward" style="color:var(--gold2)">${ico("crown", "#e8c878", 22)}<b>${esc(v.name.split(" ")[0])} devient ${esc(v.t)} : ${v.d}</b></div>`).join("")}${(res.classCh || []).map(c => `<div class="reward" style="color:var(--gold2)">${ico("trophy", "#e8c878", 22)}<b>Défi de classe — ${CLASSES[c.cls].n} : ${CLASS_GOALS[c.g]} gardiens vaincus ! +${c.gold} or, +${c.sh} éclats</b></div>`).join("")}
+      ${extrasResultsHTML(res)}${bondResultsHTML(res)}${(res.hidden || []).map(a => `<div class="reward" style="color:var(--gold2)">${ico("star", "#e8c878", 22)}<b>Succès caché : ${a.n} — ${a.d} (+${a.gold} or, +${a.shards} éclats)</b></div>`).join("")}${(res.vets || []).map(v => `<div class="reward" style="color:var(--gold2)">${ico("crown", "#e8c878", 22)}<b>${esc(v.name.split(" ")[0])} devient ${esc(v.t)} : ${v.d}</b></div>`).join("")}${(res.classCh || []).map(c => `<div class="reward" style="color:var(--gold2)">${ico("trophy", "#e8c878", 22)}<b>Défi de classe — ${CLASSES[c.cls].n} : ${CLASS_GOALS[c.g]} gardiens vaincus ! +${c.gold} or, +${c.sh} éclats</b></div>`).join("")}
       ${res.sum ? runSummaryHTML(res) : ""}
       ${res.region === "abime" ? `<p class="small" style="text-align:center">Record de l'Abîme : <b>${S.abyss.best}</b></p>` : ""}
       <div class="row" style="justify-content:center;margin-top:12px"><button class="btn main" data-go="bastion">${ico("castle")}Au Bastion</button></div></div></div>`;
@@ -4735,6 +4812,7 @@ async function playEvents(ev) {
       case "revive": { popText(e.u, "Se relève !", "#ffe08a", true); sfx("holy"); cbLayout(); const v = V(e.u); if (v) { v.dying = 0; v.a = 1; glowAt(v, "#ffe08a", 1.5); } await wait(400); break; }
       case "die": { const v = V(e.u); if (cur && U(cur.u) && U(cur.u).side === "h" && alive(U(cur.u))) bark(cur.u, "kill"); if (v) { v.dying = 1; burst(v.x, v.y - 80 * CB.scale, "#2a1a1a", 20, { add: false, g: 200 }); burst(v.x, v.y - 80 * CB.scale, "#ffb070", 10, { up: 140, g: -30 }); } sfx("die"); await wait(e.boss ? 900 : 380); cbLayout(); break; }
       case "move": cbLayout(); sfx("step"); await wait(200); break;
+      case "lastbreath": { const v = V(e.u); if (v) glowAt(v, "#ffd070", 2); popText(e.u, "Dernier souffle !", "#ffd070", true); sfx("ult"); CB.shake = .5; await wait(700); break; }
       case "summon": { cbLayout(); sfx("dark"); const v = V(e.u); if (v) { v.a = 0; glowAt(v, "#9a3aff", 1.4); } popText(e.u, "Renfort !", "#c89aff", true); await wait(500); break; }
       case "morale": if (Math.abs(e.d) >= 8) { const pc = e.d > 0 ? "#ffd27a" : "#ff6a5a"; CB.txt.push({ x: SC.w / 2, y: CB.stageH * .2, text: (e.d > 0 ? "Résolution +" : "Résolution ") + Math.round(e.d), col: pc, t: 0, life: 1.2 }); } cbTopLeft(); break;
       case "phase": sfx("dark"); CB.flash = .8; await showBanner(e.text, "", "#ff4a3a", 1500); break;
@@ -5254,9 +5332,40 @@ function hiddenAchHTML() { return `<h3 style="margin-top:14px">Succès cachés</
 function vetOutfitHTML(h) {
   const t = h.vet ? `<div class="small" style="margin-top:6px">${ico("crown", "#e8c878", 14)} <b class="gold">${esc(h.name.split(" ")[0])} ${esc(vetTitle(h))}</b> <span class="tiny dim">— ${VET_TITLES[h.vet].d}</span></div>` : `<div class="tiny dim" style="margin-top:6px">${ico("crown", "#9a8c7a", 12)} Titre de vétéran après 10 expéditions (${h.runs || 0}/10).</div>`;
   const o = `<div class="row" style="gap:4px;margin-top:6px"><span class="tiny dim">Tenue :</span>${OUTFITS.map(O => { const ok = outfitOk(h, O.k); return `<button class="btn sm ${(h.outfit || "") === O.k ? "gold" : "ghost"} ${ok ? "" : "off"}" data-a="setOutfit" data-v="${h.id}:${O.k}" title="${ok ? "" : `Défi de classe : ${O.need} gardiens vaincus avec un ${CLASSES[h.cls].n}`}">${ok ? "" : ico("lock", "#9a8c7a", 11)}${O.n}</button>`; }).join("")}</div>`;
-  return `<div class="panel" style="padding:10px;margin-top:10px">${t}${o}</div>`;
+  return `<div class="panel" style="padding:10px;margin-top:10px">${t}${o}${bondsHTML(h)}</div>`;
 }
 ACT.setOutfit = v => { const [id, k] = v.split(":"), h = heroById(id); if (!h || !outfitOk(h, k)) return toast("Tenue pas encore débloquée.", "bad"); h.outfit = k || null; save(); refresh(); };
+
+// ── Trophées, primes, liens, météo, dernier souffle (interface) ──
+ACT.trophies = () => {
+  const T = S.trophies || {}, ks = Object.keys(T).filter(k => MONSTERS[k]), n = Math.min(15, ks.length);
+  modal(`<h2>${ico("trophy", "#e8c878")} Salle des trophées</h2><p class="lore">« Chaque crâne accroché ici est une nuit de moins à craindre. »</p>
+    <p class="small">Bonus permanent : <b class="gold">+${n} % de dégâts</b> et <b class="gold">+${n * 2} % d'or</b> (1 % et 2 % par trophée, 15 au plus).</p>
+    ${ks.length ? `<div class="grid" style="--min:150px">${ks.map(k => `<div class="card" style="cursor:pointer;text-align:center" data-a="monSheet" data-v="${k}">${canvasSlot(k, 130, 130)}<b class="small">${MONSTERS[k].n || MONSTERS[k].name}</b></div>`).join("")}</div>` : '<p class="small dim">Aucun trophée pour l\'instant. Chaque gardien vaincu laisse le sien.</p>'}`,
+    { wide: 1, mount: m => fillCanvases(m, (c, k) => paintMon(c, k)) });
+};
+ACT.bounty = () => {
+  const b = bountyOf(); if (!b) return;
+  modal(`<h2>${ico("skull", "#e05050")} Prime du jour</h2><p class="lore">Une affiche clouée à la porte, encore humide : « Recherché, mort. »</p>
+    <div class="row" style="gap:12px;align-items:center">${canvasSlot(b.key, 140, 140)}<div><b class="gold" style="font-size:18px">${esc(bountyName(b))}</b><div class="tiny dim">Élite — se montre une fois sur deux dans les salles d'élite, quel que soit le chapitre.</div>
+    <div class="small" style="margin-top:6px">Récompense : <b class="gold">${b.gold} or</b> · <b style="color:#c8a0ff">${b.shards} éclats</b></div>
+    <div class="small ${b.done ? "good" : "dim"}" style="margin-top:4px">${b.done ? "✔ Prime encaissée. Une nouvelle affiche demain." : "Pas encore abattu."}</div></div></div>`,
+    { mount: m => fillCanvases(m, (c, k) => paintMon(c, k)) });
+};
+function bastionExtraBtns() {
+  const b = bountyOf();
+  return `<div class="row" style="gap:6px;margin-bottom:6px"><button class="btn sm ${b && !b.done ? "" : "ghost"}" style="flex:1" data-a="bounty">${ico("skull", "#e05050", 13)}Prime${b && b.done ? " ✔" : ""}</button><button class="btn sm ghost" style="flex:1" data-a="trophies">${ico("trophy", "#e8c878", 13)}Trophées (${trophyCount()})</button></div>`;
+}
+function bondsHTML(h) {
+  const L = heroBonds(h);
+  return L.length ? `<div class="small" style="margin-top:6px">${L.map(o => `<span class="tag" ${tipAttr(BOND_T[o.t].n, BOND_T[o.t].d)}>${ico(o.t === "ami" ? "heart" : "sword", o.t === "ami" ? "#8ad06a" : "#e05050", 12)}${BOND_T[o.t].n} : ${esc(o.h.name.split(" ")[0])}</span>`).join(" ")}</div>` : `<div class="tiny dim" style="margin-top:6px">Placés côte à côte pendant ${BOND_N} expéditions, deux héros deviennent amis… ou rivaux.</div>`;
+}
+function weatherTag(run) { const W = run.weather && WEATHERS[run.weather]; return W ? `<span class="tag" ${tipAttr(W.n, W.d)}>${ico(W.ic, "#9ab8d8", 13)}${W.n}</span>` : ""; }
+function bondResultsHTML(res) {
+  return (res.bonds || []).map(b => `<div class="reward">${ico(b.t === "ami" ? "heart" : "sword", b.t === "ami" ? "#8ad06a" : "#e05050", 22)}<b>${esc(b.a.split(" ")[0])} et ${esc(b.b.split(" ")[0])} : ${BOND_T[b.t].n}</b></div>`).join("")
+    + (res.trophies || []).map(t => `<div class="reward" style="color:var(--gold2)">${ico("trophy", "#e8c878", 22)}<b>Nouveau trophée au Bastion : ${esc(t)} (+1 % de dégâts, +2 % d'or)</b></div>`).join("")
+    + (res.bounty ? `<div class="reward" style="color:var(--gold2)">${ico("skull", "#e05050", 22)}<b>Prime encaissée : ${esc(bountyName(res.bounty))} — +${res.bounty.gold} or, +${res.bounty.shards} éclats</b></div>` : "");
+}
 /* ═══════════════════════ Démarrage ═══════════════════════ */
 if (HASWIN) {
   const boot = () => {

@@ -52,6 +52,7 @@ function newBattle(heroes, enemyKeys, opt = {}) {
   for (const k of enemyKeys) { const m = Object.assign({}, opt.mods); if (k.f) { m.hp = (m.hp || 1) * k.f.hp; m.dmg = (m.dmg || 1) * k.f.dmg; m.prot = (m.prot || 0) + k.f.prot * .5; } if (k.corrupt) { m.hp = (m.hp || 1) * 1.3; m.dmg = (m.dmg || 1) * 1.2; } const eu = monUnit(k.key || k, k.lvl || opt.lvl || 1, m); if (k.corrupt) { eu.corrupt = 1; eu.name += " corrompu"; eu.res = (eu.res || 0) + 15; } B.enemies.push(eu); }
   if (opt.pet) B.pet = { id: opt.pet, lvl: petLvl(opt.pet), evo: petEvolved(opt.pet), pw: petPower(opt.pet), n: 0 };
   if (relicH.startWeak) for (const e of B.enemies) addSt(B, null, e, { k: "weak", t: 2 }, []);
+  if (typeof applyBonds === "function") applyBonds(B); // amis et rivaux côte à côte
   return B;
 }
 
@@ -185,7 +186,7 @@ function gainUlt(u, v) { if (u.side !== "h") return; u.ultV = Math.min(100, u.ul
 
 function rollHit(B, u, x, sk) {
   if (u.side === x.side) return true;
-  let acc = u.acc + (sk.acc || 0) + stSum(u, "accUp") - stSum(u, "accDn") - effDodge(x);
+  let acc = u.acc + (sk.acc || 0) + stSum(u, "accUp") - stSum(u, "accDn") - effDodge(x) - (B.mods.fog || 0);
   if (u.side === "h" && B.morale <= 20) acc -= 10;
   return rnd() * 100 < clamp(acc, 8, 97);
 }
@@ -213,7 +214,9 @@ function strike(B, u, x, sk, mult, ev) {
     if (bn.selfHit && u.hitSince) d *= bn.x;
     if (bn.fallen) d *= 1 + bn.x * B.kills;
   }
+  if (u.bondDmg) mod += u.bondDmg;
   d *= Math.max(.2, mod);
+  if (B.mods.rain && sk.tags && sk.tags.includes("feu")) d *= .75; // pluie : le feu prend mal
   let critC = u.crit + (sk.cr || 0) + stSum(u, "critUp") + (u.side === "h" && B.light < 30 ? 5 : 0) + (u.side === "h" && B.morale >= 80 ? 5 : 0);
   const crit = rnd() * 100 < critC;
   if (crit) { d *= 1.5 + (hk.critDmg || 0); B.crits++; }
@@ -263,7 +266,7 @@ function applyDamage(B, src, x, d, ev, o = {}) {
   x.hp -= d;
   if (x.hp <= 0) {
     if (x.side === "h") { x.hp = 0; x.agonyN = (x.agonyN || 0) + 1;
-      if (x.agonyN >= 3) { ev.push({ k: "agony", u: x.uid }); fallHero(B, x, ev, true); } // 3e agonie du combat : le corps lâche
+      if (x.agonyN >= 3) { ev.push({ k: "agony", u: x.uid }); lastBreath(B, x, ev); fallHero(B, x, ev, true); } // 3e agonie du combat : le corps lâche
       else { x.agony = true; ev.push({ k: "agony", u: x.uid }); changeMorale(B, -8, ev); } }
     else { x.hp = 0; x.dead = true; B.kills++; ev.push({ k: "die", u: x.uid, boss: x.boss }); B.enemies = B.enemies.filter(e => e !== x); B.dead = (B.dead || []).concat([x]);
       if (src && src.side === "h") { src.kills = (src.kills || 0) + 1; changeMorale(B, 5 + (src.hooks.killMorale || 0), ev); if (src.hooks.killStealth) addSt(B, src, src, { k: "stealth", t: 1 }, ev); if (B.relicH.killHeal) healUnit(B, src, src, src.hpMax * B.relicH.killHeal, ev); gainUlt(src, 10); }
@@ -272,6 +275,12 @@ function applyDamage(B, src, x, d, ev, o = {}) {
     x.phaseDone = true; ev.push({ k: "phase", u: x.uid, text: x.phase.n }); for (const f of x.phase.sfx) x.st.push(Object.assign({}, f));
   }
   return Math.min(d, before);
+}
+function lastBreath(B, x, ev) { // dernier souffle : à la 3e agonie, le héros jette ses dernières forces avant de tomber
+  if (x._lb) return; x._lb = 1; ev.push({ k: "lastbreath", u: x.uid }); B.lastBreaths = (B.lastBreaths || 0) + 1;
+  for (const e of B.enemies.slice()) if (alive(e)) applyDamage(B, x, e, Math.max(1, Math.round(avgDmg(x) * 1.6 * (1 - effProt(e)))), ev);
+  for (const h of B.heroes) if (alive(h) && h !== x) healUnit(B, x, h, h.hpMax * .15, ev);
+  changeMorale(B, 10, ev);
 }
 function fallHero(B, x, ev, worn) {
   if (B.relicH.revive && !B.revived && !worn) { B.revived = 1; x.agony = false; x.hp = Math.round(x.hpMax * B.relicH.revive); ev.push({ k: "revive", u: x.uid }); return; }
@@ -310,7 +319,8 @@ function addSt(B, u, x, f, ev, rk = 1) {
   const s = { k: f.k, t: f.t || 1 };
   if (DOTS.includes(f.k)) {
     const pw = 1 + (u ? (u.hooks.dotPow || 0) + (f.k === "burn" ? u.hooks.burnPow || 0 : 0) : 0) + (u && u.side === "h" ? B.relicH.dot || 0 : 0);
-    s.v = Math.max(1, (f.v || .4) * (u ? avgDmg(u) : 3) * pw * rk);
+    const wet = f.k === "burn" && B.mods.rain ? .6 : 1;
+    s.v = Math.max(1, (f.v || .4) * (u ? avgDmg(u) : 3) * pw * rk * wet);
     if (u && u.side === "h") s.t += (f.k === "bleed" ? B.relicH.bleedT || 0 : f.k === "burn" ? B.relicH.burnT || 0 : B.relicH.poisonT || 0);
     if (f.k === "bleed" && x.hooks.bleedTaken) s.t += x.hooks.bleedTaken;
     if (x.st.filter(z => z.k === f.k).length >= 4) { const old = x.st.find(z => z.k === f.k); x.st.splice(x.st.indexOf(old), 1); }

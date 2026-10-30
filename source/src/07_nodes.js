@@ -129,6 +129,7 @@ function battleFor(run, node, enc) {
   const party = runParty().filter(h => !run.fallen.includes(h.id));
   const D = diffOf(), mods = { hp: D.hp, dmg: D.dmg * (1 + (run.curse || 0) * .1), prot: 0, spd: 0 };
   if (run.night) { mods.hp *= 1.15; mods.dmg *= 1.15; } // expédition de nuit
+  const W = run.weather && WEATHERS[run.weather]; if (W) { if (W.mods.fog) mods.fog = W.mods.fog; if (W.mods.rain) mods.rain = 1; if (W.mods.edmgM) mods.dmg *= 1 + W.mods.edmgM; if (W.mods.espd) mods.spd += W.mods.espd; } // météo
   if (run.region === "abime") { mods.hp *= 1 + run.floor * .04; mods.dmg *= 1 + run.floor * .025; }
   for (const o of run.oaths) { if (o === "sang") mods.dmg *= 1 + OATHS.sang.v; if (o === "fer") mods.hp *= 1 + OATHS.fer.v; if (o === "hate") mods.spd += OATHS.hate.v; if (o === "pierre") mods.prot += OATHS.pierre.v; }
   const rh = relicHooks(run);
@@ -141,6 +142,7 @@ function battleFor(run, node, enc) {
 function afterBattle(run, B) {
   run.buff = 0; run.morale = 0;
   if (typeof stressAfterBattle === "function") stressAfterBattle(run, B);
+  if (typeof bondStress === "function") { bondStress(B); const t = trophyAfterBattle(B); if (t) (run.trophyNew = run.trophyNew || []).push(t); const b = bountyAfterBattle(B); if (b) run.bountyDone = b; if (B.lastBreaths) run.lastBreaths = (run.lastBreaths || 0) + B.lastBreaths; }
   // PV conservés, héros tombés
   for (const u of [...B.heroes, ...B.fallen]) { const h = heroById(u.hid); if (!h) continue; h.hp = u.fallen ? 0 : u.hp; if (u.fallen && !run.fallen.includes(h.id)) { run.fallen.push(h.id); run.flawless = false; } }
   const rh = relicHooks(run);

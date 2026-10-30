@@ -33,3 +33,6 @@ const HARD_BOSS = { hp: 1.5, dmg: 1.3 };
 // dernières paroles d'un héros tombé (gravées au Mémorial)
 const LAST_WORDS = { tank: ["Tenez… la ligne…", "Je n'ai pas reculé. Dites-leur.", "Le mur… tombe enfin."], soin: ["Je n'ai pas pu… tous les sauver.", "La lumière… est si froide…", "Priez pour moi. Moi, je n'ai plus le temps."], soutien: ["Chantez… à ma place…", "La dernière note… est pour vous."], dps: ["Encore un… je pouvais encore…", "Ce n'était pas… mon dernier coup…", "Vengez-moi. Proprement.", "Enfin… le silence."] };
 function lastWords(h) { const r = CLASSES[h.cls] ? CLASSES[h.cls].role : "dps"; return pick(LAST_WORDS[{ tank: "tank", soin: "soin", soutien: "soutien" }[r] || "dps"]); }
+
+// migration : pour une partie existante, les élites des monstres déjà vaincus au moins une fois comptent comme vaincues
+function migrateElites() { if (!S || S.beatenElites) return; S.beatenElites = {}; for (const k in (S.seen && S.seen.monsters) || {}) if (MONSTERS[k] && MONSTERS[k].elite && S.seen.monsters[k] > 0) S.beatenElites[k] = 1; }

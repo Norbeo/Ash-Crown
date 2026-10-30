@@ -38,7 +38,7 @@ function trophyAfterBattle(B) {
 const BOUNTY_NAMES = ["le Boucher", "l'Écorcheur", "la Veuve", "le Sans-Pitié", "le Fléau", "l'Ombre rouge", "le Mangeur d'hommes", "la Hyène"];
 function bountyOf() {
   const d = S.daily; if (!d) return null;
-  if (!d.bounty) { const rng = mkRng(hashStr("prime" + d.key)), pool = ALL_ELITES.filter(k => !MONSTERS[k].boss);
+  if (!d.bounty) { const rng = mkRng(hashStr("prime" + d.key)), won = Object.keys(S.beatenElites || {}).filter(k => MONSTERS[k] && MONSTERS[k].elite), pool = won.length ? won : ALL_ELITES.filter(k => !MONSTERS[k].boss); // prime : une élite déjà rencontrée
     const k = rng.pick(pool), lv = Math.max(1, ...S.heroes.map(h => h.lvl));
     d.bounty = { key: k, title: rng.pick(BOUNTY_NAMES), gold: 150 + lv * 40, shards: 2 + Math.floor(lv / 5), done: 0 }; }
   return d.bounty;

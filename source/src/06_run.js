@@ -147,8 +147,11 @@ function genEncounter0(run, node, rng = RNG) {
   if (R.lvl >= 9 && node.c >= 3) n = Math.max(n, 3);
   let ranks = 0;
   if (node.type === "elite") { // élite tirée parmi toutes les élites, adaptée au niveau du chapitre
-    const ref = rng.pick(R.elite), last = (S.lastElite || (S.lastElite = {}))[R.id], cand = ALL_ELITES.filter(k => k !== last);
-    let ek = rng.pick(cand); const bk = typeof bountyKey === "function" ? bountyKey() : null; if (bk && bk !== last && rng() < .5) ek = bk; S.lastElite[R.id] = ek; // prime : l'élite recherchée se montre souvent
+    if (typeof migrateElites === "function") migrateElites();
+    // même règle que les gardiens : tant que l'élite du chapitre n'est pas vaincue, c'est elle ; ensuite, au hasard parmi les élites déjà vaincues
+    const ref = rng.pick(R.elite), last = (S.lastElite || (S.lastElite = {}))[R.id], won = Object.keys(S.beatenElites || {}).filter(k => MONSTERS[k] && MONSTERS[k].elite);
+    const own = R.elite.filter(k => !(S.beatenElites || {})[k]), cand = won.filter(k => k !== last);
+    let ek = run.region !== "abime" && own.length ? rng.pick(own) : cand.length ? rng.pick(cand) : won.length ? rng.pick(won) : ref; const bk = typeof bountyKey === "function" ? bountyKey() : null; if (bk && bk !== last && rng() < .5) ek = bk; S.lastElite[R.id] = ek; // prime : l'élite recherchée se montre souvent
     out.push({ key: ek, lvl: lvl + 1, f: monNorm(ek, ref) }); ranks += MONSTERS[ek].sz || 1; n = Math.min(n, 3); }
   while (out.length < n && ranks < 4) { const k = pickFor(ranks + 1); out.push({ key: k, lvl }); ranks += MONSTERS[k].sz || 1; }
   // les monstres de mêlée devant

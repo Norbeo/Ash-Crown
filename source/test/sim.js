@@ -1,6 +1,6 @@
 // Bots : simulent des carrières complètes pour trouver les bugs et équilibrer.  node test/sim.js [carrières] [expéditions] [graine]
 const fs = require("fs"), path = require("path");
-const SRC = ["00_util", "01_classes", "02_world", "02y_more", "02yz_chapters", "02z_pets", "03_items", "03y_story", "03z_events", "04_state", "05_combat", "06_run", "07_nodes", "08_meta", "08v_bonds", "08y_more", "08z_extras", "08zz_chapters_late"];
+const SRC = ["00_util", "01_classes", "02_world", "02y_more", "02yz_chapters", "02z_pets", "03_items", "03x_lore", "03y_story", "03z_events", "04_state", "05_combat", "06_run", "07_nodes", "08_meta", "08v_bonds", "08y_more", "08z_extras", "08zz_chapters_late"];
 const code = SRC.map(f => fs.readFileSync(path.join(__dirname, "../src/" + f + ".js"), "utf8")).join("\n");
 const N = +process.argv[2] || 12, EXP = +process.argv[3] || 40, SEED = +process.argv[4] || 1;
 const VERB = process.argv.includes("-v");

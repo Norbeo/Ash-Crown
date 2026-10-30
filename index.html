@@ -1376,6 +1376,95 @@ const OATHS = {
   pierre: { n: "Serment de pierre", d: "Les ennemis ont +10 % de protection.", v: .1 },
   silence: { n: "Serment du silence", d: "Les ultimes se chargent 30 % moins vite.", v: .3 },
 };
+// Récits du bestiaire (oct. 2026) : une courte histoire par créature, affichée dans la fiche du Bestiaire
+const LORE = {
+  pestifere: "Ils étaient boulangers, tisserands, enfants de chœur. La peste les a vidés de tout sauf de la faim.",
+  rat: "Gras de cadavres, gros comme des chiens. On dit qu'ils suivent le Docteur comme des fidèles suivent un prêtre.",
+  cultiste: "Ils baisent les bubons comme des reliques. Pour eux, la peste est une grâce, et vous êtes des hérétiques.",
+  charognard: "Il tourne au-dessus du Bourg depuis le premier mort. Il sait toujours qui tombera ensuite.",
+  goule: "Une chose voûtée qui creuse les fosses communes la nuit. Elle a gardé les dents d'un homme, et rien d'autre.",
+  boucher: "Il tenait l'étal de la grand-place. Quand la viande a manqué, il n'a pas fermé boutique.",
+  docteur_peste: "Le seul médecin resté à Morvaine. Sous le bec de cuir, il prépare un remède que personne n'a demandé.",
+  loup_noir: "Plus maigres et plus patients que les loups ordinaires. Ils attendent que la lanterne faiblisse.",
+  araignee: "Elle tisse entre les pendus et pond dans les bouches ouvertes. La forêt lui doit son silence.",
+  brigand: "Déserteurs, voleurs de grand chemin, affamés. La forêt les a acceptés ; elle les mangera plus tard.",
+  archer_brig: "Il tire depuis les branches, là où pendent les autres. Il n'a jamais raté un homme qui portait une lanterne.",
+  dryade: "Jadis gardienne des chênes. La Mère des Ronces a planté une épine dans son cœur, et le cœur a pris racine.",
+  pendu: "Les cordes ont cédé, pas la colère. Ils marchent encore, la nuque brisée, vers ceux qui les ont jugés.",
+  alpha: "Le chef de meute porte les cicatrices de cent chasseurs. Aucun n'est rentré au village.",
+  mere_ronces: "La forêt avait une mère. Elle a bu le sang des pendus jusqu'à oublier qu'elle avait été douce.",
+  squelette: "Les soldats de l'ancienne garde, enterrés debout, l'arme au poing. Personne ne leur a dit que la guerre était finie.",
+  archer_os: "Ses doigts n'ont plus de chair, mais la corde se souvient de la tension.",
+  spectre: "Une prière mal finie, une âme coincée entre deux dalles. Son toucher vole la chaleur des vivants.",
+  necrophage: "Il se nourrit des ossuaires et des imprudents. Ses griffes portent encore la poussière des saints.",
+  gargouille: "Taillée pour chasser les démons des corniches. Elle s'est lassée d'attendre et chasse ce qui passe.",
+  chevalier_os: "Il a juré de garder la crypte jusqu'au Jugement. Il considère que le Jugement, c'est lui.",
+  liche: "Le prieur qui voulait vaincre la mort a réussi. Il porte une couronne de fer pour ne pas oublier qu'il fut roi des morts.",
+  moine_flagellant: "Il se fouette pour expier les péchés du monde. Il fouettera aussi les vôtres.",
+  thuriferaire: "Son encensoir brûle des os réduits en poudre. L'encens qui en sort fait tousser les vivants jusqu'au sang.",
+  hallebardier_os: "Il tient la porte depuis trois siècles. La hallebarde a rouillé ; pas la consigne.",
+  prieur: "Il a fait creuser les catacombes plus profond, toujours plus profond. Ce qu'il a trouvé en bas l'a rendu fervent.",
+  abbe: "L'Abbé de Saint-Morne bénit encore ses moines morts chaque matin. Ils lui répondent.",
+  noye: "Gonflé, bleu, patient. Il attend sous la tourbe qu'un pied s'enfonce.",
+  crapaud_geant: "Sa langue arrache un homme de sa selle. Son venin rend fou ceux qui survivent.",
+  sangsue: "Longue comme un bras, elle boit jusqu'à ce que le cœur s'arrête, puis cherche le suivant.",
+  feu_follet_e: "Une lueur dans la brume, qui ressemble tant à une lanterne amie. Elle mène toujours vers l'eau profonde.",
+  profond: "Des hommes qui ont prié la vase trop longtemps. Elle leur a répondu en leur donnant des branchies.",
+  hydre: "Une jeune bête, encore. Chaque tête tranchée en fait pousser une autre, plus affamée.",
+  mere_noyes: "Elle a perdu ses enfants dans le marais. Depuis, elle garde tous ceux que l'eau lui donne.",
+  sorciere_marais: "Elle vend des remèdes à ceux qui s'égarent. Le prix se paie plus tard, en années de vie.",
+  pecheur: "Sa ligne ne prend pas de poissons. L'hameçon s'accroche à l'âme, et il tire.",
+  ogre: "Il a mangé un village entier un hiver de famine. Il n'a jamais retrouvé le goût d'autre chose.",
+  reine_sabbat: "Les sorcières du marais l'ont couronnée de bois mort. Les nuits de sabbat, la lune se cache pour ne pas la voir.",
+  chevalier_dechu: "Il a servi Aldemar jusqu'au bout. La Cendre a pris son serment pour une invitation.",
+  inquisiteur_fou: "Il brûlait les hérétiques. Puis les suspects. Puis tout ce qui bougeait. Il continue.",
+  diablotin: "Une étincelle échappée de la Cendre, méchante et rieuse. Elle aime les cris plus que les flammes.",
+  golem_cendre: "Façonné avec les restes des bûchers. Il sent encore la chair grillée.",
+  bourreau: "Il a tranché mille têtes au nom du roi. Il en cherche une mille et unième, couronnée de préférence.",
+  roi_cendres: "Aldemar a porté la Couronne trop longtemps. Il ne reste de lui qu'un roi fait de cendre et de regrets.",
+  horreur: "Ce qui vit au fond de l'Abîme n'a pas de nom dans les langues des hommes. Seulement des bras.",
+  oeil: "Il regarde. Il a toujours regardé. Et ce qu'il voit, il le fait voir à ceux qui croisent son regard.",
+  sans_nom: "Avant la Couronne, avant le Bastion, avant les rois : il y avait cela, et cela attendait.",
+  penitent_ardent: "Ils marchent dans les braises pour expier, et ne s'arrêtent plus de brûler.",
+  chien_cendre: "Les molosses du Cardinal, nourris de charbon ardent. Leurs morsures cautérisent en même temps qu'elles déchirent.",
+  pretre_suie: "Il prêche la fin du monde avec une voix de fumée. Ses fidèles toussent leurs poumons à genoux.",
+  sentinelle_obsidienne: "Une armure de verre noir qui garde les routes brûlées. Rien ne l'émousse, rien ne l'arrête.",
+  chevaucheur_calcine: "Le cheval et le cavalier ont fondu ensemble dans l'incendie. Ils chargent encore, d'un seul corps.",
+  colosse_braise: "Un géant de lave refroidie dont le cœur rougeoie à travers les fissures. Chaque pas fait trembler les Terres.",
+  cardinal: "Le confesseur d'Aldemar voulait la Couronne pour lui. Il a volé les fragments, et la Cendre l'a pris au mot.",
+  sans_visage: "Un chevalier sans visage sous le heaume, qui apparaît quand la menace monte. Il n'a pas de nom ; il a des ordres.",
+  matrone_os: "Elle coud des enfants avec des os de saints. Elle les aime à sa manière, qui est terrible.",
+  devoreur_lumiere: "Il mange les torches, puis les lanternes, puis le courage. Dans le noir total, il est partout.",
+  archonte_cendres: "Le héraut de la Cendre elle-même, ailé de fumée. Il parle avec la voix de tous les rois morts.",
+  loup_givre: "Ses crocs sont de glace. Là où il mord, le sang gèle avant de couler.",
+  revenant_glace: "Mort de froid au col, conservé par lui. Le gel lui a laissé l'épée et retiré la pitié.",
+  troll_givre: "Il dort sous la neige des mois entiers. On le réveille en marchant dessus.",
+  sorcier_givre: "Il appelle le blizzard comme on appelle un chien, et le blizzard vient.",
+  spectre_blizzard: "Les voyageurs perdus au col ne meurent pas tout à fait. Ils deviennent le vent qui égare les suivants.",
+  jarl_mort: "Le dernier seigneur des Cimes a juré de ne jamais céder son trône de glace. Il ne l'a pas cédé.",
+  reine_hiver: "Elle a gelé son propre cœur pour ne plus sentir le chagrin. Depuis, l'hiver ne finit plus.",
+  homme_poisson: "Les habitants d'Ys ne se sont pas noyés. Ils ont changé.",
+  pretre_abysses: "Il célèbre encore la messe sous l'eau. Ses psaumes remplissent vos poumons.",
+  crabe_geant: "Il a grandi dans les égouts de la cité engloutie, à se nourrir de ce qui coule. Sa carapace a la dureté des remparts.",
+  noyee_chantante: "Sa voix est si belle qu'on oublie de respirer. C'est ainsi qu'elle a été noyée, et ainsi qu'elle noie.",
+  anguille_ombre: "Un éclair noir dans l'eau trouble. Ceux qu'elle frôle se réveillent paralysés, s'ils se réveillent.",
+  leviathan: "Il a pris les citernes de la ville pour un nid. Les cloches qu'on entend sous le lac, c'est lui qui les fait sonner.",
+  roi_noye: "Le frère d'Aldemar, abandonné aux eaux montantes. Il a régné sur une ville morte, et la ville l'a couronné de corail.",
+  mineur_possede: "Ils ont creusé trop profond et trouvé une voix dans la roche. Ils creusent encore, pour elle.",
+  ver_roche: "Il nage dans la pierre comme un poisson dans l'eau. On l'entend venir, mais jamais d'où.",
+  golem_fer: "Les forgerons de la Couronne l'ont bâti pour garder les mines. Il garde encore, alors que les forgerons sont morts.",
+  chauve_souris: "Des nuées affamées dans les puits sans fond. Elles volent les lanternes autant que le sang.",
+  fondeur_maudit: "Il a coulé le métal de la Couronne. Le métal a coulé en lui, et ne l'a jamais quitté.",
+  contremaitre: "Il faisait travailler les forgerons jusqu'à la mort. La mort ne l'a pas fait changer de méthode.",
+  coeur_montagne: "La montagne avait un cœur, et la Couronne l'a mis à nu. Il bat de colère, de magma et de souvenirs.",
+  chevalier_couronne: "La garde personnelle des rois qui ont porté la Couronne. Ils servent le trône, quel que soit celui qui s'y assoit.",
+  heraut_neant: "Il annonce la venue d'un roi qui n'existe pas. Ses proclamations font saigner les oreilles.",
+  garde_spectral: "Un gardien du palais, mort à son poste. Il traverse les murs pour finir sa ronde.",
+  seraphin_dechu: "Un ange de la cour céleste, tombé dans la salle du sacre. Il brûle d'une flamme pâle qui ne réchauffe pas.",
+  bouffon_roi: "Il faisait rire les rois. Il rit encore, seul, de ce qu'il sait sur eux.",
+  champion_roi: "Le meilleur duelliste du royaume, invaincu en cent combats. Il attend le cent unième depuis un siècle.",
+  roi_vide: "Ce n'est pas un roi, c'est ce que la Couronne laisse de chaque roi. Une forme vide qui s'assoit, et qui attend.",
+};
 /* ═══════════════════════ Histoire : dialogues avant chaque chapitre, avec une continuité de chapitre en chapitre ═══════════════════════
    Personnages récurrents : Frère Anselme (chapelain du Bastion), Ysolde (maîtresse d'armes), Maugrin (forgeron), le Capitaine (vous). */
 const SPEAKERS = {
@@ -5176,7 +5265,7 @@ SCREENS.codex = {
     if (tab === "succes") body += hiddenAchHTML();
     if (tab === "classes") body = `<div class="grid" style="--min:280px">${CLASS_IDS.map(k => { const C = CLASSES[k], un = classUnlocked(k); return `<div class="card ${un ? "" : "lock"}" style="cursor:default"><div class="row" style="flex-wrap:nowrap;gap:8px">${canvasSlot("cl:" + k, 90, 112)}<div style="flex:1"><h3 style="margin:0">${C.n} ${un ? "" : ico("lock", "#9a8c7a", 13)}</h3>${roleTag(C.role)}<p class="tiny lore" style="margin:4px 0">${C.lore}</p><div class="tiny">Voies : ${Object.values(C.evos).map(e => `<b class="gold">${e.n}</b>`).join(" ou ")}</div>${un ? "" : `<div class="tiny dim">Débloquée au chapitre ${C.unlock}</div>`}</div></div></div>`; }).join("")}</div>`;
     if (tab === "synergies") body = `<p class="small dim">Certaines classes se complètent. Quand elles partent ensemble en expédition, tout le groupe en profite.</p><div class="grid" style="--min:260px">${Object.keys(SYNERGIES).map(k => { const Y = SYNERGIES[k]; return `<div class="card" style="cursor:default"><h3 style="margin:0">${ico("link", "#e8c878", 15)} ${Y.n}</h3><div class="tiny gold" style="margin:3px 0">${synergyNeedText(Y)}</div><p class="small" style="margin:0">${gl(Y.d)}</p></div>`; }).join("")}</div>`;
-    if (tab === "bestiaire") { const ks = Object.keys(MONSTERS); body = `<p class="small dim">${ks.filter(k => S.seen.monsters[k] != null).length}/${ks.length} créatures rencontrées.</p><div class="grid" style="--min:170px">${ks.map(k => { const M = MONSTERS[k], seen = S.seen.monsters[k] != null; return `<div class="card ${seen ? "" : "lock"}" style="text-align:center;cursor:${seen ? "pointer" : "default"}" ${seen ? `data-a="monSheet" data-v="${k}"` : ""}>${seen ? canvasSlot("mo:" + k, 150, 150) : `<div style="height:150px;display:flex;align-items:center;justify-content:center">${ico("quest", "#5a4a3a", 48)}</div>`}<h3 style="margin:0">${seen ? M.n : "???"}</h3>${seen ? `<div class="tiny dim">${M.boss ? "Gardien" : M.elite ? "Élite" : "Créature"} · ${M.tags.map(t => t === "impie" ? "impie" : t === "bete" ? "bête" : "humain").join(", ")}</div><div class="tiny">PV ${M.hp} · ${M.sk.map(s => s.n).join(", ")}</div><div class="tiny dim">${S.seen.monsters[k] || 0} vaincus</div>` : ""}</div>`; }).join("")}</div>`; }
+    if (tab === "bestiaire") body = bestiaryHTML();
     if (tab === "histoire") body = `<div class="panel" style="padding:14px"><h3>Prologue</h3>${STORY.intro.map(l => `<p class="lore">${l}</p>`).join("")}${REGIONS.map(r => S.prog[r.id] && S.prog[r.id].clears ? `<div class="sep"></div><h3>${r.sub} — ${r.n}</h3><p class="lore">${STORY[r.id]}</p>` : `<div class="sep"></div><h3 class="dim">${r.sub} — ???</h3>`).join("")}</div>`;
     if (tab === "succes") body = `<p class="small dim">${Object.keys(S.ach).length}/${ACHIEVEMENTS.length} succès.</p><div class="grid" style="--min:240px">${ACHIEVEMENTS.map(a => { const done = S.ach[a.id], p = Math.min(a.v, S.stats[a.k] || 0); return `<div class="card ${done ? "sel" : ""}" style="cursor:default"><div class="row" style="flex-wrap:nowrap">${ico("trophy", done ? "#e8c878" : "#5a4a3a", 28)}<div style="flex:1"><b>${a.n}</b><div class="tiny">${a.d}</div>${done ? '<div class="tiny good">Accompli</div>' : `<div class="bar xp" style="margin-top:3px"><i style="width:${100 * p / a.v}%"></i></div>`}<div class="tiny dim">${a.gold ? a.gold + " or" : ""}${a.shards ? a.shards + " éclats" : ""}</div></div></div></div>`; }).join("")}</div>`;
     if (tab === "records") { const s = S.stats; body = `<div class="panel" style="padding:14px"><div class="statgrid"><div>Expéditions <b>${s.runs}</b></div><div>Victoires en combat <b>${s.wins}</b></div><div>Ennemis tués <b>${fmt(s.kills)}</b></div><div>Gardiens vaincus <b>${REGIONS.reduce((a, r) => a + (s["boss_" + r.id] || 0), 0)}</b></div><div>Record de l'Abîme <b>${S.abyss.best}</b></div><div>Évolutions <b>${s.evos}</b></div><div>Objets forgés <b>${s.crafts}</b></div><div>Expéditions du jour <b>${s.daily}</b></div><div>Mode <b>${S.opts.hardcore ? "Hardi" : "Normal"}</b></div></div>${S.graves && S.graves.length ? `<div class="sep"></div><h3>${ico("skull", "#c8b8a0", 16)} Le cimetière</h3>${S.graves.slice(-20).reverse().map(g => `<div class="small">${esc(g.name)} — ${CLASSES[g.cls].n}, niveau ${g.lvl}</div>`).join("")}` : ""}</div>`; }
@@ -5427,8 +5516,8 @@ ACT.cbLogShow = () => modal(`<h2>${ico("scroll", "#e8c878")} Journal du combat</
 // ── Bestiaire : fiche détaillée d'une créature rencontrée ──
 ACT.monSheet = k => { const M = MONSTERS[k]; if (!M) return;
   const tags = M.tags.map(t => t === "impie" ? "impie" : t === "bete" ? "bête" : "humain").join(", "), kills = (S.stats.monKills || {})[k] || 0;
-  let skt = ""; try { skt = M.sk.map(sk => `<div class="skl" style="cursor:default">${ico(sk.heal ? "heal" : sk.m ? "sword" : "curse", "#e8b8a0")}<div style="flex:1;min-width:0"><b>${sk.n}</b>${sk.every ? ` <span class="tiny dim">(tous les ${sk.every} tours)</span>` : ""}<div class="tiny">${skillText(sk, null)}</div></div></div>`).join(""); } catch (e) { skt = M.sk.map(sk => `<div class="small">${sk.n}</div>`).join(""); }
-  modal(`<div class="row" style="gap:12px;flex-wrap:wrap;align-items:flex-start"><div style="margin:0 auto">${canvasSlot("mon", 200, 200)}</div><div style="flex:1;min-width:220px"><h2 style="margin:0">${M.n}</h2><div class="tiny dim">${M.boss ? "Gardien" : M.elite ? "Élite" : "Créature"} · ${tags}</div>
+  let skt = ""; try { skt = M.sk.map(sk => `<div class="skl" style="cursor:default">${ico(sk.heal ? "heal" : sk.m ? "sword" : "curse", "#e8b8a0")}<div style="flex:1;min-width:0"><b>${sk.n}</b>${sk.every ? ` <span class="tiny dim">(tous les ${sk.every} tours)</span>` : ""}<div class="tiny">${sk.summon ? "Appelle des renforts · " : ""}${skillText(sk, null)}</div></div></div>`).join(""); } catch (e) { skt = M.sk.map(sk => `<div class="small">${sk.n}</div>`).join(""); }
+  modal(`<div class="row" style="gap:12px;flex-wrap:wrap;align-items:flex-start"><div style="margin:0 auto">${canvasSlot("mon", 280, 300)}</div><div style="flex:1;min-width:220px"><h2 style="margin:0">${M.n}</h2><div class="tiny dim">${M.boss ? "Gardien" : M.elite ? "Élite" : "Créature"} · ${tags}</div>${LORE[k] ? `<p class="lore" style="margin:8px 0;font-size:15px;line-height:1.5">« ${LORE[k]} »</p>` : ""}
     <div class="statgrid" style="margin-top:8px"><div>PV de base <b>${M.hp}</b></div><div>Dégâts <b>${M.dmg[0]}–${M.dmg[1]}</b></div><div>Protection <b>${Math.round((M.prot || 0) * 100)} %</b></div><div>Vitesse <b>${M.spd}</b></div><div>Esquive <b>${M.dodge || 0}</b></div><div>Résistance <b>${M.res || 0}</b></div></div>
     <p class="tiny dim" style="margin-top:6px">Rangs : ${(M.rk || []).join(", ")} · rencontré ${S.seen.monsters[k] || 0} fois${kills ? ` · ${kills} vaincus` : ""}${M.tags.includes("impie") ? " · sensible aux armes saintes" : ""}</p></div></div>
     <h3 style="margin-top:10px">Compétences</h3><div class="col">${skt}</div>`, { wide: 1, onClose: null, mount: m => fillCanvases(m, c => paintMon(c, k)) });
@@ -5611,6 +5700,20 @@ function hubRailHTML() {
     ${it("trophies", "trophy", "#e8c878", "Trophées", trophyCount() || "")}
     ${dl ? it("dailyRun", "star", "#e8c878", "Du jour", "") : ""}
   </div>`;
+}
+
+// ── Bestiaire par chapitre : vignettes, récit en grand dans la fiche ──
+function bestiaryGroups() {
+  const G = [], used = new Set();
+  for (const r of [...REGIONS, ABYSS]) { const ks = [...r.pool, ...(r.elite || []), r.boss, r.boss2].filter(k => k && MONSTERS[k] && !used.has(k)); ks.forEach(k => used.add(k)); if (ks.length) G.push({ n: (r.sub ? r.sub + " — " : "") + r.n, ks }); }
+  const rest = Object.keys(MONSTERS).filter(k => !used.has(k)); if (rest.length) G.push({ n: "Gardiens de la menace et autres horreurs", ks: rest });
+  return G;
+}
+function bestiaryHTML() {
+  const ks = Object.keys(MONSTERS), seenN = ks.filter(k => S.seen.monsters[k] != null).length;
+  return `<p class="small dim">${seenN}/${ks.length} créatures rencontrées. Touchez une créature connue pour lire son histoire.</p>` + bestiaryGroups().map(g => { const n = g.ks.filter(k => S.seen.monsters[k] != null).length;
+    return `<h3 style="margin-top:14px">${esc(g.n)} <span class="tiny dim">${n}/${g.ks.length}</span></h3><div class="grid" style="--min:130px">${g.ks.map(k => { const M = MONSTERS[k], seen = S.seen.monsters[k] != null;
+      return `<div class="card ${seen ? "" : "lock"}" style="text-align:center;padding:6px;cursor:${seen ? "pointer" : "default"}" ${seen ? `data-a="monSheet" data-v="${k}"` : ""}>${seen ? canvasSlot("mo:" + k, 116, 116) : `<div style="height:116px;display:flex;align-items:center;justify-content:center">${ico("quest", "#5a4a3a", 40)}</div>`}<div class="small" style="margin-top:2px"><b>${seen ? M.n : "???"}</b></div><div class="tiny dim">${seen ? (M.boss ? "Gardien" : M.elite ? "Élite" : "Créature") + " · " + (S.seen.monsters[k] || 0) + " vaincus" : ""}</div></div>`; }).join("")}</div>`; }).join("");
 }
 /* ═══════════════════════ Démarrage ═══════════════════════ */
 if (HASWIN) {

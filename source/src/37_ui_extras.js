@@ -215,8 +215,8 @@ ACT.cbLogShow = () => modal(`<h2>${ico("scroll", "#e8c878")} Journal du combat</
 // ── Bestiaire : fiche détaillée d'une créature rencontrée ──
 ACT.monSheet = k => { const M = MONSTERS[k]; if (!M) return;
   const tags = M.tags.map(t => t === "impie" ? "impie" : t === "bete" ? "bête" : "humain").join(", "), kills = (S.stats.monKills || {})[k] || 0;
-  let skt = ""; try { skt = M.sk.map(sk => `<div class="skl" style="cursor:default">${ico(sk.heal ? "heal" : sk.m ? "sword" : "curse", "#e8b8a0")}<div style="flex:1;min-width:0"><b>${sk.n}</b>${sk.every ? ` <span class="tiny dim">(tous les ${sk.every} tours)</span>` : ""}<div class="tiny">${skillText(sk, null)}</div></div></div>`).join(""); } catch (e) { skt = M.sk.map(sk => `<div class="small">${sk.n}</div>`).join(""); }
-  modal(`<div class="row" style="gap:12px;flex-wrap:wrap;align-items:flex-start"><div style="margin:0 auto">${canvasSlot("mon", 200, 200)}</div><div style="flex:1;min-width:220px"><h2 style="margin:0">${M.n}</h2><div class="tiny dim">${M.boss ? "Gardien" : M.elite ? "Élite" : "Créature"} · ${tags}</div>
+  let skt = ""; try { skt = M.sk.map(sk => `<div class="skl" style="cursor:default">${ico(sk.heal ? "heal" : sk.m ? "sword" : "curse", "#e8b8a0")}<div style="flex:1;min-width:0"><b>${sk.n}</b>${sk.every ? ` <span class="tiny dim">(tous les ${sk.every} tours)</span>` : ""}<div class="tiny">${sk.summon ? "Appelle des renforts · " : ""}${skillText(sk, null)}</div></div></div>`).join(""); } catch (e) { skt = M.sk.map(sk => `<div class="small">${sk.n}</div>`).join(""); }
+  modal(`<div class="row" style="gap:12px;flex-wrap:wrap;align-items:flex-start"><div style="margin:0 auto">${canvasSlot("mon", 280, 300)}</div><div style="flex:1;min-width:220px"><h2 style="margin:0">${M.n}</h2><div class="tiny dim">${M.boss ? "Gardien" : M.elite ? "Élite" : "Créature"} · ${tags}</div>${LORE[k] ? `<p class="lore" style="margin:8px 0;font-size:15px;line-height:1.5">« ${LORE[k]} »</p>` : ""}
     <div class="statgrid" style="margin-top:8px"><div>PV de base <b>${M.hp}</b></div><div>Dégâts <b>${M.dmg[0]}–${M.dmg[1]}</b></div><div>Protection <b>${Math.round((M.prot || 0) * 100)} %</b></div><div>Vitesse <b>${M.spd}</b></div><div>Esquive <b>${M.dodge || 0}</b></div><div>Résistance <b>${M.res || 0}</b></div></div>
     <p class="tiny dim" style="margin-top:6px">Rangs : ${(M.rk || []).join(", ")} · rencontré ${S.seen.monsters[k] || 0} fois${kills ? ` · ${kills} vaincus` : ""}${M.tags.includes("impie") ? " · sensible aux armes saintes" : ""}</p></div></div>
     <h3 style="margin-top:10px">Compétences</h3><div class="col">${skt}</div>`, { wide: 1, onClose: null, mount: m => fillCanvases(m, c => paintMon(c, k)) });
@@ -399,4 +399,18 @@ function hubRailHTML() {
     ${it("trophies", "trophy", "#e8c878", "Trophées", trophyCount() || "")}
     ${dl ? it("dailyRun", "star", "#e8c878", "Du jour", "") : ""}
   </div>`;
+}
+
+// ── Bestiaire par chapitre : vignettes, récit en grand dans la fiche ──
+function bestiaryGroups() {
+  const G = [], used = new Set();
+  for (const r of [...REGIONS, ABYSS]) { const ks = [...r.pool, ...(r.elite || []), r.boss, r.boss2].filter(k => k && MONSTERS[k] && !used.has(k)); ks.forEach(k => used.add(k)); if (ks.length) G.push({ n: (r.sub ? r.sub + " — " : "") + r.n, ks }); }
+  const rest = Object.keys(MONSTERS).filter(k => !used.has(k)); if (rest.length) G.push({ n: "Gardiens de la menace et autres horreurs", ks: rest });
+  return G;
+}
+function bestiaryHTML() {
+  const ks = Object.keys(MONSTERS), seenN = ks.filter(k => S.seen.monsters[k] != null).length;
+  return `<p class="small dim">${seenN}/${ks.length} créatures rencontrées. Touchez une créature connue pour lire son histoire.</p>` + bestiaryGroups().map(g => { const n = g.ks.filter(k => S.seen.monsters[k] != null).length;
+    return `<h3 style="margin-top:14px">${esc(g.n)} <span class="tiny dim">${n}/${g.ks.length}</span></h3><div class="grid" style="--min:130px">${g.ks.map(k => { const M = MONSTERS[k], seen = S.seen.monsters[k] != null;
+      return `<div class="card ${seen ? "" : "lock"}" style="text-align:center;padding:6px;cursor:${seen ? "pointer" : "default"}" ${seen ? `data-a="monSheet" data-v="${k}"` : ""}>${seen ? canvasSlot("mo:" + k, 116, 116) : `<div style="height:116px;display:flex;align-items:center;justify-content:center">${ico("quest", "#5a4a3a", 40)}</div>`}<div class="small" style="margin-top:2px"><b>${seen ? M.n : "???"}</b></div><div class="tiny dim">${seen ? (M.boss ? "Gardien" : M.elite ? "Élite" : "Créature") + " · " + (S.seen.monsters[k] || 0) + " vaincus" : ""}</div></div>`; }).join("")}</div>`; }).join("");
 }

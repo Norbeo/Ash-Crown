@@ -456,6 +456,9 @@ function drawUnitUI(x, u, v, t) {
   if (u.agony) { const pk = .5 + Math.sin(t * 5) * .5; glow(x, v.x, v.y - 60 * CB.scale, 60 * CB.scale, "#ff2a1a", .2 + pk * .2); }
   // ultime (héros)
   if (u.side === "h") { x.fillStyle = "rgba(0,0,0,.7)"; x.fillRect(bx, by + 9 * s, w, 3 * s); x.fillStyle = u.ultV >= 100 ? `rgba(255,170,60,${.7 + Math.sin(t * 6) * .3})` : "#b0702a"; x.fillRect(bx, by + 9 * s, w * u.ultV / 100, 3 * s); }
+  // lien d'amitié / de rivalité avec le voisin (bonus actif) et duo compagnon/classe
+  if (u.side === "h" && (u.bond || u.duo)) { const ix = bx + w + 8 * s, iy = by + 4 * s, col = u.bond === "rival" ? "#e05050" : u.bond === "ami" ? "#8ad06a" : "#e8c878"; x.fillStyle = "rgba(0,0,0,.8)"; x.beginPath(); x.arc(ix, iy, 6 * s, 0, 7); x.fill(); drawIcon(x, u.bond === "rival" ? "swords" : u.bond ? "heart" : "paw", ix, iy, .4 * s, col, 1.8);
+    (CB.zones = CB.zones || []).push({ x0: ix - 7 * s, x1: ix + 7 * s, y0: iy - 7 * s, y1: iy + 7 * s, u, k: "bond" }); }
   // altérations
   const sts = []; const seen = {}; for (const st of u.st) if (!seen[st.k]) { seen[st.k] = 1; sts.push(st.k); }
   if (sts.length) (CB.zones = CB.zones || []).push({ x0: bx - 4, x1: bx + Math.min(7, sts.length) * 12 * s + 10 * s, y0: by + 10 * s, y1: by + 26 * s, u, k: "st" });

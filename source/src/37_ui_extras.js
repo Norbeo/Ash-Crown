@@ -61,10 +61,12 @@ function questMarkHTML(h) {
     ${M ? `<h3 style="margin-top:${q ? 10 : 0}px">${ico("seal", "#c87aff", 14)} ${M.n}</h3><p class="small" style="margin:2px 0">${gl(M.d)} <span class="tiny dim">Purifiable à la Chapelle.</span></p>` : ""}</div>`;
 }
 function chapelMarksHTML() {
-  const ms = S.heroes.filter(h => h.mark);
-  return `<h3 style="margin-top:12px">${ico("seal", "#c87aff", 14)} Marques des gardiens</h3><p class="tiny dim">Chaque gardien vaincu laisse sa marque sur ceux qui l'ont affronté : un don et une malédiction. Gardez-la pour sa force, ou faites-la purifier.</p>
+  const ms = S.heroes.filter(h => h.mark), cu = S.heroes.filter(h => h.cursed > 0);
+  return `${cu.length ? `<h3 style="margin-top:12px">${ico("curse", "#c87a7a", 14)} Larmes de l'idole</h3>${cu.map(h => `<div class="row sp card" style="cursor:default"><div style="flex:1;min-width:0"><b>${esc(h.name)}</b><div class="small">−12 % de dégâts encore ${h.cursed} expédition${h.cursed > 1 ? "s" : ""}</div></div><button class="btn sm" data-a="uncurse" data-v="${h.id}">${ico("cleanse")}${60 + h.lvl * 10} or</button></div>`).join("")}` : ""}
+  ${S.petHurt && Object.keys(S.petHurt).length ? `<p class="small dim">${ico("paw", "#c8a070", 13)} Au repos : ${Object.entries(S.petHurt).map(([k, n]) => `${petName(k)} (${n} exp.)`).join(", ")}</p>` : ""}<h3 style="margin-top:12px">${ico("seal", "#c87aff", 14)} Marques des gardiens</h3><p class="tiny dim">Chaque gardien vaincu laisse sa marque sur ceux qui l'ont affronté : un don et une malédiction. Gardez-la pour sa force, ou faites-la purifier.</p>
     ${ms.length ? ms.map(h => { const M = GUARD_MARKS[h.mark]; return `<div class="row sp card" style="cursor:default"><div style="flex:1;min-width:0"><b>${esc(h.name)}</b> <span class="small dim">· ${heroTitle(h)}</span><div class="small">${M.n} — ${gl(M.d)}</div></div><button class="btn sm" data-a="purify" data-v="${h.id}">${ico("cleanse")}${markCost(h)} or</button></div>`; }).join("") : '<div class="empty">Aucun héros marqué.</div>'}`;
 }
+ACT.uncurse = id => { const h = heroById(id), c = 60 + h.lvl * 10; if (!h || !(h.cursed > 0)) return; if (S.gold < c) return toast("Pas assez d'or.", "bad"); S.gold -= c; h.cursed = 0; sfx("holy"); save(); renderHud(); toast(`${esc(h.name)} est lavé de la larme.`, "good"); openBuilding("chapelle"); };
 ACT.purify = id => { const h = heroById(id), r = purifyMark(h); if (r.err) return toast(r.err, "bad"); sfx("holy"); save(); renderHud(); toast(`${esc(h.name)} est purifié.`, "good"); openBuilding("chapelle"); };
 
 // ── Saison et boss rush (écran d'expédition) ──
@@ -120,7 +122,8 @@ function cbInfo(u, what, px, py) {
   let h = `<div class="row sp" style="flex-wrap:nowrap"><b>${esc(u.name)}</b><span class="tiny dim">${u.side === "e" ? `niv ${u.lvl}${u.tags.includes("impie") ? " · impie" : ""}` : CLASSES[u.cls] ? CLASSES[u.cls].n : ""} · rang ${rankOf(B, u)}</span></div>`;
   if (what !== "st") h += `<div class="tiny">PV ${Math.ceil(u.hp)}/${u.hpMax} · Protection ${Math.round(effProt(u) * 100)} % · Vitesse ${Math.round(effSpd(u))} · Esquive ${Math.round(effDodge(u))}</div>`;
   if (what === "intent") h += intentHTML(u);
-  if (what !== "intent") h += sts.length ? `<div class="cbi-list">${sts.map(stLine).join("")}</div>` : `<div class="tiny dim" style="margin-top:4px">Aucune altération.</div>`;
+  if (what === "bond") h += `<div class="small" style="margin-top:4px">${u.bond === "ami" ? `${ico("heart", "#8ad06a", 13)} <b>Amitié</b> avec son voisin : +6 % de protection et +4 esquive.` : u.bond === "rival" ? `${ico("swords", "#e05050", 13)} <b>Rivalité</b> avec son voisin : +7 % de critique et +6 % de dégâts, mais du stress après le combat.` : ""}${u.duo ? `<div>${ico("paw", "#e8c878", 13)} <b>Duo</b> avec le compagnon : bonus de duo actif.</div>` : ""}</div>`;
+  if (what !== "intent" && what !== "bond") h += sts.length ? `<div class="cbi-list">${sts.map(stLine).join("")}</div>` : `<div class="tiny dim" style="margin-top:4px">Aucune altération.</div>`;
   if (what === "unit" && u.side === "e") h += intentHTML(u);
   let el = $("#cbinfo"); if (!el) { el = document.createElement("div"); el.id = "cbinfo"; document.body.appendChild(el); el.onclick = () => el.remove(); }
   el.innerHTML = h + `<div class="tiny dim" style="text-align:right;margin-top:4px">Touchez pour fermer</div>`;
@@ -603,6 +606,8 @@ function hintOnce(k) {
 }
 function combatHints(B, node) {
   const run = S.run || {}, E = B.enemies;
+  const duo = typeof petDuo === "function" ? petDuo(run) : null; if (duo) for (const u of B.heroes) if (duo.cls.includes(u.cls)) u.duo = 1;
+  setTimeout(() => { for (const u of B.heroes) { if (u.bond) popText(u.uid, u.bond === "ami" ? "Amis" : "Rivaux", u.bond === "ami" ? "#8ad06a" : "#e05050"); else if (u.duo) popText(u.uid, "Duo", "#e8c878"); } }, 300);
   if (E.some(e => e.named)) hintOnce("named");
   if (E.some(e => e.corrupt)) hintOnce("corrupt");
   if (node && node.nestOn) hintOnce("nest");

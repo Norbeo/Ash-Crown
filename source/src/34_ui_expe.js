@@ -59,6 +59,7 @@ ACT.mvParty = (v, el, e) => { e.stopPropagation(); const [i, d] = v.split(":").m
 ACT.autoParty = () => { UI.expe.party = autoParty(); refresh(); };
 ACT.pickPet = id => { UI.expe.pet = id; S.pet = id; refresh(); };
 ACT.launch = () => {
+  if (S.pet && S.petHurt && S.petHurt[S.pet] > 0) toast(`${ico("paw", "#c8a070", 13)} ${petName(S.pet)} est blessé et reste au repos (${S.petHurt[S.pet]} expédition${S.petHurt[S.pet] > 1 ? "s" : ""}). Choisissez un autre compagnon à la Ménagerie.`, "bad");
   const E = UI.expe; if (!E.party.length) return;
   const opt = { threat: E.region === "abime" ? 0 : E.threat, floor: E.region === "abime" ? E.floor : 1, night: E.region !== "abime" && !E.daily && E.night ? 1 : 0, hardBoss: E.hard && hardOk(E) ? 1 : 0 };
   if (E.week) { const err = weekPartyOk(E.party); if (err) return toast(err, "bad"); if (E.region !== S.week.region) E.week = null; else { opt.week = 1; opt.seed = S.week.seed; } }

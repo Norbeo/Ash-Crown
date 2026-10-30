@@ -117,6 +117,10 @@ const MORE_EVENTS = [
   ["coffre_nain", "Le coffre runique", "Un coffre minuscule, très lourd, fermé par trois runes tournantes.", [["Tenter la combinaison", EVG(.4, { relic: 1, gold: 50 }, { hurt: .08 })], ["Le casser", { mat: 3, gold: 30 }], ["L'emporter tel quel", { light: -10, gold: 60 }]]],
   ["visions", "Les visions", "Une fièvre étrange gagne le groupe. Chacun voit sa propre mort.", [["Affronter la vision", EVG(.55, { xp: 60, morale: 10 }, { morale: -12 })], ["Prendre une potion", { potionCost: 1, cleanse: 1, heal: .15 }], ["Marcher jusqu'à l'épuisement", { light: -15, xp: 25 }]]],
   ["autel_paien", "L'autel païen", "Une pierre plate couverte de mousse, des bois de cerf, une coupe de lait caillé.", [["Y verser du vin", { cost: 15, morale: 10, heal: .1 }], ["Prendre la coupe", { trinket: 1 }], ["Le renverser", { curse: 1, gold: 40 }]]],
+  // ── conséquences durables (au-delà de l'expédition) ──
+  ["piege_loup", "Le piège à loup", "Un piège rouillé, à demi enterré. Votre compagnon le flaire déjà, la truffe à quelques pouces des mâchoires d'acier.", [["Le rappeler sèchement", { morale: -4 }], ["Le laisser fouiller", EVG(.55, { loot: 1, petXp: 60 }, { petHurt: 2 })], ["Désarmer le piège", { mat: 2 }]]],
+  ["idole_maudite", "L'idole qui pleure", "Une idole de jais suinte une larme noire. Sous elle, une bourse pleine. Qui la prend porte sa larme.", [["Prendre la bourse", { gold: 140, heroCurse: 3 }], ["Briser l'idole", EVG(.5, { relic: 1 }, { hurt: .15 })], ["Passer votre chemin", { light: 5 }]]],
+  ["marchand_vole", "Le colporteur endormi", "Un colporteur ronfle contre sa charrette, la bourse ouverte. Ses yeux s'entrouvrent… puis se referment.", [["Lui « emprunter » sa bourse", { gold: 110, sflag: "marchand_vole" }], ["Lui laisser une pièce", { cost: 5, morale: 8 }], ["Le réveiller pour commercer", { loot: 1, cost: 40 }]]],
 ];
 // ajout au registre principal
 for (const [id, n, t, ch, reg] of MORE_EVENTS) EVENTS.push({ id, n, t, ch: ch.map(([cn, fx]) => ({ n: cn, fx })), reg });
@@ -141,6 +145,7 @@ const CHAIN_EVENTS = [
   ["suite_cerf", "Le retour du cerf blanc", "Le cerf blanc que vous avez épargné se tient devant vous. Autour de lui, l'air est tiède et la peur s'en va.", [["S'approcher", { heal: .6, light: 30 }], ["S'incliner", { morale: 20, petXp: 100 }]], { sneed: "cerf" }],
   ["suite_prisonnier", "Le prisonnier tient parole", "Le prisonnier des oubliettes vous montre une faille dans les murs. « Par ici, le gardien ne vous verra pas venir. »", [["Prendre son raccourci", { buff: 1, light: 20 }], ["Lui demander ses secrets", { xp: 80 }]], { need: "prisonnier" }],
   ["suite_enfant", "L'enfant sans ombre", "La petite fille en blanc réapparaît, souriante. Elle tient à présent une ombre par la main. « Merci. »", [["Prendre sa main", { relic: 1, morale: 10 }], ["La laisser partir", { morale: 20, xp: 40 }]], { sneed: "enfant" }],
+  ["suite_marchand", "Le colporteur se souvient", "Le colporteur que vous aviez détroussé vous attend avec quatre gros bras. « On me doit cent dix pièces. Plus les intérêts. »", [["Se battre", { fight: 1, gold: 60 }], ["Rembourser (150 or)", { cost: 150, morale: 5 }], ["Lui laisser un objet du butin", { lootLose: 1 }]], { sneed: "marchand_vole" }],
   ["suite_herault", "L'armée du héraut", "Le héraut a rassemblé les morts de la garde royale. Ils mettent genou à terre devant vous.", [["Les mener au combat", { buff: 1, morale: 20 }], ["Les libérer de leur serment", { xp: 60, heal: .2 }]], { need: "herault", reg: ["citadelle"] }],
 ];
 for (const [id, n, t, ch, o] of CHAIN_EVENTS) EVENTS.push(Object.assign({ id, n, t, ch: ch.map(([cn, fx]) => ({ n: cn, fx })), chain: 1 }, o));

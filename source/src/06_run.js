@@ -232,6 +232,9 @@ function runEquip(h, it, run = S.run, want) {
 // ── fin d'expédition ──
 function endRun(outcome) {
   const run = S.run; if (!run) return null;
+  // conséquences durables : compagnons blessés et malédictions s'estompent d'une expédition
+  if (S.petHurt) for (const k in S.petHurt) if (--S.petHurt[k] <= 0) delete S.petHurt[k];
+  for (const id of run.party) { const h = heroById(id); if (h && h.cursed > 0) h.cursed--; }
   const R = regionById(run.region);
   const res = { outcome, gold: run.gold, loot: run.loot.slice(), mats: Object.assign({}, run.mats), shards: run.shards, region: run.region, floor: run.floor, story: null, unlocks: [] };
   // bilan de l'expédition

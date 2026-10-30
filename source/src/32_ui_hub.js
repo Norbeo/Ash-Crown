@@ -153,6 +153,8 @@ function gearDelta(h, it, relicH = {}) {
   add("Critique", b.crit - a.crit, "n", 1.2); add("Vitesse", b.spd - a.spd, "n", 3); add("Esquive", b.dodge - a.dodge, "n", .8); add("Précision", b.acc - a.acc, "n", .6);
   add("Résistance", b.res - a.res, "n", .3); add("Soins", b.healPow - a.healPow, "pct", 60); add("Vol de vie", b.leech - a.leech, "pct", 80);
   // estimations globales : dégâts par tour (dégâts moyens × chance de critique × vitesse) et survie (PV effectifs × esquive)
+  if (it.mod && (!old || old.mod !== it.mod) && ITEM_MODS[it.mod]) out.push({ n: "✦ " + ITEM_MODS[it.mod].n, d: 1, txt: "", w: 6 });
+  if (old && old.mod && old.mod !== it.mod && ITEM_MODS[old.mod]) out.push({ n: "✦ " + ITEM_MODS[old.mod].n + " perdu", d: -1, txt: "", w: -6 });
   const dps = x => (x.dmgLo + x.dmgHi) / 2 * (1 + Math.min(.6, x.crit / 100) * .5) * (1 + x.spd / 40), surv = x => x.hp / Math.max(.1, 1 - x.prot) / Math.max(.4, 1 - x.dodge / 150);
   const dD = dps(b) / Math.max(.01, dps(a)) - 1, dS = surv(b) / Math.max(.01, surv(a)) - 1;
   return { slot, old, list: out, dps: dD, surv: dS, score: out.reduce((s, x) => s + x.w, 0) + (it.kind === "tr" && !old ? 5 : 0) };
@@ -226,6 +228,7 @@ function itemLine(it) {
   if (it.kind === "wpn") stats.push(`+${Math.round((WPN_DMG[it.tier] * (1 + .07 * it.up) + it.up * .03) * 100)} % dégâts`);
   if (it.kind === "arm") stats.push(`+${Math.round((ARM_HP[it.tier] * (1 + .07 * it.up) + it.up * .025) * 100)} % PV`, `+${Math.round(ARM_PROT[it.tier] * 100)} % protection`);
   if (it.kind === "tr") stats.push(TRINKETS[it.key].d);
+  if (it.mod && ITEM_MODS[it.mod]) stats.push(`<b style="color:#ffb848">✦ ${ITEM_MODS[it.mod].n}</b> : ${ITEM_MODS[it.mod].d}`);
   for (const f of it.aff || []) { const A = AFFIXES[f.k]; stats.push(`+${A.fmt === "pct" ? Math.round(f.v * 100) + " %" : f.v} ${A.n}`); }
   const req = it.kind !== "tr" && TIER_LVL[it.tier] > 1 ? ` · <span class="tiny dim">niv ${TIER_LVL[it.tier]}+</span>` : "";
   return (gl(stats.filter(t => !/^\+0 %/.test(t)).join(" · ")) || "Équipement de base") + req;

@@ -304,7 +304,7 @@ const CLASSES = {
       frappe_sainte: { n: "Frappe sainte", ic: "mace", use: [1, 2], t: "e", at: [1, 2], m: 1, bonus: { tag: "impie", x: 1.3 }, tags: ["sacré"] },
       bouclier_leve: { n: "Bouclier levé", ic: "shield", use: [1, 2, 3], t: "s", m: 0, sfx: [{ k: "protUp", v: .3, t: 2 }, { k: "prov", t: 2 }] },
       sous_ma_garde: { n: "Sous ma garde", ic: "guard", use: [1, 2, 3], t: "a", at: [2, 3, 4], m: 0, guard: 3, sfx: [{ k: "protUp", v: .15, t: 3 }] },
-      chatiment: { n: "Châtiment", ic: "stun", use: [1], t: "e", at: [1, 2], m: .6, fx: [{ k: "stun", t: 1, ch: 1 }] },
+      chatiment: { n: "Châtiment", ic: "stun", use: [1], t: "e", at: [1, 2], m: .6, push: 1, fx: [{ k: "stun", t: 1, ch: 1 }] },
       cri_ralliement: { n: "Cri de ralliement", ic: "banner", use: [1, 2, 3, 4], t: "aa", m: 0, heal: .08, afx: [{ k: "protUp", v: .1, t: 2 }], cd: 2, morale: 8 },
       charge: { n: "Charge du croisé", ic: "charge", use: [2, 3], t: "e", at: [1, 2], m: 1.2, mv: 1, cr: 5 },
       riposte: { n: "Riposte", ic: "riposte", use: [1, 2], t: "s", m: 0, sfx: [{ k: "riposte", v: .8, t: 2 }, { k: "protUp", v: .1, t: 2 }] },
@@ -544,7 +544,7 @@ Object.assign(CLASSES, {
     base: { hp: 40, dmg: [6, 10], prot: .18, spd: 2, crit: 3, dodge: 2 },
     pal: { cloth: "#2e3a48", trim: "#7ad0ff", metal: "#8a929a" },
     skills: {
-      coup_runique: { n: "Coup runique", ic: "hammer", use: [1, 2], t: "e", at: [1, 2], m: 1.05, fx: [{ k: "stun", t: 1, ch: .3 }] },
+      coup_runique: { n: "Coup runique", ic: "hammer", use: [1, 2], t: "e", at: [1, 2], m: 1.05, push: 1, fx: [{ k: "stun", t: 1, ch: .3 }] },
       peau_pierre: { n: "Peau de pierre", ic: "shield", use: [1, 2, 3], t: "s", m: 0, sfx: [{ k: "protUp", v: .35, t: 2 }, { k: "prov", t: 2 }] },
       rune_garde: { n: "Rune de garde", ic: "guard", use: [1, 2, 3], t: "a", at: [1, 2, 3, 4], m: 0, fx: [{ k: "shield", v: .25, t: 2, ch: 1 }] },
       seisme: { n: "Séisme", ic: "stun", use: [1, 2], t: "ae", at: [1, 2], m: .55, fx: [{ k: "stun", t: 1, ch: .35 }], cd: 2 },
@@ -1678,6 +1678,10 @@ const MORE_EVENTS = [
   ["coffre_nain", "Le coffre runique", "Un coffre minuscule, très lourd, fermé par trois runes tournantes.", [["Tenter la combinaison", EVG(.4, { relic: 1, gold: 50 }, { hurt: .08 })], ["Le casser", { mat: 3, gold: 30 }], ["L'emporter tel quel", { light: -10, gold: 60 }]]],
   ["visions", "Les visions", "Une fièvre étrange gagne le groupe. Chacun voit sa propre mort.", [["Affronter la vision", EVG(.55, { xp: 60, morale: 10 }, { morale: -12 })], ["Prendre une potion", { potionCost: 1, cleanse: 1, heal: .15 }], ["Marcher jusqu'à l'épuisement", { light: -15, xp: 25 }]]],
   ["autel_paien", "L'autel païen", "Une pierre plate couverte de mousse, des bois de cerf, une coupe de lait caillé.", [["Y verser du vin", { cost: 15, morale: 10, heal: .1 }], ["Prendre la coupe", { trinket: 1 }], ["Le renverser", { curse: 1, gold: 40 }]]],
+  // ── conséquences durables (au-delà de l'expédition) ──
+  ["piege_loup", "Le piège à loup", "Un piège rouillé, à demi enterré. Votre compagnon le flaire déjà, la truffe à quelques pouces des mâchoires d'acier.", [["Le rappeler sèchement", { morale: -4 }], ["Le laisser fouiller", EVG(.55, { loot: 1, petXp: 60 }, { petHurt: 2 })], ["Désarmer le piège", { mat: 2 }]]],
+  ["idole_maudite", "L'idole qui pleure", "Une idole de jais suinte une larme noire. Sous elle, une bourse pleine. Qui la prend porte sa larme.", [["Prendre la bourse", { gold: 140, heroCurse: 3 }], ["Briser l'idole", EVG(.5, { relic: 1 }, { hurt: .15 })], ["Passer votre chemin", { light: 5 }]]],
+  ["marchand_vole", "Le colporteur endormi", "Un colporteur ronfle contre sa charrette, la bourse ouverte. Ses yeux s'entrouvrent… puis se referment.", [["Lui « emprunter » sa bourse", { gold: 110, sflag: "marchand_vole" }], ["Lui laisser une pièce", { cost: 5, morale: 8 }], ["Le réveiller pour commercer", { loot: 1, cost: 40 }]]],
 ];
 // ajout au registre principal
 for (const [id, n, t, ch, reg] of MORE_EVENTS) EVENTS.push({ id, n, t, ch: ch.map(([cn, fx]) => ({ n: cn, fx })), reg });
@@ -1702,6 +1706,7 @@ const CHAIN_EVENTS = [
   ["suite_cerf", "Le retour du cerf blanc", "Le cerf blanc que vous avez épargné se tient devant vous. Autour de lui, l'air est tiède et la peur s'en va.", [["S'approcher", { heal: .6, light: 30 }], ["S'incliner", { morale: 20, petXp: 100 }]], { sneed: "cerf" }],
   ["suite_prisonnier", "Le prisonnier tient parole", "Le prisonnier des oubliettes vous montre une faille dans les murs. « Par ici, le gardien ne vous verra pas venir. »", [["Prendre son raccourci", { buff: 1, light: 20 }], ["Lui demander ses secrets", { xp: 80 }]], { need: "prisonnier" }],
   ["suite_enfant", "L'enfant sans ombre", "La petite fille en blanc réapparaît, souriante. Elle tient à présent une ombre par la main. « Merci. »", [["Prendre sa main", { relic: 1, morale: 10 }], ["La laisser partir", { morale: 20, xp: 40 }]], { sneed: "enfant" }],
+  ["suite_marchand", "Le colporteur se souvient", "Le colporteur que vous aviez détroussé vous attend avec quatre gros bras. « On me doit cent dix pièces. Plus les intérêts. »", [["Se battre", { fight: 1, gold: 60 }], ["Rembourser (150 or)", { cost: 150, morale: 5 }], ["Lui laisser un objet du butin", { lootLose: 1 }]], { sneed: "marchand_vole" }],
   ["suite_herault", "L'armée du héraut", "Le héraut a rassemblé les morts de la garde royale. Ils mettent genou à terre devant vous.", [["Les mener au combat", { buff: 1, morale: 20 }], ["Les libérer de leur serment", { xp: 60, heal: .2 }]], { need: "herault", reg: ["citadelle"] }],
 ];
 for (const [id, n, t, ch, o] of CHAIN_EVENTS) EVENTS.push(Object.assign({ id, n, t, ch: ch.map(([cn, fx]) => ({ n: cn, fx })), chain: 1 }, o));
@@ -1760,6 +1765,8 @@ function heroPassives(h) {
   for (const t of h.traits) out.push(...TRAITS[t].pas);
   if (h.evo) { out.push(...C.evos[h.evo].pas); if (h.lvl >= APEX_LVL) out.push(...APEX[h.evo].pas); }
   for (const s of ["tr1", "tr2"]) { const it = h.gear[s]; if (it && TRINKETS[it.key]) out.push(...TRINKETS[it.key].pas); }
+  if (h.cursed > 0) out.push({ k: "stat", s: "dmg", v: -.12 }); // larme de l'idole (événement)
+  for (const s of ["wpn", "arm"]) { const it = h.gear[s]; if (it && it.mod && ITEM_MODS[it.mod]) out.push(...ITEM_MODS[it.mod].pas); } // effet unique d'équipement
   if (h.mark && typeof GUARD_MARKS !== "undefined" && GUARD_MARKS[h.mark]) out.push(...GUARD_MARKS[h.mark].pas); // marque d'un gardien vaincu
   if (h.affl && typeof AFFLICTIONS !== "undefined" && AFFLICTIONS[h.affl]) out.push(...AFFLICTIONS[h.affl].pas); // stress : affliction ou vertu
   if (h.talents && typeof talentPas === "function") out.push(...talentPas(h));
@@ -1800,8 +1807,23 @@ function makeGear(kind, cls, tier, rar, key, evo) {
   const nAff = kind === "tr" ? 0 : RARITY[it.rar].aff;
   const keys = Object.keys(AFFIXES).filter(k => !(kind === "wpn" && k === "prot")); RNG.shuffle(keys);
   for (let i = 0; i < nAff; i++) { const A = AFFIXES[keys[i]], sc = 1 + (it.tier - 1) * .25; let v = lerp(A.v[0], A.v[1], rnd()) * sc; v = A.fmt === "pct" ? Math.round(v * 100) / 100 : Math.round(v); it.aff.push({ k: keys[i], v }); }
+  // effet unique (Épique 25 %, Légendaire 60 %, Mythique et Divin toujours) : change la façon de combattre
+  if (kind !== "tr" && it.rar >= 3 && chance([0, 0, 0, .25, .6, 1, 1][it.rar])) { const pool = Object.keys(ITEM_MODS).filter(k => ITEM_MODS[k].kind === kind); it.mod = pick(pool); }
   return it;
 }
+// effets uniques d'équipement (crochets de combat existants)
+const ITEM_MODS = {
+  braise: { kind: "wpn", n: "Lame de braise", d: "Vos brûlures infligent 35 % de dégâts en plus.", pas: [{ k: "burnPow", v: .35 }] },
+  venin: { kind: "wpn", n: "Fil empoisonné", d: "Saignements, poisons et brûlures infligés : +25 % de dégâts.", pas: [{ k: "dotPow", v: .25 }] },
+  furie: { kind: "wpn", n: "Soif de gloire", d: "La jauge d'ultime se remplit 30 % plus vite.", pas: [{ k: "ultGain", v: .3 }] },
+  fleau: { kind: "wpn", n: "Fléau des foules", d: "Attaques de zone : +18 % de dégâts.", pas: [{ k: "aoeDmg", v: .18 }] },
+  bourreau: { kind: "wpn", n: "Marque du bourreau", d: "Chaque ennemi abattu redonne de la résolution au groupe.", pas: [{ k: "killMorale", v: 4 }] },
+  epines: { kind: "arm", n: "Cotte d'épines", d: "Renvoie 15 % des dégâts de mêlée subis.", pas: [{ k: "thornsP", v: .15 }] },
+  contre: { kind: "arm", n: "Garde de l'escrimeur", d: "Une esquive en mêlée déclenche une riposte (50 %).", pas: [{ k: "dodgeRiposte", v: .5 }] },
+  rempart: { kind: "arm", n: "Rempart béni", d: "Les boucliers que vous posez sont 30 % plus solides.", pas: [{ k: "shieldPow", v: .3 }] },
+  sursis: { kind: "arm", n: "Sursis du mort", d: "Une fois par combat, survit à un coup fatal à l'agonie.", pas: [{ k: "cheatDeath", v: 1 }] },
+  cendre: { kind: "arm", n: "Cape de cendre", d: "+20 % de soins reçus.", pas: [{ k: "healTaken", v: .2 }] },
+};
 function gearName(it) {
   if (!it) return "—";
   if (it.uniq && typeof UNIQ !== "undefined" && UNIQ[it.uniq]) return UNIQ[it.uniq].n; // objet unique de gardien
@@ -1928,6 +1950,7 @@ function newBattle(heroes, enemyKeys, opt = {}) {
   const B = { heroes: heroes.map(h => heroUnit(h, relicH)), enemies: [], fallen: [], round: 0, order: [], turn: -1, morale: clamp(50 + (relicH.morale || 0) + (opt.morale || 0), 0, 100),
     light: opt.light == null ? 100 : opt.light, relicH, pet: null, over: null, log: [], kills: 0, crits: 0, opt, revived: 0, firstRound: true, mods: opt.mods || {} };
   for (const k of enemyKeys) { const m = Object.assign({}, opt.mods); if (k.f) { m.hp = (m.hp || 1) * k.f.hp; m.dmg = (m.dmg || 1) * k.f.dmg; m.prot = (m.prot || 0) + k.f.prot * .5; } if (k.corrupt) { m.hp = (m.hp || 1) * 1.3; m.dmg = (m.dmg || 1) * 1.2; } const eu = monUnit(k.key || k, k.lvl || opt.lvl || 1, m); if (k.corrupt) { eu.corrupt = 1; eu.name += " corrompu"; eu.res = (eu.res || 0) + 15; } if (k.named && typeof namedElite === "function") namedElite(eu); B.enemies.push(eu); }
+  if (opt.pet && typeof S !== "undefined" && S && S.petHurt && S.petHurt[opt.pet] > 0) opt = Object.assign({}, opt, { pet: null }); // compagnon blessé : au repos
   if (opt.pet) B.pet = { id: opt.pet, lvl: petLvl(opt.pet), evo: petEvolved(opt.pet), pw: petPower(opt.pet), n: 0 };
   if (relicH.startWeak) for (const e of B.enemies) addSt(B, null, e, { k: "weak", t: 2 }, []);
   if (typeof applyBonds === "function") applyBonds(B); // amis et rivaux côte à côte
@@ -2582,6 +2605,9 @@ function runEquip(h, it, run = S.run, want) {
 // ── fin d'expédition ──
 function endRun(outcome) {
   const run = S.run; if (!run) return null;
+  // conséquences durables : compagnons blessés et malédictions s'estompent d'une expédition
+  if (S.petHurt) for (const k in S.petHurt) if (--S.petHurt[k] <= 0) delete S.petHurt[k];
+  for (const id of run.party) { const h = heroById(id); if (h && h.cursed > 0) h.cursed--; }
   const R = regionById(run.region);
   const res = { outcome, gold: run.gold, loot: run.loot.slice(), mats: Object.assign({}, run.mats), shards: run.shards, region: run.region, floor: run.floor, story: null, unlocks: [] };
   // bilan de l'expédition
@@ -2741,6 +2767,7 @@ function fxText(fx) {
     if (f.cleanse) o.push(["good", "Purification"]);
     if (f.buff) o.push(["good", "+20 % dégâts au prochain combat"]);
     if (f.upgrade) o.push(["good", "Améliore une arme ou armure"]);
+    if (f.petHurt) o.push(["bad", "Compagnon blessé"]); if (f.heroCurse) o.push(["bad", "Héros maudit"]);
     if (f.curse) o.push(["bad", "Malédiction (ennemis +10 % dégâts)"]);
     if (f.fight) o.push(["bad", "Combat"]);
     if (f.flag || f.sflag) o.push(["risk", "✦ Aura une suite"]);
@@ -2773,6 +2800,9 @@ function resolveEvent(run, evId, ci) {
     if (f.potion) { run.potions++; out.text.push("+1 potion"); }
     if (f.potionCost) { if (run.potions > 0) { run.potions--; out.text.push("-1 potion"); } else out.text.push("Vous n'aviez plus de potion… il vous remercie quand même."); }
     if (f.cleanse) out.text.push("Les esprits s'apaisent.");
+    if (f.petHurt && run.pet) { S.petHurt = S.petHurt || {}; S.petHurt[run.pet] = f.petHurt; out.text.push(`${petName(run.pet)} est blessé : il ne combattra plus pendant ${f.petHurt} expéditions (repos à la Ménagerie).`); }
+    if (f.heroCurse) { const hs = runParty().filter(h => !run.fallen.includes(h.id)); if (hs.length) { const h = hs[Math.floor(rnd() * hs.length)]; h.cursed = f.heroCurse; out.text.push(`${h.name} porte la larme de l'idole : −12 % de dégâts pendant ${f.heroCurse} expéditions (la Chapelle peut l'en laver).`); } }
+    if (f.lootLose) { if (run.loot.length) { const it = run.loot.splice(Math.floor(rnd() * run.loot.length), 1)[0]; out.text.push(`Vous cédez ${gearName(it)}.`); } else { run.gold = Math.max(0, run.gold - 80); out.text.push("Faute d'objet, il prend 80 or."); } }
     if (f.curse) { run.curse = (run.curse || 0) + 1; out.text.push("Une malédiction pèse sur vous : les ennemis frappent plus fort."); }
     if (f.poison) { for (const h of party) { const mx = heroStats(h, relicHooks(run)).hp; h.hp = Math.max(1, Math.round((h.hp == null ? mx : h.hp) - mx * .08)); } out.text.push("Empoisonnés !"); }
     if (f.buff) { run.buff = (run.buff || 0) + 1; out.text.push("Une chaleur étrange : +20 % de dégâts au prochain combat."); }
@@ -4401,6 +4431,8 @@ function gearDelta(h, it, relicH = {}) {
   add("Critique", b.crit - a.crit, "n", 1.2); add("Vitesse", b.spd - a.spd, "n", 3); add("Esquive", b.dodge - a.dodge, "n", .8); add("Précision", b.acc - a.acc, "n", .6);
   add("Résistance", b.res - a.res, "n", .3); add("Soins", b.healPow - a.healPow, "pct", 60); add("Vol de vie", b.leech - a.leech, "pct", 80);
   // estimations globales : dégâts par tour (dégâts moyens × chance de critique × vitesse) et survie (PV effectifs × esquive)
+  if (it.mod && (!old || old.mod !== it.mod) && ITEM_MODS[it.mod]) out.push({ n: "✦ " + ITEM_MODS[it.mod].n, d: 1, txt: "", w: 6 });
+  if (old && old.mod && old.mod !== it.mod && ITEM_MODS[old.mod]) out.push({ n: "✦ " + ITEM_MODS[old.mod].n + " perdu", d: -1, txt: "", w: -6 });
   const dps = x => (x.dmgLo + x.dmgHi) / 2 * (1 + Math.min(.6, x.crit / 100) * .5) * (1 + x.spd / 40), surv = x => x.hp / Math.max(.1, 1 - x.prot) / Math.max(.4, 1 - x.dodge / 150);
   const dD = dps(b) / Math.max(.01, dps(a)) - 1, dS = surv(b) / Math.max(.01, surv(a)) - 1;
   return { slot, old, list: out, dps: dD, surv: dS, score: out.reduce((s, x) => s + x.w, 0) + (it.kind === "tr" && !old ? 5 : 0) };
@@ -4474,6 +4506,7 @@ function itemLine(it) {
   if (it.kind === "wpn") stats.push(`+${Math.round((WPN_DMG[it.tier] * (1 + .07 * it.up) + it.up * .03) * 100)} % dégâts`);
   if (it.kind === "arm") stats.push(`+${Math.round((ARM_HP[it.tier] * (1 + .07 * it.up) + it.up * .025) * 100)} % PV`, `+${Math.round(ARM_PROT[it.tier] * 100)} % protection`);
   if (it.kind === "tr") stats.push(TRINKETS[it.key].d);
+  if (it.mod && ITEM_MODS[it.mod]) stats.push(`<b style="color:#ffb848">✦ ${ITEM_MODS[it.mod].n}</b> : ${ITEM_MODS[it.mod].d}`);
   for (const f of it.aff || []) { const A = AFFIXES[f.k]; stats.push(`+${A.fmt === "pct" ? Math.round(f.v * 100) + " %" : f.v} ${A.n}`); }
   const req = it.kind !== "tr" && TIER_LVL[it.tier] > 1 ? ` · <span class="tiny dim">niv ${TIER_LVL[it.tier]}+</span>` : "";
   return (gl(stats.filter(t => !/^\+0 %/.test(t)).join(" · ")) || "Équipement de base") + req;
@@ -4692,6 +4725,7 @@ ACT.mvParty = (v, el, e) => { e.stopPropagation(); const [i, d] = v.split(":").m
 ACT.autoParty = () => { UI.expe.party = autoParty(); refresh(); };
 ACT.pickPet = id => { UI.expe.pet = id; S.pet = id; refresh(); };
 ACT.launch = () => {
+  if (S.pet && S.petHurt && S.petHurt[S.pet] > 0) toast(`${ico("paw", "#c8a070", 13)} ${petName(S.pet)} est blessé et reste au repos (${S.petHurt[S.pet]} expédition${S.petHurt[S.pet] > 1 ? "s" : ""}). Choisissez un autre compagnon à la Ménagerie.`, "bad");
   const E = UI.expe; if (!E.party.length) return;
   const opt = { threat: E.region === "abime" ? 0 : E.threat, floor: E.region === "abime" ? E.floor : 1, night: E.region !== "abime" && !E.daily && E.night ? 1 : 0, hardBoss: E.hard && hardOk(E) ? 1 : 0 };
   if (E.week) { const err = weekPartyOk(E.party); if (err) return toast(err, "bad"); if (E.region !== S.week.region) E.week = null; else { opt.week = 1; opt.seed = S.week.seed; } }
@@ -5379,6 +5413,9 @@ function drawUnitUI(x, u, v, t) {
   if (u.agony) { const pk = .5 + Math.sin(t * 5) * .5; glow(x, v.x, v.y - 60 * CB.scale, 60 * CB.scale, "#ff2a1a", .2 + pk * .2); }
   // ultime (héros)
   if (u.side === "h") { x.fillStyle = "rgba(0,0,0,.7)"; x.fillRect(bx, by + 9 * s, w, 3 * s); x.fillStyle = u.ultV >= 100 ? `rgba(255,170,60,${.7 + Math.sin(t * 6) * .3})` : "#b0702a"; x.fillRect(bx, by + 9 * s, w * u.ultV / 100, 3 * s); }
+  // lien d'amitié / de rivalité avec le voisin (bonus actif) et duo compagnon/classe
+  if (u.side === "h" && (u.bond || u.duo)) { const ix = bx + w + 8 * s, iy = by + 4 * s, col = u.bond === "rival" ? "#e05050" : u.bond === "ami" ? "#8ad06a" : "#e8c878"; x.fillStyle = "rgba(0,0,0,.8)"; x.beginPath(); x.arc(ix, iy, 6 * s, 0, 7); x.fill(); drawIcon(x, u.bond === "rival" ? "swords" : u.bond ? "heart" : "paw", ix, iy, .4 * s, col, 1.8);
+    (CB.zones = CB.zones || []).push({ x0: ix - 7 * s, x1: ix + 7 * s, y0: iy - 7 * s, y1: iy + 7 * s, u, k: "bond" }); }
   // altérations
   const sts = []; const seen = {}; for (const st of u.st) if (!seen[st.k]) { seen[st.k] = 1; sts.push(st.k); }
   if (sts.length) (CB.zones = CB.zones || []).push({ x0: bx - 4, x1: bx + Math.min(7, sts.length) * 12 * s + 10 * s, y0: by + 10 * s, y1: by + 26 * s, u, k: "st" });
@@ -5531,10 +5568,12 @@ function questMarkHTML(h) {
     ${M ? `<h3 style="margin-top:${q ? 10 : 0}px">${ico("seal", "#c87aff", 14)} ${M.n}</h3><p class="small" style="margin:2px 0">${gl(M.d)} <span class="tiny dim">Purifiable à la Chapelle.</span></p>` : ""}</div>`;
 }
 function chapelMarksHTML() {
-  const ms = S.heroes.filter(h => h.mark);
-  return `<h3 style="margin-top:12px">${ico("seal", "#c87aff", 14)} Marques des gardiens</h3><p class="tiny dim">Chaque gardien vaincu laisse sa marque sur ceux qui l'ont affronté : un don et une malédiction. Gardez-la pour sa force, ou faites-la purifier.</p>
+  const ms = S.heroes.filter(h => h.mark), cu = S.heroes.filter(h => h.cursed > 0);
+  return `${cu.length ? `<h3 style="margin-top:12px">${ico("curse", "#c87a7a", 14)} Larmes de l'idole</h3>${cu.map(h => `<div class="row sp card" style="cursor:default"><div style="flex:1;min-width:0"><b>${esc(h.name)}</b><div class="small">−12 % de dégâts encore ${h.cursed} expédition${h.cursed > 1 ? "s" : ""}</div></div><button class="btn sm" data-a="uncurse" data-v="${h.id}">${ico("cleanse")}${60 + h.lvl * 10} or</button></div>`).join("")}` : ""}
+  ${S.petHurt && Object.keys(S.petHurt).length ? `<p class="small dim">${ico("paw", "#c8a070", 13)} Au repos : ${Object.entries(S.petHurt).map(([k, n]) => `${petName(k)} (${n} exp.)`).join(", ")}</p>` : ""}<h3 style="margin-top:12px">${ico("seal", "#c87aff", 14)} Marques des gardiens</h3><p class="tiny dim">Chaque gardien vaincu laisse sa marque sur ceux qui l'ont affronté : un don et une malédiction. Gardez-la pour sa force, ou faites-la purifier.</p>
     ${ms.length ? ms.map(h => { const M = GUARD_MARKS[h.mark]; return `<div class="row sp card" style="cursor:default"><div style="flex:1;min-width:0"><b>${esc(h.name)}</b> <span class="small dim">· ${heroTitle(h)}</span><div class="small">${M.n} — ${gl(M.d)}</div></div><button class="btn sm" data-a="purify" data-v="${h.id}">${ico("cleanse")}${markCost(h)} or</button></div>`; }).join("") : '<div class="empty">Aucun héros marqué.</div>'}`;
 }
+ACT.uncurse = id => { const h = heroById(id), c = 60 + h.lvl * 10; if (!h || !(h.cursed > 0)) return; if (S.gold < c) return toast("Pas assez d'or.", "bad"); S.gold -= c; h.cursed = 0; sfx("holy"); save(); renderHud(); toast(`${esc(h.name)} est lavé de la larme.`, "good"); openBuilding("chapelle"); };
 ACT.purify = id => { const h = heroById(id), r = purifyMark(h); if (r.err) return toast(r.err, "bad"); sfx("holy"); save(); renderHud(); toast(`${esc(h.name)} est purifié.`, "good"); openBuilding("chapelle"); };
 
 // ── Saison et boss rush (écran d'expédition) ──
@@ -5590,7 +5629,8 @@ function cbInfo(u, what, px, py) {
   let h = `<div class="row sp" style="flex-wrap:nowrap"><b>${esc(u.name)}</b><span class="tiny dim">${u.side === "e" ? `niv ${u.lvl}${u.tags.includes("impie") ? " · impie" : ""}` : CLASSES[u.cls] ? CLASSES[u.cls].n : ""} · rang ${rankOf(B, u)}</span></div>`;
   if (what !== "st") h += `<div class="tiny">PV ${Math.ceil(u.hp)}/${u.hpMax} · Protection ${Math.round(effProt(u) * 100)} % · Vitesse ${Math.round(effSpd(u))} · Esquive ${Math.round(effDodge(u))}</div>`;
   if (what === "intent") h += intentHTML(u);
-  if (what !== "intent") h += sts.length ? `<div class="cbi-list">${sts.map(stLine).join("")}</div>` : `<div class="tiny dim" style="margin-top:4px">Aucune altération.</div>`;
+  if (what === "bond") h += `<div class="small" style="margin-top:4px">${u.bond === "ami" ? `${ico("heart", "#8ad06a", 13)} <b>Amitié</b> avec son voisin : +6 % de protection et +4 esquive.` : u.bond === "rival" ? `${ico("swords", "#e05050", 13)} <b>Rivalité</b> avec son voisin : +7 % de critique et +6 % de dégâts, mais du stress après le combat.` : ""}${u.duo ? `<div>${ico("paw", "#e8c878", 13)} <b>Duo</b> avec le compagnon : bonus de duo actif.</div>` : ""}</div>`;
+  if (what !== "intent" && what !== "bond") h += sts.length ? `<div class="cbi-list">${sts.map(stLine).join("")}</div>` : `<div class="tiny dim" style="margin-top:4px">Aucune altération.</div>`;
   if (what === "unit" && u.side === "e") h += intentHTML(u);
   let el = $("#cbinfo"); if (!el) { el = document.createElement("div"); el.id = "cbinfo"; document.body.appendChild(el); el.onclick = () => el.remove(); }
   el.innerHTML = h + `<div class="tiny dim" style="text-align:right;margin-top:4px">Touchez pour fermer</div>`;
@@ -6073,6 +6113,8 @@ function hintOnce(k) {
 }
 function combatHints(B, node) {
   const run = S.run || {}, E = B.enemies;
+  const duo = typeof petDuo === "function" ? petDuo(run) : null; if (duo) for (const u of B.heroes) if (duo.cls.includes(u.cls)) u.duo = 1;
+  setTimeout(() => { for (const u of B.heroes) { if (u.bond) popText(u.uid, u.bond === "ami" ? "Amis" : "Rivaux", u.bond === "ami" ? "#8ad06a" : "#e05050"); else if (u.duo) popText(u.uid, "Duo", "#e8c878"); } }, 300);
   if (E.some(e => e.named)) hintOnce("named");
   if (E.some(e => e.corrupt)) hintOnce("corrupt");
   if (node && node.nestOn) hintOnce("nest");

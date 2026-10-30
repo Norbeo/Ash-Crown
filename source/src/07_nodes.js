@@ -41,6 +41,7 @@ function fxText(fx) {
     if (f.cleanse) o.push(["good", "Purification"]);
     if (f.buff) o.push(["good", "+20 % dégâts au prochain combat"]);
     if (f.upgrade) o.push(["good", "Améliore une arme ou armure"]);
+    if (f.petHurt) o.push(["bad", "Compagnon blessé"]); if (f.heroCurse) o.push(["bad", "Héros maudit"]);
     if (f.curse) o.push(["bad", "Malédiction (ennemis +10 % dégâts)"]);
     if (f.fight) o.push(["bad", "Combat"]);
     if (f.flag || f.sflag) o.push(["risk", "✦ Aura une suite"]);
@@ -73,6 +74,9 @@ function resolveEvent(run, evId, ci) {
     if (f.potion) { run.potions++; out.text.push("+1 potion"); }
     if (f.potionCost) { if (run.potions > 0) { run.potions--; out.text.push("-1 potion"); } else out.text.push("Vous n'aviez plus de potion… il vous remercie quand même."); }
     if (f.cleanse) out.text.push("Les esprits s'apaisent.");
+    if (f.petHurt && run.pet) { S.petHurt = S.petHurt || {}; S.petHurt[run.pet] = f.petHurt; out.text.push(`${petName(run.pet)} est blessé : il ne combattra plus pendant ${f.petHurt} expéditions (repos à la Ménagerie).`); }
+    if (f.heroCurse) { const hs = runParty().filter(h => !run.fallen.includes(h.id)); if (hs.length) { const h = hs[Math.floor(rnd() * hs.length)]; h.cursed = f.heroCurse; out.text.push(`${h.name} porte la larme de l'idole : −12 % de dégâts pendant ${f.heroCurse} expéditions (la Chapelle peut l'en laver).`); } }
+    if (f.lootLose) { if (run.loot.length) { const it = run.loot.splice(Math.floor(rnd() * run.loot.length), 1)[0]; out.text.push(`Vous cédez ${gearName(it)}.`); } else { run.gold = Math.max(0, run.gold - 80); out.text.push("Faute d'objet, il prend 80 or."); } }
     if (f.curse) { run.curse = (run.curse || 0) + 1; out.text.push("Une malédiction pèse sur vous : les ennemis frappent plus fort."); }
     if (f.poison) { for (const h of party) { const mx = heroStats(h, relicHooks(run)).hp; h.hp = Math.max(1, Math.round((h.hp == null ? mx : h.hp) - mx * .08)); } out.text.push("Empoisonnés !"); }
     if (f.buff) { run.buff = (run.buff || 0) + 1; out.text.push("Une chaleur étrange : +20 % de dégâts au prochain combat."); }

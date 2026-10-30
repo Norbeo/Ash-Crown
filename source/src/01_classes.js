@@ -18,7 +18,7 @@ const CLASSES = {
       frappe_sainte: { n: "Frappe sainte", ic: "mace", use: [1, 2], t: "e", at: [1, 2], m: 1, bonus: { tag: "impie", x: 1.3 }, tags: ["sacré"] },
       bouclier_leve: { n: "Bouclier levé", ic: "shield", use: [1, 2, 3], t: "s", m: 0, sfx: [{ k: "protUp", v: .3, t: 2 }, { k: "prov", t: 2 }] },
       sous_ma_garde: { n: "Sous ma garde", ic: "guard", use: [1, 2, 3], t: "a", at: [2, 3, 4], m: 0, guard: 3, sfx: [{ k: "protUp", v: .15, t: 3 }] },
-      chatiment: { n: "Châtiment", ic: "stun", use: [1], t: "e", at: [1, 2], m: .6, fx: [{ k: "stun", t: 1, ch: 1 }] },
+      chatiment: { n: "Châtiment", ic: "stun", use: [1], t: "e", at: [1, 2], m: .6, push: 1, fx: [{ k: "stun", t: 1, ch: 1 }] },
       cri_ralliement: { n: "Cri de ralliement", ic: "banner", use: [1, 2, 3, 4], t: "aa", m: 0, heal: .08, afx: [{ k: "protUp", v: .1, t: 2 }], cd: 2, morale: 8 },
       charge: { n: "Charge du croisé", ic: "charge", use: [2, 3], t: "e", at: [1, 2], m: 1.2, mv: 1, cr: 5 },
       riposte: { n: "Riposte", ic: "riposte", use: [1, 2], t: "s", m: 0, sfx: [{ k: "riposte", v: .8, t: 2 }, { k: "protUp", v: .1, t: 2 }] },
@@ -258,7 +258,7 @@ Object.assign(CLASSES, {
     base: { hp: 40, dmg: [6, 10], prot: .18, spd: 2, crit: 3, dodge: 2 },
     pal: { cloth: "#2e3a48", trim: "#7ad0ff", metal: "#8a929a" },
     skills: {
-      coup_runique: { n: "Coup runique", ic: "hammer", use: [1, 2], t: "e", at: [1, 2], m: 1.05, fx: [{ k: "stun", t: 1, ch: .3 }] },
+      coup_runique: { n: "Coup runique", ic: "hammer", use: [1, 2], t: "e", at: [1, 2], m: 1.05, push: 1, fx: [{ k: "stun", t: 1, ch: .3 }] },
       peau_pierre: { n: "Peau de pierre", ic: "shield", use: [1, 2, 3], t: "s", m: 0, sfx: [{ k: "protUp", v: .35, t: 2 }, { k: "prov", t: 2 }] },
       rune_garde: { n: "Rune de garde", ic: "guard", use: [1, 2, 3], t: "a", at: [1, 2, 3, 4], m: 0, fx: [{ k: "shield", v: .25, t: 2, ch: 1 }] },
       seisme: { n: "Séisme", ic: "stun", use: [1, 2], t: "ae", at: [1, 2], m: .55, fx: [{ k: "stun", t: 1, ch: .35 }], cd: 2 },

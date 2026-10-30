@@ -53,6 +53,8 @@ function heroPassives(h) {
   for (const t of h.traits) out.push(...TRAITS[t].pas);
   if (h.evo) { out.push(...C.evos[h.evo].pas); if (h.lvl >= APEX_LVL) out.push(...APEX[h.evo].pas); }
   for (const s of ["tr1", "tr2"]) { const it = h.gear[s]; if (it && TRINKETS[it.key]) out.push(...TRINKETS[it.key].pas); }
+  if (h.cursed > 0) out.push({ k: "stat", s: "dmg", v: -.12 }); // larme de l'idole (événement)
+  for (const s of ["wpn", "arm"]) { const it = h.gear[s]; if (it && it.mod && ITEM_MODS[it.mod]) out.push(...ITEM_MODS[it.mod].pas); } // effet unique d'équipement
   if (h.mark && typeof GUARD_MARKS !== "undefined" && GUARD_MARKS[h.mark]) out.push(...GUARD_MARKS[h.mark].pas); // marque d'un gardien vaincu
   if (h.affl && typeof AFFLICTIONS !== "undefined" && AFFLICTIONS[h.affl]) out.push(...AFFLICTIONS[h.affl].pas); // stress : affliction ou vertu
   if (h.talents && typeof talentPas === "function") out.push(...talentPas(h));
@@ -93,8 +95,23 @@ function makeGear(kind, cls, tier, rar, key, evo) {
   const nAff = kind === "tr" ? 0 : RARITY[it.rar].aff;
   const keys = Object.keys(AFFIXES).filter(k => !(kind === "wpn" && k === "prot")); RNG.shuffle(keys);
   for (let i = 0; i < nAff; i++) { const A = AFFIXES[keys[i]], sc = 1 + (it.tier - 1) * .25; let v = lerp(A.v[0], A.v[1], rnd()) * sc; v = A.fmt === "pct" ? Math.round(v * 100) / 100 : Math.round(v); it.aff.push({ k: keys[i], v }); }
+  // effet unique (Épique 25 %, Légendaire 60 %, Mythique et Divin toujours) : change la façon de combattre
+  if (kind !== "tr" && it.rar >= 3 && chance([0, 0, 0, .25, .6, 1, 1][it.rar])) { const pool = Object.keys(ITEM_MODS).filter(k => ITEM_MODS[k].kind === kind); it.mod = pick(pool); }
   return it;
 }
+// effets uniques d'équipement (crochets de combat existants)
+const ITEM_MODS = {
+  braise: { kind: "wpn", n: "Lame de braise", d: "Vos brûlures infligent 35 % de dégâts en plus.", pas: [{ k: "burnPow", v: .35 }] },
+  venin: { kind: "wpn", n: "Fil empoisonné", d: "Saignements, poisons et brûlures infligés : +25 % de dégâts.", pas: [{ k: "dotPow", v: .25 }] },
+  furie: { kind: "wpn", n: "Soif de gloire", d: "La jauge d'ultime se remplit 30 % plus vite.", pas: [{ k: "ultGain", v: .3 }] },
+  fleau: { kind: "wpn", n: "Fléau des foules", d: "Attaques de zone : +18 % de dégâts.", pas: [{ k: "aoeDmg", v: .18 }] },
+  bourreau: { kind: "wpn", n: "Marque du bourreau", d: "Chaque ennemi abattu redonne de la résolution au groupe.", pas: [{ k: "killMorale", v: 4 }] },
+  epines: { kind: "arm", n: "Cotte d'épines", d: "Renvoie 15 % des dégâts de mêlée subis.", pas: [{ k: "thornsP", v: .15 }] },
+  contre: { kind: "arm", n: "Garde de l'escrimeur", d: "Une esquive en mêlée déclenche une riposte (50 %).", pas: [{ k: "dodgeRiposte", v: .5 }] },
+  rempart: { kind: "arm", n: "Rempart béni", d: "Les boucliers que vous posez sont 30 % plus solides.", pas: [{ k: "shieldPow", v: .3 }] },
+  sursis: { kind: "arm", n: "Sursis du mort", d: "Une fois par combat, survit à un coup fatal à l'agonie.", pas: [{ k: "cheatDeath", v: 1 }] },
+  cendre: { kind: "arm", n: "Cape de cendre", d: "+20 % de soins reçus.", pas: [{ k: "healTaken", v: .2 }] },
+};
 function gearName(it) {
   if (!it) return "—";
   if (it.uniq && typeof UNIQ !== "undefined" && UNIQ[it.uniq]) return UNIQ[it.uniq].n; // objet unique de gardien

@@ -133,6 +133,8 @@ const WPN_IC = { masse: "mace", espadon: "sword", baton: "sun", faucille: "scyth
 const ICO_LINE = new Set(["close", "plus", "up", "skip", "auto", "speed", "info", "install", "swap"]);
 function ico(name, col, size) {
   if (name && name.startsWith("wpn_")) { if (artHas(name)) return `<img class="ic pic" src="assets/${name}.webp" alt="" draggable="false"${size ? ` width="${size}" height="${size}"` : ""}>`; name = WPN_IC[name.slice(4)] || "weapon"; }
+  if (!ICO_LINE.has(name) && typeof UIA !== "undefined" && UIA && UIA.n[name] != null) { const i = UIA.n[name], cx = i % UIA.c, cy = Math.floor(i / UIA.c); // planche d'icônes
+    return `<span class="ic pic" style="background:url(assets/ui_atlas.webp) ${UIA.c > 1 ? cx / (UIA.c - 1) * 100 : 0}% ${UIA.r > 1 ? cy / (UIA.r - 1) * 100 : 0}% / ${UIA.c * 100}% ${UIA.r * 100}% no-repeat${size ? `;width:${size}px;height:${size}px` : ""}"></span>`; }
   if (!ICO_LINE.has(name) && artHas("ui_" + name)) return `<img class="ic pic" src="assets/ui_${name}.webp" alt="" draggable="false"${size ? ` width="${size}" height="${size}"` : ""}>`;
   const d = IC[name] || IC.star;
   return `<svg class="ic" viewBox="0 0 24 24" ${size ? `width="${size}" height="${size}"` : ""} fill="none" stroke="${col || "currentColor"}" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="${d}"/></svg>`;

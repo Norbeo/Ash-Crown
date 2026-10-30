@@ -16,13 +16,24 @@ function artImg(n) {
   if (!e) { e = PIC.img[n] = { ok: 0 }; PIC.queue.unshift(n); artPump(); }
   return e.ok ? e.im : null;
 }
+// icônes regroupées dans la planche ui_atlas : découpées à la demande une fois la planche chargée
+const UIA = typeof window !== "undefined" && window.UI_ATLAS ? window.UI_ATLAS : null;
+const uiAtlasIdx = n => UIA && n.startsWith("ui_") ? UIA.n[n.slice(3)] : undefined;
+function atlasCut(n, e) {
+  const A = PIC.img.ui_atlas; if (!A || !A.ok) return false; const i = uiAtlasIdx(n), S = UIA.s;
+  const c = document.createElement("canvas"); c.width = c.height = S; c.getContext("2d").drawImage(A.im, (i % UIA.c) * S, Math.floor(i / UIA.c) * S, S, S, 0, 0, S, S);
+  e.im = c; e.ok = 1; return true;
+}
 function artPump() {
   while (PIC.busy < 6 && PIC.queue.length) {
     const n = PIC.queue.shift(), e = PIC.img[n] || (PIC.img[n] = { ok: 0 });
     if (e.started) continue;
+    if (uiAtlasIdx(n) != null) { // icône de la planche
+      if (atlasCut(n, e)) { e.started = 1; PIC.done++; artProgress(); continue; }
+      const A = PIC.img.ui_atlas || (PIC.img.ui_atlas = { ok: 0 }); (A.wait = A.wait || []).push(n); if (!A.started) PIC.queue.unshift("ui_atlas"); e.started = 1; continue; }
     e.started = 1; PIC.busy++;
     const im = new Image(); im.decoding = "async";
-    im.onload = () => { e.im = im; e.ok = 1; PIC.busy--; PIC.done++; artProgress(); artChanged(); artPump(); };
+    im.onload = () => { e.im = im; e.ok = 1; PIC.busy--; PIC.done++; if (n === "ui_atlas" && e.wait) { for (const w of e.wait.splice(0)) { atlasCut(w, PIC.img[w]); PIC.done++; } } artProgress(); artChanged(); artPump(); };
     im.onerror = () => { e.fail = 1; PIC.busy--; PIC.done++; artProgress(); artPump(); };
     im.src = "assets/" + n + ".webp";
   }

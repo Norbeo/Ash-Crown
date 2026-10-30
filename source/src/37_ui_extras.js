@@ -214,7 +214,7 @@ function cbLog(e) {
   else if (e.k === "pet") l = `<b class="good">Compagnon</b> : ${esc(e.sk)}`;
   if (l) { CB.log.push((B.round ? `<span class="tiny dim">T${B.round}</span> ` : "") + l); if (CB.log.length > 300) CB.log.shift(); miniLogRefresh(); }
 }
-ACT.cbLogShow = () => modal(`<h2>${ico("scroll", "#e8c878")} Journal du combat</h2><div class="small" style="max-height:60vh;overflow:auto;line-height:1.45" id="cblogbox">${(CB.log || []).slice(-150).join("<br>") || '<span class="dim">Rien pour l\'instant.</span>'}</div>`, { mount: m => { const b = m.querySelector("#cblogbox"); if (b) b.scrollTop = b.scrollHeight; } });
+ACT.cbLogShow = () => modal(`<h2>${ico("scroll", "#e8c878")} Journal du combat</h2><div class="small" style="max-height:60vh;overflow:auto;line-height:1.45" id="cblogbox">${(CB.log || []).slice(-150).join("<br>") || '<span class="dim">Rien pour l\'instant.</span>'}</div><button class="btn sm ghost" style="margin-top:8px" data-a="bugReport">${ico("info")}Signaler un bogue</button>`, { mount: m => { const b = m.querySelector("#cblogbox"); if (b) b.scrollTop = b.scrollHeight; } });
 
 // ── Bestiaire : fiche détaillée d'une créature rencontrée ──
 ACT.monSheet = k => { const M = MONSTERS[k]; if (!M) return;
@@ -676,3 +676,18 @@ function chapterCard(reg) {
   document.body.appendChild(el); requestAnimationFrame(() => el.style.opacity = 1); sfx("holy");
   const close = () => { el.style.opacity = 0; setTimeout(() => el.remove(), 900); }; el.onclick = close; setTimeout(close, 9000);
 }
+
+// ── Rapport de bogue : capture l'état du jeu (et du combat en cours) dans un fichier à envoyer ──
+const BUG_ERRS = [];
+if (typeof window !== "undefined") { window.addEventListener("error", e => { BUG_ERRS.push(`${e.message} @ ${(e.filename || "").split("/").pop()}:${e.lineno}`); if (BUG_ERRS.length > 20) BUG_ERRS.shift(); });
+  window.addEventListener("unhandledrejection", e => { BUG_ERRS.push("promesse : " + (e.reason && e.reason.message || e.reason)); if (BUG_ERRS.length > 20) BUG_ERRS.shift(); }); }
+ACT.bugReport = () => {
+  const B = typeof CB !== "undefined" && CB.B, U = u => ({ name: u.name, key: u.key || u.cls, hp: u.hp, hpMax: u.hpMax, st: (u.st || []).map(s => s.k + (s.t != null ? ":" + s.t : "")), agony: !!u.agony, dead: !!u.dead, rank: rankOf(B, u) });
+  const rep = { quand: new Date().toISOString(), ecran: UI.screen, appareil: navigator.userAgent, taille: innerWidth + "x" + innerHeight, erreurs: BUG_ERRS.slice(),
+    combat: B ? { tour: B.round, heros: B.heroes.map(U), ennemis: B.enemies.map(U), tombes: B.fallen.map(U), pet: B.pet && { id: B.pet.id, evo: B.pet.evo }, journal: (CB.log || []).slice(-60).map(l => String(l).replace(/<[^>]+>/g, "")) } : null,
+    expedition: S.run ? { region: S.run.region, seed: S.run.seed, floor: S.run.floor, pos: S.run.pos, meteo: S.run.weather, nuit: S.run.night, serments: S.run.oaths } : null, sauvegarde: S };
+  const txt = JSON.stringify(rep), name = "rapport-couronne-" + new Date().toISOString().slice(0, 16).replace(/[:T]/g, "-") + ".json";
+  try { const a = document.createElement("a"); a.href = URL.createObjectURL(new Blob([txt], { type: "application/json" })); a.download = name; document.body.appendChild(a); a.click(); setTimeout(() => { URL.revokeObjectURL(a.href); a.remove(); }, 1000); } catch (e) { }
+  try { navigator.clipboard && navigator.clipboard.writeText(txt).catch(() => { }); } catch (e) { }
+  modal(`<h2>${ico("info", "#e8c878")} Rapport de bogue</h2><p class="small">Le fichier <b>${name}</b> a été téléchargé (et copié dans le presse-papiers). Envoyez-le avec une phrase qui décrit ce que vous voyez : il contient l'état exact du jeu${B ? " et du combat" : ""} pour reproduire le problème.</p><p class="tiny dim">${BUG_ERRS.length ? BUG_ERRS.length + " erreur(s) technique(s) enregistrée(s) depuis le lancement." : "Aucune erreur technique enregistrée depuis le lancement."}</p>`);
+};

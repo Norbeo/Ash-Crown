@@ -934,6 +934,85 @@ const THREAT_BOSS = { 1: "sans_visage", 2: "matrone_os", 3: "devoreur_lumiere", 
 // gardiens à mécaniques : invocation de renforts (une place libre, 3 fois par combat au plus)
 const BOSS_SUMMON = { docteur_peste: ["Appel de la vermine", ["rat", "pestifere"]], liche: ["Réveil des moines", ["squelette", "moine_flagellant"]], mere_ronces: ["Les pendus descendent", ["pendu", "araignee"]], reine_sabbat: ["Le sabbat s'assemble", ["sorciere_marais", "noye"]], matrone_os: ["Enfants des tombes", ["squelette", "archer_os"]], cardinal: ["Fidèles ardents", ["penitent_ardent", "pretre_suie"]], sans_nom: ["Ce qui rampe en dessous", ["horreur", "oeil"]], roi_cendres: ["Garde royale", ["chevalier_dechu"]] };
 for (const k in BOSS_SUMMON) if (MONSTERS[k]) MONSTERS[k].sk.push({ n: BOSS_SUMMON[k][0], t: "self", summon: BOSS_SUMMON[k][1].filter(m => MONSTERS[m]), cd: 3, w: .7 });
+/* ═══════════ Chapitres VII à X (contenu ×2) : chaque chapitre n'apparaît qu'une fois ses illustrations prêtes ═══════════ */
+const CH_MORE = [
+  { id: "cimes", n: "Les Cimes Gelées", sub: "Chapitre VII", lvl: 30, d: "Au nord du Bastion, la neige ne fond plus. Ceux qui y meurent continuent de marcher.", sky: ["#0a1220", "#2a3a52"], fog: "#a8c8e8", accent: "#8ad0ff",
+    mons: {
+      loup_givre: { n: "Loup de givre", tags: ["bete"], hp: 44, dmg: [8, 13], prot: .04, spd: 8, dodge: 12, rk: [1, 2], sk: [{ n: "Morsure gelée", m: 1, at: [1, 2], fx: [{ k: "spdDn", v: 2, t: 2, ch: .8 }] }, { n: "Hurlement", m: 0, t: "ae", at: [1, 2, 3, 4], fx: [{ k: "weak", t: 2, ch: .6 }], every: 3 }] },
+      revenant_glace: { n: "Revenant de glace", tags: ["impie"], hp: 58, dmg: [8, 13], prot: .2, spd: 3, dodge: 2, res: 35, rk: [1, 2], sk: [{ n: "Lame gelée", m: 1.1, at: [1, 2], fx: [{ k: "bleed", v: .4, t: 2, ch: .7 }] }, { n: "Carapace de givre", t: "self", sfx: [{ k: "protUp", v: .15, t: 2 }], w: .4 }] },
+      troll_givre: { n: "Troll des neiges", tags: ["bete"], hp: 78, dmg: [10, 16], prot: .1, spd: 2, dodge: 0, rk: [1, 2], sk: [{ n: "Massue de glace", m: 1.2, at: [1, 2], fx: [{ k: "stun", t: 1, ch: .3 }] }, { n: "Rage froide", t: "self", heal: .08, w: .3 }] },
+      sorcier_givre: { n: "Sorcier du blizzard", tags: ["humain"], hp: 36, dmg: [7, 11], prot: 0, spd: 6, dodge: 8, rk: [3, 4], sk: [{ n: "Lance de glace", m: 1, at: [1, 2, 3, 4], fx: [{ k: "spdDn", v: 3, t: 2, ch: 1 }] }, { n: "Blizzard", m: .5, t: "ae", at: [1, 2, 3, 4], fx: [{ k: "accDn", v: 10, t: 2, ch: .8 }], every: 3 }] },
+      spectre_blizzard: { n: "Spectre du col", tags: ["impie"], hp: 40, dmg: [7, 12], prot: 0, spd: 7, dodge: 16, rk: [2, 3], sk: [{ n: "Toucher glacial", m: .9, at: [1, 2, 3], fx: [{ k: "weak", t: 2, ch: .7 }] }, { n: "Voile blanc", t: "self", sfx: [{ k: "dodgeUp", v: 15, t: 2 }], w: .3 }] } },
+    elite: { jarl_mort: { n: "Le Jarl mort", tags: ["impie"], elite: 1, hp: 190, dmg: [12, 18], prot: .22, spd: 4, dodge: 2, res: 40, rk: [1, 2], sk: [{ n: "Hache des glaces", m: 1.3, at: [1, 2], fx: [{ k: "bleed", v: .5, t: 3, ch: 1 }] }, { n: "Cor des morts", m: .6, t: "ae", at: [1, 2, 3, 4], fx: [{ k: "spdDn", v: 2, t: 2, ch: .8 }], every: 3 }] } },
+    boss: { reine_hiver: { n: "La Reine de l'Hiver", tags: ["impie"], boss: 1, sz: 2, hp: 1250, dmg: [13, 20], prot: .2, spd: 7, dodge: 10, res: 55, rk: [2],
+      sk: [{ n: "Baiser de glace", m: 1.3, at: [1, 2, 3, 4], fx: [{ k: "stun", t: 1, ch: .35 }] }, { n: "Tempête éternelle", m: .8, t: "ae", at: [1, 2, 3, 4], fx: [{ k: "spdDn", v: 3, t: 2, ch: 1 }, { k: "accDn", v: 10, t: 2, ch: .7 }] }, { n: "Cœur gelé", t: "self", sfx: [{ k: "shield", v: .16, t: 2 }], w: .4 }],
+      phase: { at: .5, n: "La Reine brise sa couronne de glace. Le froid devient absolu.", sfx: [{ k: "dmgUp", v: .4, t: 99 }, { k: "spdUp", v: 3, t: 99 }] } } },
+    summon: ["Meute du blizzard", ["loup_givre", "spectre_blizzard"]],
+    story: "La Reine de l'Hiver se fend comme un lac au dégel. Dans son cœur gelé, un sixième éclat que personne n'attendait : la Couronne avait plus de fragments qu'on ne le croyait.",
+    mark: { n: "Morsure du nord", d: "+15 de résistance, mais −1 de vitesse.", pas: [{ k: "stat", s: "res", v: 15 }, { k: "stat", s: "spd", v: -1 }] },
+    scene: [["narr", "Un éclaireur revient du nord, les doigts noirs de gel. Il ne parle plus. Il dessine une couronne dans la neige, puis meurt."], ["ysolde", "Une autre couronne ? Il n'y en avait qu'une…"], ["anselme", "Il y en avait une. Les chroniques parlent d'une reine qu'Aldemar aurait épousée avant son sacre. On dit qu'elle n'a jamais cessé d'attendre."], ["voix", "Ma sœur la Reine garde ce qui m'appartient. Allez donc lui demander. Elle a toujours aimé les visiteurs… congelés."], ["capitaine", "Des fourrures, des torches, et du feu dans les ventres. On part au nord."]],
+    end: [["ysolde", "Un sixième fragment… La Couronne n'est pas brisée en cinq. Elle a été dispersée."], ["anselme", "Et quelqu'un, quelque part, rassemble les autres."]] },
+  { id: "cite", n: "La Cité Engloutie", sub: "Chapitre VIII", lvl: 35, d: "Sous le lac de Morvaine dort une ville entière. Ses cloches sonnent encore sous l'eau.", sky: ["#04121a", "#0a3a44"], fog: "#5ab8b0", accent: "#4ad8c8",
+    mons: {
+      homme_poisson: { n: "Homme-poisson", tags: ["bete"], hp: 48, dmg: [9, 14], prot: .1, spd: 6, dodge: 8, rk: [1, 2], sk: [{ n: "Trident rouillé", m: 1.05, at: [1, 2], fx: [{ k: "bleed", v: .45, t: 3, ch: .8 }] }, { n: "Écailles", t: "self", sfx: [{ k: "protUp", v: .12, t: 2 }], w: .3 }] },
+      pretre_abysses: { n: "Prêtre des profondeurs", tags: ["humain"], hp: 38, dmg: [7, 11], prot: 0, spd: 6, dodge: 8, rk: [3, 4], sk: [{ n: "Psaume noyé", m: .5, t: "ae", at: [1, 2, 3, 4], fx: [{ k: "weak", t: 2, ch: .8 }] }, { n: "Bénédiction salée", t: "allies", heal: .12, w: .6 }, { n: "Marée", m: .9, at: [1, 2, 3, 4], fx: [{ k: "vuln", t: 2, ch: .9 }] }] },
+      crabe_geant: { n: "Crabe des égouts", tags: ["bete"], hp: 72, dmg: [9, 14], prot: .32, spd: 2, dodge: 0, res: 35, rk: [1, 2], sk: [{ n: "Pince", m: 1.1, at: [1, 2], fx: [{ k: "protDn", v: .12, t: 2, ch: .9 }] }, { n: "Carapace", t: "self", sfx: [{ k: "protUp", v: .2, t: 2 }], w: .35 }] },
+      noyee_chantante: { n: "Noyée chantante", tags: ["impie"], hp: 40, dmg: [7, 12], prot: 0, spd: 7, dodge: 14, rk: [2, 3, 4], sk: [{ n: "Chant des sirènes", m: .4, t: "ae", at: [1, 2, 3, 4], fx: [{ k: "stun", t: 1, ch: .25 }] }, { n: "Étreinte froide", m: 1, at: [1, 2, 3], fx: [{ k: "spdDn", v: 2, t: 2, ch: .8 }] }] },
+      anguille_ombre: { n: "Anguille d'ombre", tags: ["bete"], hp: 42, dmg: [8, 13], prot: .02, spd: 9, dodge: 14, rk: [2, 3], sk: [{ n: "Décharge", m: 1, at: [1, 2, 3, 4], fx: [{ k: "stun", t: 1, ch: .3 }] }, { n: "Morsure", m: 1.1, at: [1, 2], fx: [{ k: "poison", v: .5, t: 3, ch: .9 }] }] } },
+    elite: { leviathan: { n: "Le Léviathan des citernes", tags: ["bete"], elite: 1, hp: 200, dmg: [12, 19], prot: .18, spd: 4, dodge: 4, res: 40, rk: [1, 2], sk: [{ n: "Tentacules", m: 1.1, t: "ae", at: [1, 2], fx: [{ k: "spdDn", v: 2, t: 2, ch: .8 }] }, { n: "Engloutir", m: 1.5, at: [1], fx: [{ k: "stun", t: 1, ch: .4 }] }] } },
+    boss: { roi_noye: { n: "Le Roi Noyé", tags: ["impie"], boss: 1, sz: 2, hp: 1350, dmg: [14, 21], prot: .2, spd: 6, dodge: 8, res: 55, rk: [2],
+      sk: [{ n: "Sceptre de corail", m: 1.3, at: [1, 2, 3], fx: [{ k: "bleed", v: .6, t: 3, ch: 1 }] }, { n: "Raz-de-marée", m: .8, t: "ae", at: [1, 2, 3, 4], fx: [{ k: "spdDn", v: 2, t: 2, ch: 1 }, { k: "weak", t: 2, ch: .6 }] }, { n: "Couronne d'algues", t: "self", heal: .08, sfx: [{ k: "shield", v: .14, t: 2 }], w: .4 }],
+      phase: { at: .5, n: "Les cloches de la cité sonnent toutes ensemble. L'eau monte.", sfx: [{ k: "dmgUp", v: .4, t: 99 }] } } },
+    summon: ["Les cloches appellent", ["homme_poisson", "noyee_chantante"]],
+    story: "Le Roi Noyé lâche son sceptre et l'eau l'emporte. Sur son trône de corail, le septième éclat, et une lettre scellée : « À mon frère Aldemar, qui m'a laissé me noyer. »",
+    mark: { n: "Sel des profondeurs", d: "+12 % de soins reçus, mais −4 d'esquive.", pas: [{ k: "healTaken", v: .12 }, { k: "stat", s: "dodge", v: -4 }] },
+    scene: [["narr", "Le lac de Morvaine s'est retiré en une nuit. Au fond, des toits, des clochers, une ville entière couverte d'algues."], ["anselme", "Ys-sous-Morvaine… La ville du frère d'Aldemar. On la croyait légende."], ["maugrin", "Les cloches sonnent sous la boue. Je les entends dans mon enclume."], ["voix", "Mon frère était jaloux. Je l'ai laissé se noyer avec sa ville. Il ne m'a jamais pardonné."], ["capitaine", "Alors on va réveiller un roi de plus. En espérant qu'il soit de meilleure humeur."]],
+    end: [["anselme", "Une lettre d'un frère à un frère. Aldemar n'a pas seulement trahi son peuple."], ["ysolde", "La lettre parle des mines du Hurlevent. Il y a envoyé ses forgerons… et il n'en est jamais revenu un seul."]] },
+  { id: "mines", n: "Les Mines du Hurlevent", sub: "Chapitre IX", lvl: 40, d: "Les galeries où fut forgée la Couronne. Le métal y hurle encore.", sky: ["#100a06", "#3a2210"], fog: "#c88a4a", accent: "#ffb04a",
+    mons: {
+      mineur_possede: { n: "Mineur possédé", tags: ["humain"], hp: 50, dmg: [9, 14], prot: .08, spd: 5, dodge: 4, rk: [1, 2], sk: [{ n: "Pioche", m: 1.1, at: [1, 2], fx: [{ k: "bleed", v: .45, t: 3, ch: .8 }] }, { n: "Grisou", m: .6, t: "ae", at: [1, 2], fx: [{ k: "burn", v: .4, t: 2, ch: .6 }], every: 3 }] },
+      ver_roche: { n: "Ver des roches", tags: ["bete"], hp: 74, dmg: [10, 15], prot: .2, spd: 3, dodge: 0, rk: [1, 2], sk: [{ n: "Broyer", m: 1.2, at: [1, 2], fx: [{ k: "protDn", v: .12, t: 2, ch: .8 }] }, { n: "Éboulement", m: .6, t: "ae", at: [1, 2, 3, 4], fx: [{ k: "stun", t: 1, ch: .2 }], every: 3 }] },
+      golem_fer: { n: "Golem de fer", tags: ["impie"], hp: 82, dmg: [10, 16], prot: .35, spd: 1, dodge: 0, res: 45, rk: [1, 2], sk: [{ n: "Poing de fonte", m: 1.2, at: [1, 2], fx: [{ k: "stun", t: 1, ch: .3 }] }, { n: "Rouages", t: "self", sfx: [{ k: "protUp", v: .15, t: 2 }], w: .3 }] },
+      chauve_souris: { n: "Chauve-souris des puits", tags: ["bete"], hp: 34, dmg: [7, 11], prot: 0, spd: 9, dodge: 18, rk: [2, 3, 4], sk: [{ n: "Morsure", m: 1, at: [1, 2, 3, 4], fx: [{ k: "bleed", v: .4, t: 2, ch: .8 }] }, { n: "Cri", m: 0, t: "ae", at: [1, 2, 3, 4], fx: [{ k: "accDn", v: 10, t: 2, ch: .7 }], every: 3 }] },
+      fondeur_maudit: { n: "Fondeur maudit", tags: ["humain"], hp: 40, dmg: [8, 12], prot: .04, spd: 6, dodge: 6, rk: [3, 4], sk: [{ n: "Fonte versée", m: .9, at: [1, 2, 3, 4], fx: [{ k: "burn", v: .5, t: 3, ch: 1 }] }, { n: "Trempe", t: "allies", sfx: [{ k: "dmgUp", v: .15, t: 2 }], w: .5 }] } },
+    elite: { contremaitre: { n: "Le Contremaître de fer", tags: ["humain"], elite: 1, hp: 205, dmg: [13, 19], prot: .25, spd: 4, dodge: 2, res: 40, rk: [1, 2], sk: [{ n: "Fouet de chaînes", m: 1.1, t: "ae", at: [1, 2], fx: [{ k: "bleed", v: .4, t: 2, ch: .8 }] }, { n: "Au travail !", t: "allies", sfx: [{ k: "spdUp", v: 2, t: 2 }, { k: "dmgUp", v: .15, t: 2 }], w: .5 }] } },
+    boss: { coeur_montagne: { n: "Le Cœur de la Montagne", tags: ["impie"], boss: 1, sz: 2, hp: 1450, dmg: [14, 22], prot: .28, spd: 4, dodge: 2, res: 60, rk: [2],
+      sk: [{ n: "Battement de magma", m: 1.2, t: "ae", at: [1, 2, 3, 4], fx: [{ k: "burn", v: .5, t: 3, ch: 1 }] }, { n: "Écrasement", m: 1.5, at: [1, 2], fx: [{ k: "stun", t: 1, ch: .4 }] }, { n: "Croûte de roche", t: "self", sfx: [{ k: "protUp", v: .2, t: 2 }, { k: "shield", v: .14, t: 2 }], w: .4 }],
+      phase: { at: .5, n: "La roche se fend. Le Cœur bat de plus en plus vite.", sfx: [{ k: "dmgUp", v: .45, t: 99 }, { k: "spdUp", v: 2, t: 99 }] } } },
+    summon: ["La mine se réveille", ["mineur_possede", "chauve_souris"]],
+    story: "Le Cœur de la Montagne cesse de battre. Dans la roche refroidie, le huitième éclat, et le moule de la Couronne : elle avait été forgée pour huit fragments… et une place vide au centre.",
+    mark: { n: "Poussière de fer", d: "+8 % de protection, mais −8 % de dégâts critiques.", pas: [{ k: "stat", s: "prot", v: .08 }, { k: "critDmg", v: -.08 }] },
+    scene: [["narr", "Les forgerons de Maugrin rapportent la même chose : le fer hurle quand on le frappe. Un hurlement qui vient de l'est, des Mines du Hurlevent."], ["maugrin", "C'est là qu'on a forgé la Couronne. Mon arrière-grand-père y était. Il n'a jamais voulu en parler."], ["anselme", "La lettre du Roi Noyé dit qu'Aldemar a muré les forgerons vivants pour garder le secret."], ["voix", "Ils chantaient si bien en tapant sur le métal. Ils chantent encore. Écoutez."], ["capitaine", "On descend les chercher. Morts ou vifs, on les ramène."]],
+    end: [["maugrin", "Une place vide au centre du moule. Il manque une pierre à la Couronne."], ["anselme", "Le cœur. La Couronne avait un cœur. Et il est resté là où tout a commencé : au Trône."]] },
+  { id: "trone", n: "Le Trône Vide", sub: "Chapitre X", lvl: 45, d: "La salle du sacre, au sommet de la Citadelle. Le trône attend un roi qui ne viendra plus.", sky: ["#0a0610", "#2a1a3a"], fog: "#b08ad8", accent: "#e8c878",
+    mons: {
+      chevalier_couronne: { n: "Chevalier de la Couronne", tags: ["impie"], hp: 64, dmg: [10, 16], prot: .26, spd: 4, dodge: 4, res: 40, rk: [1, 2], sk: [{ n: "Serment brisé", m: 1.2, at: [1, 2], fx: [{ k: "bleed", v: .5, t: 3, ch: .8 }] }, { n: "Mur de boucliers", t: "allies", sfx: [{ k: "protUp", v: .1, t: 2 }], w: .4 }] },
+      heraut_neant: { n: "Héraut du néant", tags: ["impie"], hp: 40, dmg: [8, 12], prot: 0, spd: 7, dodge: 10, rk: [3, 4], sk: [{ n: "Proclamation", m: .5, t: "ae", at: [1, 2, 3, 4], fx: [{ k: "weak", t: 2, ch: .8 }, { k: "vuln", t: 2, ch: .5 }] }, { n: "Trompe du vide", m: 1, at: [1, 2, 3, 4], fx: [{ k: "stun", t: 1, ch: .3 }] }] },
+      garde_spectral: { n: "Garde spectral", tags: ["impie"], hp: 46, dmg: [9, 14], prot: .05, spd: 6, dodge: 16, rk: [1, 2, 3], sk: [{ n: "Hallebarde fantôme", m: 1.05, at: [1, 2, 3], fx: [{ k: "accDn", v: 10, t: 2, ch: .7 }] }, { n: "Traverser", t: "self", sfx: [{ k: "dodgeUp", v: 15, t: 2 }], w: .3 }] },
+      seraphin_dechu: { n: "Séraphin déchu", tags: ["impie"], hp: 52, dmg: [10, 15], prot: .1, spd: 8, dodge: 12, rk: [2, 3], sk: [{ n: "Flamme pâle", m: 1.1, at: [1, 2, 3, 4], fx: [{ k: "burn", v: .5, t: 3, ch: .9 }] }, { n: "Aile tranchante", m: .7, t: "ae", at: [1, 2], fx: [{ k: "bleed", v: .4, t: 2, ch: .7 }] }] },
+      bouffon_roi: { n: "Le Bouffon du roi", tags: ["humain"], hp: 36, dmg: [7, 12], prot: 0, spd: 9, dodge: 18, rk: [3, 4], sk: [{ n: "Farce cruelle", m: .9, at: [1, 2, 3, 4], fx: [{ k: "mark", t: 2, ch: 1 }] }, { n: "Grelots", m: 0, t: "ae", at: [1, 2, 3, 4], fx: [{ k: "spdDn", v: 2, t: 2, ch: .8 }], every: 3 }] } },
+    elite: { champion_roi: { n: "Le Champion du Roi", tags: ["impie"], elite: 1, hp: 215, dmg: [14, 20], prot: .24, spd: 6, dodge: 6, res: 45, rk: [1, 2], sk: [{ n: "Duel", m: 1.4, at: [1], fx: [{ k: "bleed", v: .6, t: 3, ch: 1 }] }, { n: "Riposte royale", t: "self", sfx: [{ k: "riposte", t: 2 }, { k: "protUp", v: .15, t: 2 }], w: .4 }] } },
+    boss: { roi_vide: { n: "Le Roi sans Couronne", tags: ["impie"], boss: 1, sz: 2, hp: 1600, dmg: [15, 23], prot: .22, spd: 7, dodge: 10, res: 60, rk: [2],
+      sk: [{ n: "Verdict", m: 1.4, at: [1, 2, 3, 4], fx: [{ k: "vuln", t: 2, ch: 1 }] }, { n: "Règne du néant", m: .8, t: "ae", at: [1, 2, 3, 4], fx: [{ k: "weak", t: 2, ch: .8 }, { k: "burn", v: .4, t: 2, ch: .7 }] }, { n: "Trône d'ombre", t: "self", heal: .08, sfx: [{ k: "shield", v: .16, t: 2 }], w: .4 }],
+      phase: { at: .5, n: "Le Roi sans Couronne se lève enfin de son trône. La salle entière s'agenouille.", sfx: [{ k: "dmgUp", v: .5, t: 99 }, { k: "spdUp", v: 3, t: 99 }] } } },
+    summon: ["La cour se lève", ["chevalier_couronne", "garde_spectral"]],
+    story: "Le Roi sans Couronne tombe à genoux devant le trône vide. Ce n'était pas Aldemar : c'était ce que la Couronne avait fait de chaque roi qui l'avait portée. Le cœur de la Couronne roule à vos pieds. Il ne brûle plus.",
+    mark: { n: "Ombre du trône", d: "+10 % de dégâts contre les impies, mais −5 % de PV.", pas: [{ k: "vsTag", tag: "impie", v: .1 }, { k: "stat", s: "hp", v: -.05 }] },
+    scene: [["narr", "Les neuf fragments posés sur l'autel se mettent à briller ensemble, en dessinant une couronne autour d'une place vide."], ["anselme", "Le cœur est là-haut. Dans la salle du sacre, où Aldemar a posé la Couronne sur sa tête."], ["ysolde", "Mais Aldemar est mort. Qui garde le trône, maintenant ?"], ["voix", "Personne. Et tout le monde. Venez vous asseoir, Capitaine. Le trône est si confortable."], ["capitaine", "Je ne m'assiérai pas. Mais je vais le briser."]],
+    end: [["capitaine", "La Couronne est entière. Et elle ne chuchote plus."], ["anselme", "Alors il ne reste que l'Abîme. Et ce qui y attend depuis le début."]] },
+];
+(function () {
+  const L = typeof window !== "undefined" && window.ART_LIST ? new Set(window.ART_LIST) : null; // sous node (sim) : tout est actif
+  for (const C of CH_MORE) {
+    const keys = [...Object.keys(C.mons), ...Object.keys(C.elite), ...Object.keys(C.boss)];
+    C.ready = !L || (L.has("bg_" + C.id) && keys.every(k => L.has("mon_" + k)));
+    if (!C.ready) continue;
+    for (const k of keys) MONSTERS[k] = Object.assign({ art: k }, C.mons[k] || C.elite[k] || C.boss[k]);
+    REGIONS.push({ id: C.id, n: C.n, sub: C.sub, lvl: C.lvl, pool: Object.keys(C.mons), elite: Object.keys(C.elite), boss: Object.keys(C.boss)[0], d: C.d, sky: C.sky, fog: C.fog, accent: C.accent });
+    BOSS_SUMMON[Object.keys(C.boss)[0]] = C.summon;
+  }
+  ABYSS.lvl = REGIONS[REGIONS.length - 1].lvl + 5;
+})();
 /* ═══════════════════════ Compagnons supplémentaires (×3) ═══════════════════════
    Chaque compagnon suit un modèle par rôle, avec sa propre altération. */
 const PET_MORE = [
@@ -1933,6 +2012,7 @@ function applyDamage(B, src, x, d, ev, o = {}) {
   for (const s of sh) { const a = Math.min(s.v, d); s.v -= a; d -= a; if (a > 0) ev.push({ k: "absorb", u: x.uid, v: Math.round(a) }); if (s.v <= 0) s.t = 0; }
   x.st = x.st.filter(s => !(s.k === "shield" && s.v <= 0));
   if (d <= 0) return 0;
+  d = Math.max(1, Math.round(d)); // dégâts toujours entiers
   const before = x.hp;
   if (!o.dot) ev.push({ k: "hit", u: x.uid, dmg: d, crit: !!o.crit, src: src && src.uid });
   // statistiques du bilan d'expédition
@@ -3052,6 +3132,17 @@ const CLASS_GOALS = [3, 10, 25];
 function classChallengeTick(run) { const won = S.classWins = S.classWins || {}, out = [];
   for (const h of run.party.map(heroById).filter(Boolean)) { const c = h.cls; won[c] = (won[c] || 0) + 1; const g = CLASS_GOALS.indexOf(won[c]); if (g >= 0) { const gold = [300, 900, 2500][g], sh = [1, 3, 6][g]; S.gold += gold; S.shards += sh; out.push({ cls: c, g, gold, sh }); } }
   return out; }
+// Chapitres VII à X : histoire, scènes et marques des gardiens (branchés après 03y_story et 08z_extras)
+(function () {
+  if (typeof CH_MORE === "undefined") return;
+  for (const C of CH_MORE) {
+    if (!C.ready) continue;
+    STORY[C.id] = C.story;
+    SCENES[C.id] = { t: `${C.sub} — ${C.n}`, lines: C.scene };
+    SCENE_END[C.id] = C.end;
+    GUARD_MARKS[C.id] = C.mark;
+  }
+})();
 /* ═══════════════════════ Outils de dessin (effets de combat, lueurs, dégradés) ═══════════════════════
    Tout l'art du jeu est peint (assets/) ; il ne reste ici que les utilitaires des effets. */
 function hexRgb(h) { h = h.replace("#", ""); if (h.length === 3) h = h.split("").map(c => c + c).join(""); const n = parseInt(h, 16); return [n >> 16 & 255, n >> 8 & 255, n & 255]; }
@@ -3811,6 +3902,15 @@ function skillText(sk, u) {
   if (sk.cr) out.push(`+${sk.cr} % critique`); if (sk.cd) out.push(`Recharge ${sk.cd} t.`); if (sk.morale) out.push(`+${sk.morale} résolution`); if (sk.petStrike) out.push(`Le compagnon frappe ${sk.petStrike > 1 ? sk.petStrike + " fois" : ""}`); if (sk.light) out.push(`+${sk.light} lueur`);
   return gl(out.join(" · "));
 }
+// ── nombres propres : aucun « 2.9999999 » à l'écran (arrondi à l'entier, ou à 1 décimale pour les petits nombres) ──
+const NUM_UGLY = /(\d+)[.,](\d{3,})/g;
+function cleanNum(s) { return typeof s !== "string" ? s : s.replace(NUM_UGLY, m => { const n = parseFloat(m.replace(",", ".")); const r = Math.abs(n - Math.round(n)) < .05 || n >= 10 ? Math.round(n) : Math.round(n * 10) / 10; return String(r).replace(".", ","); }); }
+(function () {
+  if (typeof document === "undefined" || typeof MutationObserver === "undefined") return;
+  const fix = n => { if (n.nodeType === 3) { if (NUM_UGLY.test(n.data)) { NUM_UGLY.lastIndex = 0; n.data = cleanNum(n.data); } NUM_UGLY.lastIndex = 0; } else if (n.nodeType === 1 && n.tagName !== "SCRIPT" && n.tagName !== "STYLE") { const w = document.createTreeWalker(n, NodeFilter.SHOW_TEXT); let t; while ((t = w.nextNode())) { if (NUM_UGLY.test(t.data)) t.data = cleanNum(t.data); NUM_UGLY.lastIndex = 0; } } };
+  const start = () => new MutationObserver(ms => { for (const m of ms) { if (m.type === "characterData") fix(m.target); else m.addedNodes.forEach(fix); } }).observe(document.body, { childList: true, subtree: true, characterData: true });
+  if (document.body) start(); else addEventListener("DOMContentLoaded", start);
+})();
 /* ═══════════════════════ Écran-titre et nouvelle partie ═══════════════════════ */
 const GAME_URL = "https://norbeo.github.io/Ash-Crown/";
 const PWA = { prompt: null,
@@ -4760,7 +4860,7 @@ function showUnitInfo(u) { return cbInfo(u, "unit"); }
 // ── lecture des événements ──
 function V(id) { return CB.vis[id]; }
 function U(id) { return unitById(CB.B, id) || CB.B.fallen.find(f => f.uid === id) || (CB.B.dead || []).find(d => d.uid === id); }
-function popText(id, text, col, big) { const v = V(id); if (!v) return; const y0 = v.y - 170 * CB.scale * (U(id) && U(id).sz > 1 ? 1.4 : 1);
+function popText(id, text, col, big) { const v = V(id); if (!v) return; text = typeof text === "number" ? String(Math.round(text)) : cleanNum(text); const y0 = v.y - 170 * CB.scale * (U(id) && U(id).sz > 1 ? 1.4 : 1);
   const near = CB.txt.filter(q => q.id === id && q.t < .5).length; // les textes d'une même unité s'empilent au lieu de se chevaucher
   CB.txt.push({ id, x: v.x + (Math.random() - .5) * 14, y: y0 - near * 26 * Math.max(.8, CB.scale * 1.4), text, col, big, t: 0, life: big ? 1.4 : 1.1 }); }
 function burst(x, y, col, n = 14, o = {}) { for (let i = 0; i < n; i++) { const a = Math.random() * Math.PI * 2, s = (o.sp || 160) * (.3 + Math.random()); CB.fx.push({ x, y, vx: Math.cos(a) * s, vy: Math.sin(a) * s - (o.up || 60), g: o.g == null ? 300 : o.g, r: (o.r || 3) * (.5 + Math.random()), col, t: 0, life: (o.life || .6) * (.6 + Math.random() * .6), add: o.add !== false }); } }

@@ -210,7 +210,7 @@ function showUnitInfo(u) { return cbInfo(u, "unit"); }
 // ── lecture des événements ──
 function V(id) { return CB.vis[id]; }
 function U(id) { return unitById(CB.B, id) || CB.B.fallen.find(f => f.uid === id) || (CB.B.dead || []).find(d => d.uid === id); }
-function popText(id, text, col, big) { const v = V(id); if (!v) return; const y0 = v.y - 170 * CB.scale * (U(id) && U(id).sz > 1 ? 1.4 : 1);
+function popText(id, text, col, big) { const v = V(id); if (!v) return; text = typeof text === "number" ? String(Math.round(text)) : cleanNum(text); const y0 = v.y - 170 * CB.scale * (U(id) && U(id).sz > 1 ? 1.4 : 1);
   const near = CB.txt.filter(q => q.id === id && q.t < .5).length; // les textes d'une même unité s'empilent au lieu de se chevaucher
   CB.txt.push({ id, x: v.x + (Math.random() - .5) * 14, y: y0 - near * 26 * Math.max(.8, CB.scale * 1.4), text, col, big, t: 0, life: big ? 1.4 : 1.1 }); }
 function burst(x, y, col, n = 14, o = {}) { for (let i = 0; i < n; i++) { const a = Math.random() * Math.PI * 2, s = (o.sp || 160) * (.3 + Math.random()); CB.fx.push({ x, y, vx: Math.cos(a) * s, vy: Math.sin(a) * s - (o.up || 60), g: o.g == null ? 300 : o.g, r: (o.r || 3) * (.5 + Math.random()), col, t: 0, life: (o.life || .6) * (.6 + Math.random() * .6), add: o.add !== false }); } }

@@ -258,6 +258,7 @@ function applyDamage(B, src, x, d, ev, o = {}) {
   for (const s of sh) { const a = Math.min(s.v, d); s.v -= a; d -= a; if (a > 0) ev.push({ k: "absorb", u: x.uid, v: Math.round(a) }); if (s.v <= 0) s.t = 0; }
   x.st = x.st.filter(s => !(s.k === "shield" && s.v <= 0));
   if (d <= 0) return 0;
+  d = Math.max(1, Math.round(d)); // dégâts toujours entiers
   const before = x.hp;
   if (!o.dot) ev.push({ k: "hit", u: x.uid, dmg: d, crit: !!o.crit, src: src && src.uid });
   // statistiques du bilan d'expédition

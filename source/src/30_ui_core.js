@@ -173,3 +173,12 @@ function skillText(sk, u) {
   if (sk.cr) out.push(`+${sk.cr} % critique`); if (sk.cd) out.push(`Recharge ${sk.cd} t.`); if (sk.morale) out.push(`+${sk.morale} résolution`); if (sk.petStrike) out.push(`Le compagnon frappe ${sk.petStrike > 1 ? sk.petStrike + " fois" : ""}`); if (sk.light) out.push(`+${sk.light} lueur`);
   return gl(out.join(" · "));
 }
+// ── nombres propres : aucun « 2.9999999 » à l'écran (arrondi à l'entier, ou à 1 décimale pour les petits nombres) ──
+const NUM_UGLY = /(\d+)[.,](\d{3,})/g;
+function cleanNum(s) { return typeof s !== "string" ? s : s.replace(NUM_UGLY, m => { const n = parseFloat(m.replace(",", ".")); const r = Math.abs(n - Math.round(n)) < .05 || n >= 10 ? Math.round(n) : Math.round(n * 10) / 10; return String(r).replace(".", ","); }); }
+(function () {
+  if (typeof document === "undefined" || typeof MutationObserver === "undefined") return;
+  const fix = n => { if (n.nodeType === 3) { if (NUM_UGLY.test(n.data)) { NUM_UGLY.lastIndex = 0; n.data = cleanNum(n.data); } NUM_UGLY.lastIndex = 0; } else if (n.nodeType === 1 && n.tagName !== "SCRIPT" && n.tagName !== "STYLE") { const w = document.createTreeWalker(n, NodeFilter.SHOW_TEXT); let t; while ((t = w.nextNode())) { if (NUM_UGLY.test(t.data)) t.data = cleanNum(t.data); NUM_UGLY.lastIndex = 0; } } };
+  const start = () => new MutationObserver(ms => { for (const m of ms) { if (m.type === "characterData") fix(m.target); else m.addedNodes.forEach(fix); } }).observe(document.body, { childList: true, subtree: true, characterData: true });
+  if (document.body) start(); else addEventListener("DOMContentLoaded", start);
+})();

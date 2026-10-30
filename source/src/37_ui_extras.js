@@ -515,7 +515,10 @@ function combatWeather(x, t, dt, stH) {
   x.save();
   if (kind === "rain") { x.strokeStyle = "rgba(170,190,220,.32)"; x.lineWidth = 1; x.beginPath(); for (const p of WX.p) { p.y += 900 * p.v * dt; p.x -= 120 * p.v * dt; if (p.y > H) { p.y = -10; p.x = Math.random() * W * 1.2; } x.moveTo(p.x, p.y); x.lineTo(p.x + 4, p.y - 14 * p.v); } x.stroke(); x.fillStyle = "rgba(20,30,50,.12)"; x.fillRect(0, 0, W, H); }
   if (kind === "snow" || kind === "ash") { x.fillStyle = kind === "snow" ? "rgba(235,240,255,.75)" : "rgba(255,150,80,.55)"; for (const p of WX.p) { p.y += (kind === "snow" ? 40 : 25) * p.v * dt; p.x += Math.sin(t * .8 + p.s * 9) * 18 * dt + (kind === "snow" ? -10 : 8) * dt; if (p.y > H) { p.y = -5; p.x = Math.random() * W; } x.beginPath(); x.arc(p.x, p.y, (kind === "snow" ? 1.2 : .9) + p.s * 1.6, 0, 7); x.fill(); } }
-  if (kind === "fog" || kind === "mist") { for (let i = 0; i < 4; i++) { const yy = H * (.45 + i * .14), xx = ((t * (8 + i * 5)) % (W * 1.5)) - W * .25; const g = x.createRadialGradient(xx, yy, 0, xx, yy, W * .45); g.addColorStop(0, `rgba(190,200,200,${kind === "fog" ? .16 : .09})`); g.addColorStop(1, "rgba(190,200,200,0)"); x.fillStyle = g; x.fillRect(0, 0, W, H); } if (kind === "fog") { x.fillStyle = "rgba(160,170,170,.08)"; x.fillRect(0, 0, W, H); } }
+  if (kind === "fog" || kind === "mist") { // nappes sombres qui dérivent et s'effacent en douceur aux bords (plus de voile blanc qui surgit)
+    for (let i = 0; i < 4; i++) { const span = W * 1.5, u = ((t * (8 + i * 5) + i * span / 4) % span) / span, xx = u * span - W * .25, yy = H * (.45 + i * .14), fade = Math.sin(u * Math.PI);
+      const a = (kind === "fog" ? .1 : .055) * fade, g = x.createRadialGradient(xx, yy, 0, xx, yy, W * .45); g.addColorStop(0, `rgba(120,130,135,${a})`); g.addColorStop(1, "rgba(120,130,135,0)"); x.fillStyle = g; x.fillRect(0, 0, W, H); }
+    if (kind === "fog") { x.fillStyle = "rgba(60,66,70,.1)"; x.fillRect(0, 0, W, H); } }
   if (kind === "moon") { x.fillStyle = `rgba(120,10,10,${.1 + .03 * Math.sin(t * 1.3)})`; x.fillRect(0, 0, W, H); }
   x.restore();
 }

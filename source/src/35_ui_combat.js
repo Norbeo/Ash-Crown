@@ -424,7 +424,9 @@ function drawCombat(x, t, dt) {
   x.restore();
   if (typeof combatWeather === "function") combatWeather(x, t, dt, stH); if (typeof bossBarTick === "function") bossBarTick();
   // éclair d'écran, bandeau
-  if (CB.flash > 0) { x.fillStyle = `rgba(255,240,220,${CB.flash * (S.opts.calm ? .08 : .35)})`; x.fillRect(0, 0, W, H); CB.flash -= dt * 2; }
+  if (CB.flash > 0) { // coup critique / ultime / phase : pulsation sombre sur les bords (plus de voile blanc plein écran)
+    const a = Math.min(1, CB.flash) * (S.opts.calm ? .15 : .5), g = x.createRadialGradient(W / 2, H / 2, Math.min(W, H) * .35, W / 2, H / 2, Math.max(W, H) * .75);
+    g.addColorStop(0, "rgba(90,10,6,0)"); g.addColorStop(1, `rgba(90,10,6,${a})`); x.fillStyle = g; x.fillRect(0, 0, W, H); CB.flash -= dt * 2; }
   if (CB.banner) { const b = CB.banner; b.t += dt; const k = b.t / b.life; if (k >= 1) CB.banner = null; else {
     const a = k < .15 ? k / .15 : k > .85 ? (1 - k) / .15 : 1; const cy = stH * .32;
     x.save(); x.globalAlpha = a; x.fillStyle = lgrad(x, 0, cy - 50, 0, cy + 50, [[0, "rgba(0,0,0,0)"], [.3, "rgba(0,0,0,.82)"], [.7, "rgba(0,0,0,.82)"], [1, "rgba(0,0,0,0)"]]); x.fillRect(0, cy - 50, W, 100);

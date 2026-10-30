@@ -209,6 +209,12 @@ p{margin:6px 0;line-height:1.45}
 .wnode em{position:absolute;top:-4px;right:-4px;background:#000c;border-radius:50%;padding:2px;line-height:0}.wnode.lock i{filter:grayscale(1) brightness(.45);border-color:#4a4038}.wnode.lock span{color:#8a7c6a}
 .wnode.sel i{border-color:#ffd27a;box-shadow:0 0 0 3px #ffd27a55,0 0 22px #ff9a3a99;animation:wpulse 1.6s ease-in-out infinite}@keyframes wpulse{50%{box-shadow:0 0 0 6px #ffd27a22,0 0 30px #ff9a3acc}}
 .wnode.abyss i{border-color:#7a4aff}@media (max-width:560px){.wmap{aspect-ratio:4/3.2;max-height:none}.wnode.lock span{display:none}.wnode span{font-size:9px;padding:0 4px}}.wsel{padding:8px 12px;margin-bottom:6px}
+#bossin{position:fixed;inset:0;z-index:80;background:radial-gradient(ellipse at 40% 50%,#3a0a0acc,#000e 70%);display:flex;align-items:center;justify-content:center;cursor:pointer;animation:cinein .4s ease}#bossin.out{animation:cineout .45s ease forwards}
+#bossin .bbars{position:absolute;left:0;right:0;height:11vh;background:#000}#bossin .bbars.t{top:0;animation:bart .5s ease}#bossin .bbars.b{bottom:0;animation:barb .5s ease}
+.bi-wrap{display:flex;align-items:center;gap:24px;max-width:94vw;flex-wrap:wrap;justify-content:center}.bi-wrap canvas{width:min(46vw,340px);height:auto;animation:bizoom 3.6s ease-out forwards;filter:drop-shadow(0 0 30px #ff3a1a55)}@keyframes bizoom{from{transform:scale(.88) translateX(-20px);opacity:0}25%{opacity:1}to{transform:scale(1.04)}}
+.bi-txt{max-width:420px;animation:fadeup 1s ease .3s both}.bi-sub{letter-spacing:.35em;text-transform:uppercase;font-size:12px;color:#ff6a4a}.bi-name{font-family:'Cinzel',serif;font-size:clamp(26px,5vw,46px);color:#ffd8b0;text-shadow:0 0 20px #ff3a1a88,0 2px 4px #000;line-height:1.05;margin:4px 0}.bi-title{font-style:italic;color:#c8b8a0;font-size:15px}.bi-q{margin-top:14px;font-size:clamp(15px,2.2vw,19px);color:#f0e0c8;animation:fadeup 1s ease 1s both}
+#cb-boss{position:fixed;left:50%;transform:translateX(-50%);top:calc(env(safe-area-inset-top) + 8px);z-index:6;width:min(420px,46vw);pointer-events:none}#cb-boss:empty{display:none}.bb-name{text-align:center;font-family:'Cinzel',serif;font-size:13px;color:#ffd0b0;text-shadow:0 1px 3px #000}.bb-bar{position:relative;height:12px;background:#1a0808;border:1px solid #ff6a4a66;border-radius:3px;overflow:hidden;margin-top:2px}.bb-bar i{position:absolute;left:0;top:0;bottom:0;background:linear-gradient(#e0402a,#7a1008);transition:width .4s}.bb-bar b{position:absolute;top:-2px;bottom:-2px;width:2px;background:#ffd27a;box-shadow:0 0 6px #ffd27a}.bb-bar span{position:absolute;inset:0;text-align:center;font-size:9px;line-height:12px;color:#fff;text-shadow:0 1px 2px #000}
+@media (max-width:560px){#cb-boss{top:calc(env(safe-area-inset-top) + 50px);width:calc(100vw - 180px);left:auto;right:8px;transform:none}}
 #cine{position:fixed;inset:0;z-index:90;background:#000;overflow:hidden;cursor:pointer;animation:cinein .7s ease}#cine.out{animation:cineout .6s ease forwards}@keyframes cinein{from{opacity:0}}@keyframes cineout{to{opacity:0}}
 .cinebg{position:absolute;inset:-4%;background-size:cover;background-position:center;animation:kenburns 26s ease-in-out infinite alternate}@keyframes kenburns{0%{transform:scale(1.12) translate(-1.5%,1%)}100%{transform:scale(1.0) translate(1.5%,-1%)}}
 .cinevig{position:absolute;inset:0;background:radial-gradient(ellipse at 50% 45%,transparent 30%,#000c 85%),linear-gradient(transparent 50%,#000d)}
@@ -1798,6 +1804,7 @@ function makeGear(kind, cls, tier, rar, key, evo) {
 }
 function gearName(it) {
   if (!it) return "—";
+  if (it.uniq && typeof UNIQ !== "undefined" && UNIQ[it.uniq]) return UNIQ[it.uniq].n; // objet unique de gardien
   if (it.kind === "tr") return TRINKETS[it.key].n;
   const L = GEAR_NAMES[it.cls][it.kind === "wpn" ? "wpn" : "arm"], n = it.tier >= 6 ? (it.evo && CLASSES[it.cls].evos[it.evo] ? "Armure ascendante : " + CLASSES[it.cls].evos[it.evo].n : "Ascendant : " + L[4]) : L[it.tier - 1];
   return n + (it.up ? " +" + it.up : "");
@@ -2411,6 +2418,7 @@ function startRun(regionId, partyIds, petId, opt = {}) {
     light: 100, relics: (opt.relics || []).slice(), potions: potionMax() - (oaths.includes("jeune") ? 1 : 0), gold: 0, loot: [], mats: { fer: 0, essence: 0, cendre: 0 }, shards: 0,
     kills: 0, fallen: [], oaths, week: opt.week ? S.week.rule : null, daily: !!opt.daily, threat: opt.threat || 0, startedAt: Date.now(), xpGain: {}, flawless: true, combats: 0, log: [] };
   if (typeof rollWeather === "function" && !opt.rush) run.weather = rollWeather(run); // météo de l'expédition
+  if (opt.hardBoss) run.hardBoss = 1; // chapitre en mode Hardi : gardien renforcé
   if (opt.night) { run.night = 1; run.light = 60; run.flags = (run.flags || []).concat(["nuit"]); } // expédition de nuit : moins de lueur, ennemis plus forts, meilleur butin
   S.run = run;
   if (run.week) { const W = weekRule(); if (W.light != null) run.light = W.light; if (W.potions != null) run.potions = W.potions === 0 ? 0 : run.potions * W.potions; }
@@ -2509,6 +2517,7 @@ function rewardFor(run, node, rng = RNG) {
     const first = run.region !== "abime" && !(S.prog[run.region] && S.prog[run.region].clears);
     R.gold = (120 + lvl * 22) * (first ? 1.5 : 1); R.xp = 120 + lvl * 22; R.mats.fer = 3; R.mats.essence = 2 + Math.floor(lvl / 8); R.mats.cendre = lvl >= 13 ? 1 : 0;
     R.loot.push(lootGear(lvl + 3, .25, null, 2)); if (rng.chance(.5)) R.loot.push(lootGear(lvl + 2, .2, null, 2)); // gardien : rare au minimum
+    { const be = node && node.enc && node.enc.find(e => MONSTERS[e.key] && MONSTERS[e.key].boss); if (be && typeof uniqueDrop === "function") { const u = uniqueDrop(be.key, lvl, !(S.uniqs && S.uniqs[be.key]) && !((S.stats.monKills || {})[be.key] > 1)); if (u) { R.loot.push(u); R.uniq = u; } } }
     R.shards = first ? 3 : 1 + (run.region === "abime" && run.floor % 3 === 0 ? 1 : 0) + Math.floor(run.oaths.length / 3); R.relic = randRelic(run, rng, 2);
   }
   R.gold = Math.round(R.gold * goldM * diffOf().gold * (run.night ? 1.35 : 1)); R.xp = Math.round(R.xp * (1 + run.threat * .2) * diffOf().xp); R.petXp = Math.round(R.xp * .8);
@@ -2576,6 +2585,7 @@ function endRun(outcome) {
     if (!p.clears && typeof lastChapter === "function" && run.region === lastChapter()) { res.finale = 1; S.finaleReady = 1; }
     const tm = threatMax(run.region); if (p.clears) p.threat = Math.max(p.threat || 0, run.threat || 0); else p.threat = 0;
     { const bn = run.map[run.map.length - 1][0], bm = bn && bn.enc && bn.enc.find(e => MONSTERS[e.key].boss); (S.beaten = S.beaten || {})[bm ? bm.key : regionById(run.region).boss] = 1; }
+    if (run.hardBoss && p.clears) { S.goldTrophy = S.goldTrophy || {}; if (!S.goldTrophy[run.region]) res.goldTrophy = regionById(run.region).n; S.goldTrophy[run.region] = 1; }
     p.clears++; if (threatMax(run.region) > tm) res.threatUp = { region: run.region, t: threatMax(run.region) };
     S.stats["boss_" + run.region] = (S.stats["boss_" + run.region] || 0) + 1;
   }
@@ -2808,6 +2818,7 @@ function battleFor(run, node, enc) {
   const D = diffOf(), mods = { hp: D.hp, dmg: D.dmg * (1 + (run.curse || 0) * .1), prot: 0, spd: 0 };
   if (run.night) { mods.hp *= 1.15; mods.dmg *= 1.15; } // expédition de nuit
   if (typeof cycleFoe === "function") { const c = cycleFoe(); mods.hp *= c; mods.dmg *= c; } // nouveau cycle
+  if (run.hardBoss && node && node.type === "boss") { mods.bossHp = (mods.bossHp || 0) + HARD_BOSS.hp - 1; mods.hardBoss = 1; } // mode Hardi
   const W = run.weather && WEATHERS[run.weather]; if (W) { if (W.mods.fog) mods.fog = W.mods.fog; if (W.mods.rain) mods.rain = 1; if (W.mods.edmgM) mods.dmg *= 1 + W.mods.edmgM; if (W.mods.espd) mods.spd += W.mods.espd; } // météo
   if (run.region === "abime") { mods.hp *= 1 + run.floor * .04; mods.dmg *= 1 + run.floor * .025; }
   for (const o of run.oaths) { if (o === "sang") mods.dmg *= 1 + OATHS.sang.v; if (o === "fer") mods.hp *= 1 + OATHS.fer.v; if (o === "hate") mods.spd += OATHS.hate.v; if (o === "pierre") mods.prot += OATHS.pierre.v; }
@@ -2816,6 +2827,7 @@ function battleFor(run, node, enc) {
   if (run.buff) { rh.dmg = (rh.dmg || 0) + .2; }
   const B = newBattle(party, enc, { relicH: rh, pet: run.pet, light: run.light, mods, morale: (run.morale || 0) + S.bld.chapelle * 2, onLight: v => { run.light = clamp(run.light + v, 0, 100); B.light = run.light; } });
   B.node = node;
+  if (mods.hardBoss) for (const e of B.enemies) if (e.boss) { e.st.push({ k: "dmgUp", v: HARD_BOSS.dmg - 1, t: 99 }); e.hard = 1; } // gardien enragé dès le départ
   return B;
 }
 function afterBattle(run, B) {
@@ -3041,7 +3053,7 @@ const vetTitle = h => h.vet ? `${VET_TITLES[h.vet].n}${h.vetOf ? " de " + h.vetO
 // ── Mémorial : épitaphe et exploits des héros morts ou partis ──
 const EPITAPHS = ["Il n'a jamais reculé.", "Elle a tenu jusqu'au bout.", "La Cendre l'a pris, pas sa mémoire.", "Mort debout.", "Il riait encore en tombant.", "Que la lumière lui soit douce.", "Le Bastion se souvient.", "Il a payé pour les autres."];
 function engrave(h, cause, run) {
-  (S.graves = S.graves || []).push({ name: h.name, cls: h.cls, lvl: h.lvl, at: Date.now(), cause, kills: h.kills || 0, runs: h.runs || 0, title: vetTitle(h), where: run ? regionById(run.region).n : "", epi: pick(EPITAPHS) });
+  (S.graves = S.graves || []).push({ name: h.name, cls: h.cls, lvl: h.lvl, at: Date.now(), cause, kills: h.kills || 0, runs: h.runs || 0, title: vetTitle(h), where: run ? regionById(run.region).n : "", epi: pick(EPITAPHS), last: typeof lastWords === "function" ? lastWords(h) : "" });
 }
 
 // ── Marchand ambulant au Bastion : une boutique par jour, un objet de haute qualité garanti ──
@@ -3249,6 +3261,41 @@ const CLASS_GOALS = [3, 10, 25];
 function classChallengeTick(run) { const won = S.classWins = S.classWins || {}, out = [];
   for (const h of run.party.map(heroById).filter(Boolean)) { const c = h.cls; won[c] = (won[c] || 0) + 1; const g = CLASS_GOALS.indexOf(won[c]); if (g >= 0) { const gold = [300, 900, 2500][g], sh = [1, 3, 6][g]; S.gold += gold; S.shards += sh; out.push({ cls: c, g, gold, sh }); } }
   return out; }
+// ── Gardiens : titres, répliques d'entrée, butin unique ; mode Hardi par chapitre ; dernières paroles ──
+const BOSS_INFO = {
+  docteur_peste: ["Le dernier médecin de Morvaine", "« Restez immobiles. Le remède ne fait mal qu'une fois. »", "Bec du Docteur", "arm"],
+  mere_ronces: ["La forêt qui a oublié d'être douce", "« Venez, mes petits. Les branches ont faim. »", "Épine-Mère", "wpn"],
+  liche: ["Le prieur qui a vaincu la mort", "« Agenouillez-vous. Les morts prient mieux que vous. »", "Couronne de fer du Prieur", "arm"],
+  abbe: ["Le berger des moines morts", "« Mes frères vous attendaient. Ils attendent toujours. »", "Crosse de Saint-Morne", "wpn"],
+  mere_noyes: ["La gardienne des eaux noires", "« L'eau garde tout. Elle vous gardera. »", "Larme des Noyés", "tr"],
+  reine_sabbat: ["Couronnée de bois mort", "« Dansez avec nous. Jusqu'à l'os. »", "Couronne du Sabbat", "arm"],
+  roi_cendres: ["Ce qu'il reste d'Aldemar", "« Prenez-la, cette couronne. Et voyez ce qu'elle fait de vous. »", "Lame d'Aldemar", "wpn"],
+  sans_nom: ["Ce qui attendait avant les rois", "« … »", "Éclat sans nom", "tr"],
+  cardinal: ["Le confesseur qui voulait régner", "« Ces fragments sont à moi. Dieu me les a promis. »", "Encensoir écarlate", "wpn"],
+  sans_visage: ["Un ordre sans visage", "« Menace reconnue. Exécution. »", "Heaume sans visage", "arm"],
+  matrone_os: ["La couturière des saints", "« Encore un enfant pour ma collection… »", "Aiguille d'os", "wpn"],
+  devoreur_lumiere: ["La faim au fond du noir", "« Éteignez-vous. »", "Lanterne dévorée", "tr"],
+  archonte_cendres: ["La voix de tous les rois morts", "« Nous étions des rois. Vous n'êtes que des porteurs. »", "Aile de cendre", "arm"],
+  reine_hiver: ["Celle qui a gelé son cœur", "« Ne pleurez pas. Ici, les larmes gèlent avant de tomber. »", "Couronne de givre", "arm"],
+  roi_noye: ["Le frère abandonné", "« Aldemar m'a laissé me noyer. À votre tour. »", "Sceptre de corail", "wpn"],
+  coeur_montagne: ["Le cœur mis à nu", "« BOUM… BOUM… BOUM… »", "Cœur de magma", "tr"],
+  roi_vide: ["Ce que la Couronne laisse des rois", "« Asseyez-vous. Le trône vous attendait. »", "Couronne vide", "arm"],
+};
+const UNIQ = Object.fromEntries(Object.entries(BOSS_INFO).map(([k, v]) => [k, { n: v[2], kind: v[3], boss: k }]));
+// butin unique : 30 % à la première victoire contre ce gardien, 12 % ensuite ; qualité Mythique, +1 propriété
+function uniqueDrop(bk, lvl, first) {
+  const U = UNIQ[bk]; if (!U || !chance(first ? .3 : .12)) return null;
+  const owned = typeof S !== "undefined" && S ? [...new Set(S.heroes.map(h => h.cls))] : [];
+  const tier = clamp(TIER_LVL.filter(l => l <= lvl).length - 1, 1, 5);
+  const it = U.kind === "tr" ? makeGear("tr", null, 1, 4) : makeGear(U.kind, owned.length ? pick(owned) : pick(CLASS_IDS), tier, 4);
+  it.uniq = bk; if (U.kind !== "tr") { const k = pick(Object.keys(AFFIXES).filter(a => !it.aff.some(f => f.k === a) && !(it.kind === "wpn" && a === "prot"))); const A = AFFIXES[k]; let v = A.v[1] * (1 + (it.tier - 1) * .25) * 1.2; v = A.fmt === "pct" ? Math.round(v * 100) / 100 : Math.round(v); it.aff.push({ k, v }); }
+  S.uniqs = S.uniqs || {}; S.uniqs[bk] = (S.uniqs[bk] || 0) + 1; return it;
+}
+// mode Hardi d'un chapitre déjà vaincu : gardien +50 % PV, +30 % dégâts, enragé dès le départ ; trophée doré
+const HARD_BOSS = { hp: 1.5, dmg: 1.3 };
+// dernières paroles d'un héros tombé (gravées au Mémorial)
+const LAST_WORDS = { tank: ["Tenez… la ligne…", "Je n'ai pas reculé. Dites-leur.", "Le mur… tombe enfin."], soin: ["Je n'ai pas pu… tous les sauver.", "La lumière… est si froide…", "Priez pour moi. Moi, je n'ai plus le temps."], soutien: ["Chantez… à ma place…", "La dernière note… est pour vous."], dps: ["Encore un… je pouvais encore…", "Ce n'était pas… mon dernier coup…", "Vengez-moi. Proprement.", "Enfin… le silence."] };
+function lastWords(h) { const r = CLASSES[h.cls] ? CLASSES[h.cls].role : "dps"; return pick(LAST_WORDS[{ tank: "tank", soin: "soin", soutien: "soutien" }[r] || "dps"]); }
 // Chapitres VII à X : histoire, scènes et marques des gardiens (branchés après 03y_story et 08z_extras)
 (function () {
   if (typeof CH_MORE === "undefined") return;
@@ -4547,7 +4594,7 @@ SCREENS.expe = {
     ${E.daily ? `<div class="panel" style="padding:10px;margin-bottom:10px;border-color:#c9a24a"><b class="gold">${ico("star", "#e8c878", 14)} Expédition du jour</b> <span class="small">— ${R.n}, reliques offertes : ${E.daily.relics.map(k => RELICS[k].n).join(", ")}. Récompenses +25 %.</span> <button class="btn ghost sm" data-a="noDaily">Annuler</button></div>` : ""}
     <h2>Destination <button class="btn ghost sm" style="float:right" data-a="mapView">${UI.listView ? "Carte" : "Liste"}</button></h2>${UI.listView ? "" : worldMapHTML(E, regs)}<div class="grid" style="--min:200px;${UI.listView ? "" : "display:none"}">${regs.map(r => { const un = regionUnlocked(r.id), p = S.prog[r.id]; return `<div class="card ${E.region === r.id ? "sel" : ""} ${un ? "" : "lock"}" data-a="${un && !E.daily ? "pickReg" : ""}" data-v="${r.id}" style="padding:0">${canvasSlot("reg:" + r.id, 280, 120)}<div style="padding:8px 10px"><div class="tiny dim">${r.sub}${r.id === "abime" ? ` · record ${S.abyss.best}` : ` · niv ${r.lvl}+`}</div><h3 style="margin:0">${r.n} ${!un ? ico("lock", "#9a8c7a", 14) : p && p.clears ? ico("crown", "#e8c878", 14) : ""}</h3><p class="tiny dim" style="margin:2px 0 0">${un ? r.d : "Terminez le chapitre précédent."}</p></div></div>`; }).join("")}</div>
     ${E.region === "abime" ? seasonPanelHTML() + abyssOpts(E) : cleared && !E.daily ? `<div class="row" style="margin-top:8px"><span class="small">Menace :</span>${[0, 1, 2, 3, 4].map(t => { const ok = t <= threatMax(E.region); return `<button class="btn sm ${E.threat === t ? "gold" : "ghost"} ${ok ? "" : "off"}" data-a="threat" data-v="${t}" title="${ok ? "" : "Vainquez le gardien en menace " + THREAT_N[t - 1]}">${ok ? "" : ico("lock", "#9a8c7a", 12)}${THREAT_N[t]}</button>`; }).join("")}<span class="tiny dim">Ennemis +${E.threat * 2} niveaux, récompenses +${E.threat * 30} %${threatMax(E.region) < 4 ? ` · vainquez le gardien en menace ${THREAT_N[threatMax(E.region)]} pour débloquer la ${THREAT_N[threatMax(E.region) + 1]}` : ""}</span></div>` : ""}
-    ${nightToggleHTML(E)}
+    ${nightToggleHTML(E)}${hardToggleHTML(E)}
     <div style="margin-top:10px">${rushPanelHTML(E)}</div>
     <h2 style="margin-top:14px">Ordre de marche</h2><p class="tiny dim" style="margin-top:-4px">Le rang 1 est en première ligne, face à l'ennemi. Touchez un héros pour l'ajouter ou le retirer, et une flèche pour changer son rang.</p>
     <div class="partyrow">${[3, 2, 1, 0].map(i => { const h = heroById(E.party[i]); return `<div class="card" style="text-align:center;padding:6px 3px" data-a="${h ? "unparty" : ""}" data-v="${i}"><div class="tiny gold">Rang ${i + 1}</div>${h ? canvasSlot("pt:" + h.id, 96, 120) + `<div class="tiny"><b>${esc(h.name.split(" ")[0])}</b></div><div class="tiny dim">${CLASSES[h.cls].n} ${h.lvl}</div>${isInjured(h) ? '<div class="tiny bad">Blessé (50 % PV)</div>' : ""}<div class="row" style="justify-content:center;gap:2px;margin-top:3px"><button class="btn ghost sm" data-a="mvParty" data-v="${i}:1" ${i >= 3 || !E.party[i + 1] ? "disabled" : ""}>◀</button><button class="btn ghost sm" data-a="mvParty" data-v="${i}:-1" ${i <= 0 ? "disabled" : ""}>▶</button></div>` : '<div class="empty" style="padding:40px 4px">vide</div>'}</div>`; }).join("")}</div>
@@ -4582,7 +4629,7 @@ ACT.autoParty = () => { UI.expe.party = autoParty(); refresh(); };
 ACT.pickPet = id => { UI.expe.pet = id; S.pet = id; refresh(); };
 ACT.launch = () => {
   const E = UI.expe; if (!E.party.length) return;
-  const opt = { threat: E.region === "abime" ? 0 : E.threat, floor: E.region === "abime" ? E.floor : 1, night: E.region !== "abime" && !E.daily && E.night ? 1 : 0 };
+  const opt = { threat: E.region === "abime" ? 0 : E.threat, floor: E.region === "abime" ? E.floor : 1, night: E.region !== "abime" && !E.daily && E.night ? 1 : 0, hardBoss: E.hard && hardOk(E) ? 1 : 0 };
   if (E.week) { const err = weekPartyOk(E.party); if (err) return toast(err, "bad"); if (E.region !== S.week.region) E.week = null; else { opt.week = 1; opt.seed = S.week.seed; } }
   if (E.daily) { opt.relics = E.daily.relics; opt.seed = E.daily.seed; opt.daily = 1; }
   if (E.rush && rushAvailable()) { startRush(E.party, E.pet); E.rush = 0; save(); sfx("door"); musicPlay("map"); go("map"); toast("Boss rush : les gardiens vous attendent.", "good"); return; }
@@ -4784,7 +4831,7 @@ SCREENS.results = {
       ${res.unlocks.map(u => `<div class="reward" style="color:var(--gold2)">${ico("star", "#e8c878", 22)}<b>${u.k === "class" ? "Nouvelle classe à la Taverne : " + CLASSES[u.id].n : u.k === "pet" ? "Nouveau compagnon à la Ménagerie : " + PETS[u.id].n : "Nouvelle destination : " + regionById(u.id).n}</b></div>`).join("")}
       ${res.threatUp ? `<div class="reward" style="color:var(--gold2)">${ico("skull", "#ff8a6a", 22)}<b>Menace ${THREAT_N[res.threatUp.t]} débloquée : ${regionById(res.threatUp.region).n}</b></div>` : ""}
       ${res.week ? `<div class="reward" style="color:var(--gold2)">${ico("trophy", "#e8c878", 22)}<b>Défi de la semaine relevé ! +${res.week.gold} or · +${res.week.shards} éclats · +${res.week.essence} essence</b></div>` : ""}
-      ${extrasResultsHTML(res)}${bondResultsHTML(res)}${(res.hidden || []).map(a => `<div class="reward" style="color:var(--gold2)">${ico("star", "#e8c878", 22)}<b>Succès caché : ${a.n} — ${a.d} (+${a.gold} or, +${a.shards} éclats)</b></div>`).join("")}${(res.vets || []).map(v => `<div class="reward" style="color:var(--gold2)">${ico("crown", "#e8c878", 22)}<b>${esc(v.name.split(" ")[0])} devient ${esc(v.t)} : ${v.d}</b></div>`).join("")}${(res.classCh || []).map(c => `<div class="reward" style="color:var(--gold2)">${ico("trophy", "#e8c878", 22)}<b>Défi de classe — ${CLASSES[c.cls].n} : ${CLASS_GOALS[c.g]} gardiens vaincus ! +${c.gold} or, +${c.sh} éclats</b></div>`).join("")}
+      ${res.goldTrophy ? `<div class="reward" style="color:var(--gold2)">${ico("trophy", "#ffd27a", 22)}<b>Trophée doré : ${esc(res.goldTrophy)} vaincu en mode Hardi !</b></div>` : ""}${extrasResultsHTML(res)}${bondResultsHTML(res)}${(res.hidden || []).map(a => `<div class="reward" style="color:var(--gold2)">${ico("star", "#e8c878", 22)}<b>Succès caché : ${a.n} — ${a.d} (+${a.gold} or, +${a.shards} éclats)</b></div>`).join("")}${(res.vets || []).map(v => `<div class="reward" style="color:var(--gold2)">${ico("crown", "#e8c878", 22)}<b>${esc(v.name.split(" ")[0])} devient ${esc(v.t)} : ${v.d}</b></div>`).join("")}${(res.classCh || []).map(c => `<div class="reward" style="color:var(--gold2)">${ico("trophy", "#e8c878", 22)}<b>Défi de classe — ${CLASSES[c.cls].n} : ${CLASS_GOALS[c.g]} gardiens vaincus ! +${c.gold} or, +${c.sh} éclats</b></div>`).join("")}
       ${res.sum ? runSummaryHTML(res) : ""}
       ${res.region === "abime" ? `<p class="small" style="text-align:center">Record de l'Abîme : <b>${S.abyss.best}</b></p>` : ""}
       <div class="row" style="justify-content:center;margin-top:12px"><button class="btn main" data-go="bastion">${ico("castle")}Au Bastion</button></div></div></div>`;
@@ -4851,7 +4898,7 @@ function cbLayout() {
 SCREENS.combat = {
   noNav: 1, noHud: 1, pass: 1,
   scene: () => drawCombat,
-  html: () => `<div class="ctop l" id="cb-tl"></div><div id="cb-hud"><div id="cb-ord"></div><div id="cb-mlog"></div></div><div class="ctop" id="cb-tr"><button class="btn ghost sm" data-a="cbSpeed" title="Vitesse">${ico("speed")}<span id="cb-spd">×${S.opts.speed || 1}</span></button><button class="btn ghost sm ${S.opts.auto ? "on" : ""}" data-a="cbAuto" title="Combat automatique">${ico("auto")}<span id="cb-auto">${S.opts.auto ? "Auto" : "Manuel"}</span></button><button class="btn ghost sm" data-a="cbLogShow" title="Journal du combat">${ico("scroll")}</button><button class="btn ghost sm" data-a="cbFlee" id="cb-flee" title="Fuir">${ico("flee")}</button></div><div id="cbar"><div class="skdesc" id="cb-desc"></div><div class="skills" id="cb-skills"></div></div>`,
+  html: () => `<div class="ctop l" id="cb-tl"></div><div id="cb-hud"><div id="cb-ord"></div><div id="cb-mlog"></div></div><div id="cb-boss"></div><div class="ctop" id="cb-tr"><button class="btn ghost sm" data-a="cbSpeed" title="Vitesse">${ico("speed")}<span id="cb-spd">×${S.opts.speed || 1}</span></button><button class="btn ghost sm ${S.opts.auto ? "on" : ""}" data-a="cbAuto" title="Combat automatique">${ico("auto")}<span id="cb-auto">${S.opts.auto ? "Auto" : "Manuel"}</span></button><button class="btn ghost sm" data-a="cbLogShow" title="Journal du combat">${ico("scroll")}</button><button class="btn ghost sm" data-a="cbFlee" id="cb-flee" title="Fuir">${ico("flee")}</button></div><div id="cbar"><div class="skdesc" id="cb-desc"></div><div class="skills" id="cb-skills"></div></div>`,
   mount: arg => startCombat(arg.node),
   leave: () => { CB.B = null; CB.resolve = null; { const ci = $("#cbinfo"); if (ci) ci.remove(); } const c = $("#coach"); if (c) c.remove(); UI.coach = null; document.querySelectorAll(".coachon").forEach(e => e.classList.remove("coachon")); },
   resize: () => { if (CB.B) { CB.barH = $("#cbar") ? $("#cbar").offsetHeight + 6 : 150; cbLayout(); } },
@@ -4868,7 +4915,7 @@ async function startCombat(node) {
   for (const e of B.enemies) S.seen.monsters[e.key] = S.seen.monsters[e.key] || 0;
   $("#cb-flee").style.display = "";
   cbTopLeft(); cbBar(null);
-  if (node.type === "boss") { const bs = B.enemies.find(e => e.boss); await showBanner(bs.name, "Gardien", "#ff4a3a", 1800); }
+  if (node.type === "boss") { const bs = B.enemies.find(e => e.boss); await bossIntro(bs); }
   else if (node.type === "elite") await showBanner("Élite", B.enemies.find(e => e.elite)?.name || "", "#ff8a4a", 1100);
   else await wait(500);
   combatLoop();
@@ -4905,7 +4952,7 @@ async function combatLoop() {
     if (B.over || CB.B !== B) break;
     const ev = []; petAct(B, ev); if (ev.length) await playEvents(ev); checkEnd(B);
   }
-  if (CB.B === B) combatEnd(B.over);
+  if (CB.B === B) { if (B.over === "win" && typeof winBark === "function") { winBark(B); await wait(1300); } if (CB.B === B) combatEnd(B.over); }
 }
 function autoChoice(u) {
   const B = CB.B; const run = S.run;
@@ -5133,7 +5180,7 @@ async function combatEnd(over) {
   await new Promise(r => setTimeout(r, 600));
   finishRun("wipe");
 }
-function rewardHTML(R) { return `${R.gold ? `<div class="reward">${ico("coin", "#e8c060", 22)}<b>+${R.gold} or</b></div>` : ""}${(R.loot || []).map(i => `<div class="reward" style="align-items:flex-start">${slotHTML(i, "itemInfo", i.id)}<div style="flex:1;min-width:0"><b class="rar${i.rar}">${gearName(i)}</b><div class="tiny dim">${i.cls ? CLASSES[i.cls].n + " — " : ""}${itemLine(i)}</div>${runEquipBtns(i)}</div></div>`).join("")}${R.relic ? `<div class="reward">${ico("gem", "#c87aff", 22)}<b>${RELICS[R.relic].n}</b> <span class="tiny">${gl(RELICS[R.relic].d)}</span></div>` : ""}${R.shards ? `<div class="reward">${ico("shard", "#c090ff", 22)}<b>+${R.shards} éclats</b></div>` : ""}`; }
+function rewardHTML(R) { return `${R.uniq ? `<div class="reward" style="color:var(--gold2)">${ico("crown", "#ffd27a", 22)}<b>Objet unique de gardien : <span class="rar4">${gearName(R.uniq)}</span> !</b></div>` : ""}${R.gold ? `<div class="reward">${ico("coin", "#e8c060", 22)}<b>+${R.gold} or</b></div>` : ""}${(R.loot || []).map(i => `<div class="reward" style="align-items:flex-start">${slotHTML(i, "itemInfo", i.id)}<div style="flex:1;min-width:0"><b class="rar${i.rar}">${gearName(i)}</b><div class="tiny dim">${i.cls ? CLASSES[i.cls].n + " — " : ""}${itemLine(i)}</div>${runEquipBtns(i)}</div></div>`).join("")}${R.relic ? `<div class="reward">${ico("gem", "#c87aff", 22)}<b>${RELICS[R.relic].n}</b> <span class="tiny">${gl(RELICS[R.relic].d)}</span></div>` : ""}${R.shards ? `<div class="reward">${ico("shard", "#c090ff", 22)}<b>+${R.shards} éclats</b></div>` : ""}`; }
 ACT.abyssUp = () => { closeModal(); finishRun("victory"); };
 ACT.abyssDown = () => { const run = S.run; run.floor++; run.map = genMap(RNG, 6, { elite: run.oaths.includes("elite") }); run.pos = null; run.light = clamp(run.light + 30, 0, 100); S.abyss.best = Math.max(S.abyss.best, run.floor - 1); save(); closeModal(); go("map"); toast(`Profondeur ${run.floor}…`, "epic"); };
 // ── dessin ──
@@ -5223,6 +5270,7 @@ function drawCombat(x, t, dt) {
   }
   CB.txt = CB.txt.filter(t2 => !t2.done);
   x.restore();
+  if (typeof combatWeather === "function") combatWeather(x, t, dt, stH); if (typeof bossBarTick === "function") bossBarTick();
   // éclair d'écran, bandeau
   if (CB.flash > 0) { x.fillStyle = `rgba(255,240,220,${CB.flash * (S.opts.calm ? .08 : .35)})`; x.fillRect(0, 0, W, H); CB.flash -= dt * 2; }
   if (CB.banner) { const b = CB.banner; b.t += dt; const k = b.t / b.life; if (k >= 1) CB.banner = null; else {
@@ -5274,9 +5322,9 @@ function drawPetInCombat(x, t, dt) {
   const gapL = Math.min(SC.w / 10, CB.stageH * .27); // paysage/ordi : une demi-place derrière le dernier héros ; portrait : colonne réservée
   const px = CB.port ? Math.max(30 * CB.scale, CB.petX || 40) : Math.max(46 * CB.scale, Math.min(bv.x - gapL * .78, SC.w / 2 - gapL * 4.4)), py = CB.port ? CB.ground - 4 : CB.ground + 4;
   CB.petCache = CB.petCache && CB.petCache.k === P.id + P.evo + CB.scale + CB.port ? CB.petCache : { k: P.id + P.evo + CB.scale + CB.port, cv: petSprite(P.id, { evo: P.evo }, 0, (CB.port ? CB.hScale * .72 : CB.scale * .9)), cva: petSprite(P.id, { evo: P.evo, atk: 1 }, .3, (CB.port ? CB.hScale * .72 : CB.scale * .9)) };
-  let atk = 0; if (CB.petAct) { CB.petAct.t += dt * (CB.speed || 1); atk = CB.petAct.t < .5 ? 1 : 0; if (CB.petAct.t > 1) CB.petAct = null; }
+  let atk = 0, lunge = 0; if (CB.petAct) { CB.petAct.t += dt * (CB.speed || 1); atk = CB.petAct.t < .5 ? 1 : 0; lunge = CB.petAct.t < .6 ? Math.sin(Math.PI * CB.petAct.t / .6) : 0; if (CB.petAct.t > 1) CB.petAct = null; }
   const cv = atk ? CB.petCache.cva : CB.petCache.cv;
-  x.save(); x.translate(px + (atk ? 30 * CB.scale : 0), py + Math.sin(t * 2.5) * 1.5); x.fillStyle = "rgba(0,0,0,.4)"; x.beginPath(); x.ellipse(0, 0, 34 * CB.scale, 6 * CB.scale, 0, 0, 7); x.fill(); x.drawImage(cv, -cv.ax, -cv.ay); x.restore();
+  x.save(); x.translate(px + lunge * 150 * CB.scale, py + Math.sin(t * 2.5) * 1.5 - lunge * 18 * CB.scale); x.fillStyle = "rgba(0,0,0,.4)"; x.beginPath(); x.ellipse(0, 0, 34 * CB.scale, 6 * CB.scale, 0, 0, 7); x.fill(); x.drawImage(cv, -cv.ax, -cv.ay); x.restore();
   if (CB.petAct && CB.petAct.t < .9) { x.save(); x.font = "700 13px Cinzel, serif"; x.textAlign = "center"; x.lineWidth = 3; x.strokeStyle = "#000"; x.strokeText(CB.petAct.name, px, py - 90 * CB.scale); x.fillStyle = "#c8f0a0"; x.fillText(CB.petAct.name, px, py - 90 * CB.scale); x.restore(); }
 }
 /* ═══════════════════════ Archives et options ═══════════════════════ */
@@ -5639,7 +5687,7 @@ ACT.hudMin = k => { S.opts.hudMin = S.opts.hudMin || {}; S.opts.hudMin[k] = hudM
 function turnOrderHTML() {
   const B = CB.B; if (!B || !B.order || !hud("ord")) return "";
   const { now, next } = turnQueue(B), q = now.concat(next).slice(0, hudMin("ord") ? 1 : 5), pv = CB.preview || new Set();
-  return `<div class="cbord">${q.map((u, i) => { const f = unitFace(u); return `${i ? '<i>›</i>' : ""}<span class="${u.side === "h" ? "h" : "e"} ${i === 0 ? "now" : ""} ${pv.has(u.uid) && i < now.length ? "pv" : ""}" data-a="ordPeek" data-v="${u.uid}" title="${esc(u.name)}">${f ? `<img src="${f}" alt="">` : ""}<em>${ordName(u)}</em></span>`; }).join("")}${hudMin("ord") ? "" : '<i class="more" data-a="turnOrder" title="Ordre complet">⋯</i>'}<i class="min" data-a="hudMin" data-v="ord" title="${hudMin("ord") ? "Agrandir" : "Réduire"}">${hudMin("ord") ? "▸" : "◂"}</i></div>`;
+  return `<div class="cbord">${q.map((u, i) => { const f = unitFace(u); return `${i ? '<i>›</i>' : ""}<span class="${u.side === "h" ? "h" : "e"} ${i === 0 ? "now" : ""} ${pv.has(u.uid) && i < now.length ? "pv" : ""}" data-a="ordPeek" data-v="${u.uid}" title="${esc(u.name)}">${f ? `<img src="${f}" alt="">` : ""}<em>${ordName(u)}</em></span>`; }).join("")}${B.pet && !hudMin("ord") && q.length < 6 ? `<i>›</i><span class="h pet" title="Le compagnon agit en fin de tour">${artHas("pet_" + B.pet.id) ? `<img src="assets/pet_${B.pet.id}.webp" style="object-fit:contain;background:#1a2416">` : ""}<em>${esc(petName(B.pet.id).split(" ")[0])}</em></span>` : ""}${hudMin("ord") ? "" : '<i class="more" data-a="turnOrder" title="Ordre complet">⋯</i>'}<i class="min" data-a="hudMin" data-v="ord" title="${hudMin("ord") ? "Agrandir" : "Réduire"}">${hudMin("ord") ? "▸" : "◂"}</i></div>`;
 }
 ACT.ordPeek = id => { const v = V(id), u = U(id); if (!v || !u) return; glowAt(v, u.side === "h" ? "#8ad06a" : "#ff6a4a", 1.3); CB.peek = { id, t: 2 }; popText(id, shortName(u.name), "#ffe08a"); };
 ACT.turnOrder = () => {
@@ -5681,7 +5729,7 @@ ACT.merchantBuy = i => { const r = merchantBuy(+i); if (r.err) return toast(r.er
 // ── Archives : mémorial ──
 function memorialHTML() {
   const G = (S.graves || []).slice().reverse();
-  return G.length ? `<p class="small dim">Ici reposent ceux qui ne sont pas revenus.</p><div class="grid" style="--min:240px">${G.map(g => `<div class="card" style="cursor:default"><div class="row" style="gap:6px">${ico("skull", "#9a8c7a", 18)}<b>${esc(g.name)}</b></div><div class="tiny dim">${CLASSES[g.cls] ? CLASSES[g.cls].n : ""} · niveau ${g.lvl}${g.title ? " · " + esc(g.title) : ""}</div><div class="tiny">${esc(g.cause || "Tombé au combat")}${g.where ? "" : ""}</div><div class="tiny dim">${g.runs || 0} expéditions · ${g.kills || 0} ennemis abattus</div><p class="lore tiny" style="margin:4px 0 0">« ${esc(g.epi || "Le Bastion se souvient.")} »</p></div>`).join("")}</div>` : '<p class="small dim">Le cimetière est vide. Pour l\'instant. (En mode Hardi, les héros tombés y reposent.)</p>';
+  return G.length ? `<p class="small dim">Ici reposent ceux qui ne sont pas revenus.</p><div class="grid" style="--min:240px">${G.map(g => `<div class="card" style="cursor:default"><div class="row" style="gap:6px">${ico("skull", "#9a8c7a", 18)}<b>${esc(g.name)}</b></div><div class="tiny dim">${CLASSES[g.cls] ? CLASSES[g.cls].n : ""} · niveau ${g.lvl}${g.title ? " · " + esc(g.title) : ""}</div><div class="tiny">${esc(g.cause || "Tombé au combat")}${g.where ? "" : ""}</div><div class="tiny dim">${g.runs || 0} expéditions · ${g.kills || 0} ennemis abattus</div>${g.last ? `<p class="tiny" style="margin:4px 0 0;color:#e8c8a0">Ses derniers mots : « ${esc(g.last)} »</p>` : ""}<p class="lore tiny" style="margin:4px 0 0">« ${esc(g.epi || "Le Bastion se souvient.")} »</p></div>`).join("")}</div>` : '<p class="small dim">Le cimetière est vide. Pour l\'instant. (En mode Hardi, les héros tombés y reposent.)</p>';
 }
 // ── Archives : succès cachés ──
 function hiddenAchHTML() { return `<h3 style="margin-top:14px">Succès cachés</h3><div class="grid" style="--min:240px">${HIDDEN_ACH.map(a => { const ok = S.ach && S.ach[a.id]; return `<div class="card ${ok ? "" : "lock"}" style="cursor:default"><b>${ok ? a.n : "???"}</b><div class="tiny">${ok ? a.d : "Un défi secret. Jouez autrement pour le découvrir."}</div>${ok ? `<div class="tiny gold">+${a.gold} or · +${a.shards} éclats</div>` : ""}</div>`; }).join("")}</div>`; }
@@ -5698,6 +5746,8 @@ ACT.trophies = () => {
   const T = S.trophies || {}, ks = Object.keys(T).filter(k => MONSTERS[k]), n = Math.min(15, ks.length);
   modal(`<h2>${ico("trophy", "#e8c878")} Salle des trophées</h2><p class="lore">« Chaque crâne accroché ici est une nuit de moins à craindre. »</p>
     <p class="small">Bonus permanent : <b class="gold">+${n} % de dégâts</b> et <b class="gold">+${n * 2} % d'or</b> (1 % et 2 % par trophée, 15 au plus).</p>
+    ${Object.keys(S.goldTrophy || {}).length ? `<p class="small">${ico("trophy", "#ffd27a", 14)} <b class="gold">Trophées dorés (mode Hardi) :</b> ${Object.keys(S.goldTrophy).map(r => regionById(r) ? regionById(r).n : r).join(", ")}</p>` : ""}
+    <h3>Objets uniques des gardiens <span class="tiny dim">${Object.keys(S.uniqs || {}).length}/${Object.keys(UNIQ).length}</span></h3><div class="row" style="flex-wrap:wrap;gap:4px;margin-bottom:10px">${Object.keys(UNIQ).map(k => (S.uniqs || {})[k] ? `<span class="tag rar4" title="${esc(MONSTERS[k] ? MONSTERS[k].n : k)}">${ico("crown", "#ffd27a", 11)}${esc(UNIQ[k].n)}</span>` : `<span class="tag" style="opacity:.45">???</span>`).join("")}</div>
     ${ks.length ? `<div class="grid" style="--min:150px">${ks.map(k => `<div class="card" style="cursor:pointer;text-align:center" data-a="monSheet" data-v="${k}">${canvasSlot(k, 130, 130)}<b class="small">${MONSTERS[k].n || MONSTERS[k].name}</b></div>`).join("")}</div>` : '<p class="small dim">Aucun trophée pour l\'instant. Chaque gardien vaincu laisse le sien.</p>'}`,
     { wide: 1, mount: m => fillCanvases(m, (c, k) => paintMon(c, k)) });
 };
@@ -5806,6 +5856,59 @@ function showFinale() {
 }
 ACT.newCycle = () => confirmBox(`Commencer le cycle ${roman(cycleN() + 2)} ? La progression des chapitres repart de zéro (les ennemis seront plus forts).`, () => { startNewCycle(); save(); closeModal(); toast(`Cycle ${roman(cycleN() + 1)} : la Cendre se réveille.`, "good"); go("bastion"); }, { yes: "Recommencer" });
 ACT.showFinale = () => showFinale();
+
+// ── Entrée du gardien : plan cinématique (portrait, nom, titre, réplique) ──
+function bossIntro(bs) {
+  return new Promise(res => {
+    const I = (typeof BOSS_INFO !== "undefined" && BOSS_INFO[bs.key]) || ["Gardien", ""], el = document.createElement("div"); el.id = "bossin";
+    el.innerHTML = `<div class="bbars t"></div><div class="bbars b"></div><div class="bi-wrap"><canvas width="360" height="380" data-cv="bi"></canvas><div class="bi-txt"><div class="bi-sub">${bs.hard ? "Gardien enragé — Hardi" : "Gardien"}</div><div class="bi-name">${esc(bs.name)}</div><div class="bi-title">${esc(I[0])}</div><div class="bi-q">${esc(I[1])}</div></div></div>`;
+    document.body.appendChild(el); try { sfx("bell"); setTimeout(() => sfx("dark"), 400); } catch (e) { }
+    fillCanvases(el, c => paintMon(c, bs.key));
+    let done = false; const end = () => { if (done) return; done = true; el.classList.add("out"); setTimeout(() => { el.remove(); res(); }, 450); };
+    el.addEventListener("click", end); setTimeout(end, S.opts.quick ? 2200 : 3600);
+  });
+}
+// ── Barre de vie du gardien (repère de phase) ──
+let BOSSBAR_K = "";
+function bossBarTick() {
+  const el = $("#cb-boss"), B = CB.B; if (!el) return; const bs = B && B.enemies.find(e => e.boss && alive(e));
+  if (!bs) { if (BOSSBAR_K) { el.innerHTML = ""; BOSSBAR_K = ""; } return; }
+  const k = bs.uid + ":" + Math.ceil(bs.hp) + ":" + bs.phaseDone; if (k === BOSSBAR_K) return; BOSSBAR_K = k;
+  const p = Math.max(0, bs.hp / bs.hpMax) * 100, ph = bs.phase && !bs.phaseDone ? bs.phase.at * 100 : null;
+  el.innerHTML = `<div class="bb-name">${esc(bs.name)}${bs.hard ? ' <span class="bad">· enragé</span>' : ""}${bs.phaseDone ? ' <span class="gold">· 2e phase</span>' : ""}</div><div class="bb-bar"><i style="width:${p}%"></i>${ph ? `<b style="left:${ph}%" title="Changement de phase"></b>` : ""}<span>${Math.ceil(bs.hp)} / ${bs.hpMax}</span></div>`;
+}
+// ── Météo animée pendant les combats (et neige permanente dans les Cimes) ──
+const WX = { p: [], k: "" };
+function combatWeather(x, t, dt, stH) {
+  const run = S.run; if (!run || S.opts.calm) return; const reg = run.region;
+  const kind = run.weather === "pluie" ? "rain" : run.weather === "brouillard" ? "fog" : run.weather === "lune" ? "moon" : reg === "cimes" ? "snow" : reg === "marais" || reg === "cite" ? "mist" : reg === "terres" ? "ash" : "";
+  if (!kind) return; const W = SC.w, H = stH || SC.h;
+  if (WX.k !== kind) { WX.k = kind; WX.p = []; }
+  const N = kind === "rain" ? 160 : kind === "snow" ? 110 : kind === "ash" ? 70 : 0;
+  while (WX.p.length < N) WX.p.push({ x: Math.random() * W, y: Math.random() * H, v: .5 + Math.random(), s: Math.random() });
+  x.save();
+  if (kind === "rain") { x.strokeStyle = "rgba(170,190,220,.32)"; x.lineWidth = 1; x.beginPath(); for (const p of WX.p) { p.y += 900 * p.v * dt; p.x -= 120 * p.v * dt; if (p.y > H) { p.y = -10; p.x = Math.random() * W * 1.2; } x.moveTo(p.x, p.y); x.lineTo(p.x + 4, p.y - 14 * p.v); } x.stroke(); x.fillStyle = "rgba(20,30,50,.12)"; x.fillRect(0, 0, W, H); }
+  if (kind === "snow" || kind === "ash") { x.fillStyle = kind === "snow" ? "rgba(235,240,255,.75)" : "rgba(255,150,80,.55)"; for (const p of WX.p) { p.y += (kind === "snow" ? 40 : 25) * p.v * dt; p.x += Math.sin(t * .8 + p.s * 9) * 18 * dt + (kind === "snow" ? -10 : 8) * dt; if (p.y > H) { p.y = -5; p.x = Math.random() * W; } x.beginPath(); x.arc(p.x, p.y, (kind === "snow" ? 1.2 : .9) + p.s * 1.6, 0, 7); x.fill(); } }
+  if (kind === "fog" || kind === "mist") { for (let i = 0; i < 4; i++) { const yy = H * (.45 + i * .14), xx = ((t * (8 + i * 5)) % (W * 1.5)) - W * .25; const g = x.createRadialGradient(xx, yy, 0, xx, yy, W * .45); g.addColorStop(0, `rgba(190,200,200,${kind === "fog" ? .16 : .09})`); g.addColorStop(1, "rgba(190,200,200,0)"); x.fillStyle = g; x.fillRect(0, 0, W, H); } if (kind === "fog") { x.fillStyle = "rgba(160,170,170,.08)"; x.fillRect(0, 0, W, H); } }
+  if (kind === "moon") { x.fillStyle = `rgba(120,10,10,${.1 + .03 * Math.sin(t * 1.3)})`; x.fillRect(0, 0, W, H); }
+  x.restore();
+}
+// ── Répliques de fin de combat ──
+const WIN_BARKS = { boss: ["Il est tombé. Je n'y croyais plus.", "Rentrons. Avant qu'il se relève.", "Encore un fragment arraché à la nuit."], fallen: ["Pas lui… pas comme ça.", "On l'enterrera dignement. Plus tard.", "Je porterai son nom."], close: ["C'était moins une…", "Encore un coup et c'était nous.", "Je ne sens plus mes bras."], clean: ["Pas une égratignure.", "Trop facile. Méfiance.", "Ils n'ont rien vu venir."], any: ["Avançons.", "La lueur faiblit, pressons.", "Ramassez ce qui peut servir."] };
+function winBark(B) {
+  try { const alive_ = B.heroes.filter(alive); if (!alive_.length) return; const u = pick(alive_), v = CB.vis[u.uid]; if (!v) return;
+    const k = B.enemies.some(e => e.boss) || (B.dead || []).some(e => e.boss) ? "boss" : B.fallen.length ? "fallen" : alive_.some(h => h.hp / h.hpMax < .25) ? "close" : alive_.every(h => h.hp / h.hpMax > .8) ? "clean" : "any";
+    CB.txt.push({ id: u.uid, x: v.x, y: v.y - 210 * CB.scale, text: "« " + pick(WIN_BARKS[k]) + " »", col: "#f0e0c0", big: false, t: 0, life: 2.4 });
+  } catch (e) { }
+}
+
+// ── Mode Hardi d'un chapitre déjà vaincu ──
+const hardOk = E => E.region !== "abime" && !E.daily && !E.rush && S.prog[E.region] && S.prog[E.region].clears > 0;
+function hardToggleHTML(E) {
+  if (!hardOk(E)) return ""; const gt = (S.goldTrophy || {})[E.region];
+  return `<div class="row" style="margin-top:6px"><button class="btn sm ${E.hard ? "gold" : "ghost"}" data-a="toggleHard">${ico("skull", E.hard ? "#ff6a4a" : "#9a8c7a", 14)}Gardien Hardi${gt ? " " + ico("trophy", "#ffd27a", 12) : ""}</button><span class="tiny dim">Gardien +50 % PV, +30 % dégâts, enragé. Victoire : trophée doré du chapitre${gt ? " (déjà obtenu)" : ""}.</span></div>`;
+}
+ACT.toggleHard = () => { UI.expe.hard = !UI.expe.hard; refresh(); };
 /* ═══════════════════════ Démarrage ═══════════════════════ */
 if (HASWIN) {
   const boot = () => {

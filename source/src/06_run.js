@@ -72,6 +72,7 @@ function startRun(regionId, partyIds, petId, opt = {}) {
     light: 100, relics: (opt.relics || []).slice(), potions: potionMax() - (oaths.includes("jeune") ? 1 : 0), gold: 0, loot: [], mats: { fer: 0, essence: 0, cendre: 0 }, shards: 0,
     kills: 0, fallen: [], oaths, week: opt.week ? S.week.rule : null, daily: !!opt.daily, threat: opt.threat || 0, startedAt: Date.now(), xpGain: {}, flawless: true, combats: 0, log: [] };
   if (typeof rollWeather === "function" && !opt.rush) run.weather = rollWeather(run); // météo de l'expédition
+  if (opt.hardBoss) run.hardBoss = 1; // chapitre en mode Hardi : gardien renforcé
   if (opt.night) { run.night = 1; run.light = 60; run.flags = (run.flags || []).concat(["nuit"]); } // expédition de nuit : moins de lueur, ennemis plus forts, meilleur butin
   S.run = run;
   if (run.week) { const W = weekRule(); if (W.light != null) run.light = W.light; if (W.potions != null) run.potions = W.potions === 0 ? 0 : run.potions * W.potions; }
@@ -170,6 +171,7 @@ function rewardFor(run, node, rng = RNG) {
     const first = run.region !== "abime" && !(S.prog[run.region] && S.prog[run.region].clears);
     R.gold = (120 + lvl * 22) * (first ? 1.5 : 1); R.xp = 120 + lvl * 22; R.mats.fer = 3; R.mats.essence = 2 + Math.floor(lvl / 8); R.mats.cendre = lvl >= 13 ? 1 : 0;
     R.loot.push(lootGear(lvl + 3, .25, null, 2)); if (rng.chance(.5)) R.loot.push(lootGear(lvl + 2, .2, null, 2)); // gardien : rare au minimum
+    { const be = node && node.enc && node.enc.find(e => MONSTERS[e.key] && MONSTERS[e.key].boss); if (be && typeof uniqueDrop === "function") { const u = uniqueDrop(be.key, lvl, !(S.uniqs && S.uniqs[be.key]) && !((S.stats.monKills || {})[be.key] > 1)); if (u) { R.loot.push(u); R.uniq = u; } } }
     R.shards = first ? 3 : 1 + (run.region === "abime" && run.floor % 3 === 0 ? 1 : 0) + Math.floor(run.oaths.length / 3); R.relic = randRelic(run, rng, 2);
   }
   R.gold = Math.round(R.gold * goldM * diffOf().gold * (run.night ? 1.35 : 1)); R.xp = Math.round(R.xp * (1 + run.threat * .2) * diffOf().xp); R.petXp = Math.round(R.xp * .8);
@@ -237,6 +239,7 @@ function endRun(outcome) {
     if (!p.clears && typeof lastChapter === "function" && run.region === lastChapter()) { res.finale = 1; S.finaleReady = 1; }
     const tm = threatMax(run.region); if (p.clears) p.threat = Math.max(p.threat || 0, run.threat || 0); else p.threat = 0;
     { const bn = run.map[run.map.length - 1][0], bm = bn && bn.enc && bn.enc.find(e => MONSTERS[e.key].boss); (S.beaten = S.beaten || {})[bm ? bm.key : regionById(run.region).boss] = 1; }
+    if (run.hardBoss && p.clears) { S.goldTrophy = S.goldTrophy || {}; if (!S.goldTrophy[run.region]) res.goldTrophy = regionById(run.region).n; S.goldTrophy[run.region] = 1; }
     p.clears++; if (threatMax(run.region) > tm) res.threatUp = { region: run.region, t: threatMax(run.region) };
     S.stats["boss_" + run.region] = (S.stats["boss_" + run.region] || 0) + 1;
   }

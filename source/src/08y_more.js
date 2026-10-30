@@ -29,7 +29,7 @@ const vetTitle = h => h.vet ? `${VET_TITLES[h.vet].n}${h.vetOf ? " de " + h.vetO
 // ── Mémorial : épitaphe et exploits des héros morts ou partis ──
 const EPITAPHS = ["Il n'a jamais reculé.", "Elle a tenu jusqu'au bout.", "La Cendre l'a pris, pas sa mémoire.", "Mort debout.", "Il riait encore en tombant.", "Que la lumière lui soit douce.", "Le Bastion se souvient.", "Il a payé pour les autres."];
 function engrave(h, cause, run) {
-  (S.graves = S.graves || []).push({ name: h.name, cls: h.cls, lvl: h.lvl, at: Date.now(), cause, kills: h.kills || 0, runs: h.runs || 0, title: vetTitle(h), where: run ? regionById(run.region).n : "", epi: pick(EPITAPHS) });
+  (S.graves = S.graves || []).push({ name: h.name, cls: h.cls, lvl: h.lvl, at: Date.now(), cause, kills: h.kills || 0, runs: h.runs || 0, title: vetTitle(h), where: run ? regionById(run.region).n : "", epi: pick(EPITAPHS), last: typeof lastWords === "function" ? lastWords(h) : "" });
 }
 
 // ── Marchand ambulant au Bastion : une boutique par jour, un objet de haute qualité garanti ──

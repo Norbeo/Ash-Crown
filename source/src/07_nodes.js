@@ -130,6 +130,7 @@ function battleFor(run, node, enc) {
   const D = diffOf(), mods = { hp: D.hp, dmg: D.dmg * (1 + (run.curse || 0) * .1), prot: 0, spd: 0 };
   if (run.night) { mods.hp *= 1.15; mods.dmg *= 1.15; } // expédition de nuit
   if (typeof cycleFoe === "function") { const c = cycleFoe(); mods.hp *= c; mods.dmg *= c; } // nouveau cycle
+  if (run.hardBoss && node && node.type === "boss") { mods.bossHp = (mods.bossHp || 0) + HARD_BOSS.hp - 1; mods.hardBoss = 1; } // mode Hardi
   const W = run.weather && WEATHERS[run.weather]; if (W) { if (W.mods.fog) mods.fog = W.mods.fog; if (W.mods.rain) mods.rain = 1; if (W.mods.edmgM) mods.dmg *= 1 + W.mods.edmgM; if (W.mods.espd) mods.spd += W.mods.espd; } // météo
   if (run.region === "abime") { mods.hp *= 1 + run.floor * .04; mods.dmg *= 1 + run.floor * .025; }
   for (const o of run.oaths) { if (o === "sang") mods.dmg *= 1 + OATHS.sang.v; if (o === "fer") mods.hp *= 1 + OATHS.fer.v; if (o === "hate") mods.spd += OATHS.hate.v; if (o === "pierre") mods.prot += OATHS.pierre.v; }
@@ -138,6 +139,7 @@ function battleFor(run, node, enc) {
   if (run.buff) { rh.dmg = (rh.dmg || 0) + .2; }
   const B = newBattle(party, enc, { relicH: rh, pet: run.pet, light: run.light, mods, morale: (run.morale || 0) + S.bld.chapelle * 2, onLight: v => { run.light = clamp(run.light + v, 0, 100); B.light = run.light; } });
   B.node = node;
+  if (mods.hardBoss) for (const e of B.enemies) if (e.boss) { e.st.push({ k: "dmgUp", v: HARD_BOSS.dmg - 1, t: 99 }); e.hard = 1; } // gardien enragé dès le départ
   return B;
 }
 function afterBattle(run, B) {

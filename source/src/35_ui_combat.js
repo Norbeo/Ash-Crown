@@ -50,7 +50,7 @@ function cbLayout() {
 SCREENS.combat = {
   noNav: 1, noHud: 1, pass: 1,
   scene: () => drawCombat,
-  html: () => `<div class="ctop l" id="cb-tl"></div><div id="cb-hud"><div id="cb-ord"></div><div id="cb-mlog"></div></div><div class="ctop" id="cb-tr"><button class="btn ghost sm" data-a="cbSpeed" title="Vitesse">${ico("speed")}<span id="cb-spd">×${S.opts.speed || 1}</span></button><button class="btn ghost sm ${S.opts.auto ? "on" : ""}" data-a="cbAuto" title="Combat automatique">${ico("auto")}<span id="cb-auto">${S.opts.auto ? "Auto" : "Manuel"}</span></button><button class="btn ghost sm" data-a="cbLogShow" title="Journal du combat">${ico("scroll")}</button><button class="btn ghost sm" data-a="cbFlee" id="cb-flee" title="Fuir">${ico("flee")}</button></div><div id="cbar"><div class="skdesc" id="cb-desc"></div><div class="skills" id="cb-skills"></div></div>`,
+  html: () => `<div class="ctop l" id="cb-tl"></div><div id="cb-hud"><div id="cb-ord"></div><div id="cb-mlog"></div></div><div id="cb-boss"></div><div class="ctop" id="cb-tr"><button class="btn ghost sm" data-a="cbSpeed" title="Vitesse">${ico("speed")}<span id="cb-spd">×${S.opts.speed || 1}</span></button><button class="btn ghost sm ${S.opts.auto ? "on" : ""}" data-a="cbAuto" title="Combat automatique">${ico("auto")}<span id="cb-auto">${S.opts.auto ? "Auto" : "Manuel"}</span></button><button class="btn ghost sm" data-a="cbLogShow" title="Journal du combat">${ico("scroll")}</button><button class="btn ghost sm" data-a="cbFlee" id="cb-flee" title="Fuir">${ico("flee")}</button></div><div id="cbar"><div class="skdesc" id="cb-desc"></div><div class="skills" id="cb-skills"></div></div>`,
   mount: arg => startCombat(arg.node),
   leave: () => { CB.B = null; CB.resolve = null; { const ci = $("#cbinfo"); if (ci) ci.remove(); } const c = $("#coach"); if (c) c.remove(); UI.coach = null; document.querySelectorAll(".coachon").forEach(e => e.classList.remove("coachon")); },
   resize: () => { if (CB.B) { CB.barH = $("#cbar") ? $("#cbar").offsetHeight + 6 : 150; cbLayout(); } },
@@ -67,7 +67,7 @@ async function startCombat(node) {
   for (const e of B.enemies) S.seen.monsters[e.key] = S.seen.monsters[e.key] || 0;
   $("#cb-flee").style.display = "";
   cbTopLeft(); cbBar(null);
-  if (node.type === "boss") { const bs = B.enemies.find(e => e.boss); await showBanner(bs.name, "Gardien", "#ff4a3a", 1800); }
+  if (node.type === "boss") { const bs = B.enemies.find(e => e.boss); await bossIntro(bs); }
   else if (node.type === "elite") await showBanner("Élite", B.enemies.find(e => e.elite)?.name || "", "#ff8a4a", 1100);
   else await wait(500);
   combatLoop();
@@ -104,7 +104,7 @@ async function combatLoop() {
     if (B.over || CB.B !== B) break;
     const ev = []; petAct(B, ev); if (ev.length) await playEvents(ev); checkEnd(B);
   }
-  if (CB.B === B) combatEnd(B.over);
+  if (CB.B === B) { if (B.over === "win" && typeof winBark === "function") { winBark(B); await wait(1300); } if (CB.B === B) combatEnd(B.over); }
 }
 function autoChoice(u) {
   const B = CB.B; const run = S.run;
@@ -332,7 +332,7 @@ async function combatEnd(over) {
   await new Promise(r => setTimeout(r, 600));
   finishRun("wipe");
 }
-function rewardHTML(R) { return `${R.gold ? `<div class="reward">${ico("coin", "#e8c060", 22)}<b>+${R.gold} or</b></div>` : ""}${(R.loot || []).map(i => `<div class="reward" style="align-items:flex-start">${slotHTML(i, "itemInfo", i.id)}<div style="flex:1;min-width:0"><b class="rar${i.rar}">${gearName(i)}</b><div class="tiny dim">${i.cls ? CLASSES[i.cls].n + " — " : ""}${itemLine(i)}</div>${runEquipBtns(i)}</div></div>`).join("")}${R.relic ? `<div class="reward">${ico("gem", "#c87aff", 22)}<b>${RELICS[R.relic].n}</b> <span class="tiny">${gl(RELICS[R.relic].d)}</span></div>` : ""}${R.shards ? `<div class="reward">${ico("shard", "#c090ff", 22)}<b>+${R.shards} éclats</b></div>` : ""}`; }
+function rewardHTML(R) { return `${R.uniq ? `<div class="reward" style="color:var(--gold2)">${ico("crown", "#ffd27a", 22)}<b>Objet unique de gardien : <span class="rar4">${gearName(R.uniq)}</span> !</b></div>` : ""}${R.gold ? `<div class="reward">${ico("coin", "#e8c060", 22)}<b>+${R.gold} or</b></div>` : ""}${(R.loot || []).map(i => `<div class="reward" style="align-items:flex-start">${slotHTML(i, "itemInfo", i.id)}<div style="flex:1;min-width:0"><b class="rar${i.rar}">${gearName(i)}</b><div class="tiny dim">${i.cls ? CLASSES[i.cls].n + " — " : ""}${itemLine(i)}</div>${runEquipBtns(i)}</div></div>`).join("")}${R.relic ? `<div class="reward">${ico("gem", "#c87aff", 22)}<b>${RELICS[R.relic].n}</b> <span class="tiny">${gl(RELICS[R.relic].d)}</span></div>` : ""}${R.shards ? `<div class="reward">${ico("shard", "#c090ff", 22)}<b>+${R.shards} éclats</b></div>` : ""}`; }
 ACT.abyssUp = () => { closeModal(); finishRun("victory"); };
 ACT.abyssDown = () => { const run = S.run; run.floor++; run.map = genMap(RNG, 6, { elite: run.oaths.includes("elite") }); run.pos = null; run.light = clamp(run.light + 30, 0, 100); S.abyss.best = Math.max(S.abyss.best, run.floor - 1); save(); closeModal(); go("map"); toast(`Profondeur ${run.floor}…`, "epic"); };
 // ── dessin ──
@@ -422,6 +422,7 @@ function drawCombat(x, t, dt) {
   }
   CB.txt = CB.txt.filter(t2 => !t2.done);
   x.restore();
+  if (typeof combatWeather === "function") combatWeather(x, t, dt, stH); if (typeof bossBarTick === "function") bossBarTick();
   // éclair d'écran, bandeau
   if (CB.flash > 0) { x.fillStyle = `rgba(255,240,220,${CB.flash * (S.opts.calm ? .08 : .35)})`; x.fillRect(0, 0, W, H); CB.flash -= dt * 2; }
   if (CB.banner) { const b = CB.banner; b.t += dt; const k = b.t / b.life; if (k >= 1) CB.banner = null; else {
@@ -473,8 +474,8 @@ function drawPetInCombat(x, t, dt) {
   const gapL = Math.min(SC.w / 10, CB.stageH * .27); // paysage/ordi : une demi-place derrière le dernier héros ; portrait : colonne réservée
   const px = CB.port ? Math.max(30 * CB.scale, CB.petX || 40) : Math.max(46 * CB.scale, Math.min(bv.x - gapL * .78, SC.w / 2 - gapL * 4.4)), py = CB.port ? CB.ground - 4 : CB.ground + 4;
   CB.petCache = CB.petCache && CB.petCache.k === P.id + P.evo + CB.scale + CB.port ? CB.petCache : { k: P.id + P.evo + CB.scale + CB.port, cv: petSprite(P.id, { evo: P.evo }, 0, (CB.port ? CB.hScale * .72 : CB.scale * .9)), cva: petSprite(P.id, { evo: P.evo, atk: 1 }, .3, (CB.port ? CB.hScale * .72 : CB.scale * .9)) };
-  let atk = 0; if (CB.petAct) { CB.petAct.t += dt * (CB.speed || 1); atk = CB.petAct.t < .5 ? 1 : 0; if (CB.petAct.t > 1) CB.petAct = null; }
+  let atk = 0, lunge = 0; if (CB.petAct) { CB.petAct.t += dt * (CB.speed || 1); atk = CB.petAct.t < .5 ? 1 : 0; lunge = CB.petAct.t < .6 ? Math.sin(Math.PI * CB.petAct.t / .6) : 0; if (CB.petAct.t > 1) CB.petAct = null; }
   const cv = atk ? CB.petCache.cva : CB.petCache.cv;
-  x.save(); x.translate(px + (atk ? 30 * CB.scale : 0), py + Math.sin(t * 2.5) * 1.5); x.fillStyle = "rgba(0,0,0,.4)"; x.beginPath(); x.ellipse(0, 0, 34 * CB.scale, 6 * CB.scale, 0, 0, 7); x.fill(); x.drawImage(cv, -cv.ax, -cv.ay); x.restore();
+  x.save(); x.translate(px + lunge * 150 * CB.scale, py + Math.sin(t * 2.5) * 1.5 - lunge * 18 * CB.scale); x.fillStyle = "rgba(0,0,0,.4)"; x.beginPath(); x.ellipse(0, 0, 34 * CB.scale, 6 * CB.scale, 0, 0, 7); x.fill(); x.drawImage(cv, -cv.ax, -cv.ay); x.restore();
   if (CB.petAct && CB.petAct.t < .9) { x.save(); x.font = "700 13px Cinzel, serif"; x.textAlign = "center"; x.lineWidth = 3; x.strokeStyle = "#000"; x.strokeText(CB.petAct.name, px, py - 90 * CB.scale); x.fillStyle = "#c8f0a0"; x.fillText(CB.petAct.name, px, py - 90 * CB.scale); x.restore(); }
 }

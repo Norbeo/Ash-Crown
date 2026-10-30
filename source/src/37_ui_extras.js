@@ -301,7 +301,7 @@ ACT.hudMin = k => { S.opts.hudMin = S.opts.hudMin || {}; S.opts.hudMin[k] = hudM
 function turnOrderHTML() {
   const B = CB.B; if (!B || !B.order || !hud("ord")) return "";
   const { now, next } = turnQueue(B), q = now.concat(next).slice(0, hudMin("ord") ? 1 : 5), pv = CB.preview || new Set();
-  return `<div class="cbord">${q.map((u, i) => { const f = unitFace(u); return `${i ? '<i>›</i>' : ""}<span class="${u.side === "h" ? "h" : "e"} ${i === 0 ? "now" : ""} ${pv.has(u.uid) && i < now.length ? "pv" : ""}" data-a="ordPeek" data-v="${u.uid}" title="${esc(u.name)}">${f ? `<img src="${f}" alt="">` : ""}<em>${ordName(u)}</em></span>`; }).join("")}${hudMin("ord") ? "" : '<i class="more" data-a="turnOrder" title="Ordre complet">⋯</i>'}<i class="min" data-a="hudMin" data-v="ord" title="${hudMin("ord") ? "Agrandir" : "Réduire"}">${hudMin("ord") ? "▸" : "◂"}</i></div>`;
+  return `<div class="cbord">${q.map((u, i) => { const f = unitFace(u); return `${i ? '<i>›</i>' : ""}<span class="${u.side === "h" ? "h" : "e"} ${i === 0 ? "now" : ""} ${pv.has(u.uid) && i < now.length ? "pv" : ""}" data-a="ordPeek" data-v="${u.uid}" title="${esc(u.name)}">${f ? `<img src="${f}" alt="">` : ""}<em>${ordName(u)}</em></span>`; }).join("")}${B.pet && !hudMin("ord") && q.length < 6 ? `<i>›</i><span class="h pet" title="Le compagnon agit en fin de tour">${artHas("pet_" + B.pet.id) ? `<img src="assets/pet_${B.pet.id}.webp" style="object-fit:contain;background:#1a2416">` : ""}<em>${esc(petName(B.pet.id).split(" ")[0])}</em></span>` : ""}${hudMin("ord") ? "" : '<i class="more" data-a="turnOrder" title="Ordre complet">⋯</i>'}<i class="min" data-a="hudMin" data-v="ord" title="${hudMin("ord") ? "Agrandir" : "Réduire"}">${hudMin("ord") ? "▸" : "◂"}</i></div>`;
 }
 ACT.ordPeek = id => { const v = V(id), u = U(id); if (!v || !u) return; glowAt(v, u.side === "h" ? "#8ad06a" : "#ff6a4a", 1.3); CB.peek = { id, t: 2 }; popText(id, shortName(u.name), "#ffe08a"); };
 ACT.turnOrder = () => {
@@ -343,7 +343,7 @@ ACT.merchantBuy = i => { const r = merchantBuy(+i); if (r.err) return toast(r.er
 // ── Archives : mémorial ──
 function memorialHTML() {
   const G = (S.graves || []).slice().reverse();
-  return G.length ? `<p class="small dim">Ici reposent ceux qui ne sont pas revenus.</p><div class="grid" style="--min:240px">${G.map(g => `<div class="card" style="cursor:default"><div class="row" style="gap:6px">${ico("skull", "#9a8c7a", 18)}<b>${esc(g.name)}</b></div><div class="tiny dim">${CLASSES[g.cls] ? CLASSES[g.cls].n : ""} · niveau ${g.lvl}${g.title ? " · " + esc(g.title) : ""}</div><div class="tiny">${esc(g.cause || "Tombé au combat")}${g.where ? "" : ""}</div><div class="tiny dim">${g.runs || 0} expéditions · ${g.kills || 0} ennemis abattus</div><p class="lore tiny" style="margin:4px 0 0">« ${esc(g.epi || "Le Bastion se souvient.")} »</p></div>`).join("")}</div>` : '<p class="small dim">Le cimetière est vide. Pour l\'instant. (En mode Hardi, les héros tombés y reposent.)</p>';
+  return G.length ? `<p class="small dim">Ici reposent ceux qui ne sont pas revenus.</p><div class="grid" style="--min:240px">${G.map(g => `<div class="card" style="cursor:default"><div class="row" style="gap:6px">${ico("skull", "#9a8c7a", 18)}<b>${esc(g.name)}</b></div><div class="tiny dim">${CLASSES[g.cls] ? CLASSES[g.cls].n : ""} · niveau ${g.lvl}${g.title ? " · " + esc(g.title) : ""}</div><div class="tiny">${esc(g.cause || "Tombé au combat")}${g.where ? "" : ""}</div><div class="tiny dim">${g.runs || 0} expéditions · ${g.kills || 0} ennemis abattus</div>${g.last ? `<p class="tiny" style="margin:4px 0 0;color:#e8c8a0">Ses derniers mots : « ${esc(g.last)} »</p>` : ""}<p class="lore tiny" style="margin:4px 0 0">« ${esc(g.epi || "Le Bastion se souvient.")} »</p></div>`).join("")}</div>` : '<p class="small dim">Le cimetière est vide. Pour l\'instant. (En mode Hardi, les héros tombés y reposent.)</p>';
 }
 // ── Archives : succès cachés ──
 function hiddenAchHTML() { return `<h3 style="margin-top:14px">Succès cachés</h3><div class="grid" style="--min:240px">${HIDDEN_ACH.map(a => { const ok = S.ach && S.ach[a.id]; return `<div class="card ${ok ? "" : "lock"}" style="cursor:default"><b>${ok ? a.n : "???"}</b><div class="tiny">${ok ? a.d : "Un défi secret. Jouez autrement pour le découvrir."}</div>${ok ? `<div class="tiny gold">+${a.gold} or · +${a.shards} éclats</div>` : ""}</div>`; }).join("")}</div>`; }
@@ -360,6 +360,8 @@ ACT.trophies = () => {
   const T = S.trophies || {}, ks = Object.keys(T).filter(k => MONSTERS[k]), n = Math.min(15, ks.length);
   modal(`<h2>${ico("trophy", "#e8c878")} Salle des trophées</h2><p class="lore">« Chaque crâne accroché ici est une nuit de moins à craindre. »</p>
     <p class="small">Bonus permanent : <b class="gold">+${n} % de dégâts</b> et <b class="gold">+${n * 2} % d'or</b> (1 % et 2 % par trophée, 15 au plus).</p>
+    ${Object.keys(S.goldTrophy || {}).length ? `<p class="small">${ico("trophy", "#ffd27a", 14)} <b class="gold">Trophées dorés (mode Hardi) :</b> ${Object.keys(S.goldTrophy).map(r => regionById(r) ? regionById(r).n : r).join(", ")}</p>` : ""}
+    <h3>Objets uniques des gardiens <span class="tiny dim">${Object.keys(S.uniqs || {}).length}/${Object.keys(UNIQ).length}</span></h3><div class="row" style="flex-wrap:wrap;gap:4px;margin-bottom:10px">${Object.keys(UNIQ).map(k => (S.uniqs || {})[k] ? `<span class="tag rar4" title="${esc(MONSTERS[k] ? MONSTERS[k].n : k)}">${ico("crown", "#ffd27a", 11)}${esc(UNIQ[k].n)}</span>` : `<span class="tag" style="opacity:.45">???</span>`).join("")}</div>
     ${ks.length ? `<div class="grid" style="--min:150px">${ks.map(k => `<div class="card" style="cursor:pointer;text-align:center" data-a="monSheet" data-v="${k}">${canvasSlot(k, 130, 130)}<b class="small">${MONSTERS[k].n || MONSTERS[k].name}</b></div>`).join("")}</div>` : '<p class="small dim">Aucun trophée pour l\'instant. Chaque gardien vaincu laisse le sien.</p>'}`,
     { wide: 1, mount: m => fillCanvases(m, (c, k) => paintMon(c, k)) });
 };
@@ -468,3 +470,56 @@ function showFinale() {
 }
 ACT.newCycle = () => confirmBox(`Commencer le cycle ${roman(cycleN() + 2)} ? La progression des chapitres repart de zéro (les ennemis seront plus forts).`, () => { startNewCycle(); save(); closeModal(); toast(`Cycle ${roman(cycleN() + 1)} : la Cendre se réveille.`, "good"); go("bastion"); }, { yes: "Recommencer" });
 ACT.showFinale = () => showFinale();
+
+// ── Entrée du gardien : plan cinématique (portrait, nom, titre, réplique) ──
+function bossIntro(bs) {
+  return new Promise(res => {
+    const I = (typeof BOSS_INFO !== "undefined" && BOSS_INFO[bs.key]) || ["Gardien", ""], el = document.createElement("div"); el.id = "bossin";
+    el.innerHTML = `<div class="bbars t"></div><div class="bbars b"></div><div class="bi-wrap"><canvas width="360" height="380" data-cv="bi"></canvas><div class="bi-txt"><div class="bi-sub">${bs.hard ? "Gardien enragé — Hardi" : "Gardien"}</div><div class="bi-name">${esc(bs.name)}</div><div class="bi-title">${esc(I[0])}</div><div class="bi-q">${esc(I[1])}</div></div></div>`;
+    document.body.appendChild(el); try { sfx("bell"); setTimeout(() => sfx("dark"), 400); } catch (e) { }
+    fillCanvases(el, c => paintMon(c, bs.key));
+    let done = false; const end = () => { if (done) return; done = true; el.classList.add("out"); setTimeout(() => { el.remove(); res(); }, 450); };
+    el.addEventListener("click", end); setTimeout(end, S.opts.quick ? 2200 : 3600);
+  });
+}
+// ── Barre de vie du gardien (repère de phase) ──
+let BOSSBAR_K = "";
+function bossBarTick() {
+  const el = $("#cb-boss"), B = CB.B; if (!el) return; const bs = B && B.enemies.find(e => e.boss && alive(e));
+  if (!bs) { if (BOSSBAR_K) { el.innerHTML = ""; BOSSBAR_K = ""; } return; }
+  const k = bs.uid + ":" + Math.ceil(bs.hp) + ":" + bs.phaseDone; if (k === BOSSBAR_K) return; BOSSBAR_K = k;
+  const p = Math.max(0, bs.hp / bs.hpMax) * 100, ph = bs.phase && !bs.phaseDone ? bs.phase.at * 100 : null;
+  el.innerHTML = `<div class="bb-name">${esc(bs.name)}${bs.hard ? ' <span class="bad">· enragé</span>' : ""}${bs.phaseDone ? ' <span class="gold">· 2e phase</span>' : ""}</div><div class="bb-bar"><i style="width:${p}%"></i>${ph ? `<b style="left:${ph}%" title="Changement de phase"></b>` : ""}<span>${Math.ceil(bs.hp)} / ${bs.hpMax}</span></div>`;
+}
+// ── Météo animée pendant les combats (et neige permanente dans les Cimes) ──
+const WX = { p: [], k: "" };
+function combatWeather(x, t, dt, stH) {
+  const run = S.run; if (!run || S.opts.calm) return; const reg = run.region;
+  const kind = run.weather === "pluie" ? "rain" : run.weather === "brouillard" ? "fog" : run.weather === "lune" ? "moon" : reg === "cimes" ? "snow" : reg === "marais" || reg === "cite" ? "mist" : reg === "terres" ? "ash" : "";
+  if (!kind) return; const W = SC.w, H = stH || SC.h;
+  if (WX.k !== kind) { WX.k = kind; WX.p = []; }
+  const N = kind === "rain" ? 160 : kind === "snow" ? 110 : kind === "ash" ? 70 : 0;
+  while (WX.p.length < N) WX.p.push({ x: Math.random() * W, y: Math.random() * H, v: .5 + Math.random(), s: Math.random() });
+  x.save();
+  if (kind === "rain") { x.strokeStyle = "rgba(170,190,220,.32)"; x.lineWidth = 1; x.beginPath(); for (const p of WX.p) { p.y += 900 * p.v * dt; p.x -= 120 * p.v * dt; if (p.y > H) { p.y = -10; p.x = Math.random() * W * 1.2; } x.moveTo(p.x, p.y); x.lineTo(p.x + 4, p.y - 14 * p.v); } x.stroke(); x.fillStyle = "rgba(20,30,50,.12)"; x.fillRect(0, 0, W, H); }
+  if (kind === "snow" || kind === "ash") { x.fillStyle = kind === "snow" ? "rgba(235,240,255,.75)" : "rgba(255,150,80,.55)"; for (const p of WX.p) { p.y += (kind === "snow" ? 40 : 25) * p.v * dt; p.x += Math.sin(t * .8 + p.s * 9) * 18 * dt + (kind === "snow" ? -10 : 8) * dt; if (p.y > H) { p.y = -5; p.x = Math.random() * W; } x.beginPath(); x.arc(p.x, p.y, (kind === "snow" ? 1.2 : .9) + p.s * 1.6, 0, 7); x.fill(); } }
+  if (kind === "fog" || kind === "mist") { for (let i = 0; i < 4; i++) { const yy = H * (.45 + i * .14), xx = ((t * (8 + i * 5)) % (W * 1.5)) - W * .25; const g = x.createRadialGradient(xx, yy, 0, xx, yy, W * .45); g.addColorStop(0, `rgba(190,200,200,${kind === "fog" ? .16 : .09})`); g.addColorStop(1, "rgba(190,200,200,0)"); x.fillStyle = g; x.fillRect(0, 0, W, H); } if (kind === "fog") { x.fillStyle = "rgba(160,170,170,.08)"; x.fillRect(0, 0, W, H); } }
+  if (kind === "moon") { x.fillStyle = `rgba(120,10,10,${.1 + .03 * Math.sin(t * 1.3)})`; x.fillRect(0, 0, W, H); }
+  x.restore();
+}
+// ── Répliques de fin de combat ──
+const WIN_BARKS = { boss: ["Il est tombé. Je n'y croyais plus.", "Rentrons. Avant qu'il se relève.", "Encore un fragment arraché à la nuit."], fallen: ["Pas lui… pas comme ça.", "On l'enterrera dignement. Plus tard.", "Je porterai son nom."], close: ["C'était moins une…", "Encore un coup et c'était nous.", "Je ne sens plus mes bras."], clean: ["Pas une égratignure.", "Trop facile. Méfiance.", "Ils n'ont rien vu venir."], any: ["Avançons.", "La lueur faiblit, pressons.", "Ramassez ce qui peut servir."] };
+function winBark(B) {
+  try { const alive_ = B.heroes.filter(alive); if (!alive_.length) return; const u = pick(alive_), v = CB.vis[u.uid]; if (!v) return;
+    const k = B.enemies.some(e => e.boss) || (B.dead || []).some(e => e.boss) ? "boss" : B.fallen.length ? "fallen" : alive_.some(h => h.hp / h.hpMax < .25) ? "close" : alive_.every(h => h.hp / h.hpMax > .8) ? "clean" : "any";
+    CB.txt.push({ id: u.uid, x: v.x, y: v.y - 210 * CB.scale, text: "« " + pick(WIN_BARKS[k]) + " »", col: "#f0e0c0", big: false, t: 0, life: 2.4 });
+  } catch (e) { }
+}
+
+// ── Mode Hardi d'un chapitre déjà vaincu ──
+const hardOk = E => E.region !== "abime" && !E.daily && !E.rush && S.prog[E.region] && S.prog[E.region].clears > 0;
+function hardToggleHTML(E) {
+  if (!hardOk(E)) return ""; const gt = (S.goldTrophy || {})[E.region];
+  return `<div class="row" style="margin-top:6px"><button class="btn sm ${E.hard ? "gold" : "ghost"}" data-a="toggleHard">${ico("skull", E.hard ? "#ff6a4a" : "#9a8c7a", 14)}Gardien Hardi${gt ? " " + ico("trophy", "#ffd27a", 12) : ""}</button><span class="tiny dim">Gardien +50 % PV, +30 % dégâts, enragé. Victoire : trophée doré du chapitre${gt ? " (déjà obtenu)" : ""}.</span></div>`;
+}
+ACT.toggleHard = () => { UI.expe.hard = !UI.expe.hard; refresh(); };

@@ -97,6 +97,7 @@ function makeGear(kind, cls, tier, rar, key, evo) {
 }
 function gearName(it) {
   if (!it) return "—";
+  if (it.uniq && typeof UNIQ !== "undefined" && UNIQ[it.uniq]) return UNIQ[it.uniq].n; // objet unique de gardien
   if (it.kind === "tr") return TRINKETS[it.key].n;
   const L = GEAR_NAMES[it.cls][it.kind === "wpn" ? "wpn" : "arm"], n = it.tier >= 6 ? (it.evo && CLASSES[it.cls].evos[it.evo] ? "Armure ascendante : " + CLASSES[it.cls].evos[it.evo].n : "Ascendant : " + L[4]) : L[it.tier - 1];
   return n + (it.up ? " +" + it.up : "");

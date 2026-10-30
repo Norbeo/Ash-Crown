@@ -245,7 +245,7 @@ const EVENTS = [
 const BUILDINGS = {
   taverne: { n: "Taverne du Pendu", ic: "tavern", d: "Recrutez des héros. Plus elle grandit, plus les recrues sont nombreuses et aguerries.", max: 5, cost: [0, 250, 700, 1600, 3200], shards: [0, 0, 1, 2, 4] },
   forge: { n: "Forge noire", ic: "anvil", d: "Fabriquez et améliorez l'équipement. Chaque niveau débloque un palier d'armure ; le palier VI (ascendant) est réservé aux héros évolués et révèle leur apparence finale.", max: 6, cost: [0, 300, 800, 1800, 3600, 7500], shards: [0, 0, 1, 2, 4, 6] },
-  chapelle: { n: "Chapelle en ruine", ic: "chapel", d: "Soignez les blessés. Chaque niveau ajoute une potion par expédition.", max: 5, cost: [0, 200, 600, 1400, 3000], shards: [0, 0, 1, 2, 3] },
+  chapelle: { n: "Chapelle en ruine", nl: [[5, "Cathédrale de l'Aube"], [3, "Chapelle restaurée"]], ic: "chapel", d: "Soignez les blessés. Chaque niveau ajoute une potion par expédition.", max: 5, cost: [0, 200, 600, 1400, 3000], shards: [0, 0, 1, 2, 3] },
   academie: { n: "Salle des maîtres", ic: "book", d: "Entraînez les compétences. Chaque niveau élève le rang maximal des compétences.", max: 5, cost: [0, 300, 800, 1800, 3600], shards: [0, 1, 1, 2, 4] },
   menagerie: { n: "Ménagerie", ic: "paw", d: "Adoptez et entraînez des compagnons.", max: 5, cost: [0, 250, 700, 1600, 3200], shards: [0, 0, 1, 2, 3] },
   fonderie: { n: "Fonderie d'âmes", ic: "furnace", d: "Elle produit de l'or même quand vous êtes absent.", max: 5, cost: [0, 200, 600, 1500, 3000], shards: [0, 0, 1, 2, 3] },

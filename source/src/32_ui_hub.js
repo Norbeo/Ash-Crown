@@ -12,6 +12,8 @@ function petOrder() {
   return PET_IDS.slice().sort((a, b) => rank(a) - rank(b) || (PETS[a].unlock || 0) - (PETS[b].unlock || 0) || (PETS[a].cost || 0) - (PETS[b].cost || 0));
 }
 const BLD_CACHE = {};
+// nom selon le niveau (la Chapelle en ruine devient Chapelle restaurée puis Cathédrale)
+function bldName(k) { const B = BUILDINGS[k], l = (S.bld || {})[k] || 1; return ((B.nl || []).find(([n]) => l >= n) || [0, B.n])[1]; }
 function bldTinted(im, lvl, k) { // niveau 1 : bâtiment délabré, assombri ; puis il s'éclaire à chaque amélioration
   const key = k + "|" + lvl + "|" + im.width; if (BLD_CACHE[key]) return BLD_CACHE[key];
   const c = mkCanvas(im.width, im.height), x = c.getContext("2d"); x.drawImage(im, 0, 0);
@@ -44,7 +46,7 @@ SCREENS.bastion = {
   },
   html: () => {
     const L = hubLayout(SC.w || innerWidth, SC.h || innerHeight);
-    const names = { porte: "La Porte", ...Object.fromEntries(Object.keys(BUILDINGS).map(k => [k, BUILDINGS[k].n])) };
+    const names = { porte: "La Porte", ...Object.fromEntries(Object.keys(BUILDINGS).map(k => [k, bldName(k)])) };
     const note = k => (k === "taverne" && S.heroes.length < 4) || (k === "fonderie" && idleBank() >= fonderieRate()) || (k === "academie" && S.heroes.some(h => h.lvl >= EVO_LVL && !h.evo)) || (k === "chapelle" && S.heroes.some(isInjured));
     const ct = S.daily.contracts || [];
     const off = $("#view") ? $("#view").getBoundingClientRect().top : 0;
@@ -73,9 +75,9 @@ ACT.bld = k => { if (k === "porte") { sfx("door"); go("expe"); return; } sfx("op
 function bldFooter(k) {
   const B = BUILDINGS[k], c = bldCost(k), l = S.bld[k];
   const next = { taverne: `Caserne : ${4 + (l + 1) * 2} héros · ${3 + l} recrues mieux aguerries`, forge: `Palier d'armure ${l + 1} · amélioration jusqu'à +${(l + 1) * 2}`, chapelle: `${3 + l} potions par expédition · soins moins chers`, academie: `Rang de compétence maximal ${l + 1}`, menagerie: `${l + 2} compagnons`, fonderie: `${[0, 18, 34, 58, 90, 135][l + 1]} or/h, réserve ${[0, 6, 8, 10, 12, 16][l + 1]} h` }[k];
-  return `<div class="sep"></div><div class="row sp"><div><b>${B.n}</b> <span class="gold">niveau ${l}</span>${c ? `<div class="small dim">Niveau ${l + 1} : ${next}</div><div class="tiny ${advLevel() >= bldAdvReq(k) ? "good" : "bad"}">Niveau d'aventure ${bldAdvReq(k)} requis (actuel : ${advLevel()})</div>` : '<div class="small good">Niveau maximal</div>'}</div>${c ? `<button class="btn gold sm ${canPay(c) && advLevel() >= bldAdvReq(k) ? "" : "off"}" data-a="upBld" data-v="${k}">${ico("up")}${c.gold} ${ico("coin", "#e8c060")}${c.shards ? ` ${c.shards} ${ico("shard", "#c090ff")}` : ""}</button>` : ""}</div>`;
+  return `<div class="sep"></div><div class="row sp"><div><b>${bldName(k)}</b> <span class="gold">niveau ${l}</span>${c ? `<div class="small dim">Niveau ${l + 1} : ${next}</div><div class="tiny ${advLevel() >= bldAdvReq(k) ? "good" : "bad"}">Niveau d'aventure ${bldAdvReq(k)} requis (actuel : ${advLevel()})</div>` : '<div class="small good">Niveau maximal</div>'}</div>${c ? `<button class="btn gold sm ${canPay(c) && advLevel() >= bldAdvReq(k) ? "" : "off"}" data-a="upBld" data-v="${k}">${ico("up")}${c.gold} ${ico("coin", "#e8c060")}${c.shards ? ` ${c.shards} ${ico("shard", "#c090ff")}` : ""}</button>` : ""}</div>`;
 }
-ACT.upBld = k => { const r = upgradeBld(k); if (r.err) return toast(r.err, "bad"); sfx("forge"); toast(`${BUILDINGS[k].n} : niveau ${S.bld[k]} !`, "good"); save(); renderHud(); const L = (BLD_SCENES[k] || {})[S.bld[k]]; if (L) showLines(`${BUILDINGS[k].n} — niveau ${S.bld[k]}`, L, () => openBuilding(k)); else openBuilding(k); };
+ACT.upBld = k => { const r = upgradeBld(k); if (r.err) return toast(r.err, "bad"); sfx("forge"); toast(`${bldName(k)} : niveau ${S.bld[k]} !`, "good"); save(); renderHud(); const L = (BLD_SCENES[k] || {})[S.bld[k]]; if (L) showLines(`${BUILDINGS[k].n} — niveau ${S.bld[k]}`, L, () => openBuilding(k)); else openBuilding(k); };
 function openBuilding(k, tab) {
   const B = BUILDINGS[k]; let body = "";
   UI.bldTab = tab || UI.bldTab || "";

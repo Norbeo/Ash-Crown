@@ -446,7 +446,7 @@ function bastionLife(x, L, t, dt) {
 }
 
 // ── Carte du monde : les chapitres reliés par une route, l'Abîme au centre ──
-const WMAP = { bourg: [.1, .8], foret: [.2, .5], catacombes: [.33, .74], marais: [.42, .4], citadelle: [.54, .66], terres: [.63, .36], cimes: [.72, .14], cite: [.84, .34], mines: [.9, .64], trone: [.78, .86], abime: [.47, .9] };
+const WMAP = { bourg: [.12, .72], foret: [.13, .3], catacombes: [.31, .75], marais: [.5, .5], citadelle: [.33, .38], terres: [.48, .22], cimes: [.76, .15], cite: [.72, .41], mines: [.88, .58], trone: [.8, .8], abime: [.53, .85] };
 ACT.mapView = () => { UI.listView = !UI.listView; refresh(); };
 function worldMapHTML(E, regs) {
   const pos = r => WMAP[r.id] || [.5, .5], chain = regs.filter(r => r.id !== "abime");

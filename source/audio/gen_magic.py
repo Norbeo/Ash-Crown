@@ -22,8 +22,8 @@ def fx_holy(i=0):
     B = buf(4.); ch = [[146.8, 220., 293.7], [130.8, 196., 261.6], [164.8, 246.9, 329.6]][i % 3]
     put(B, mag([7, 5, 6][i % 3], .85) * .8, .05, 1, -.1); put(B, choir(ch, 2.6, "a", .5, 1.1) * .5, 0); put(B, bell(ch[0], 3.2, .25), .05)
     return verb(B, .42, "crypt")
-def fx_heal(i=0):
-    B = buf(3.); put(B, mag([3, 2][i % 2], .9) * .85, 0); put(B, choir([[196., 293.7], [174.6, 261.6]][i % 2], 2., "o", .4, .9, 3) * .35, .05); return verb(B, .4, "crypt")
+def fx_heal(i=0):  # Lentikula « Healing Spell Impacts » + chœur doux
+    B = buf(3.4); put(B, imp("Healing", i * 3 + 1, .92) * .9, 0); put(B, choir([[196., 293.7], [174.6, 261.6], [220., 329.6], [164.8, 246.9]][i % 4], 2., "o", .4, .9, 3) * .25, .05); return verb(B, .35, "crypt")
 def fx_buff(i=0):
     B = buf(2.8); put(B, membrane(60, 1., .8), 0); put(B, membrane(58, 1., .7), .3); put(B, horn(98., 1.4, .4), .28); put(B, mag(4, .8) * .55, .05); return verb(B, .35)
 def fx_debuff(i=0):
@@ -35,7 +35,7 @@ def fx_fire(i=0): B = buf(3.5); put(B, imp("Fire", i, .88) * 1., 0); put(B, rumb
 def fx_frost(i=0): B = buf(3.); put(B, imp("Ice", i, .85) * 1., 0); return verb(B, .3, "crypt")
 def fx_shock(i=0): B = buf(4.); put(B, imp("Lightning", i, .9) * 1., 0); put(B, rumble(1., .4), .05); return verb(B, .25)
 def fx_poison(i=0): B = buf(2.6); put(B, imp("Water", i, .72) * .9, 0); put(B, bubbles(.9, 14, .35), .1); return verb(B, .25)
-VAR = {"holy": 3, "heal": 2, "buff": 1, "debuff": 2, "dark": 3, "fire": 3, "frost": 2, "shock": 2, "poison": 2}
+VAR = {"holy": 3, "heal": 4, "buff": 1, "debuff": 2, "dark": 3, "fire": 3, "frost": 2, "shock": 2, "poison": 2}
 
 def save_amb(name, x, fade=3.):  # boucle stéréo sans clic (fondu croisé)
     f = int(SR * fade); y = x[:-f].copy(); y[:f] = y[:f] * np.linspace(0, 1, f)[:, None] + x[-f:] * np.linspace(1, 0, f)[:, None]
@@ -48,8 +48,11 @@ def amb(f, rate=1., lp=None):
     return x
 if __name__ == "__main__":
     print(len(ALL), "fichiers")
+    only = sys.argv[2:]
     for k, n in VAR.items():
+        if only and k not in only: continue
         for i in range(n): save(f"fx_{k}_{i + 1}", globals()["fx_" + k](i))
+    if only: sys.exit(0)
     D, C1, C2 = find("dungeon_ambient")[0], find("dark_cavern_ambient_001")[0], find("dark_cavern_ambient_002")[0]
     save_amb("amb_catacombes", amb(D)); save_amb("amb_mines", amb(C1)); save_amb("amb_abime", amb(C2, .8, 3000))
     save_amb("amb_trone", amb(D, .85, 4000)); save_amb("amb_cite", amb(C1, .9, 2500))

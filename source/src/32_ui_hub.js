@@ -22,11 +22,17 @@ function bldTinted(im, lvl, k) { // niveau 1 : bâtiment délabré, assombri ; p
   return BLD_CACHE[key] = c;
 }
 // illustration évolutive : bld_<k>_2 dès le niveau 3, bld_<k>_3 dès le niveau 5 (si peintes)
+const bldScale = k => (SC.w < SC.h * .9 ? 1.15 : 1.35) * (k === "porte" ? .85 : 1); // bâtiments agrandis par rapport au décor de la cour (moins en portrait)
 function bldArtName(k, lvl) { if (k !== "porte") for (const [n, v] of [[5, 3], [3, 2]]) if (lvl >= n && artHas("bld_" + k + "_" + v)) return "bld_" + k + "_" + v; return "bld_" + k; }
-function drawBuilding(x, k, bx, by, s, lvl, t) { // bâtiment peint : grandit, s'éclaire et se pare de bannières et de braseros à chaque niveau
-  const nm = bldArtName(k, lvl), im = artImg(nm) || artImg("bld_" + k); if (!im) return;
+// taille affichée d'un bâtiment (sert au dessin et à la zone cliquable / étiquette)
+function bldDims(k, s, lvl) {
+  const nm = bldArtName(k, lvl), im = artImg(nm) || artImg("bld_" + k); if (!im) return null;
   const grow = k === "porte" ? 1 : .86 + Math.min(lvl, 8) * .035;
-  const hh = s * grow * (k === "porte" ? 1.62 : k === "academie" ? 2.0 : k === "chapelle" ? 1.9 : 1.3), sc = Math.min(hh / im.height, s * grow * 1.7 / im.width), w = im.width * sc, h = im.height * sc;
+  const hh = s * grow * bldScale(k) * (k === "porte" ? 1.62 : k === "academie" ? 2.0 : k === "chapelle" ? 1.9 : 1.3), sc = Math.min(hh / im.height, s * grow * bldScale(k) * 1.9 / im.width);
+  return { im, nm, w: im.width * sc, h: im.height * sc };
+}
+function drawBuilding(x, k, bx, by, s, lvl, t) { // bâtiment peint : grandit, s'éclaire et se pare de bannières et de braseros à chaque niveau
+  const D = bldDims(k, s, lvl); if (!D) return; const { im, nm, w, h } = D;
   if (lvl > 1) glow(x, bx, by - h * .35, w * (.45 + lvl * .06), "#ff9a4a", .05 + lvl * .03 + Math.sin(t * 2 + bx) * .015);
   x.drawImage(k === "porte" ? im : bldTinted(im, lvl, nm), bx - w / 2, by - h + s * .04, w, h);
   if (k === "porte") return;
@@ -50,8 +56,9 @@ SCREENS.bastion = {
     const note = k => (k === "taverne" && S.heroes.length < 4) || (k === "fonderie" && idleBank() >= fonderieRate()) || (k === "academie" && S.heroes.some(h => h.lvl >= EVO_LVL && !h.evo)) || (k === "chapelle" && S.heroes.some(isInjured));
     const ct = S.daily.contracts || [];
     const off = $("#view") ? $("#view").getBoundingClientRect().top : 0;
+    setTimeout(() => document.querySelectorAll(".hot .lbl").forEach(l => { l.style.transform = ""; const r = l.getBoundingClientRect(), d = r.left < 4 ? 4 - r.left : r.right > innerWidth - 4 ? innerWidth - 4 - r.right : 0; if (d) l.style.transform = `translateX(${d}px)`; }), 0); // étiquettes jamais coupées au bord de l'écran
     if (UI.hideDaily == null) UI.hideDaily = false;
-    return `${L.map(b => { const hh = b.s * (b.k === "porte" ? 1.62 : b.k === "academie" ? 2.0 : b.k === "chapelle" ? 1.9 : 1.3); return `<button class="hot" style="left:${b.x}px;top:${b.y - off - hh}px;width:${b.s * 1.3}px;height:${hh}px" data-a="bld" data-v="${b.k}"><span class="lbl">${note(b.k) ? '<i class="dotn"></i>' : ""}${names[b.k]}${b.k !== "porte" ? ` <b>${"I II III IV V VI".split(" ")[S.bld[b.k] - 1]}</b>` : ""}</span></button>`; }).join("")}
+    return `${L.map(b => { const D = bldDims(b.k, b.s, b.k === "porte" ? 1 : S.bld[b.k]), hh = D ? D.h * .97 : b.s * bldScale(b.k) * 1.3, ww = D ? Math.max(D.w * .8, b.s) : b.s * 1.3; return `<button class="hot" style="left:${b.x}px;top:${b.y - off - hh}px;width:${ww}px;height:${hh}px" data-a="bld" data-v="${b.k}"><span class="lbl">${note(b.k) ? '<i class="dotn"></i>' : ""}${names[b.k]}${b.k !== "porte" ? ` <b>${"I II III IV V VI".split(" ")[S.bld[b.k] - 1]}</b>` : ""}</span></button>`; }).join("")}
     ${UI.hubOpen ? `<div class="panel" style="position:absolute;left:10px;top:6px;width:min(300px,calc(100vw - 20px));padding:10px 12px;max-height:calc(100% - 20px);overflow:auto" id="dailyp">
       <div class="row sp" style="margin-bottom:6px"><b class="small gold">Tableau du Bastion</b><button class="btn sm ghost" data-a="hubPanel" title="Réduire">${ico("close", "#c8b8a0", 12)}Réduire</button></div>
       ${(() => { const A = advNext(); return `<div class="small" data-tipn="Niveau d'aventure" data-tipd="Monte avec les combats gagnés, les expéditions, les gardiens vaincus et la profondeur de l'Abîme. Il conditionne l'amélioration des bâtiments."><b class="gold">${ico("crown", "#e8c878", 14)} Niveau d'aventure ${A.l}</b><div class="bar xp" style="margin:3px 0 8px"><i style="width:${100 * A.cur / A.need}%"></i></div></div>`; })()}<div class="row sp"><h3 style="margin:0">${ico("daily", "#e8c878", 16)} Défis du jour</h3><button class="btn ghost sm" data-a="toggleDaily">${UI.hideDaily ? "+" : "–"}</button></div>

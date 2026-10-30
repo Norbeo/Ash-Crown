@@ -378,11 +378,11 @@ ACT.trophies = () => {
     { wide: 1, mount: m => fillCanvases(m, (c, k) => paintMon(c, k)) });
 };
 ACT.bounty = () => {
-  const b = bountyOf(); if (!b) return;
+  const b = bountyOf(); if (!b) return; if (!S.daily.bountySeen) { S.daily.bountySeen = 1; save(); if (typeof renderHud === "function") renderHud(); const r = document.querySelector(".hubrail"); if (r) r.outerHTML = hubRailHTML(); }
   modal(`<h2>${ico("skull", "#e05050")} Prime du jour</h2><p class="lore">Une affiche clouée à la porte, encore humide : « Recherché, mort. »</p>
     <div class="row" style="gap:12px;align-items:center">${canvasSlot(b.key, 140, 140)}<div><b class="gold" style="font-size:18px">${esc(bountyName(b))}</b><div class="tiny dim">Élite — se montre une fois sur deux dans les salles d'élite, quel que soit le chapitre.</div>
     <div class="small" style="margin-top:6px">Récompense : <b class="gold">${b.gold} or</b> · <b style="color:#c8a0ff">${b.shards} éclats</b></div>
-    <div class="small ${b.done ? "good" : "dim"}" style="margin-top:4px">${b.done ? "✔ Prime encaissée. Une nouvelle affiche demain." : "Pas encore abattu."}</div></div></div>`,
+    <div class="small ${b.done ? "good" : "dim"}" style="margin-top:4px">${b.done ? "✔ Prime encaissée. Une nouvelle affiche demain." : "Pas encore abattu. La récompense est versée automatiquement quand vous l'abattez en expédition."}</div></div></div>`,
     { mount: m => fillCanvases(m, (c, k) => paintMon(c, k)) });
 };
 function bastionExtraBtns() {
@@ -410,8 +410,8 @@ function hubRailHTML() {
   return `<div class="hubrail">
     ${it("hubPanel", "crown", "#e8c878", "Niv. " + A.l, ready || "", 'data-tipn="Tableau du Bastion" data-tipd="Défis du jour, expédition du jour, défi de la semaine."')}
     ${it("merchant", "coin", "#e8c060", "Marchand", "")}
-    ${it("bounty", "skull", b && !b.done ? "#e05050" : "#7a6a5a", "Prime", b && !b.done ? "!" : "")}
-    ${it("trophies", "trophy", "#e8c878", "Trophées", trophyCount() || "")}
+    ${it("bounty", "skull", b && !b.done ? "#e05050" : "#7a6a5a", "Prime", b && !b.done && !S.daily.bountySeen ? "!" : "")}
+    ${it("trophies", "trophy", "#e8c878", "Trophées", "")}
     ${dl ? it("dailyRun", "star", "#e8c878", "Du jour", "") : ""}
   </div>`;
 }

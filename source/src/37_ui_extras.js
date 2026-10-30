@@ -235,12 +235,26 @@ function classChCodexHTML() {
 }
 function showLines(title, lines, done) { showScene(null, done, { t: title, lines }); }
 
-// ── Frise de l'ordre des tours ──
+// ── Ordre des tours : frise compacte dans un coin, liste complète au toucher ──
+function turnQueue(B) { // reste du tour courant puis estimation du tour suivant (vitesse)
+  const now = [], seen = new Set();
+  for (let i = Math.max(0, B.turn); i < B.order.length; i++) { const u = unitById(B, B.order[i]); if (u && alive(u) && !seen.has(u)) { now.push(u); seen.add(u); } }
+  const next = [...B.heroes, ...B.enemies].filter(alive).sort((a, b) => effSpd(b) - effSpd(a));
+  return { now, next };
+}
+const ordName = u => esc(u.name.split(/[ ,]/)[0].slice(0, 9));
 function turnOrderHTML() {
   const B = CB.B; if (!B || !B.order) return "";
-  const next = []; for (let i = Math.max(0, B.turn); i < B.order.length && next.length < 7; i++) { const u = unitById(B, B.order[i]); if (u && alive(u)) next.push(u); }
-  return `<div class="cbord">${next.map((u, i) => `<span class="${u.side === "h" ? "h" : "e"} ${i === 0 ? "now" : ""}" title="${esc(u.name)}">${esc(u.name.split(" ")[0].slice(0, 7))}</span>`).join("")}</div>`;
+  const { now, next } = turnQueue(B), q = now.concat(next).slice(0, 4);
+  return `<button class="cbord" data-a="turnOrder" title="Ordre complet">${q.map((u, i) => `${i ? '<i>›</i>' : ""}<span class="${u.side === "h" ? "h" : "e"} ${i === 0 ? "now" : ""}">${ordName(u)}</span>`).join("")}<i class="more">⋯</i></button>`;
 }
+ACT.turnOrder = () => {
+  const B = CB.B; if (!B) return; const { now, next } = turnQueue(B);
+  const row = (u, i, cur) => `<div class="row" style="gap:8px;padding:5px 8px;border-radius:4px;background:${cur ? "#e8c87822" : "#0006"};border-left:3px solid ${u.side === "h" ? "#5a9a4a" : "#b03a3a"}"><b class="tiny" style="width:18px">${i + 1}</b><span style="flex:1" class="small ${u.side === "h" ? "" : "bad"}">${esc(u.name)}${cur ? ' <span class="gold tiny">— joue maintenant</span>' : ""}</span><span class="tiny dim">vitesse ${Math.round(effSpd(u))}</span></div>`;
+  modal(`<h2>${ico("hourglass", "#e8c878")} Ordre de passage</h2><p class="tiny dim">Tour ${B.round} : l'ordre suit la vitesse (avec un peu de hasard), recalculé à chaque tour.</p>
+    <h3>Ce tour-ci</h3><div class="col" style="gap:4px">${now.map((u, i) => row(u, i, i === 0)).join("") || '<p class="tiny dim">Fin du tour.</p>'}</div>
+    <h3 style="margin-top:10px">Tour suivant (estimation)</h3><div class="col" style="gap:4px">${next.map((u, i) => row(u, i, false)).join("")}</div>`);
+};
 // ── Expédition : nuit, duo du compagnon ──
 function nightToggleHTML(E) {
   if (E.region === "abime" || E.daily || E.rush) return "";

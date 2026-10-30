@@ -91,6 +91,9 @@ Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
 
 - Combat (v46) : HUD en haut à gauche `#cb-hud` = frise d'ordre à portraits (`turnOrderHTML`, `unitFace`, toucher = `ordPeek`, ⋯ = `ACT.turnOrder`) + mini-journal (`miniLogHTML`) ; aperçu des ennemis qui jouent encore (`skillPreviewHTML`) ; « Retarder » (`delayTurn`) ; Ralenti/Hâte déplacent dans l'ordre (`reorderBy` via `addSt`) ; panneaux masquables (`S.opts.hud`, Options).
 
+- Nuit du 30 oct. (v47–57) : nombres arrondis (`applyDamage` entier + `cleanNum` / observateur DOM) ; barre d'icônes du Bastion (`hubRailHTML`) ; Bastion portrait (`bg_bastion_port`, `backdrop({img})`, `hubLayout` portrait) ; noms courts sans article (`shortName`) ; correctif écran noir (renforts : `cbLayout` avant dessin, `SC.draw` gardé après erreur) ; bruitages réalistes `audio/gen_combat.py` → `fx_<k>_<n>.mp3`, `sfxVariant`, `SFX_VOL` ; frise à portraits recadrés (`unitFace`), frise/journal réductibles (`S.opts.hudMin`) ; mini-cinématiques (`showScene` plein écran `#cine`, portraits `por_<orateur>.webp`, `ACT.replayScene/replayEnd`) ; bestiaire par chapitre + `LORE` (03x_lore.js) ; Bastion vivant (`bastionLife` : fumées, fenêtres, héros qui flânent) ; carte du monde (`worldMapHTML`, `WMAP`, `bg_worldmap` à peindre) ; fin de l'histoire (`FINALE`, `showFinale`) et nouveaux cycles (`S.cycle`, `cycleFoe`/`cycleLoot`, `startNewCycle`) ; chapitres VII–X (`02yz_chapters.js`, activés quand décor + monstres peints, `08zz_chapters_late.js`).
+- File d'art : /tmp/claude-0/canva/ART3.md (Cimes : 4 monstres faits).
+
 ## Reste à faire (prochaine séance)
 1. Armures palier V à repeindre pour chaque classe (progression cohérente IV → V → VI), sans aura.
 2. Un nouveau gardien inédit par niveau de menace (II à V), avec illustrations.

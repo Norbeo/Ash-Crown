@@ -174,6 +174,7 @@ function rewardFor(run, node, rng = RNG) {
   }
   R.gold = Math.round(R.gold * goldM * diffOf().gold * (run.night ? 1.35 : 1)); R.xp = Math.round(R.xp * (1 + run.threat * .2) * diffOf().xp); R.petXp = Math.round(R.xp * .8);
   R.tome = t === "boss" ? 1 : t === "elite" ? (rng.chance(.22) ? 1 : 0) : t === "treasure" ? (rng.chance(.14) ? 1 : 0) : 0; // tome d'expérience
+  if (typeof cycleLoot === "function" && cycleN()) { const c = cycleLoot(); R.gold = Math.round(R.gold * c); R.xp = Math.round(R.xp * c); }
   return R;
 }
 function randRelic(run, rng = RNG, minR = 0) {
@@ -233,6 +234,7 @@ function endRun(outcome) {
   if (outcome === "victory" && run.region !== "abime" && !run.rush) {
     const p = S.prog[run.region] = S.prog[run.region] || { clears: 0, best: 0 };
     if (!p.clears) res.story = STORY[run.region];
+    if (!p.clears && typeof lastChapter === "function" && run.region === lastChapter()) { res.finale = 1; S.finaleReady = 1; }
     const tm = threatMax(run.region); if (p.clears) p.threat = Math.max(p.threat || 0, run.threat || 0); else p.threat = 0;
     { const bn = run.map[run.map.length - 1][0], bm = bn && bn.enc && bn.enc.find(e => MONSTERS[e.key].boss); (S.beaten = S.beaten || {})[bm ? bm.key : regionById(run.region).boss] = 1; }
     p.clears++; if (threatMax(run.region) > tm) res.threatUp = { region: run.region, t: threatMax(run.region) };

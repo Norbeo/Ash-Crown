@@ -267,7 +267,7 @@ SCREENS.results = {
       ${res.region === "abime" ? `<p class="small" style="text-align:center">Record de l'Abîme : <b>${S.abyss.best}</b></p>` : ""}
       <div class="row" style="justify-content:center;margin-top:12px"><button class="btn main" data-go="bastion">${ico("castle")}Au Bastion</button></div></div></div>`;
   },
-  mount: res => { fillCanvases($("#view"), (c, id) => { const h = heroById(id.split(":")[1]); if (h) paintHero(c, h); }); sfx(res.outcome === "victory" ? "win" : res.outcome === "wipe" ? "lose" : "door"); musicPlay("bastion"); },
+  mount: res => { fillCanvases($("#view"), (c, id) => { const h = heroById(id.split(":")[1]); if (h) paintHero(c, h); }); sfx(res.outcome === "victory" ? "win" : res.outcome === "wipe" ? "lose" : "door"); musicPlay("bastion"); if (res.finale) setTimeout(() => showFinale(), 1800); },
 };
 
 // reprise après rechargement : une salle entamée mais pas terminée est rejouée

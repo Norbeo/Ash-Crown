@@ -2513,6 +2513,7 @@ function rewardFor(run, node, rng = RNG) {
   }
   R.gold = Math.round(R.gold * goldM * diffOf().gold * (run.night ? 1.35 : 1)); R.xp = Math.round(R.xp * (1 + run.threat * .2) * diffOf().xp); R.petXp = Math.round(R.xp * .8);
   R.tome = t === "boss" ? 1 : t === "elite" ? (rng.chance(.22) ? 1 : 0) : t === "treasure" ? (rng.chance(.14) ? 1 : 0) : 0; // tome d'expérience
+  if (typeof cycleLoot === "function" && cycleN()) { const c = cycleLoot(); R.gold = Math.round(R.gold * c); R.xp = Math.round(R.xp * c); }
   return R;
 }
 function randRelic(run, rng = RNG, minR = 0) {
@@ -2572,6 +2573,7 @@ function endRun(outcome) {
   if (outcome === "victory" && run.region !== "abime" && !run.rush) {
     const p = S.prog[run.region] = S.prog[run.region] || { clears: 0, best: 0 };
     if (!p.clears) res.story = STORY[run.region];
+    if (!p.clears && typeof lastChapter === "function" && run.region === lastChapter()) { res.finale = 1; S.finaleReady = 1; }
     const tm = threatMax(run.region); if (p.clears) p.threat = Math.max(p.threat || 0, run.threat || 0); else p.threat = 0;
     { const bn = run.map[run.map.length - 1][0], bm = bn && bn.enc && bn.enc.find(e => MONSTERS[e.key].boss); (S.beaten = S.beaten || {})[bm ? bm.key : regionById(run.region).boss] = 1; }
     p.clears++; if (threatMax(run.region) > tm) res.threatUp = { region: run.region, t: threatMax(run.region) };
@@ -2805,6 +2807,7 @@ function battleFor(run, node, enc) {
   const party = runParty().filter(h => !run.fallen.includes(h.id));
   const D = diffOf(), mods = { hp: D.hp, dmg: D.dmg * (1 + (run.curse || 0) * .1), prot: 0, spd: 0 };
   if (run.night) { mods.hp *= 1.15; mods.dmg *= 1.15; } // expédition de nuit
+  if (typeof cycleFoe === "function") { const c = cycleFoe(); mods.hp *= c; mods.dmg *= c; } // nouveau cycle
   const W = run.weather && WEATHERS[run.weather]; if (W) { if (W.mods.fog) mods.fog = W.mods.fog; if (W.mods.rain) mods.rain = 1; if (W.mods.edmgM) mods.dmg *= 1 + W.mods.edmgM; if (W.mods.espd) mods.spd += W.mods.espd; } // météo
   if (run.region === "abime") { mods.hp *= 1 + run.floor * .04; mods.dmg *= 1 + run.floor * .025; }
   for (const o of run.oaths) { if (o === "sang") mods.dmg *= 1 + OATHS.sang.v; if (o === "fer") mods.hp *= 1 + OATHS.fer.v; if (o === "hate") mods.spd += OATHS.hate.v; if (o === "pierre") mods.prot += OATHS.pierre.v; }
@@ -3257,6 +3260,27 @@ function classChallengeTick(run) { const won = S.classWins = S.classWins || {}, 
     GUARD_MARKS[C.id] = C.mark;
   }
 })();
+
+// ── Fin de l'histoire et nouveaux cycles ──
+const FINALE = [
+  ["narr", "Le dernier gardien tombe. Pour la première fois depuis la chute d'Aldemar, le vent qui souffle sur les ruines ne sent plus la cendre."],
+  ["anselme", "Les fragments… ils se taisent. Tous. La Couronne ne chuchote plus."],
+  ["ysolde", "Alors c'est fini ? On peut rentrer, enterrer nos morts, reconstruire ?"],
+  ["capitaine", "On peut. Pour un temps. J'ai vu trop de guerres finir pour croire qu'une seule le fait vraiment."],
+  ["voix", "Vous avez rassemblé la Couronne. Il fallait bien que quelqu'un le fasse. Merci… porteurs."],
+  ["maugrin", "Vous avez entendu ? Dites-moi que vous n'avez pas entendu."],
+  ["narr", "Sous le Bastion, très loin, quelque chose se retourne dans son sommeil. Les cloches de Morvaine sonnent une fois, toutes seules. Puis elles se taisent."],
+  ["anselme", "Le cycle recommence. Il recommence toujours. Mais cette fois, nous savons ce qui nous attend."],
+];
+const lastChapter = () => REGIONS[REGIONS.length - 1].id;
+const cycleN = () => (typeof S !== "undefined" && S && S.cycle) || 0;
+const cycleFoe = () => 1 + cycleN() * .3;      // ennemis : +30 % de PV et de dégâts par cycle
+const cycleLoot = () => 1 + cycleN() * .25;    // or et expérience : +25 % par cycle
+function startNewCycle() {
+  S.cycle = cycleN() + 1;
+  for (const r of REGIONS) S.prog[r.id] = { clears: 0, threat: 0, best: S.prog[r.id] && S.prog[r.id].best || 0 };
+  S.seenScene = {}; S.finaleReady = 0;
+}
 /* ═══════════════════════ Outils de dessin (effets de combat, lueurs, dégradés) ═══════════════════════
    Tout l'art du jeu est peint (assets/) ; il ne reste ici que les utilitaires des effets. */
 function hexRgb(h) { h = h.replace("#", ""); if (h.length === 3) h = h.split("").map(c => c + c).join(""); const n = parseInt(h, 16); return [n >> 16 & 255, n >> 8 & 255, n & 255]; }
@@ -4765,7 +4789,7 @@ SCREENS.results = {
       ${res.region === "abime" ? `<p class="small" style="text-align:center">Record de l'Abîme : <b>${S.abyss.best}</b></p>` : ""}
       <div class="row" style="justify-content:center;margin-top:12px"><button class="btn main" data-go="bastion">${ico("castle")}Au Bastion</button></div></div></div>`;
   },
-  mount: res => { fillCanvases($("#view"), (c, id) => { const h = heroById(id.split(":")[1]); if (h) paintHero(c, h); }); sfx(res.outcome === "victory" ? "win" : res.outcome === "wipe" ? "lose" : "door"); musicPlay("bastion"); },
+  mount: res => { fillCanvases($("#view"), (c, id) => { const h = heroById(id.split(":")[1]); if (h) paintHero(c, h); }); sfx(res.outcome === "victory" ? "win" : res.outcome === "wipe" ? "lose" : "door"); musicPlay("bastion"); if (res.finale) setTimeout(() => showFinale(), 1800); },
 };
 
 // reprise après rechargement : une salle entamée mais pas terminée est rejouée
@@ -5484,7 +5508,8 @@ ACT.replayScene = k => showScene(k);
 ACT.replayEnd = k => SCENE_END[k] && showScene(null, null, { t: (SCENES[k] ? SCENES[k].t.split(" — ")[0] : "") + " — Épilogue", lines: [["narr", STORY[k] || ""]].concat(SCENE_END[k]), bg: artHas("bg_" + k) ? k : "bastion" });
 function scenesCodexHTML() {
   const seen = S.seenScene || {};
-  return Object.keys(SCENES).filter(k => seen[k]).map(k => `<div class="panel" style="padding:12px;margin-top:10px"><div class="row sp"><h3 style="margin:0">${SCENES[k].t}</h3><span class="row" style="gap:4px"><button class="btn sm" data-a="replayScene" data-v="${k}">▶ Revoir</button>${S.prog[k] && S.prog[k].clears && SCENE_END[k] ? `<button class="btn sm ghost" data-a="replayEnd" data-v="${k}">▶ Épilogue</button>` : ""}</span></div>${SCENES[k].lines.map(sceneLineHTML).join("")}${S.prog[k] && S.prog[k].clears && SCENE_END[k] ? `<div class="sep"></div>${SCENE_END[k].map(sceneLineHTML).join("")}` : ""}</div>`).join("") || '<p class="tiny dim">Les dialogues des chapitres apparaîtront ici au fil de l\'aventure.</p>';
+  const fin = S.finaleReady || cycleN() ? `<div class="panel" style="padding:12px;margin-top:10px;border-color:#c9a24a"><div class="row sp"><b class="gold">${ico("crown", "#e8c878", 16)} Cycle ${roman(cycleN() + 1)}</b><span class="row" style="gap:4px">${S.finaleReady ? '<button class="btn sm" data-a="showFinale">▶ Fin de l\'histoire</button><button class="btn sm gold" data-a="newCycle">Nouveau cycle</button>' : ""}</span></div><div class="tiny dim">Ennemis +${cycleN() * 30} % · or et expérience +${cycleN() * 25} %</div></div>` : "";
+  return fin + Object.keys(SCENES).filter(k => seen[k]).map(k => `<div class="panel" style="padding:12px;margin-top:10px"><div class="row sp"><h3 style="margin:0">${SCENES[k].t}</h3><span class="row" style="gap:4px"><button class="btn sm" data-a="replayScene" data-v="${k}">▶ Revoir</button>${S.prog[k] && S.prog[k].clears && SCENE_END[k] ? `<button class="btn sm ghost" data-a="replayEnd" data-v="${k}">▶ Épilogue</button>` : ""}</span></div>${SCENES[k].lines.map(sceneLineHTML).join("")}${S.prog[k] && S.prog[k].clears && SCENE_END[k] ? `<div class="sep"></div>${SCENE_END[k].map(sceneLineHTML).join("")}` : ""}</div>`).join("") || '<p class="tiny dim">Les dialogues des chapitres apparaîtront ici au fil de l\'aventure.</p>';
 }
 
 // ── Tomes d'expérience : réservés aux héros moins aguerris que le plus haut niveau du roster ──
@@ -5769,6 +5794,18 @@ function worldMapHTML(E, regs) {
   return `<div class="wmap ${artHas("bg_worldmap") ? "img" : ""}"><svg viewBox="0 0 1000 560" preserveAspectRatio="none"><path d="${path}" class="road"/>${cit && ab ? `<path d="M${pos(cit)[0] * 1000},${pos(cit)[1] * 560} L${pos(ab)[0] * 1000},${pos(ab)[1] * 560}" class="road abyss"/>` : ""}</svg>${regs.map(node).join("")}</div>
     ${sel ? `<div class="panel wsel"><div class="tiny dim">${sel.sub}${sel.id === "abime" ? ` · record ${S.abyss.best}` : ` · niveau ${sel.lvl}+`}${p && p.clears ? ` · vaincu ${p.clears} fois` : ""}</div><h3 style="margin:2px 0">${sel.n}</h3><p class="small" style="margin:0">${un ? sel.d : "Terminez le chapitre précédent pour ouvrir la route."}</p></div>` : ""}`;
 }
+
+// ── Fin de l'histoire : cinématique puis proposition d'un nouveau cycle ──
+function showFinale() {
+  showScene(null, () => {
+    modal(`<h2>${ico("crown", "#e8c878")} Fin de l'histoire${cycleN() ? " — cycle " + roman(cycleN() + 1) : ""}</h2><p class="lore">La Couronne est rassemblée. Mais la Cendre n'oublie jamais.</p>
+      <p class="small">Commencer un <b>nouveau cycle</b> : l'histoire recommence au chapitre I, avec ses scènes. Vos héros, bâtiments, objets, compagnons et trophées restent.
+      Les ennemis gagnent <b>+30 % de PV et de dégâts</b> par cycle, l'or et l'expérience <b>+25 %</b>. Vous pouvez aussi le lancer plus tard depuis les Chroniques.</p>
+      <div class="row sp" style="margin-top:10px"><button class="btn ghost" data-a="closeModal">Plus tard</button><button class="btn main" data-a="newCycle">Nouveau cycle ${roman(cycleN() + 2)}</button></div>`);
+  }, { t: "Épilogue — La Couronne rassemblée", lines: FINALE, bg: artHas("bg_" + lastChapter()) ? lastChapter() : "bastion" });
+}
+ACT.newCycle = () => confirmBox(`Commencer le cycle ${roman(cycleN() + 2)} ? La progression des chapitres repart de zéro (les ennemis seront plus forts).`, () => { startNewCycle(); save(); closeModal(); toast(`Cycle ${roman(cycleN() + 1)} : la Cendre se réveille.`, "good"); go("bastion"); }, { yes: "Recommencer" });
+ACT.showFinale = () => showFinale();
 /* ═══════════════════════ Démarrage ═══════════════════════ */
 if (HASWIN) {
   const boot = () => {

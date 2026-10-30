@@ -170,7 +170,8 @@ ACT.replayScene = k => showScene(k);
 ACT.replayEnd = k => SCENE_END[k] && showScene(null, null, { t: (SCENES[k] ? SCENES[k].t.split(" — ")[0] : "") + " — Épilogue", lines: [["narr", STORY[k] || ""]].concat(SCENE_END[k]), bg: artHas("bg_" + k) ? k : "bastion" });
 function scenesCodexHTML() {
   const seen = S.seenScene || {};
-  return Object.keys(SCENES).filter(k => seen[k]).map(k => `<div class="panel" style="padding:12px;margin-top:10px"><div class="row sp"><h3 style="margin:0">${SCENES[k].t}</h3><span class="row" style="gap:4px"><button class="btn sm" data-a="replayScene" data-v="${k}">▶ Revoir</button>${S.prog[k] && S.prog[k].clears && SCENE_END[k] ? `<button class="btn sm ghost" data-a="replayEnd" data-v="${k}">▶ Épilogue</button>` : ""}</span></div>${SCENES[k].lines.map(sceneLineHTML).join("")}${S.prog[k] && S.prog[k].clears && SCENE_END[k] ? `<div class="sep"></div>${SCENE_END[k].map(sceneLineHTML).join("")}` : ""}</div>`).join("") || '<p class="tiny dim">Les dialogues des chapitres apparaîtront ici au fil de l\'aventure.</p>';
+  const fin = S.finaleReady || cycleN() ? `<div class="panel" style="padding:12px;margin-top:10px;border-color:#c9a24a"><div class="row sp"><b class="gold">${ico("crown", "#e8c878", 16)} Cycle ${roman(cycleN() + 1)}</b><span class="row" style="gap:4px">${S.finaleReady ? '<button class="btn sm" data-a="showFinale">▶ Fin de l\'histoire</button><button class="btn sm gold" data-a="newCycle">Nouveau cycle</button>' : ""}</span></div><div class="tiny dim">Ennemis +${cycleN() * 30} % · or et expérience +${cycleN() * 25} %</div></div>` : "";
+  return fin + Object.keys(SCENES).filter(k => seen[k]).map(k => `<div class="panel" style="padding:12px;margin-top:10px"><div class="row sp"><h3 style="margin:0">${SCENES[k].t}</h3><span class="row" style="gap:4px"><button class="btn sm" data-a="replayScene" data-v="${k}">▶ Revoir</button>${S.prog[k] && S.prog[k].clears && SCENE_END[k] ? `<button class="btn sm ghost" data-a="replayEnd" data-v="${k}">▶ Épilogue</button>` : ""}</span></div>${SCENES[k].lines.map(sceneLineHTML).join("")}${S.prog[k] && S.prog[k].clears && SCENE_END[k] ? `<div class="sep"></div>${SCENE_END[k].map(sceneLineHTML).join("")}` : ""}</div>`).join("") || '<p class="tiny dim">Les dialogues des chapitres apparaîtront ici au fil de l\'aventure.</p>';
 }
 
 // ── Tomes d'expérience : réservés aux héros moins aguerris que le plus haut niveau du roster ──
@@ -455,3 +456,15 @@ function worldMapHTML(E, regs) {
   return `<div class="wmap ${artHas("bg_worldmap") ? "img" : ""}"><svg viewBox="0 0 1000 560" preserveAspectRatio="none"><path d="${path}" class="road"/>${cit && ab ? `<path d="M${pos(cit)[0] * 1000},${pos(cit)[1] * 560} L${pos(ab)[0] * 1000},${pos(ab)[1] * 560}" class="road abyss"/>` : ""}</svg>${regs.map(node).join("")}</div>
     ${sel ? `<div class="panel wsel"><div class="tiny dim">${sel.sub}${sel.id === "abime" ? ` · record ${S.abyss.best}` : ` · niveau ${sel.lvl}+`}${p && p.clears ? ` · vaincu ${p.clears} fois` : ""}</div><h3 style="margin:2px 0">${sel.n}</h3><p class="small" style="margin:0">${un ? sel.d : "Terminez le chapitre précédent pour ouvrir la route."}</p></div>` : ""}`;
 }
+
+// ── Fin de l'histoire : cinématique puis proposition d'un nouveau cycle ──
+function showFinale() {
+  showScene(null, () => {
+    modal(`<h2>${ico("crown", "#e8c878")} Fin de l'histoire${cycleN() ? " — cycle " + roman(cycleN() + 1) : ""}</h2><p class="lore">La Couronne est rassemblée. Mais la Cendre n'oublie jamais.</p>
+      <p class="small">Commencer un <b>nouveau cycle</b> : l'histoire recommence au chapitre I, avec ses scènes. Vos héros, bâtiments, objets, compagnons et trophées restent.
+      Les ennemis gagnent <b>+30 % de PV et de dégâts</b> par cycle, l'or et l'expérience <b>+25 %</b>. Vous pouvez aussi le lancer plus tard depuis les Chroniques.</p>
+      <div class="row sp" style="margin-top:10px"><button class="btn ghost" data-a="closeModal">Plus tard</button><button class="btn main" data-a="newCycle">Nouveau cycle ${roman(cycleN() + 2)}</button></div>`);
+  }, { t: "Épilogue — La Couronne rassemblée", lines: FINALE, bg: artHas("bg_" + lastChapter()) ? lastChapter() : "bastion" });
+}
+ACT.newCycle = () => confirmBox(`Commencer le cycle ${roman(cycleN() + 2)} ? La progression des chapitres repart de zéro (les ennemis seront plus forts).`, () => { startNewCycle(); save(); closeModal(); toast(`Cycle ${roman(cycleN() + 1)} : la Cendre se réveille.`, "good"); go("bastion"); }, { yes: "Recommencer" });
+ACT.showFinale = () => showFinale();

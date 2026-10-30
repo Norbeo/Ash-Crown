@@ -78,7 +78,13 @@ const SFX = {
   bell() { tone(196, 3, "sine", .14, { rev: 1 }); tone(392, 2.5, "sine", .05, { rev: 1 }); tone(587, 2, "sine", .03, { rev: 1 }); },
 };
 const SFX_REC = { slash: .8, hit: .9, heavy: 1, crit: 1, shoot: .8, miss: .6, fire: .8, holy: .7, dark: .8, heal: .7, die: .8, coin: .7, door: .8, forge: .8, step: .5, bell: .7, open: .6 };
-function sfx(k) { try { if (SFX_REC[k] != null && sfxOn() && SND.ctx) { const n = "fx_" + k; if (SBUF[n]) { playBuf(n, SFX_REC[k], .93 + Math.random() * .14); return; } sfxLoad(n); } if (SFX[k]) SFX[k](); } catch (e) { } }
+// bruitages de combat enregistrés en plusieurs variantes (fx_<k>_1…n) : on en tire une au hasard, jamais deux fois la même d'affilée
+const SFX_VOL = { slash: .75, hit: 1, heavy: 1, crit: 1, shoot: .85, miss: .6, block: .95, fire: .8, holy: .55, heal: .5, buff: .55, debuff: .45, dark: .6, poison: .7, bleed: .85, die: .9, fall: .7, stun: .8, ult: .8 };
+const SFX_LAST = {};
+function sfxVariant(k) { const L = []; for (let i = 1; i <= 6; i++) if (SFX_SET.has("fx_" + k + "_" + i)) L.push("fx_" + k + "_" + i); if (!L.length) return null; let n = L[Math.floor(Math.random() * L.length)]; if (L.length > 1 && n === SFX_LAST[k]) n = L[(L.indexOf(n) + 1) % L.length]; SFX_LAST[k] = n; return n; }
+function sfx(k) { try { if (SFX_VOL[k] != null && sfxOn() && SND.ctx) { const n = sfxVariant(k); if (n) { if (SBUF[n]) { playBuf(n, SFX_VOL[k], .96 + Math.random() * .08); return; } sfxLoad(n); for (let i = 1; i <= 6; i++) sfxLoad("fx_" + k + "_" + i); } } } catch (e) { }
+  sfx0(k); }
+function sfx0(k) { try { if (SFX_REC[k] != null && sfxOn() && SND.ctx) { const n = "fx_" + k; if (SBUF[n]) { playBuf(n, SFX_REC[k], .93 + Math.random() * .14); return; } sfxLoad(n); } if (SFX[k]) SFX[k](); } catch (e) { } }
 // musique : nappes graves et cloches lentes, en mode mineur
 const MUSIC = { bastion: [110, [0, 3, 7, 10]], combat: [98, [0, 3, 7, 8]], boss: [82, [0, 1, 7, 8]], map: [104, [0, 3, 5, 7]], titre: [110, [0, 3, 7, 12]] };
 function musicPlay(kind) {

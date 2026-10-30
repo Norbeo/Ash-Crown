@@ -13,7 +13,7 @@ function sceneInit() {
   const loop = now => {
     const dt = Math.min(.05, (now - (SC.last || now)) / 1000); SC.last = now; SC.t += dt;
     const x = SC.x; x.setTransform(SC.dpr, 0, 0, SC.dpr, 0, 0);
-    try { if (SC.draw) SC.draw(x, SC.t, dt); else { x.fillStyle = "#07060a"; x.fillRect(0, 0, SC.w, SC.h); } } catch (e) { console.error(e); SC.draw = null; }
+    try { if (SC.draw) SC.draw(x, SC.t, dt); else { x.fillStyle = "#07060a"; x.fillRect(0, 0, SC.w, SC.h); } } catch (e) { console.error(e); if (x.reset) x.reset(); SC.errN = (SC.errN || 0) + 1; if (SC.errN > 120) SC.draw = null; } // une erreur de dessin ne doit plus noircir l'écran
     requestAnimationFrame(loop);
   };
   requestAnimationFrame(loop);

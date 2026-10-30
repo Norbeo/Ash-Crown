@@ -234,7 +234,7 @@ async function playEvents(ev) {
           v.pose = "windup"; v.pt = .25; await wait(170);
           const dx = tgt ? (tgt.x - v.x) * (CB.port && tgt.y !== v.y ? .55 : .62) : (u.side === "h" ? 60 : -60);
           const dy = tgt && CB.port ? (tgt.y - v.y) * .5 : 0;
-          v.off = dx; v.offy = dy; v.pose = "strike"; v.pt = .5; sfx(u.side === "e" && (u.sz || 1) > 1 ? "heavy" : "slash"); CB.shake = .15;
+          v.off = dx; v.offy = dy; v.pose = "strike"; v.pt = .5; sfx(u.side === "e" && (u.sz || 1) > 1 ? "heavy" : u.side === "h" && CLASSES[u.cls] && CLASSES[u.cls].wpn === "arbalete" ? "shoot" : "slash"); CB.shake = .15;
           await wait(120);
         } else if (e.anim === "shoot") {
           v.pose = u.side === "h" ? "strike" : "strike"; v.pt = .45; sfx("shoot");
@@ -266,10 +266,10 @@ async function playEvents(ev) {
         break;
       }
       case "miss": popText(e.u, "Esquive", "#c8c8d8"); sfx("miss"); { const v = V(e.u); if (v) v.kick = (U(e.u) && U(e.u).side === "h" ? -1 : 1) * 22; } await wait(120); break;
-      case "absorb": popText(e.u, "Bloqué " + e.v, "#a0c8ff"); await wait(60); break;
-      case "dot": { const v = V(e.u); popText(e.u, "-" + e.dmg, ST_INFO[e.st].c); if (v) { v.flash = .6; burst(v.x, v.y - 90 * CB.scale, ST_INFO[e.st].c, 8, { up: 120, g: -40 }); } sfx(e.st === "burn" ? "fire" : e.st === "poison" ? "poison" : "hit"); await wait(260); break; }
+      case "absorb": popText(e.u, "Bloqué " + e.v, "#a0c8ff"); sfx("block"); await wait(60); break;
+      case "dot": { const v = V(e.u); popText(e.u, "-" + e.dmg, ST_INFO[e.st].c); if (v) { v.flash = .6; burst(v.x, v.y - 90 * CB.scale, ST_INFO[e.st].c, 8, { up: 120, g: -40 }); } sfx(e.st === "burn" ? "fire" : e.st === "poison" ? "poison" : e.st === "bleed" ? "bleed" : "hit"); await wait(260); break; }
       case "heal": if (e.v > 0) { popText(e.u, "+" + e.v, "#8fe07a"); const v = V(e.u); if (v) burst(v.x, v.y - 80 * CB.scale, "#8fe07a", e.regen ? 5 : 10, { up: 90, g: -60, sp: 60 }); } await wait(e.regen ? 200 : 90); break;
-      case "st": { const u = U(e.u); if (!u) break; const neg = NEG.has(e.st); popText(e.u, ST_INFO[e.st].n, ST_INFO[e.st].c); if (neg && e.st !== "mark") sfx("debuff"); await wait(70); break; }
+      case "st": { const u = U(e.u); if (!u) break; const neg = NEG.has(e.st); popText(e.u, ST_INFO[e.st].n, ST_INFO[e.st].c); if (e.st === "stun") sfx("stun"); else if (neg && e.st !== "mark") sfx("debuff"); await wait(70); break; }
       case "resist": popText(e.u, "Résiste", "#d8d0c0"); await wait(60); break;
       case "stunned": popText(e.u, "Étourdi", "#ffd84a"); await wait(320); break;
       case "cleanse": popText(e.u, "Purifié", "#e8f0ff"); break;
@@ -286,7 +286,7 @@ async function playEvents(ev) {
       case "die": { const v = V(e.u); if (cur && U(cur.u) && U(cur.u).side === "h" && alive(U(cur.u))) bark(cur.u, "kill"); if (v) { v.dying = 1; burst(v.x, v.y - 80 * CB.scale, "#2a1a1a", 20, { add: false, g: 200 }); burst(v.x, v.y - 80 * CB.scale, "#ffb070", 10, { up: 140, g: -30 }); } sfx("die"); await wait(e.boss ? 900 : 380); cbLayout(); break; }
       case "move": cbLayout(); sfx("step"); await wait(200); break;
       case "lastbreath": { const v = V(e.u); if (v) glowAt(v, "#ffd070", 2); popText(e.u, "Dernier souffle !", "#ffd070", true); sfx("ult"); CB.shake = .5; await wait(700); break; }
-      case "summon": { cbLayout(); sfx("dark"); const v = V(e.u); if (v) { v.a = 0; glowAt(v, "#9a3aff", 1.4); } popText(e.u, "Renfort !", "#c89aff", true); await wait(500); break; }
+      case "summon": { cbLayout(); sfx("dark"); const v = V(e.u); if (v) { v.a = 1; v.born = SC.t; glowAt(v, "#9a3aff", 1.4); } popText(e.u, "Renfort !", "#c89aff", true); await wait(500); break; }
       case "morale": if (Math.abs(e.d) >= 8) { const pc = e.d > 0 ? "#ffd27a" : "#ff6a5a"; CB.txt.push({ x: SC.w / 2, y: CB.stageH * .2, text: (e.d > 0 ? "Résolution +" : "Résolution ") + Math.round(e.d), col: pc, t: 0, life: 1.2 }); } cbTopLeft(); break;
       case "phase": sfx("dark"); CB.flash = .8; await showBanner(e.text, "", "#ff4a3a", 1500); break;
       case "pet": { sfx(e.t === "aa" || e.t === "low" ? "heal" : "slash"); CB.petAct = { t: 0, name: e.sk }; await wait(280); break; }
@@ -352,6 +352,7 @@ function drawCombat(x, t, dt) {
   if (!B) { x.restore(); return; }
   // lumière de torche selon la lueur
   const lg = x.createRadialGradient(W * .3, stH * .7, 10, W * .3, stH * .7, W * .8); lg.addColorStop(0, `rgba(255,150,70,${.06 + B.light / 1000})`); lg.addColorStop(1, "rgba(0,0,0,0)"); x.fillStyle = lg; x.fillRect(0, 0, W, stH);
+  if ([...B.heroes, ...B.enemies].some(u => !CB.vis[u.uid])) cbLayout(); // renfort invoqué pas encore placé : on le place avant de dessiner (sinon l'écran devenait noir)
   const units = [...B.heroes, ...B.enemies, ...B.fallen.filter(f => CB.vis[f.uid] && CB.vis[f.uid].a > .02), ...(B.dead || []).filter(d => CB.vis[d.uid] && CB.vis[d.uid].a > .02)];
   units.sort((a, b) => (CB.vis[a.uid].ty || 0) - (CB.vis[b.uid].ty || 0));
   const tg = CB.sel ? CB.sel.tg : [];

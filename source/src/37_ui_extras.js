@@ -245,23 +245,40 @@ function turnQueue(B) { // reste du tour courant puis estimation du tour suivant
 const ordName = u => esc(shortName(u.name));
 const hud = k => !S.opts.hud || S.opts.hud[k] !== 0;
 // mini-portrait : tête du sprite de combat, mise en cache en data URL
-function unitFace(u) {
+function unitFace(u) { // mini-portrait cadré sur la tête (on ignore les armes levées : on cherche la tête au-dessus du torse)
   CB.faces = CB.faces || {}; const k = u.uid + (u.side === "h" ? ":" + ((CB.vis[u.uid] || {}).lookKey || "") : "");
   if (CB.faces[k]) return CB.faces[k];
   try {
     if (!CB.vis[u.uid]) return null; const sp = unitSprite(u, "idle"); if (!sp || sp.blank || !sp.width) return null; const b = spriteBox(sp); if (!b) return null;
-    const d = sp.getContext("2d").getImageData(b.x, b.y, b.w, Math.max(4, Math.round(b.h * .18))).data; let sx = 0, n = 0;
-    for (let y = 0; y < Math.round(b.h * .18); y += 2) for (let x = 0; x < b.w; x += 2) if (d[(y * b.w + x) * 4 + 3] > 40) { sx += x; n++; }
-    const s = Math.round(Math.min(b.w, b.h * (u.side === "h" ? .26 : .34))), cx = b.x + (n ? sx / n : b.w / 2);
-    const c = document.createElement("canvas"); c.width = c.height = 44; const x = c.getContext("2d"); x.fillStyle = u.side === "h" ? "#1a2416" : "#2a1212"; x.fillRect(0, 0, 44, 44);
-    x.drawImage(sp, cx - s / 2, b.y - s * .06, s, s, 0, 0, 44, 44);
+    const W = b.w, H = b.h, d = sp.getContext("2d").getImageData(b.x, b.y, W, H).data, A = (x, y) => d[(y * W + x) * 4 + 3] > 60;
+    let sx, sy, s;
+    if (u.side === "e" && W <= H * 1.15) { // monstre tourné vers la gauche : la tête est la partie haute et avant (à gauche)
+      s = Math.round(Math.min(W, H * (u.sz > 1 ? .34 : .42))); let top = H, left = W;
+      for (let y = 0; y < H * .6; y += 2) for (let x = 0; x < W * .62; x += 2) if (A(x, y)) { top = y; break; }
+      for (let y = 0; y < H * .6 && top === H; y++) {}
+      for (let y = top; y < Math.min(H, top + s); y += 2) for (let x = 0; x < W * .62; x += 2) if (A(x, y)) { if (x < left) left = x; break; }
+      sx = Math.max(0, left - s * .12); sy = Math.max(0, top - s * .06);
+    } else if (W > H * 1.15) { // bête allongée (tournée vers la gauche) : la tête est devant, en haut à gauche
+      s = Math.round(H * .62); let mx = W, top = H; for (let y = 0; y < H * .7; y += 2) for (let x = 0; x < W * .45; x += 2) if (A(x, y)) { if (x < mx) mx = x; if (y < top) top = y; }
+      sx = Math.max(0, mx - s * .05); sy = Math.max(0, top - s * .05);
+    } else {
+      let cx = 0, n = 0; for (let y = Math.round(H * .3); y < H * .65; y += 3) for (let x = 0; x < W; x += 3) if (A(x, y)) { cx += x; n++; } cx = n ? cx / n : W / 2;
+      s = Math.round(Math.min(W, H * (u.side === "h" ? .22 : u.sz > 1 ? .3 : .27))); const band = s * .55;
+      let top = 0; find: for (let y = 0; y < H * .5; y++) { let c = 0; for (let x = Math.max(0, Math.round(cx - band)); x < Math.min(W, cx + band); x += 2) if (A(x, y)) { if (++c > 3) { top = y; break find; } } }
+      let hx = 0, hn = 0; for (let y = top; y < Math.min(H, top + s * .7); y += 2) for (let x = Math.max(0, Math.round(cx - band)); x < Math.min(W, cx + band); x += 2) if (A(x, y)) { hx += x; hn++; }
+      const hc = hn ? hx / hn : cx; sx = hc - s / 2; sy = Math.max(0, top - s * .08);
+    }
+    const c = document.createElement("canvas"); c.width = c.height = 48; const x = c.getContext("2d"); x.fillStyle = u.side === "h" ? "#1a2416" : "#2a1212"; x.fillRect(0, 0, 48, 48);
+    x.drawImage(sp, b.x + sx, b.y + sy, s, s, 0, 0, 48, 48);
     return CB.faces[k] = c.toDataURL();
   } catch (e) { console.warn("face", e); return null; }
 }
+const hudMin = k => !!(S.opts.hudMin && S.opts.hudMin[k]);
+ACT.hudMin = k => { S.opts.hudMin = S.opts.hudMin || {}; S.opts.hudMin[k] = hudMin(k) ? 0 : 1; save(); const o = $("#cb-ord"); if (o) o.innerHTML = turnOrderHTML(); miniLogRefresh(); };
 function turnOrderHTML() {
   const B = CB.B; if (!B || !B.order || !hud("ord")) return "";
-  const { now, next } = turnQueue(B), q = now.concat(next).slice(0, 5), pv = CB.preview || new Set();
-  return `<div class="cbord">${q.map((u, i) => { const f = unitFace(u); return `${i ? '<i>›</i>' : ""}<span class="${u.side === "h" ? "h" : "e"} ${i === 0 ? "now" : ""} ${pv.has(u.uid) && i < now.length ? "pv" : ""}" data-a="ordPeek" data-v="${u.uid}" title="${esc(u.name)}">${f ? `<img src="${f}" alt="">` : ""}<em>${ordName(u)}</em></span>`; }).join("")}<i class="more" data-a="turnOrder" title="Ordre complet">⋯</i></div>`;
+  const { now, next } = turnQueue(B), q = now.concat(next).slice(0, hudMin("ord") ? 1 : 5), pv = CB.preview || new Set();
+  return `<div class="cbord">${q.map((u, i) => { const f = unitFace(u); return `${i ? '<i>›</i>' : ""}<span class="${u.side === "h" ? "h" : "e"} ${i === 0 ? "now" : ""} ${pv.has(u.uid) && i < now.length ? "pv" : ""}" data-a="ordPeek" data-v="${u.uid}" title="${esc(u.name)}">${f ? `<img src="${f}" alt="">` : ""}<em>${ordName(u)}</em></span>`; }).join("")}${hudMin("ord") ? "" : '<i class="more" data-a="turnOrder" title="Ordre complet">⋯</i>'}<i class="min" data-a="hudMin" data-v="ord" title="${hudMin("ord") ? "Agrandir" : "Réduire"}">${hudMin("ord") ? "▸" : "◂"}</i></div>`;
 }
 ACT.ordPeek = id => { const v = V(id), u = U(id); if (!v || !u) return; glowAt(v, u.side === "h" ? "#8ad06a" : "#ff6a4a", 1.3); CB.peek = { id, t: 2 }; popText(id, shortName(u.name), "#ffe08a"); };
 ACT.turnOrder = () => {
@@ -273,7 +290,7 @@ ACT.turnOrder = () => {
 };
 ACT.ordPeekClose = id => { closeModal(); ACT.ordPeek(id); };
 // mini-journal sous la frise
-function miniLogHTML() { if (!hud("log") || !CB.log) return ""; const L = CB.log.slice(-3); return `<div class="cbmlog" data-a="cbLogShow" title="Journal complet">${L.length ? L.map(l => `<div>${l}</div>`).join("") : '<div class="dim">Journal du combat…</div>'}</div>`; }
+function miniLogHTML() { if (!hud("log") || !CB.log) return ""; if (hudMin("log")) return `<div class="cbmlog min"><span data-a="hudMin" data-v="log" title="Afficher le journal">${ico("scroll", "#c8b8a0", 12)} Journal ▸</span></div>`; const L = CB.log.slice(-3); return `<div class="cbmlog"><i class="min" data-a="hudMin" data-v="log" title="Réduire">◂</i><div data-a="cbLogShow" title="Journal complet">${L.length ? L.map(l => `<div>${l}</div>`).join("") : '<div class="dim">Journal du combat…</div>'}</div></div>`; }
 function miniLogRefresh() { const el = $("#cb-mlog"); if (el) el.innerHTML = miniLogHTML(); }
 // aperçu : qui agit encore avant la fin du tour, par rapport à la compétence choisie
 function skillPreviewHTML(u, sk) {

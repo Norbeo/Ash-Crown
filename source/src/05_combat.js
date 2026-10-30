@@ -14,7 +14,7 @@ const ST_INFO = {
 function heroUnit(h, relicH) {
   const s = heroStats(h, relicH), C = CLASSES[h.cls];
   const sk = h.skills.filter(id => skillDef(h, id)).map(id => Object.assign({ id, rank: h.skr[id] || 1 }, skillDef(h, id)));
-  const u = { uid: "H" + h.id, side: "h", hid: h.id, name: h.name, cls: h.cls, tags: ["humain"], sz: 1, hpMax: s.hp, hp: h.hp == null ? s.hp : clamp(h.hp, 0, s.hp),
+  const u = { uid: "H" + h.id, side: "h", hid: h.id, name: h.name, cls: h.cls, tags: ["humain"], sz: 1, hpMax: s.hp, hp: h.hp == null || !Number.isFinite(h.hp) ? s.hp : clamp(h.hp, 0, s.hp),
     dmgLo: s.dmgLo, dmgHi: s.dmgHi, prot: s.prot, spd: s.spd, crit: s.crit, dodge: s.dodge, acc: s.acc, res: s.res, healPow: s.healPow, leech: s.leech, hooks: s.hooks,
     skills: sk, ult: Object.assign({ id: "ult", isUlt: 1 }, heroUlt(h)), ultV: 0, cds: {}, st: [], cheat: s.hooks.cheatDeath || 0, agony: false, role: C.role };
   if (u.hp <= 0) { u.hp = 0; u.agony = true; }
@@ -59,6 +59,7 @@ function newBattle(heroes, enemyKeys, opt = {}) {
 // ── tour par tour ──
 function startRound(B) {
   B.round++;
+  for (const u of B.heroes.concat(B.enemies)) { if (!Number.isFinite(u.hpMax)) u.hpMax = 100; if (!Number.isFinite(u.hp)) u.hp = u.hpMax; } // réparation d'urgence d'un état corrompu
   const all = [...B.heroes, ...B.enemies].filter(alive);
   for (const u of all) u._ini = effSpd(u) + rint(0, 3) + (u.side === "h" ? .5 : 0) + (B.firstRound && B.relicH.firstStrike && u.side === "h" ? 50 : 0);
   B.order = all.sort((a, b) => b._ini - a._ini).map(u => u.uid);
@@ -246,13 +247,13 @@ function strike(B, u, x, sk, mult, ev) {
   return true;
 }
 function counter(B, x, u, mult, ev) {
-  if (!alive(x) || !alive(u)) return;
+  if (!alive(x) || !alive(u) || u.uid === "PET") return; // on ne riposte pas au compagnon (ce n'est pas une unité du combat)
   ev.push({ k: "riposte", u: x.uid, tgt: u.uid });
   let d = (rnd() * (x.dmgHi - x.dmgLo) + x.dmgLo) * mult * (1 - effProt(u));
   applyDamage(B, x, u, Math.max(1, Math.round(d)), ev, {});
 }
 function applyDamage(B, src, x, d, ev, o = {}) {
-  if (!alive(x)) return 0;
+  if (!alive(x) || x.uid === "PET" || !Number.isFinite(d)) return 0; // garde-fou : jamais de PV « NaN » (combat infini)
   // bouclier
   let sh = x.st.filter(s => s.k === "shield");
   for (const s of sh) { const a = Math.min(s.v, d); s.v -= a; d -= a; if (a > 0) ev.push({ k: "absorb", u: x.uid, v: Math.round(a) }); if (s.v <= 0) s.t = 0; }
@@ -279,7 +280,7 @@ function applyDamage(B, src, x, d, ev, o = {}) {
       if (x.agonyN >= 3) { ev.push({ k: "agony", u: x.uid }); lastBreath(B, x, ev); fallHero(B, x, ev, true); } // 3e agonie du combat : le corps lâche
       else { x.agony = true; ev.push({ k: "agony", u: x.uid }); changeMorale(B, -8, ev); } }
     else { x.hp = 0; x.dead = true; B.kills++; ev.push({ k: "die", u: x.uid, boss: x.boss }); B.enemies = B.enemies.filter(e => e !== x); B.dead = (B.dead || []).concat([x]);
-      if (src && src.side === "h") { src.kills = (src.kills || 0) + 1; changeMorale(B, 5 + (src.hooks.killMorale || 0), ev); if (src.hooks.killStealth) addSt(B, src, src, { k: "stealth", t: 1 }, ev); if (B.relicH.killHeal) healUnit(B, src, src, src.hpMax * B.relicH.killHeal, ev); gainUlt(src, 10); }
+      if (src && src.side === "h") { src.kills = (src.kills || 0) + 1; changeMorale(B, 5 + (src.hooks.killMorale || 0), ev); if (src.hooks.killStealth) addSt(B, src, src, { k: "stealth", t: 1 }, ev); if (B.relicH.killHeal && src.uid !== "PET") healUnit(B, src, src, src.hpMax * B.relicH.killHeal, ev); gainUlt(src, 10); }
     }
   } else if (x.phase && !x.phaseDone && x.hp / x.hpMax < x.phase.at) {
     x.phaseDone = true; ev.push({ k: "phase", u: x.uid, text: x.phase.n }); for (const f of x.phase.sfx) x.st.push(Object.assign({}, f));
@@ -303,7 +304,7 @@ function reviveFallen(B, frac, ev) {
   for (const x of B.fallen.splice(0)) { x.fallen = false; x.hp = Math.round(x.hpMax * frac); x.st = []; B.heroes.push(x); ev.push({ k: "revive", u: x.uid }); }
 }
 function healUnit(B, src, x, v, ev, o = {}) {
-  if (!alive(x)) return;
+  if (!alive(x) || x.uid === "PET" || !Number.isFinite(v) || !Number.isFinite(x.hp)) return;
   let h = v * (src && !o.leech ? src.healPow : 1) * (1 + (x.hooks.healTaken || 0));
   if (x.side !== "h" && B.round > 14) h *= .5; // la rage consume aussi les forces de l'ennemi
   h = Math.max(1, Math.round(h));

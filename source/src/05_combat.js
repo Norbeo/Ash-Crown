@@ -69,6 +69,15 @@ function startRound(B) {
   if (B.relicH.roundHeal) for (const h of B.heroes.filter(alive)) healUnit(B, null, h, h.hpMax * B.relicH.roundHeal, []);
   planIntents(B);
 }
+function delayTurn(B, u) { // retarder : rejouer en fin de tour, garde haute
+  const i = B.order.indexOf(u.uid, Math.max(0, B.turn)); if (i < 0) return [];
+  B.order.splice(i, 1); B.order.push(u.uid); B.turn--; u.delayR = B.round; u._redo = 1;
+  const ev = [{ k: "act", u: u.uid, sk: "Retarde son tour", anim: "idle" }]; addSt(B, u, u, { k: "protUp", v: .1, t: 1 }, ev); return ev;
+}
+function reorderBy(B, x, k, u) { // ralenti : recule en fin de tour ; hâte (sur un allié) : joue juste après l'acteur
+  if (!B.order || B.turn < 0) return; const i = B.order.indexOf(x.uid, B.turn + 1); if (i < 0) return;
+  B.order.splice(i, 1); if (k === "spdDn") B.order.push(x.uid); else B.order.splice(B.turn + 1, 0, x.uid);
+}
 function unitById(B, id) { return B.heroes.find(u => u.uid === id) || B.enemies.find(u => u.uid === id); }
 // renvoie l'unité dont c'est le tour (ou null si le tour de table est fini : le compagnon agit puis nouveau tour)
 function nextActor(B) {
@@ -310,6 +319,11 @@ function applyFx(B, u, x, fx, ev, rk = 1) {
   for (const f of fx) addSt(B, u, x, f, ev, rk);
 }
 function addSt(B, u, x, f, ev, rk = 1) {
+  if (!alive(x)) return;
+  if ((f.k === "spdDn" && u && u.side !== x.side) || (f.k === "spdUp" && u && u !== x && u.side === x.side)) { const n0 = x.st.length; addSt0(B, u, x, f, ev, rk); if (x.st.length > n0) reorderBy(B, x, f.k, u); return; }
+  return addSt0(B, u, x, f, ev, rk);
+}
+function addSt0(B, u, x, f, ev, rk = 1) {
   if (!alive(x)) return;
   const neg = NEG.has(f.k);
   if (neg && u && u.side !== x.side) {

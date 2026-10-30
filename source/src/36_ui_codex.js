@@ -41,6 +41,7 @@ SCREENS.options = {
     <div class="row sp"><span>${ico("speed")} Vitesse des combats</span><span>${[1, 2, 3].map(v => `<button class="btn sm ${S.opts.speed === v ? "gold" : "ghost"}" data-a="optSpeed" data-v="${v}">×${v}</button>`).join(" ")}</span></div>
     <div class="row sp"><span>${ico("skull")} Difficulté</span><span>${Object.keys(DIFFS).map(k => `<button class="btn sm ${S.opts.diff === k ? "gold" : "ghost"}" data-a="optDiff" data-v="${k}" ${S.run ? "disabled" : ""}>${DIFFS[k].n}</button>`).join(" ")}</span></div>${S.run ? '<div class="tiny dim" style="text-align:right">Changeable entre deux expéditions.</div>' : ""}
     <label class="row sp"><span>${ico("eye")} Mode apaisé <span class="tiny dim">— sans tremblement ni éclair d'écran</span></span><input type="checkbox" data-opt="calm" ${S.opts.calm ? "checked" : ""}></label>
+    <div class="small" style="margin-top:6px"><b>Combat : panneaux affichés</b></div>${[["ord", "Ordre de passage"], ["log", "Mini-journal"], ["mor", "Résolution et tour"]].map(([k, n]) => `<label class="row sp"><span>${n}</span><input type="checkbox" data-a="hudOpt" data-v="${k}" ${hud(k) ? "checked" : ""}></label>`).join("")}
     <label class="row sp"><span>${ico("speed")} Animations rapides <span class="tiny dim">— enchaîne les actions plus vite</span></span><input type="checkbox" data-opt="quick" ${S.opts.quick ? "checked" : ""}></label>
     <div class="row sp"><span>${ico("skull")} Mode</span><span class="gold">${S.opts.hardcore ? "Hardi (mort définitive)" : "Normal"}</span></div>
     <div class="sep"></div>

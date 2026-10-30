@@ -194,7 +194,8 @@ p{margin:6px 0;line-height:1.45}
 @media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
 ::-webkit-scrollbar{width:8px}::-webkit-scrollbar-thumb{background:#3a2a22;border-radius:4px}::-webkit-scrollbar-track{background:transparent}
 #modal .scnbox{max-height:55vh;overflow:auto}.scn{margin:8px 0;line-height:1.35}
-#cb-ord{position:fixed;left:8px;top:calc(env(safe-area-inset-top) + 50px);z-index:6}.cbord{display:flex;align-items:center;gap:2px;background:#000a;border:1px solid #ffffff1a;border-radius:4px;padding:3px 5px;cursor:pointer;font:inherit;color:inherit}.cbord span{font-size:10px;padding:1px 4px;border-radius:3px;color:#d8c8a8;white-space:nowrap;border:1px solid transparent}.cbord span.h{color:#b8d8a0}.cbord span.e{color:#ffb0a0}.cbord span.now{border-color:#e8c878;color:#ffe08a;background:#e8c87818}.cbord i{font-style:normal;font-size:10px;color:#8a7a60}.cbord i.more{margin-left:3px;color:#e8c878}
+#cb-hud{position:fixed;left:8px;top:calc(env(safe-area-inset-top) + 50px);z-index:6;display:flex;flex-direction:column;gap:3px;max-width:min(330px,60vw)}.cbord{display:flex;align-items:center;gap:2px;background:#000b;border:1px solid #ffffff1a;border-radius:4px;padding:3px 4px;flex-wrap:nowrap}.cbord span{display:flex;flex-direction:column;align-items:center;font-size:9px;line-height:1.1;padding:1px;border-radius:3px;color:#d8c8a8;white-space:nowrap;border:1px solid transparent;cursor:pointer}.cbord span img{width:26px;height:26px;border-radius:3px;border:1px solid #5a9a4a66}.cbord span.e img{border-color:#b03a3a88}.cbord span em{font-style:normal;max-width:44px;overflow:hidden;text-overflow:ellipsis}.cbord span.h em{color:#b8d8a0}.cbord span.e em{color:#ffb0a0}.cbord span.now{border-color:#e8c878;background:#e8c87822}.cbord span.now em{color:#ffe08a}.cbord span.pv{box-shadow:0 0 0 1px #ff4a3a inset;background:#ff3a2a22}.cbord i{font-style:normal;font-size:10px;color:#8a7a60}.cbord i.more{margin-left:3px;color:#e8c878;font-size:14px;padding:0 4px;cursor:pointer}.cbmlog{background:#000a;border:1px solid #ffffff14;border-radius:4px;padding:3px 6px;font-size:10px;line-height:1.35;color:#c8b8a0;cursor:pointer}.cbmlog div{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+@media (max-width:560px){.ctop.l{top:calc(env(safe-area-inset-top) + 46px)}#cb-hud{top:calc(env(safe-area-inset-top) + 92px);max-width:calc(100vw - 16px)}.cbmlog div:not(:last-child){display:none}}
 #cbinfo{position:fixed;z-index:60;background:linear-gradient(#1c1410f2,#0c0806f5);border:1px solid #6a4a2a;border-radius:6px;padding:9px 11px;box-shadow:0 6px 24px #000c;color:var(--txt);font-size:14px;max-height:70vh;overflow:auto}
 #cbinfo .cbi-st{display:flex;gap:8px;align-items:flex-start;margin-top:6px}#cbinfo .cbi-ic{flex:0 0 26px;height:26px;border:1px solid;border-radius:50%;display:flex;align-items:center;justify-content:center;background:#000a}
 #cbinfo .cbi-int{margin-top:6px;padding-top:6px;border-top:1px solid #ffffff14}
@@ -1741,6 +1742,15 @@ function startRound(B) {
   if (B.relicH.roundHeal) for (const h of B.heroes.filter(alive)) healUnit(B, null, h, h.hpMax * B.relicH.roundHeal, []);
   planIntents(B);
 }
+function delayTurn(B, u) { // retarder : rejouer en fin de tour, garde haute
+  const i = B.order.indexOf(u.uid, Math.max(0, B.turn)); if (i < 0) return [];
+  B.order.splice(i, 1); B.order.push(u.uid); B.turn--; u.delayR = B.round; u._redo = 1;
+  const ev = [{ k: "act", u: u.uid, sk: "Retarde son tour", anim: "idle" }]; addSt(B, u, u, { k: "protUp", v: .1, t: 1 }, ev); return ev;
+}
+function reorderBy(B, x, k, u) { // ralenti : recule en fin de tour ; hâte (sur un allié) : joue juste après l'acteur
+  if (!B.order || B.turn < 0) return; const i = B.order.indexOf(x.uid, B.turn + 1); if (i < 0) return;
+  B.order.splice(i, 1); if (k === "spdDn") B.order.push(x.uid); else B.order.splice(B.turn + 1, 0, x.uid);
+}
 function unitById(B, id) { return B.heroes.find(u => u.uid === id) || B.enemies.find(u => u.uid === id); }
 // renvoie l'unité dont c'est le tour (ou null si le tour de table est fini : le compagnon agit puis nouveau tour)
 function nextActor(B) {
@@ -1982,6 +1992,11 @@ function applyFx(B, u, x, fx, ev, rk = 1) {
   for (const f of fx) addSt(B, u, x, f, ev, rk);
 }
 function addSt(B, u, x, f, ev, rk = 1) {
+  if (!alive(x)) return;
+  if ((f.k === "spdDn" && u && u.side !== x.side) || (f.k === "spdUp" && u && u !== x && u.side === x.side)) { const n0 = x.st.length; addSt0(B, u, x, f, ev, rk); if (x.st.length > n0) reorderBy(B, x, f.k, u); return; }
+  return addSt0(B, u, x, f, ev, rk);
+}
+function addSt0(B, u, x, f, ev, rk = 1) {
   if (!alive(x)) return;
   const neg = NEG.has(f.k);
   if (neg && u && u.side !== x.side) {
@@ -3538,12 +3553,12 @@ const GLOSS = {
   vuln: { n: "Vulnérable", ic: "curse", d: "La victime subit +25 % de dégâts." },
   mark: { n: "Marqué", ic: "mark", d: "La cible subit +15 % de dégâts et attire les attaques ; certaines compétences frappent plus fort les cibles marquées." },
   accDn: { n: "Aveuglé", ic: "eye", d: "Précision réduite." },
-  spdDn: { n: "Ralenti", ic: "hourglass", d: "Vitesse réduite : joue plus tard dans le tour." },
+  spdDn: { n: "Ralenti", ic: "hourglass", d: "Vitesse réduite : joue plus tard dans le tour, et recule à la fin de l'ordre du tour en cours s'il n'a pas encore joué." },
   protDn: { n: "Armure brisée", ic: "armor", d: "Protection réduite." },
   dodgeDn: { n: "Exposé", ic: "eye", d: "Esquive réduite." },
   protUp: { n: "Protection accrue", ic: "shield", d: "Protection augmentée pendant quelques tours." },
   dmgUp: { n: "Force", ic: "sword", d: "Dégâts augmentés pendant quelques tours." },
-  spdUp: { n: "Hâte", ic: "wind", d: "Vitesse augmentée pendant quelques tours." },
+  spdUp: { n: "Hâte", ic: "wind", d: "Vitesse augmentée pendant quelques tours. Donnée par un allié, elle le fait jouer juste après celui-ci s'il n'a pas encore joué." },
   dodgeUp: { n: "Esquive accrue", ic: "cloak", d: "Esquive augmentée pendant quelques tours." },
   accUp: { n: "Précision accrue", ic: "aim", d: "Précision augmentée pendant quelques tours." },
   critUp: { n: "Acuité", ic: "star", d: "Chance de critique augmentée pendant quelques tours." },
@@ -4583,7 +4598,7 @@ function cbLayout() {
 SCREENS.combat = {
   noNav: 1, noHud: 1, pass: 1,
   scene: () => drawCombat,
-  html: () => `<div class="ctop l" id="cb-tl"></div><div id="cb-ord"></div><div class="ctop" id="cb-tr"><button class="btn ghost sm" data-a="cbSpeed" title="Vitesse">${ico("speed")}<span id="cb-spd">×${S.opts.speed || 1}</span></button><button class="btn ghost sm ${S.opts.auto ? "on" : ""}" data-a="cbAuto" title="Combat automatique">${ico("auto")}<span id="cb-auto">${S.opts.auto ? "Auto" : "Manuel"}</span></button><button class="btn ghost sm" data-a="cbLogShow" title="Journal du combat">${ico("scroll")}</button><button class="btn ghost sm" data-a="cbFlee" id="cb-flee" title="Fuir">${ico("flee")}</button></div><div id="cbar"><div class="skdesc" id="cb-desc"></div><div class="skills" id="cb-skills"></div></div>`,
+  html: () => `<div class="ctop l" id="cb-tl"></div><div id="cb-hud"><div id="cb-ord"></div><div id="cb-mlog"></div></div><div class="ctop" id="cb-tr"><button class="btn ghost sm" data-a="cbSpeed" title="Vitesse">${ico("speed")}<span id="cb-spd">×${S.opts.speed || 1}</span></button><button class="btn ghost sm ${S.opts.auto ? "on" : ""}" data-a="cbAuto" title="Combat automatique">${ico("auto")}<span id="cb-auto">${S.opts.auto ? "Auto" : "Manuel"}</span></button><button class="btn ghost sm" data-a="cbLogShow" title="Journal du combat">${ico("scroll")}</button><button class="btn ghost sm" data-a="cbFlee" id="cb-flee" title="Fuir">${ico("flee")}</button></div><div id="cbar"><div class="skdesc" id="cb-desc"></div><div class="skills" id="cb-skills"></div></div>`,
   mount: arg => startCombat(arg.node),
   leave: () => { CB.B = null; CB.resolve = null; { const ci = $("#cbinfo"); if (ci) ci.remove(); } const c = $("#coach"); if (c) c.remove(); UI.coach = null; document.querySelectorAll(".coachon").forEach(e => e.classList.remove("coachon")); },
   resize: () => { if (CB.B) { CB.barH = $("#cbar") ? $("#cbar").offsetHeight + 6 : 150; cbLayout(); } },
@@ -4627,6 +4642,7 @@ async function combatLoop() {
         else if (a.potion) ev = usePotion(B, S.run, u, a.tgt);
         else if (a.move) ev = swapHero(B, u, a.move);
         else if (a.pass) ev = [{ k: "act", u: u.uid, sk: "Attend", anim: "idle" }];
+        else if (a.delay) { ev = delayTurn(B, u); }
         else { if (a.sk.isUlt) B.ults = (B.ults || 0) + 1; ev = act(B, u, a.sk, a.tgt); }
         cbBar(null);
         await playEvents(ev);
@@ -4683,6 +4699,7 @@ function selectSkill(sk) {
   const t = sk.t || "e";
   $("#cb-desc").innerHTML = `<b class="gold">${sk.n}</b>${sk.isUlt ? ' <span class="tag" style="color:#ff9a4a">ULTIME</span>' : ""} ${sk.use ? rankPips(sk.use, t === "e" || t === "ae" ? sk.at : null) : ""}<br><span class="small">${skillText(sk, u)}</span><br><span class="tiny dim">${t === "e" || t === "a" ? "Touchez une cible en surbrillance." : "Touchez une cible en surbrillance (ou la compétence à nouveau) pour lancer."}</span>`;
   document.querySelectorAll("#cb-skills .sk").forEach(b => b.classList.toggle("on", b.dataset.v === sk.id));
+  $("#cb-desc").insertAdjacentHTML("beforeend", skillPreviewHTML(u, sk));
 }
 ACT.cbSk = id => {
   const u = CB.actor; if (!u || !CB.resolve) return;
@@ -4694,10 +4711,12 @@ ACT.cbSk = id => {
 ACT.cbPotion = () => { const u = CB.actor; if (!u || !CB.resolve) return; if (S.run.potions <= 0) return toast("Plus de potion.", "bad"); CB.sel = { potion: 1, tg: CB.B.heroes.filter(alive) }; $("#cb-desc").innerHTML = `<b class="gold">Potion de soin</b> (${S.run.potions})<br><span class="small">Soigne 40 % des PV, purge les altérations et sauve de l'agonie. Utilise le tour.</span>`; document.querySelectorAll("#cb-skills .sk").forEach(b => b.classList.toggle("on", b.dataset.v === "potion")); };
 ACT.cbMove = d => { const u = CB.actor; if (!u || !CB.resolve) return; const r = rankOf(CB.B, u), n = CB.B.heroes.length; if ((+d < 0 && r <= 1) || (+d > 0 && r >= n)) return; choose({ move: +d }); };
 ACT.cbPass = () => { if (CB.resolve) choose({ pass: 1 }); };
+ACT.cbDelay = () => { const u = CB.actor; if (!u || !CB.resolve) return; if (u.delayR === CB.B.round) return toast("Déjà retardé ce tour.", "bad"); if (!turnQueue(CB.B).now.slice(1).length) return toast("Personne ne joue après lui ce tour.", "bad"); choose({ delay: 1 }); };
 ACT.cbFlee = () => { if (!CB.resolve) return toast("Attendez votre tour.", "bad"); confirmBox(CB.node && CB.node.type === "boss" ? "Fuir le gardien ? (50 % de réussite) L'expédition s'arrête : vous rentrez au Bastion avec l'or et le butin, sans la victoire." : "Tenter de fuir ? (75 % de réussite, aucune récompense)", () => choose({ flee: 1 }), { yes: "Fuir" }); };
 ACT.cbSpeed = () => { CB.speed = CB.speed >= 3 ? 1 : CB.speed + 1; S.opts.speed = CB.speed; save(); $("#cb-spd").textContent = "×" + CB.speed; };
 ACT.cbAuto = (v, el) => { CB.auto = !CB.auto; S.opts.auto = CB.auto ? 1 : 0; save(); $("#cb-auto").textContent = CB.auto ? "Auto" : "Manuel"; el.classList.toggle("on", CB.auto); if (CB.auto && CB.resolve && CB.actor) choose(autoChoice(CB.actor)); };
 function cbBar(u) {
+  CB.preview = null;
   const box = $("#cb-skills"), d = $("#cb-desc"); if (!box) return;
   if (!u) { box.innerHTML = ""; d.innerHTML = CB.actor && CB.actor.side === "e" ? `<span class="bad">${esc(CB.actor.name)}</span> agit…` : '<span class="dim">…</span>'; return; }
   const B = CB.B, r = rankOf(B, u), n = B.heroes.length;
@@ -4706,13 +4725,15 @@ function cbBar(u) {
     `<button class="sk ${S.run.potions ? "" : "no"}" data-a="cbPotion" data-v="potion">${ico("potion", "#e86a5a")}<span>Potion ×${S.run.potions}</span></button>` +
     `<button class="sk ${r >= n ? "no" : ""}" data-a="cbMove" data-v="1" title="Reculer">${ico("back", "#c8b8a0")}<span>Reculer</span></button>` +
     `<button class="sk ${r <= 1 ? "no" : ""}" data-a="cbMove" data-v="-1" title="Avancer">${ico("charge", "#c8b8a0")}<span>Avancer</span></button>` +
+    `<button class="sk ${u.delayR === B.round ? "no" : ""}" data-a="cbDelay" title="Retarder : rejouer en fin de tour (+10 % de protection)">${ico("hourglass", "#c8b8a0")}<span>Retarder</span></button>` +
     `<button class="sk" data-a="cbPass" title="Passer">${ico("skip", "#9a8c7a")}<span>Passer</span></button>` + petBurstBtn();
   d.innerHTML = `<b>${esc(u.name)}</b> <span class="dim small">${CLASSES[u.cls].n} · rang ${r}</span>`;
   void n;
   CB.barH = $("#cbar").offsetHeight + 6; cbLayout();
 }
 function cbTopLeft() {
-  const B = CB.B, el = $("#cb-tl"); if (!el || !B) return; const ord = $("#cb-ord"); if (ord) ord.innerHTML = turnOrderHTML();
+  const B = CB.B, el = $("#cb-tl"); if (!el || !B) return; const ord = $("#cb-ord"); if (ord) ord.innerHTML = turnOrderHTML(); miniLogRefresh();
+  if (!hud("mor")) { el.innerHTML = ""; return; }
   const mc = B.morale >= 80 ? "#ffd27a" : B.morale <= 20 ? "#ff5a4a" : "#c8b8a0";
   el.innerHTML = `<div class="panel" style="padding:5px 8px;font-size:12px"><div class="row" style="gap:6px;flex-wrap:nowrap"><span data-tip="resolution" style="display:contents">${ico("banner", mc, 16)}</span><div class="bar" style="width:70px"><i style="width:${B.morale}%;background:linear-gradient(${mc},#6a4a2a)"></i></div><span class="gl" data-tip="resolution" style="color:${mc}">${B.morale >= 80 ? "Exaltés" : B.morale <= 20 ? "Ébranlés" : "Résolus"}</span></div><div class="row" style="gap:6px;margin-top:3px;flex-wrap:nowrap"><span class="row" data-tip="lueur" style="gap:4px;flex-wrap:nowrap">${ico("torch", B.light < 30 ? "#ff5a3a" : "#ffb050", 16)}<span class="tiny">${Math.round(B.light)}</span></span><span class="tiny dim">Tour ${B.round}</span></div></div>`;
 }
@@ -5047,6 +5068,7 @@ SCREENS.options = {
     <div class="row sp"><span>${ico("speed")} Vitesse des combats</span><span>${[1, 2, 3].map(v => `<button class="btn sm ${S.opts.speed === v ? "gold" : "ghost"}" data-a="optSpeed" data-v="${v}">×${v}</button>`).join(" ")}</span></div>
     <div class="row sp"><span>${ico("skull")} Difficulté</span><span>${Object.keys(DIFFS).map(k => `<button class="btn sm ${S.opts.diff === k ? "gold" : "ghost"}" data-a="optDiff" data-v="${k}" ${S.run ? "disabled" : ""}>${DIFFS[k].n}</button>`).join(" ")}</span></div>${S.run ? '<div class="tiny dim" style="text-align:right">Changeable entre deux expéditions.</div>' : ""}
     <label class="row sp"><span>${ico("eye")} Mode apaisé <span class="tiny dim">— sans tremblement ni éclair d'écran</span></span><input type="checkbox" data-opt="calm" ${S.opts.calm ? "checked" : ""}></label>
+    <div class="small" style="margin-top:6px"><b>Combat : panneaux affichés</b></div>${[["ord", "Ordre de passage"], ["log", "Mini-journal"], ["mor", "Résolution et tour"]].map(([k, n]) => `<label class="row sp"><span>${n}</span><input type="checkbox" data-a="hudOpt" data-v="${k}" ${hud(k) ? "checked" : ""}></label>`).join("")}
     <label class="row sp"><span>${ico("speed")} Animations rapides <span class="tiny dim">— enchaîne les actions plus vite</span></span><input type="checkbox" data-opt="quick" ${S.opts.quick ? "checked" : ""}></label>
     <div class="row sp"><span>${ico("skull")} Mode</span><span class="gold">${S.opts.hardcore ? "Hardi (mort définitive)" : "Normal"}</span></div>
     <div class="sep"></div>
@@ -5248,7 +5270,7 @@ function cbLog(e) {
   else if (e.k === "fall") l = `<span class="bad">${N(e.u)} tombe</span>`;
   else if (e.k === "die") l = `<span class="good">${N(e.u)} est vaincu</span>`;
   else if (e.k === "pet") l = `<b class="good">Compagnon</b> : ${esc(e.sk)}`;
-  if (l) { CB.log.push((B.round ? `<span class="tiny dim">T${B.round}</span> ` : "") + l); if (CB.log.length > 300) CB.log.shift(); }
+  if (l) { CB.log.push((B.round ? `<span class="tiny dim">T${B.round}</span> ` : "") + l); if (CB.log.length > 300) CB.log.shift(); miniLogRefresh(); }
 }
 ACT.cbLogShow = () => modal(`<h2>${ico("scroll", "#e8c878")} Journal du combat</h2><div class="small" style="max-height:60vh;overflow:auto;line-height:1.45" id="cblogbox">${(CB.log || []).slice(-150).join("<br>") || '<span class="dim">Rien pour l\'instant.</span>'}</div>`, { mount: m => { const b = m.querySelector("#cblogbox"); if (b) b.scrollTop = b.scrollHeight; } });
 
@@ -5297,7 +5319,7 @@ function classChCodexHTML() {
 }
 function showLines(title, lines, done) { showScene(null, done, { t: title, lines }); }
 
-// ── Ordre des tours : frise compacte dans un coin, liste complète au toucher ──
+// ── Ordre des tours : frise compacte dans un coin (portraits), liste complète au toucher ──
 function turnQueue(B) { // reste du tour courant puis estimation du tour suivant (vitesse)
   const now = [], seen = new Set();
   for (let i = Math.max(0, B.turn); i < B.order.length; i++) { const u = unitById(B, B.order[i]); if (u && alive(u) && !seen.has(u)) { now.push(u); seen.add(u); } }
@@ -5305,18 +5327,45 @@ function turnQueue(B) { // reste du tour courant puis estimation du tour suivant
   return { now, next };
 }
 const ordName = u => esc(u.name.split(/[ ,]/)[0].slice(0, 9));
-function turnOrderHTML() {
-  const B = CB.B; if (!B || !B.order) return "";
-  const { now, next } = turnQueue(B), q = now.concat(next).slice(0, 4);
-  return `<button class="cbord" data-a="turnOrder" title="Ordre complet">${q.map((u, i) => `${i ? '<i>›</i>' : ""}<span class="${u.side === "h" ? "h" : "e"} ${i === 0 ? "now" : ""}">${ordName(u)}</span>`).join("")}<i class="more">⋯</i></button>`;
+const hud = k => !S.opts.hud || S.opts.hud[k] !== 0;
+// mini-portrait : tête du sprite de combat, mise en cache en data URL
+function unitFace(u) {
+  CB.faces = CB.faces || {}; const k = u.uid + (u.side === "h" ? ":" + ((CB.vis[u.uid] || {}).lookKey || "") : "");
+  if (CB.faces[k]) return CB.faces[k];
+  try {
+    if (!CB.vis[u.uid]) return null; const sp = unitSprite(u, "idle"); if (!sp || sp.blank || !sp.width) return null; const b = spriteBox(sp); if (!b) return null;
+    const d = sp.getContext("2d").getImageData(b.x, b.y, b.w, Math.max(4, Math.round(b.h * .18))).data; let sx = 0, n = 0;
+    for (let y = 0; y < Math.round(b.h * .18); y += 2) for (let x = 0; x < b.w; x += 2) if (d[(y * b.w + x) * 4 + 3] > 40) { sx += x; n++; }
+    const s = Math.round(Math.min(b.w, b.h * (u.side === "h" ? .26 : .34))), cx = b.x + (n ? sx / n : b.w / 2);
+    const c = document.createElement("canvas"); c.width = c.height = 44; const x = c.getContext("2d"); x.fillStyle = u.side === "h" ? "#1a2416" : "#2a1212"; x.fillRect(0, 0, 44, 44);
+    x.drawImage(sp, cx - s / 2, b.y - s * .06, s, s, 0, 0, 44, 44);
+    return CB.faces[k] = c.toDataURL();
+  } catch (e) { console.warn("face", e); return null; }
 }
+function turnOrderHTML() {
+  const B = CB.B; if (!B || !B.order || !hud("ord")) return "";
+  const { now, next } = turnQueue(B), q = now.concat(next).slice(0, 5), pv = CB.preview || new Set();
+  return `<div class="cbord">${q.map((u, i) => { const f = unitFace(u); return `${i ? '<i>›</i>' : ""}<span class="${u.side === "h" ? "h" : "e"} ${i === 0 ? "now" : ""} ${pv.has(u.uid) && i < now.length ? "pv" : ""}" data-a="ordPeek" data-v="${u.uid}" title="${esc(u.name)}">${f ? `<img src="${f}" alt="">` : ""}<em>${ordName(u)}</em></span>`; }).join("")}<i class="more" data-a="turnOrder" title="Ordre complet">⋯</i></div>`;
+}
+ACT.ordPeek = id => { const v = V(id), u = U(id); if (!v || !u) return; glowAt(v, u.side === "h" ? "#8ad06a" : "#ff6a4a", 1.3); CB.peek = { id, t: 2 }; popText(id, u.name.split(/[ ,]/)[0], "#ffe08a"); };
 ACT.turnOrder = () => {
   const B = CB.B; if (!B) return; const { now, next } = turnQueue(B);
-  const row = (u, i, cur) => `<div class="row" style="gap:8px;padding:5px 8px;border-radius:4px;background:${cur ? "#e8c87822" : "#0006"};border-left:3px solid ${u.side === "h" ? "#5a9a4a" : "#b03a3a"}"><b class="tiny" style="width:18px">${i + 1}</b><span style="flex:1" class="small ${u.side === "h" ? "" : "bad"}">${esc(u.name)}${cur ? ' <span class="gold tiny">— joue maintenant</span>' : ""}</span><span class="tiny dim">vitesse ${Math.round(effSpd(u))}</span></div>`;
-  modal(`<h2>${ico("hourglass", "#e8c878")} Ordre de passage</h2><p class="tiny dim">Tour ${B.round} : l'ordre suit la vitesse (avec un peu de hasard), recalculé à chaque tour.</p>
-    <h3>Ce tour-ci</h3><div class="col" style="gap:4px">${now.map((u, i) => row(u, i, i === 0)).join("") || '<p class="tiny dim">Fin du tour.</p>'}</div>
-    <h3 style="margin-top:10px">Tour suivant (estimation)</h3><div class="col" style="gap:4px">${next.map((u, i) => row(u, i, false)).join("")}</div>`);
+  const row = (u, i, cur) => `<div class="row" style="gap:8px;padding:4px 8px;border-radius:4px;cursor:pointer;background:${cur ? "#e8c87822" : "#0006"};border-left:3px solid ${u.side === "h" ? "#5a9a4a" : "#b03a3a"}" data-a="ordPeekClose" data-v="${u.uid}"><b class="tiny" style="width:16px">${i + 1}</b>${unitFace(u) ? `<img src="${unitFace(u)}" style="width:26px;height:26px;border-radius:3px">` : ""}<span style="flex:1" class="small ${u.side === "h" ? "" : "bad"}">${esc(u.name)}${cur ? ' <span class="gold tiny">— joue maintenant</span>' : ""}</span><span class="tiny dim">vitesse ${Math.round(effSpd(u))}</span></div>`;
+  modal(`<h2>${ico("hourglass", "#e8c878")} Ordre de passage</h2><p class="tiny dim">Tour ${B.round} : l'ordre suit la vitesse (avec un peu de hasard), recalculé à chaque tour. Ralenti : recule en fin de tour · Hâte : joue juste après l'allié actif · « Retarder » : rejouer en fin de tour. Touchez un nom pour le situer sur la scène.</p>
+    <h3>Ce tour-ci</h3><div class="col" style="gap:3px">${now.map((u, i) => row(u, i, i === 0)).join("") || '<p class="tiny dim">Fin du tour.</p>'}</div>
+    <h3 style="margin-top:10px">Tour suivant (estimation)</h3><div class="col" style="gap:3px">${next.map((u, i) => row(u, i, false)).join("")}</div>`);
 };
+ACT.ordPeekClose = id => { closeModal(); ACT.ordPeek(id); };
+// mini-journal sous la frise
+function miniLogHTML() { if (!hud("log") || !CB.log) return ""; const L = CB.log.slice(-3); return `<div class="cbmlog" data-a="cbLogShow" title="Journal complet">${L.length ? L.map(l => `<div>${l}</div>`).join("") : '<div class="dim">Journal du combat…</div>'}</div>`; }
+function miniLogRefresh() { const el = $("#cb-mlog"); if (el) el.innerHTML = miniLogHTML(); }
+// aperçu : qui agit encore avant la fin du tour, par rapport à la compétence choisie
+function skillPreviewHTML(u, sk) {
+  const B = CB.B; if (!B || !hud("ord")) return ""; const { now } = turnQueue(B), rest = now.slice(1), foes = rest.filter(x => x.side === "e");
+  CB.preview = new Set(foes.map(x => x.uid)); const o = $("#cb-ord"); if (o) o.innerHTML = turnOrderHTML();
+  if (!rest.length) return `<br><span class="tiny dim">Dernier à jouer ce tour.</span>`;
+  return `<br><span class="tiny">${foes.length ? `Agissent encore avant la fin du tour : ${foes.map(x => `<b class="bad">${ordName(x)}</b> (${now.indexOf(x) + 1}e)`).join(", ")}` : '<span class="good">Aucun ennemi ne joue plus ce tour.</span>'}</span>`;
+}
 // ── Expédition : nuit, duo du compagnon ──
 function nightToggleHTML(E) {
   if (E.region === "abime" || E.daily || E.rush) return "";
@@ -5380,6 +5429,8 @@ function bondResultsHTML(res) {
     + (res.trophies || []).map(t => `<div class="reward" style="color:var(--gold2)">${ico("trophy", "#e8c878", 22)}<b>Nouveau trophée au Bastion : ${esc(t)} (+1 % de dégâts, +2 % d'or)</b></div>`).join("")
     + (res.bounty ? `<div class="reward" style="color:var(--gold2)">${ico("skull", "#e05050", 22)}<b>Prime encaissée : ${esc(bountyName(res.bounty))} — +${res.bounty.gold} or, +${res.bounty.shards} éclats</b></div>` : "");
 }
+
+ACT.hudOpt = k => { S.opts.hud = S.opts.hud || {}; S.opts.hud[k] = hud(k) ? 0 : 1; save(); };
 /* ═══════════════════════ Démarrage ═══════════════════════ */
 if (HASWIN) {
   const boot = () => {

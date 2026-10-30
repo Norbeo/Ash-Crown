@@ -89,6 +89,8 @@ Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
 
 - `08v_bonds.js` (30 oct., v44) : liens amis/rivaux (`S.bonds`, `bondsAfterRun` après 3 expéditions côte à côte, `applyBonds` dans newBattle, `bondStress`), trophées de gardiens (`S.trophies`, `trophyHooks` dans relicHooks, `ACT.trophies`), prime du jour (`bountyOf`, élite forcée 1 fois sur 2, `ACT.bounty`), météo (`WEATHERS`, `run.weather`, brouillard/pluie/lune rouge dans battleFor), dernier souffle à la 3e agonie (`lastBreath` dans 05_combat).
 
+- Combat (v46) : HUD en haut à gauche `#cb-hud` = frise d'ordre à portraits (`turnOrderHTML`, `unitFace`, toucher = `ordPeek`, ⋯ = `ACT.turnOrder`) + mini-journal (`miniLogHTML`) ; aperçu des ennemis qui jouent encore (`skillPreviewHTML`) ; « Retarder » (`delayTurn`) ; Ralenti/Hâte déplacent dans l'ordre (`reorderBy` via `addSt`) ; panneaux masquables (`S.opts.hud`, Options).
+
 ## Reste à faire (prochaine séance)
 1. Armures palier V à repeindre pour chaque classe (progression cohérente IV → V → VI), sans aura.
 2. Un nouveau gardien inédit par niveau de menace (II à V), avec illustrations.

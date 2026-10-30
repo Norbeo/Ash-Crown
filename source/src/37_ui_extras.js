@@ -186,7 +186,7 @@ function cbLog(e) {
   else if (e.k === "fall") l = `<span class="bad">${N(e.u)} tombe</span>`;
   else if (e.k === "die") l = `<span class="good">${N(e.u)} est vaincu</span>`;
   else if (e.k === "pet") l = `<b class="good">Compagnon</b> : ${esc(e.sk)}`;
-  if (l) { CB.log.push((B.round ? `<span class="tiny dim">T${B.round}</span> ` : "") + l); if (CB.log.length > 300) CB.log.shift(); }
+  if (l) { CB.log.push((B.round ? `<span class="tiny dim">T${B.round}</span> ` : "") + l); if (CB.log.length > 300) CB.log.shift(); miniLogRefresh(); }
 }
 ACT.cbLogShow = () => modal(`<h2>${ico("scroll", "#e8c878")} Journal du combat</h2><div class="small" style="max-height:60vh;overflow:auto;line-height:1.45" id="cblogbox">${(CB.log || []).slice(-150).join("<br>") || '<span class="dim">Rien pour l\'instant.</span>'}</div>`, { mount: m => { const b = m.querySelector("#cblogbox"); if (b) b.scrollTop = b.scrollHeight; } });
 
@@ -235,7 +235,7 @@ function classChCodexHTML() {
 }
 function showLines(title, lines, done) { showScene(null, done, { t: title, lines }); }
 
-// ── Ordre des tours : frise compacte dans un coin, liste complète au toucher ──
+// ── Ordre des tours : frise compacte dans un coin (portraits), liste complète au toucher ──
 function turnQueue(B) { // reste du tour courant puis estimation du tour suivant (vitesse)
   const now = [], seen = new Set();
   for (let i = Math.max(0, B.turn); i < B.order.length; i++) { const u = unitById(B, B.order[i]); if (u && alive(u) && !seen.has(u)) { now.push(u); seen.add(u); } }
@@ -243,18 +243,45 @@ function turnQueue(B) { // reste du tour courant puis estimation du tour suivant
   return { now, next };
 }
 const ordName = u => esc(u.name.split(/[ ,]/)[0].slice(0, 9));
-function turnOrderHTML() {
-  const B = CB.B; if (!B || !B.order) return "";
-  const { now, next } = turnQueue(B), q = now.concat(next).slice(0, 4);
-  return `<button class="cbord" data-a="turnOrder" title="Ordre complet">${q.map((u, i) => `${i ? '<i>›</i>' : ""}<span class="${u.side === "h" ? "h" : "e"} ${i === 0 ? "now" : ""}">${ordName(u)}</span>`).join("")}<i class="more">⋯</i></button>`;
+const hud = k => !S.opts.hud || S.opts.hud[k] !== 0;
+// mini-portrait : tête du sprite de combat, mise en cache en data URL
+function unitFace(u) {
+  CB.faces = CB.faces || {}; const k = u.uid + (u.side === "h" ? ":" + ((CB.vis[u.uid] || {}).lookKey || "") : "");
+  if (CB.faces[k]) return CB.faces[k];
+  try {
+    if (!CB.vis[u.uid]) return null; const sp = unitSprite(u, "idle"); if (!sp || sp.blank || !sp.width) return null; const b = spriteBox(sp); if (!b) return null;
+    const d = sp.getContext("2d").getImageData(b.x, b.y, b.w, Math.max(4, Math.round(b.h * .18))).data; let sx = 0, n = 0;
+    for (let y = 0; y < Math.round(b.h * .18); y += 2) for (let x = 0; x < b.w; x += 2) if (d[(y * b.w + x) * 4 + 3] > 40) { sx += x; n++; }
+    const s = Math.round(Math.min(b.w, b.h * (u.side === "h" ? .26 : .34))), cx = b.x + (n ? sx / n : b.w / 2);
+    const c = document.createElement("canvas"); c.width = c.height = 44; const x = c.getContext("2d"); x.fillStyle = u.side === "h" ? "#1a2416" : "#2a1212"; x.fillRect(0, 0, 44, 44);
+    x.drawImage(sp, cx - s / 2, b.y - s * .06, s, s, 0, 0, 44, 44);
+    return CB.faces[k] = c.toDataURL();
+  } catch (e) { console.warn("face", e); return null; }
 }
+function turnOrderHTML() {
+  const B = CB.B; if (!B || !B.order || !hud("ord")) return "";
+  const { now, next } = turnQueue(B), q = now.concat(next).slice(0, 5), pv = CB.preview || new Set();
+  return `<div class="cbord">${q.map((u, i) => { const f = unitFace(u); return `${i ? '<i>›</i>' : ""}<span class="${u.side === "h" ? "h" : "e"} ${i === 0 ? "now" : ""} ${pv.has(u.uid) && i < now.length ? "pv" : ""}" data-a="ordPeek" data-v="${u.uid}" title="${esc(u.name)}">${f ? `<img src="${f}" alt="">` : ""}<em>${ordName(u)}</em></span>`; }).join("")}<i class="more" data-a="turnOrder" title="Ordre complet">⋯</i></div>`;
+}
+ACT.ordPeek = id => { const v = V(id), u = U(id); if (!v || !u) return; glowAt(v, u.side === "h" ? "#8ad06a" : "#ff6a4a", 1.3); CB.peek = { id, t: 2 }; popText(id, u.name.split(/[ ,]/)[0], "#ffe08a"); };
 ACT.turnOrder = () => {
   const B = CB.B; if (!B) return; const { now, next } = turnQueue(B);
-  const row = (u, i, cur) => `<div class="row" style="gap:8px;padding:5px 8px;border-radius:4px;background:${cur ? "#e8c87822" : "#0006"};border-left:3px solid ${u.side === "h" ? "#5a9a4a" : "#b03a3a"}"><b class="tiny" style="width:18px">${i + 1}</b><span style="flex:1" class="small ${u.side === "h" ? "" : "bad"}">${esc(u.name)}${cur ? ' <span class="gold tiny">— joue maintenant</span>' : ""}</span><span class="tiny dim">vitesse ${Math.round(effSpd(u))}</span></div>`;
-  modal(`<h2>${ico("hourglass", "#e8c878")} Ordre de passage</h2><p class="tiny dim">Tour ${B.round} : l'ordre suit la vitesse (avec un peu de hasard), recalculé à chaque tour.</p>
-    <h3>Ce tour-ci</h3><div class="col" style="gap:4px">${now.map((u, i) => row(u, i, i === 0)).join("") || '<p class="tiny dim">Fin du tour.</p>'}</div>
-    <h3 style="margin-top:10px">Tour suivant (estimation)</h3><div class="col" style="gap:4px">${next.map((u, i) => row(u, i, false)).join("")}</div>`);
+  const row = (u, i, cur) => `<div class="row" style="gap:8px;padding:4px 8px;border-radius:4px;cursor:pointer;background:${cur ? "#e8c87822" : "#0006"};border-left:3px solid ${u.side === "h" ? "#5a9a4a" : "#b03a3a"}" data-a="ordPeekClose" data-v="${u.uid}"><b class="tiny" style="width:16px">${i + 1}</b>${unitFace(u) ? `<img src="${unitFace(u)}" style="width:26px;height:26px;border-radius:3px">` : ""}<span style="flex:1" class="small ${u.side === "h" ? "" : "bad"}">${esc(u.name)}${cur ? ' <span class="gold tiny">— joue maintenant</span>' : ""}</span><span class="tiny dim">vitesse ${Math.round(effSpd(u))}</span></div>`;
+  modal(`<h2>${ico("hourglass", "#e8c878")} Ordre de passage</h2><p class="tiny dim">Tour ${B.round} : l'ordre suit la vitesse (avec un peu de hasard), recalculé à chaque tour. Ralenti : recule en fin de tour · Hâte : joue juste après l'allié actif · « Retarder » : rejouer en fin de tour. Touchez un nom pour le situer sur la scène.</p>
+    <h3>Ce tour-ci</h3><div class="col" style="gap:3px">${now.map((u, i) => row(u, i, i === 0)).join("") || '<p class="tiny dim">Fin du tour.</p>'}</div>
+    <h3 style="margin-top:10px">Tour suivant (estimation)</h3><div class="col" style="gap:3px">${next.map((u, i) => row(u, i, false)).join("")}</div>`);
 };
+ACT.ordPeekClose = id => { closeModal(); ACT.ordPeek(id); };
+// mini-journal sous la frise
+function miniLogHTML() { if (!hud("log") || !CB.log) return ""; const L = CB.log.slice(-3); return `<div class="cbmlog" data-a="cbLogShow" title="Journal complet">${L.length ? L.map(l => `<div>${l}</div>`).join("") : '<div class="dim">Journal du combat…</div>'}</div>`; }
+function miniLogRefresh() { const el = $("#cb-mlog"); if (el) el.innerHTML = miniLogHTML(); }
+// aperçu : qui agit encore avant la fin du tour, par rapport à la compétence choisie
+function skillPreviewHTML(u, sk) {
+  const B = CB.B; if (!B || !hud("ord")) return ""; const { now } = turnQueue(B), rest = now.slice(1), foes = rest.filter(x => x.side === "e");
+  CB.preview = new Set(foes.map(x => x.uid)); const o = $("#cb-ord"); if (o) o.innerHTML = turnOrderHTML();
+  if (!rest.length) return `<br><span class="tiny dim">Dernier à jouer ce tour.</span>`;
+  return `<br><span class="tiny">${foes.length ? `Agissent encore avant la fin du tour : ${foes.map(x => `<b class="bad">${ordName(x)}</b> (${now.indexOf(x) + 1}e)`).join(", ")}` : '<span class="good">Aucun ennemi ne joue plus ce tour.</span>'}</span>`;
+}
 // ── Expédition : nuit, duo du compagnon ──
 function nightToggleHTML(E) {
   if (E.region === "abime" || E.daily || E.rush) return "";
@@ -318,3 +345,5 @@ function bondResultsHTML(res) {
     + (res.trophies || []).map(t => `<div class="reward" style="color:var(--gold2)">${ico("trophy", "#e8c878", 22)}<b>Nouveau trophée au Bastion : ${esc(t)} (+1 % de dégâts, +2 % d'or)</b></div>`).join("")
     + (res.bounty ? `<div class="reward" style="color:var(--gold2)">${ico("skull", "#e05050", 22)}<b>Prime encaissée : ${esc(bountyName(res.bounty))} — +${res.bounty.gold} or, +${res.bounty.shards} éclats</b></div>` : "");
 }
+
+ACT.hudOpt = k => { S.opts.hud = S.opts.hud || {}; S.opts.hud[k] = hud(k) ? 0 : 1; save(); };

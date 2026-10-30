@@ -7,6 +7,7 @@ const ART_SET = new Set(typeof window !== "undefined" && window.ART_LIST ? windo
 // images tournées vers la gauche à retourner (héros : face à droite ; monstres : face à droite avant le miroir du combat)
 const ART_FLIP = new Set(typeof window !== "undefined" && window.ART_FLIP ? window.ART_FLIP : []);
 // part de l'image au-dessus de la tête (bâton, arme levée) : tous les héros ont la même taille de corps
+const ART_CX = typeof window !== "undefined" && window.ART_CX ? window.ART_CX : {};
 const ART_META = typeof window !== "undefined" && window.ART_META ? window.ART_META : {};
 function artHas(n) { return ART_SET.has(n); }
 function artImg(n) {
@@ -87,7 +88,7 @@ function imgSprite(im, o) {
   if (p.agony) { rot = .22; dy = 10 * sc; sy = .82; }
   if (p.cast) { dy -= 4 * sc; sx = 1.02; }
   x.save(); x.translate(ax + dx, ay + dy); x.rotate(rot); x.scale(sx * (o.flip ? -1 : 1), sy);
-  x.drawImage(im, -iw / 2, -ih, iw, ih);
+  x.drawImage(im, -iw * (o.cx || .5), -ih, iw, ih); // o.cx : centre du corps (art/cx.json), pas celui de l'image (bras ou arme tendus)
   x.restore();
   if (o.hue) { const cp = document.createElement("canvas"); cp.width = W; cp.height = H; cp.getContext("2d").drawImage(x.canvas, 0, 0); x.save(); x.globalCompositeOperation = "color"; x.fillStyle = o.hue; x.fillRect(0, 0, W, H); x.globalCompositeOperation = "destination-in"; x.drawImage(cp, 0, 0); x.restore(); } // tenue : recoloration qui garde les ombres
   if (o.tint) { x.save(); x.globalCompositeOperation = "source-atop"; x.fillStyle = o.tint; x.fillRect(0, 0, W, H); x.restore(); }
@@ -108,18 +109,18 @@ function heroImgSprite(L, pose, sc, o = {}) {
   const im = heroArt(L); if (!im) return null;
   const hurt = pose.lean < -.25 && pose.hx < 0, agony = pose.hy > 15;
   const nm = heroArtName(L), evoArt = nm.indexOf("_t") < 0 || !/_t\d$/.test(nm);
-  return imgSprite(im, { sc, h: 182, maxW: 260, top: ART_META[nm] || ART_META["hero_" + L.cls + "_t3"] || 0, flip: ART_FLIP.has(nm), aura: evoArt && !L.apex ? null : evoAura(L), auraA: L.apex ? .45 : .28,
+  return imgSprite(im, { sc, cx: ART_CX[nm], h: 182, maxW: 260, top: ART_META[nm] || ART_META["hero_" + L.cls + "_t3"] || 0, flip: ART_FLIP.has(nm), aura: evoArt && !L.apex ? null : evoAura(L), auraA: L.apex ? .45 : .28,
     pose: Object.assign({}, pose, { agony, cast: pose.free || pose.aBs > 1.5 }), tint: o.tint || (agony ? "rgba(70,8,8,.38)" : hurt ? "rgba(160,20,20,.16)" : null), hue: L.tint || null });
 }
 function monImgSprite(key, pose, sc) {
   const M = MONSTERS[key] || {}, n = "mon_" + (M.art || key), im = artImg(n); if (!im) return null;
   const big = (M.sz || 1) > 1, f = pose.fig || {};
-  return imgSprite(im, { sc, h: MON_H[M.art || key] || (M.elite ? 225 : 190), maxW: big ? 300 : (M.elite ? 175 : 140), flip: !ART_FLIP.has(n),
+  return imgSprite(im, { sc, cx: ART_CX[n], h: MON_H[M.art || key] || (M.elite ? 225 : 190), maxW: big ? 300 : (M.elite ? 175 : 140), flip: !ART_FLIP.has(n),
     pose: { atk: pose.atk, lean: f.lean, hx: f.hx }, tint: f.lean < 0 ? "rgba(170,20,20,.16)" : null });
 }
 function petImgSprite(id, o, sc) {
   const n = "pet_" + id + (o.evo ? "_evo" : ""), im = artImg(n) || artImg("pet_" + id); if (!im) return null;
-  return imgSprite(im, { sc, h: (PET_H[id] || 100) * (o.evo ? 1.25 : 1), maxW: o.evo ? 150 : 120, flip: ART_FLIP.has(n), pose: { atk: o.atk }, aura: o.evo ? "#e8c070" : null, auraA: .18 });
+  return imgSprite(im, { sc, cx: ART_CX[artHas(n) ? n : "pet_" + id], h: (PET_H[id] || 100) * (o.evo ? 1.25 : 1), maxW: o.evo ? 150 : 120, flip: ART_FLIP.has(n), pose: { atk: o.atk }, aura: o.evo ? "#e8c070" : null, auraA: .18 });
 }
 // fond de région peint : recadré en 16/9 (la ligne de sol reste dans le tiers bas)
 function regionArt(id, w, h) {

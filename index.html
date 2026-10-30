@@ -201,6 +201,20 @@ p{margin:6px 0;line-height:1.45}
 #cbinfo{position:fixed;z-index:60;background:linear-gradient(#1c1410f2,#0c0806f5);border:1px solid #6a4a2a;border-radius:6px;padding:9px 11px;box-shadow:0 6px 24px #000c;color:var(--txt);font-size:14px;max-height:70vh;overflow:auto}
 #cbinfo .cbi-st{display:flex;gap:8px;align-items:flex-start;margin-top:6px}#cbinfo .cbi-ic{flex:0 0 26px;height:26px;border:1px solid;border-radius:50%;display:flex;align-items:center;justify-content:center;background:#000a}
 #cbinfo .cbi-int{margin-top:6px;padding-top:6px;border-top:1px solid #ffffff14}
+#cine{position:fixed;inset:0;z-index:90;background:#000;overflow:hidden;cursor:pointer;animation:cinein .7s ease}#cine.out{animation:cineout .6s ease forwards}@keyframes cinein{from{opacity:0}}@keyframes cineout{to{opacity:0}}
+.cinebg{position:absolute;inset:-4%;background-size:cover;background-position:center;animation:kenburns 26s ease-in-out infinite alternate}@keyframes kenburns{0%{transform:scale(1.12) translate(-1.5%,1%)}100%{transform:scale(1.0) translate(1.5%,-1%)}}
+.cinevig{position:absolute;inset:0;background:radial-gradient(ellipse at 50% 45%,transparent 30%,#000c 85%),linear-gradient(transparent 50%,#000d)}
+.cineash{position:absolute;inset:0;background-image:radial-gradient(1.5px 1.5px at 20% 30%,#ff9a4a,transparent),radial-gradient(1px 1px at 70% 60%,#ffb070,transparent),radial-gradient(1.5px 1.5px at 40% 80%,#ff7a3a,transparent),radial-gradient(1px 1px at 85% 20%,#ffd090,transparent);background-size:300px 300px;animation:ash 14s linear infinite;opacity:.6}@keyframes ash{to{background-position:60px -300px,-40px -300px,30px -300px,-60px -300px}}
+.cinebar{position:absolute;left:0;right:0;height:9vh;background:#000;z-index:2}.cinebar.t{top:0;animation:bart 1s ease}.cinebar.b{bottom:0;animation:barb 1s ease}@keyframes bart{from{transform:translateY(-100%)}}@keyframes barb{from{transform:translateY(100%)}}
+.cinetitle{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:3;text-align:center;transition:opacity .8s;background:#0006}.cinetitle.gone{opacity:0;pointer-events:none}.cinetitle .sub{font-size:13px;letter-spacing:.4em;text-transform:uppercase;color:#c8b8a0;animation:fadeup 1.2s ease}.cinetitle .main{font-family:'Cinzel',serif;font-size:clamp(26px,6vw,54px);color:#e8c878;text-shadow:0 0 24px #ff7a2a66,0 2px 4px #000;animation:fadeup 1.6s ease;margin-top:6px}@keyframes fadeup{from{opacity:0;transform:translateY(14px)}}
+.cinedlg{position:absolute;left:50%;bottom:calc(9vh + 14px);transform:translateX(-50%);width:min(860px,calc(100vw - 24px));display:flex;gap:14px;align-items:flex-end;z-index:4;opacity:0}.cinedlg.in{animation:dlgin .45s ease forwards}@keyframes dlgin{from{opacity:0;transform:translate(-50%,10px)}to{opacity:1;transform:translate(-50%,0)}}
+.cinedlg.r{flex-direction:row-reverse}.cinedlg.r .cinetxt{text-align:right}
+.cinepor{width:clamp(90px,18vw,170px);height:clamp(110px,22vw,210px);object-fit:cover;object-position:top;border:1px solid #e8c87855;border-radius:4px;box-shadow:0 6px 24px #000c;flex:none;animation:porin .5s ease}@keyframes porin{from{opacity:0;transform:scale(.94)}}
+.cinepor.sil{display:flex;align-items:center;justify-content:center;background:radial-gradient(circle at 50% 35%,color-mix(in srgb,var(--c) 30%,#000) 0,#0a0808 70%);font-family:'Cinzel',serif;font-size:42px;color:var(--c)}
+.cinetxt{flex:1;background:linear-gradient(#0a0808ee,#140e0cee);border:1px solid #e8c87833;border-radius:4px;padding:12px 16px;box-shadow:0 6px 24px #000c}.cinetxt b{font-family:'Cinzel',serif;font-size:15px;letter-spacing:.05em}.cinetxt p,.cinedlg.narr p{margin:6px 0 0;font-size:clamp(15px,2.2vw,19px);line-height:1.45;color:#e8dcc8;min-height:2.9em}
+.cinedlg.narr{justify-content:center}.cinedlg.narr p{font-style:italic;text-align:center;color:#d8c8a8;text-shadow:0 2px 6px #000;max-width:720px;background:#000a;padding:12px 18px;border-radius:4px}
+.cinedlg.voix .cinetxt{border-color:#b08aff66;box-shadow:0 0 30px #7a4aff44}#cine.shake .cinebg{animation:kenburns 26s ease-in-out infinite alternate,cshake .5s}@keyframes cshake{25%{margin-left:-6px}50%{margin-left:5px}75%{margin-left:-3px}}
+.cineskip{position:absolute;top:calc(9vh + 10px);right:12px;z-index:5}
 </style>
 </head><body>
 <canvas id="scene"></canvas>
@@ -4636,7 +4650,7 @@ SCREENS.results = {
     const T = { victory: ["Victoire", "Le gardien est tombé. Vos héros rentrent, couverts de gloire et de sang."], retreat: ["Retraite", "Vous rentrez avant que la nuit ne vous dévore."], wipe: ["Déroute", "Personne n'est resté debout. Vos héros sont ramenés au Bastion par des inconnus… sans leur butin."] }[res.outcome];
     return `<div class="wrap" style="max-width:640px"><div class="panel frame" style="margin-top:10px"><span class="corner c1"></span><span class="corner c2"></span><span class="corner c3"></span><span class="corner c4"></span>
       <h1 style="text-align:center;color:${res.outcome === "wipe" ? "#ff6a5a" : res.outcome === "victory" ? "var(--gold2)" : "var(--txt)"}">${T[0]}</h1><p class="lore" style="text-align:center">${T[1]}</p>
-      ${res.story ? `<div class="storybox" style="font-size:16px;padding:6px 10px">${res.story}</div>${(SCENE_END[res.region] || []).map(sceneLineHTML).join("")}` : ""}
+      ${res.story ? `<div class="storybox" style="font-size:16px;padding:6px 10px">${res.story}</div>${SCENE_END[res.region] ? `<button class="btn sm" style="margin-top:6px" data-a="replayEnd" data-v="${res.region}">▶ Voir l'épilogue</button>` : ""}` : ""}
       <div class="reward">${ico("coin", "#e8c060", 22)}<b>+${res.gold} or</b>${res.outcome === "wipe" ? ' <span class="tiny bad">(moitié perdue)</span>' : ""}</div>
       ${res.shards ? `<div class="reward">${ico("shard", "#c090ff", 22)}<b>+${res.shards} éclats de couronne</b></div>` : ""}
       ${res.mats.fer || res.mats.essence || res.mats.cendre ? `<div class="reward">${ico("iron", "#a8a8a8", 22)}${res.mats.fer} ferraille · ${res.mats.essence} essence${res.mats.cendre ? " · " + res.mats.cendre + " cendre royale" : ""}</div>` : ""}
@@ -5331,22 +5345,44 @@ document.addEventListener("pointerdown", e => { const el = $("#cbinfo"); if (el 
 
 // ── Histoire : scène dialoguée avant chaque chapitre ──
 function sceneLineHTML([sp, txt]) { const P = SPEAKERS[sp] || SPEAKERS.narr; return P.n ? `<p class="scn"><b style="color:${P.c}">${P.n}</b><br>« ${txt} »</p>` : `<p class="scn lore">${txt}</p>`; }
+// ── Mini-cinématiques de l'histoire : décor qui s'anime (lent zoom), bandes noires, carton-titre, portraits, texte qui s'écrit ──
+const SCENE_BG = { bastion: "bastion" };
+function scenePortrait(sp) {
+  const P = SPEAKERS[sp] || SPEAKERS.narr, has = typeof artHas === "function" && artHas("por_" + sp);
+  return has ? `<img class="cinepor" src="assets/por_${sp}.webp" alt="">` : `<div class="cinepor sil" style="--c:${P.c}"><span>${esc((P.n || "?").replace(/^(Frère|Le|La) /, "")[0])}</span></div>`;
+}
 function showScene(reg, done, custom) {
   const Sc = custom || SCENES[reg]; if (!Sc) return done && done();
   if (reg) { (S.seenScene = S.seenScene || {})[reg] = 1; save(); }
-  let i = 0;
-  const step = () => {
-    const shown = Sc.lines.slice(0, i + 1).map(sceneLineHTML).join(""), last = i >= Sc.lines.length - 1;
-    modal(`<h2>${ico("scroll", "#e8c878")} ${Sc.t}</h2><div class="scnbox">${shown}</div><div class="row sp" style="margin-top:10px"><button class="btn ghost sm" data-a="sceneSkip">Passer</button><button class="btn main" data-a="sceneNext">${last ? "En route" : "Suite"}</button></div>`, { close: false, outside: () => ACT.sceneNext() });
-    const b = $("#modal .scnbox"); if (b) b.scrollTop = b.scrollHeight;
+  const bgk = Sc.bg || (reg && artHas("bg_" + reg) ? reg : "bastion"), old = $("#cine"); if (old) old.remove();
+  const el = document.createElement("div"); el.id = "cine";
+  el.innerHTML = `<div class="cinebg" style="background-image:url(assets/bg_${bgk}.webp)"></div><div class="cinevig"></div><div class="cineash"></div><div class="cinebar t"></div><div class="cinebar b"></div>
+    <div class="cinetitle"><div class="sub">${esc((Sc.t || "").split(" — ")[0])}</div><div class="main">${esc((Sc.t || "").split(" — ")[1] || "")}</div></div>
+    <div class="cinedlg"></div><button class="btn ghost sm cineskip">Passer ⏭</button>`;
+  document.body.appendChild(el);
+  try { sfx("bell"); } catch (e) { }
+  let i = -1, typing = null, full = "", tt = null;
+  const end = () => { clearInterval(typing); clearTimeout(tt); el.classList.add("out"); setTimeout(() => { el.remove(); done && done(); }, 600); };
+  const show = () => {
+    i++; if (i >= Sc.lines.length) return end();
+    const [sp, txt] = Sc.lines[i], P = SPEAKERS[sp] || SPEAKERS.narr, narr = !P.n, side = narr ? "" : (Sc._side = Sc._side || {}, Sc._side[sp] = Sc._side[sp] != null ? Sc._side[sp] : Object.keys(Sc._side).length % 2, Sc._side[sp] ? "r" : "l");
+    const D = el.querySelector(".cinedlg");
+    D.className = "cinedlg in " + (narr ? "narr" : side) + (sp === "voix" ? " voix" : "");
+    D.innerHTML = narr ? `<p class="txt"></p>` : `${scenePortrait(sp)}<div class="cinetxt"><b style="color:${P.c}">${esc(P.n)}</b><p class="txt"></p></div>`;
+    full = narr ? txt : "« " + txt + " »"; const T = D.querySelector(".txt"); let k = 0; clearInterval(typing);
+    typing = setInterval(() => { k += 2; T.textContent = full.slice(0, k); if (k >= full.length) { clearInterval(typing); typing = null; } }, 22);
+    if (sp === "voix") { el.classList.add("shake"); setTimeout(() => el.classList.remove("shake"), 600); }
   };
-  ACT.sceneNext = () => { if (i >= Sc.lines.length - 1) { closeModal(); done && done(); } else { i++; step(); } };
-  ACT.sceneSkip = () => { closeModal(); done && done(); };
-  step();
+  const next = () => { if (typing) { clearInterval(typing); typing = null; el.querySelector(".cinedlg .txt").textContent = full; return; } show(); };
+  el.addEventListener("click", e => { if (e.target.closest(".cineskip")) return end(); next(); });
+  tt = setTimeout(() => { el.querySelector(".cinetitle").classList.add("gone"); show(); }, 2300);
+  el.querySelector(".cinetitle").addEventListener("click", e => { e.stopPropagation(); clearTimeout(tt); el.querySelector(".cinetitle").classList.add("gone"); show(); });
 }
+ACT.replayScene = k => showScene(k);
+ACT.replayEnd = k => SCENE_END[k] && showScene(null, null, { t: (SCENES[k] ? SCENES[k].t.split(" — ")[0] : "") + " — Épilogue", lines: [["narr", STORY[k] || ""]].concat(SCENE_END[k]), bg: artHas("bg_" + k) ? k : "bastion" });
 function scenesCodexHTML() {
   const seen = S.seenScene || {};
-  return Object.keys(SCENES).filter(k => seen[k]).map(k => `<div class="panel" style="padding:12px;margin-top:10px"><h3>${SCENES[k].t}</h3>${SCENES[k].lines.map(sceneLineHTML).join("")}${S.prog[k] && S.prog[k].clears && SCENE_END[k] ? `<div class="sep"></div>${SCENE_END[k].map(sceneLineHTML).join("")}` : ""}</div>`).join("") || '<p class="tiny dim">Les dialogues des chapitres apparaîtront ici au fil de l\'aventure.</p>';
+  return Object.keys(SCENES).filter(k => seen[k]).map(k => `<div class="panel" style="padding:12px;margin-top:10px"><div class="row sp"><h3 style="margin:0">${SCENES[k].t}</h3><span class="row" style="gap:4px"><button class="btn sm" data-a="replayScene" data-v="${k}">▶ Revoir</button>${S.prog[k] && S.prog[k].clears && SCENE_END[k] ? `<button class="btn sm ghost" data-a="replayEnd" data-v="${k}">▶ Épilogue</button>` : ""}</span></div>${SCENES[k].lines.map(sceneLineHTML).join("")}${S.prog[k] && S.prog[k].clears && SCENE_END[k] ? `<div class="sep"></div>${SCENE_END[k].map(sceneLineHTML).join("")}` : ""}</div>`).join("") || '<p class="tiny dim">Les dialogues des chapitres apparaîtront ici au fil de l\'aventure.</p>';
 }
 
 // ── Tomes d'expérience : réservés aux héros moins aguerris que le plus haut niveau du roster ──

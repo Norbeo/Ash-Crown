@@ -133,22 +133,44 @@ document.addEventListener("pointerdown", e => { const el = $("#cbinfo"); if (el 
 
 // ── Histoire : scène dialoguée avant chaque chapitre ──
 function sceneLineHTML([sp, txt]) { const P = SPEAKERS[sp] || SPEAKERS.narr; return P.n ? `<p class="scn"><b style="color:${P.c}">${P.n}</b><br>« ${txt} »</p>` : `<p class="scn lore">${txt}</p>`; }
+// ── Mini-cinématiques de l'histoire : décor qui s'anime (lent zoom), bandes noires, carton-titre, portraits, texte qui s'écrit ──
+const SCENE_BG = { bastion: "bastion" };
+function scenePortrait(sp) {
+  const P = SPEAKERS[sp] || SPEAKERS.narr, has = typeof artHas === "function" && artHas("por_" + sp);
+  return has ? `<img class="cinepor" src="assets/por_${sp}.webp" alt="">` : `<div class="cinepor sil" style="--c:${P.c}"><span>${esc((P.n || "?").replace(/^(Frère|Le|La) /, "")[0])}</span></div>`;
+}
 function showScene(reg, done, custom) {
   const Sc = custom || SCENES[reg]; if (!Sc) return done && done();
   if (reg) { (S.seenScene = S.seenScene || {})[reg] = 1; save(); }
-  let i = 0;
-  const step = () => {
-    const shown = Sc.lines.slice(0, i + 1).map(sceneLineHTML).join(""), last = i >= Sc.lines.length - 1;
-    modal(`<h2>${ico("scroll", "#e8c878")} ${Sc.t}</h2><div class="scnbox">${shown}</div><div class="row sp" style="margin-top:10px"><button class="btn ghost sm" data-a="sceneSkip">Passer</button><button class="btn main" data-a="sceneNext">${last ? "En route" : "Suite"}</button></div>`, { close: false, outside: () => ACT.sceneNext() });
-    const b = $("#modal .scnbox"); if (b) b.scrollTop = b.scrollHeight;
+  const bgk = Sc.bg || (reg && artHas("bg_" + reg) ? reg : "bastion"), old = $("#cine"); if (old) old.remove();
+  const el = document.createElement("div"); el.id = "cine";
+  el.innerHTML = `<div class="cinebg" style="background-image:url(assets/bg_${bgk}.webp)"></div><div class="cinevig"></div><div class="cineash"></div><div class="cinebar t"></div><div class="cinebar b"></div>
+    <div class="cinetitle"><div class="sub">${esc((Sc.t || "").split(" — ")[0])}</div><div class="main">${esc((Sc.t || "").split(" — ")[1] || "")}</div></div>
+    <div class="cinedlg"></div><button class="btn ghost sm cineskip">Passer ⏭</button>`;
+  document.body.appendChild(el);
+  try { sfx("bell"); } catch (e) { }
+  let i = -1, typing = null, full = "", tt = null;
+  const end = () => { clearInterval(typing); clearTimeout(tt); el.classList.add("out"); setTimeout(() => { el.remove(); done && done(); }, 600); };
+  const show = () => {
+    i++; if (i >= Sc.lines.length) return end();
+    const [sp, txt] = Sc.lines[i], P = SPEAKERS[sp] || SPEAKERS.narr, narr = !P.n, side = narr ? "" : (Sc._side = Sc._side || {}, Sc._side[sp] = Sc._side[sp] != null ? Sc._side[sp] : Object.keys(Sc._side).length % 2, Sc._side[sp] ? "r" : "l");
+    const D = el.querySelector(".cinedlg");
+    D.className = "cinedlg in " + (narr ? "narr" : side) + (sp === "voix" ? " voix" : "");
+    D.innerHTML = narr ? `<p class="txt"></p>` : `${scenePortrait(sp)}<div class="cinetxt"><b style="color:${P.c}">${esc(P.n)}</b><p class="txt"></p></div>`;
+    full = narr ? txt : "« " + txt + " »"; const T = D.querySelector(".txt"); let k = 0; clearInterval(typing);
+    typing = setInterval(() => { k += 2; T.textContent = full.slice(0, k); if (k >= full.length) { clearInterval(typing); typing = null; } }, 22);
+    if (sp === "voix") { el.classList.add("shake"); setTimeout(() => el.classList.remove("shake"), 600); }
   };
-  ACT.sceneNext = () => { if (i >= Sc.lines.length - 1) { closeModal(); done && done(); } else { i++; step(); } };
-  ACT.sceneSkip = () => { closeModal(); done && done(); };
-  step();
+  const next = () => { if (typing) { clearInterval(typing); typing = null; el.querySelector(".cinedlg .txt").textContent = full; return; } show(); };
+  el.addEventListener("click", e => { if (e.target.closest(".cineskip")) return end(); next(); });
+  tt = setTimeout(() => { el.querySelector(".cinetitle").classList.add("gone"); show(); }, 2300);
+  el.querySelector(".cinetitle").addEventListener("click", e => { e.stopPropagation(); clearTimeout(tt); el.querySelector(".cinetitle").classList.add("gone"); show(); });
 }
+ACT.replayScene = k => showScene(k);
+ACT.replayEnd = k => SCENE_END[k] && showScene(null, null, { t: (SCENES[k] ? SCENES[k].t.split(" — ")[0] : "") + " — Épilogue", lines: [["narr", STORY[k] || ""]].concat(SCENE_END[k]), bg: artHas("bg_" + k) ? k : "bastion" });
 function scenesCodexHTML() {
   const seen = S.seenScene || {};
-  return Object.keys(SCENES).filter(k => seen[k]).map(k => `<div class="panel" style="padding:12px;margin-top:10px"><h3>${SCENES[k].t}</h3>${SCENES[k].lines.map(sceneLineHTML).join("")}${S.prog[k] && S.prog[k].clears && SCENE_END[k] ? `<div class="sep"></div>${SCENE_END[k].map(sceneLineHTML).join("")}` : ""}</div>`).join("") || '<p class="tiny dim">Les dialogues des chapitres apparaîtront ici au fil de l\'aventure.</p>';
+  return Object.keys(SCENES).filter(k => seen[k]).map(k => `<div class="panel" style="padding:12px;margin-top:10px"><div class="row sp"><h3 style="margin:0">${SCENES[k].t}</h3><span class="row" style="gap:4px"><button class="btn sm" data-a="replayScene" data-v="${k}">▶ Revoir</button>${S.prog[k] && S.prog[k].clears && SCENE_END[k] ? `<button class="btn sm ghost" data-a="replayEnd" data-v="${k}">▶ Épilogue</button>` : ""}</span></div>${SCENES[k].lines.map(sceneLineHTML).join("")}${S.prog[k] && S.prog[k].clears && SCENE_END[k] ? `<div class="sep"></div>${SCENE_END[k].map(sceneLineHTML).join("")}` : ""}</div>`).join("") || '<p class="tiny dim">Les dialogues des chapitres apparaîtront ici au fil de l\'aventure.</p>';
 }
 
 // ── Tomes d'expérience : réservés aux héros moins aguerris que le plus haut niveau du roster ──

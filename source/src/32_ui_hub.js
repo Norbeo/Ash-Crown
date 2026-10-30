@@ -19,12 +19,14 @@ function bldTinted(im, lvl, k) { // niveau 1 : bâtiment délabré, assombri ; p
   if (lvl >= 4) { x.globalCompositeOperation = "source-atop"; const g = x.createLinearGradient(0, 0, 0, c.height); g.addColorStop(0, `rgba(255,200,110,${.05 * (lvl - 3)})`); g.addColorStop(1, "rgba(255,140,60,0)"); x.fillStyle = g; x.fillRect(0, 0, c.width, c.height); }
   return BLD_CACHE[key] = c;
 }
+// illustration évolutive : bld_<k>_2 dès le niveau 3, bld_<k>_3 dès le niveau 5 (si peintes)
+function bldArtName(k, lvl) { if (k !== "porte") for (const [n, v] of [[5, 3], [3, 2]]) if (lvl >= n && artHas("bld_" + k + "_" + v)) return "bld_" + k + "_" + v; return "bld_" + k; }
 function drawBuilding(x, k, bx, by, s, lvl, t) { // bâtiment peint : grandit, s'éclaire et se pare de bannières et de braseros à chaque niveau
-  const im = artImg("bld_" + k); if (!im) return;
+  const nm = bldArtName(k, lvl), im = artImg(nm) || artImg("bld_" + k); if (!im) return;
   const grow = k === "porte" ? 1 : .86 + Math.min(lvl, 8) * .035;
   const hh = s * grow * (k === "porte" ? 1.62 : k === "academie" ? 2.0 : k === "chapelle" ? 1.9 : 1.3), sc = Math.min(hh / im.height, s * grow * 1.7 / im.width), w = im.width * sc, h = im.height * sc;
   if (lvl > 1) glow(x, bx, by - h * .35, w * (.45 + lvl * .06), "#ff9a4a", .05 + lvl * .03 + Math.sin(t * 2 + bx) * .015);
-  x.drawImage(k === "porte" ? im : bldTinted(im, lvl, k), bx - w / 2, by - h + s * .04, w, h);
+  x.drawImage(k === "porte" ? im : bldTinted(im, lvl, nm), bx - w / 2, by - h + s * .04, w, h);
   if (k === "porte") return;
 }
 SCREENS.bastion = {

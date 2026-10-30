@@ -30,7 +30,7 @@ function drawBuilding(x, k, bx, by, s, lvl, t) { // bâtiment peint : grandit, s
 SCREENS.bastion = {
   title: "Le Bastion", tab: "bastion",
   scene: () => (x, t, dt) => {
-    backdrop(SC.w < SC.h * .9 && artHas("bg_bastion_port") ? "bastion_port" : artHas("bg_bastion2") ? "bastion2" : "bastion", { align: .9, portShift: SC.w < SC.h * .9 && !artHas("bg_bastion_port") ? .16 : 0 })(x, t, dt);
+    const portBg = SC.w < SC.h * .9 && artHas("bg_bastion_port"); backdrop(artHas("bg_bastion2") ? "bastion2" : "bastion", { align: .9, img: portBg ? "bg_bastion_port" : null, portShift: SC.w < SC.h * .9 && !portBg ? .16 : 0 })(x, t, dt);
     const L = hubLayout(SC.w, SC.h);
     // sol de la cour
     x.fillStyle = lgrad(x, 0, SC.h * .5, 0, SC.h, [[0, "rgba(10,8,10,0)"], [1, "rgba(10,8,10,.6)"]]); x.fillRect(0, SC.h * .5, SC.w, SC.h);

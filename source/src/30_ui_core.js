@@ -23,10 +23,14 @@ function backdrop(id, opts = {}) {
   return (x, t, dt) => {
     const w = SC.w, h = SC.h;
     const bw = Math.max(w, h * 16 / 9), bh = bw * 9 / 16;
+    const pim = opts.img && artImg(opts.img); // image de fond propre au format (portrait) : recouvre l'écran sans déformer
+    if (pim) { const s = Math.max(w / pim.width, h / pim.height), iw = pim.width * s, ih = pim.height * s; x.drawImage(pim, (w - iw) / 2 + Math.sin(t * .05) * 4, Math.min(0, (h - ih) * .2), iw, ih); }
+    else {
     const bg = paintRegion(id, 1280, 720);
     const ox = (w - bw) / 2 + Math.sin(t * .05) * 8, oy = Math.min(0, (h - bh) * (opts.align || .7));
     const ps = w < h * .9 && opts.portShift ? h * opts.portShift : 0; // portrait : on remonte le fond pour montrer davantage la cour
     x.drawImage(bg, ox - ps * .9, oy - ps, bw + ps * 1.8, bh * Math.max(1, h / bh) + ps);
+    }
     if (!SC.amb || SC.ambKind !== id) { SC.amb = makeAmbient(REGION_AMB[id] || "braises", w < 700 ? 28 : 50, w, h); SC.ambKind = id; }
     drawAmbient(x, SC.amb, t, dt);
     if (opts.dark) { x.fillStyle = rgba("#000000", opts.dark); x.fillRect(0, 0, w, h); }

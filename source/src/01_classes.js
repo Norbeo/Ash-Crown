@@ -6,7 +6,7 @@
    mv   déplacement de soi (+ vers l'avant)    push/pull  déplacement de la cible  cd   recharge (tours)
    bonus {tag|st|low, x}  leech  cleanse  guard  hits  tags                                         */
 
-const ROLES = { tank: { n: "Tank", c: "#8aa0b8", ic: "shield" }, soin: { n: "Soigneur", c: "#9fd88a", ic: "heal" }, soutien: { n: "Soutien", c: "#c9a0ff", ic: "lute" }, dps: { n: "Dégâts", c: "#ff7a5a", ic: "sword" } };
+const ROLES = { tank: { n: "Tank", c: "#8aa0b8", ic: "shield" }, soin: { n: "Soigneur", c: "#9fd88a", ic: "heal" }, soutien: { n: "Soutien", c: "#c9a0ff", ic: "banner" }, dps: { n: "Dégâts", c: "#ff7a5a", ic: "sword" } };
 
 const CLASSES = {
   templier: {

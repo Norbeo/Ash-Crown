@@ -127,9 +127,12 @@ const IC = {
   info: "M12 22a10 10 0 1 0 0-20 10 10 0 0 0 0 20zM12 16v-5M12 8h.01",
   daily: "M4 6h16v15H4zM4 10h16M8 3v5M16 3v5M9 15l2 2 4-4",
 };
+// icône au trait de repli par type d'arme (l'arme peinte wpn_<type> est servie en priorité)
+const WPN_IC = { masse: "mace", espadon: "sword", baton: "sun", faucille: "scythe", luth: "lute", hache: "axe", dagues: "dagger", arbalete: "bolt", grimoire: "book", faux: "scythe", marteau: "hammer", encensoir: "flask", rapiere: "sword", hallebarde: "pierce", croix: "rosary" };
 // icônes peintes (assets/ui_<nom>.webp) ; les commandes purement fonctionnelles restent au trait
 const ICO_LINE = new Set(["close", "plus", "up", "skip", "auto", "speed", "info", "install", "swap"]);
 function ico(name, col, size) {
+  if (name && name.startsWith("wpn_")) { if (artHas(name)) return `<img class="ic pic" src="assets/${name}.webp" alt="" draggable="false"${size ? ` width="${size}" height="${size}"` : ""}>`; name = WPN_IC[name.slice(4)] || "weapon"; }
   if (!ICO_LINE.has(name) && artHas("ui_" + name)) return `<img class="ic pic" src="assets/ui_${name}.webp" alt="" draggable="false"${size ? ` width="${size}" height="${size}"` : ""}>`;
   const d = IC[name] || IC.star;
   return `<svg class="ic" viewBox="0 0 24 24" ${size ? `width="${size}" height="${size}"` : ""} fill="none" stroke="${col || "currentColor"}" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="${d}"/></svg>`;

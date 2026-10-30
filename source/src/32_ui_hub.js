@@ -203,7 +203,7 @@ function itemArt(it) {
     return url;
   } catch (e) { return ITEM_ART[key] = ""; }
 }
-function itemIcon(it) { return it.kind === "wpn" ? { masse: "mace", espadon: "sword", baton: "sun", faucille: "scythe", luth: "lute", hache: "axe", dagues: "dagger", arbalete: "bolt", grimoire: "book", faux: "scythe", marteau: "hammer", encensoir: "flask", rapiere: "sword", hallebarde: "axe", croix: "bless" }[CLASSES[it.cls].wpn] : it.kind === "arm" ? "armor" : TRINKETS[it.key].ic; }
+function itemIcon(it) { return it.kind === "wpn" ? "wpn_" + CLASSES[it.cls].wpn : it.kind === "arm" ? "armor" : TRINKETS[it.key].ic; }
 function paintItem(c, it) { if (!it) return; const x = c.getContext("2d"); const g = x.createRadialGradient(c.width / 2, c.height / 2, 2, c.width / 2, c.height / 2, c.width / 2); g.addColorStop(0, RARITY[it.rar].c + "55"); g.addColorStop(1, "#0000"); x.fillStyle = g; x.fillRect(0, 0, c.width, c.height); }
 function itemLine(it) {
   if (!it) return "";

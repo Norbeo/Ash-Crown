@@ -347,3 +347,17 @@ function bondResultsHTML(res) {
 }
 
 ACT.hudOpt = k => { S.opts.hud = S.opts.hud || {}; S.opts.hud[k] = hud(k) ? 0 : 1; save(); };
+
+// ── Bastion : barre d'icônes compacte (le panneau complet s'ouvre à la demande) ──
+function hubRailHTML() {
+  const ct = (S.daily.contracts || []), ready = ct.filter(c => c.p >= c.goal && !c.claimed).length, b = bountyOf(), A = advNext();
+  const dl = S.daily && !S.daily.done;
+  const it = (a, ic, col, lbl, badge, extra = "") => `<button class="hrail" data-a="${a}" ${extra} title="${lbl}">${ico(ic, col, 22)}<span>${lbl}</span>${badge ? `<i>${badge}</i>` : ""}</button>`;
+  return `<div class="hubrail">
+    ${it("hubPanel", "crown", "#e8c878", "Niv. " + A.l, ready || "", 'data-tipn="Tableau du Bastion" data-tipd="Défis du jour, expédition du jour, défi de la semaine."')}
+    ${it("merchant", "coin", "#e8c060", "Marchand", "")}
+    ${it("bounty", "skull", b && !b.done ? "#e05050" : "#7a6a5a", "Prime", b && !b.done ? "!" : "")}
+    ${it("trophies", "trophy", "#e8c878", "Trophées", trophyCount() || "")}
+    ${dl ? it("dailyRun", "star", "#e8c878", "Du jour", "") : ""}
+  </div>`;
+}

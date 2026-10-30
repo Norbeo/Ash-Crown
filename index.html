@@ -194,6 +194,8 @@ p{margin:6px 0;line-height:1.45}
 @media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
 ::-webkit-scrollbar{width:8px}::-webkit-scrollbar-thumb{background:#3a2a22;border-radius:4px}::-webkit-scrollbar-track{background:transparent}
 #modal .scnbox{max-height:55vh;overflow:auto}.scn{margin:8px 0;line-height:1.35}
+.hubrail{position:absolute;left:8px;top:8px;display:flex;flex-direction:column;gap:5px;z-index:3}.hrail{position:relative;width:54px;padding:5px 2px 4px;display:flex;flex-direction:column;align-items:center;gap:2px;background:#0c0806cc;border:1px solid #c9a24a55;border-radius:6px;color:#d8c8a8;font:inherit;cursor:pointer}.hrail:hover{border-color:#e8c878}.hrail span{font-size:9px;line-height:1;white-space:nowrap}.hrail i{position:absolute;top:-4px;right:-4px;min-width:15px;height:15px;border-radius:8px;background:#b02a1a;color:#fff;font-size:9px;font-style:normal;display:flex;align-items:center;justify-content:center;padding:0 3px}
+@media (orientation:portrait){.hubrail{flex-direction:row;left:50%;transform:translateX(-50%);top:6px}.hrail{width:58px}}
 #cb-hud{position:fixed;left:8px;top:calc(env(safe-area-inset-top) + 50px);z-index:6;display:flex;flex-direction:column;gap:3px;max-width:min(330px,60vw)}.cbord{display:flex;align-items:center;gap:2px;background:#000b;border:1px solid #ffffff1a;border-radius:4px;padding:3px 4px;flex-wrap:nowrap}.cbord span{display:flex;flex-direction:column;align-items:center;font-size:9px;line-height:1.1;padding:1px;border-radius:3px;color:#d8c8a8;white-space:nowrap;border:1px solid transparent;cursor:pointer}.cbord span img{width:26px;height:26px;border-radius:3px;border:1px solid #5a9a4a66}.cbord span.e img{border-color:#b03a3a88}.cbord span em{font-style:normal;max-width:44px;overflow:hidden;text-overflow:ellipsis}.cbord span.h em{color:#b8d8a0}.cbord span.e em{color:#ffb0a0}.cbord span.now{border-color:#e8c878;background:#e8c87822}.cbord span.now em{color:#ffe08a}.cbord span.pv{box-shadow:0 0 0 1px #ff4a3a inset;background:#ff3a2a22}.cbord i{font-style:normal;font-size:10px;color:#8a7a60}.cbord i.more{margin-left:3px;color:#e8c878;font-size:14px;padding:0 4px;cursor:pointer}.cbmlog{background:#000a;border:1px solid #ffffff14;border-radius:4px;padding:3px 6px;font-size:10px;line-height:1.35;color:#c8b8a0;cursor:pointer}.cbmlog div{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 @media (max-width:560px){.ctop.l{top:calc(env(safe-area-inset-top) + 46px)}#cb-hud{top:calc(env(safe-area-inset-top) + 92px);max-width:calc(100vw - 16px)}.cbmlog div:not(:last-child){display:none}}
 #cbinfo{position:fixed;z-index:60;background:linear-gradient(#1c1410f2,#0c0806f5);border:1px solid #6a4a2a;border-radius:6px;padding:9px 11px;box-shadow:0 6px 24px #000c;color:var(--txt);font-size:14px;max-height:70vh;overflow:auto}
@@ -3636,7 +3638,7 @@ function tipEvents() {
 }
 /* ═══════════════════════ Interface : écrans, scène animée, fenêtres ═══════════════════════ */
 const $ = s => document.querySelector(s);
-const UI = { screen: null, arg: null, sel: {} };
+const UI = { screen: null, arg: null, sel: {}, hubOpen: (() => { try { return !!localStorage.getItem("cc-hubOpen"); } catch (e) { return false; } })() };
 const SC = { cv: null, x: null, w: 0, h: 0, dpr: 1, t: 0, last: 0, draw: null, click: null, amb: null, ambKind: null, bg: null };
 const ACT = {}; // actions déclenchées par data-a
 
@@ -3945,18 +3947,18 @@ SCREENS.bastion = {
     const note = k => (k === "taverne" && S.heroes.length < 4) || (k === "fonderie" && idleBank() >= fonderieRate()) || (k === "academie" && S.heroes.some(h => h.lvl >= EVO_LVL && !h.evo)) || (k === "chapelle" && S.heroes.some(isInjured));
     const ct = S.daily.contracts || [];
     const off = $("#view") ? $("#view").getBoundingClientRect().top : 0;
-    if (UI.hideDaily == null) UI.hideDaily = (SC.w || innerWidth) < (SC.h || innerHeight);
+    if (UI.hideDaily == null) UI.hideDaily = false;
     return `${L.map(b => { const hh = b.s * (b.k === "porte" ? 1.62 : b.k === "academie" ? 2.0 : b.k === "chapelle" ? 1.9 : 1.3); return `<button class="hot" style="left:${b.x}px;top:${b.y - off - hh}px;width:${b.s * 1.3}px;height:${hh}px" data-a="bld" data-v="${b.k}"><span class="lbl">${note(b.k) ? '<i class="dotn"></i>' : ""}${names[b.k]}${b.k !== "porte" ? ` <b>${"I II III IV V VI".split(" ")[S.bld[b.k] - 1]}</b>` : ""}</span></button>`; }).join("")}
-    <div class="panel" style="position:absolute;left:10px;top:6px;width:min(300px,calc(100vw - 20px));padding:10px 12px" id="dailyp">
-      <button class="btn sm gold" style="width:100%;margin-bottom:6px" data-a="merchant">${ico("coin", "#e8c060", 14)}Marchand ambulant</button>
-      ${bastionExtraBtns()}
+    ${UI.hubOpen ? `<div class="panel" style="position:absolute;left:10px;top:6px;width:min(300px,calc(100vw - 20px));padding:10px 12px;max-height:calc(100% - 20px);overflow:auto" id="dailyp">
+      <div class="row sp" style="margin-bottom:6px"><b class="small gold">Tableau du Bastion</b><button class="btn sm ghost" data-a="hubPanel" title="Réduire">${ico("close", "#c8b8a0", 12)}Réduire</button></div>
       ${(() => { const A = advNext(); return `<div class="small" data-tipn="Niveau d'aventure" data-tipd="Monte avec les combats gagnés, les expéditions, les gardiens vaincus et la profondeur de l'Abîme. Il conditionne l'amélioration des bâtiments."><b class="gold">${ico("crown", "#e8c878", 14)} Niveau d'aventure ${A.l}</b><div class="bar xp" style="margin:3px 0 8px"><i style="width:${100 * A.cur / A.need}%"></i></div></div>`; })()}<div class="row sp"><h3 style="margin:0">${ico("daily", "#e8c878", 16)} Défis du jour</h3><button class="btn ghost sm" data-a="toggleDaily">${UI.hideDaily ? "+" : "–"}</button></div>
       ${UI.hideDaily ? "" : ct.map((c, i) => `<div style="margin-top:6px"><div class="row sp small"><span>${c.n}</span><span class="${c.p >= c.goal ? "good" : "dim"}">${c.p}/${c.goal}</span></div><div class="row" style="gap:6px"><div class="bar xp" style="flex:1"><i style="width:${100 * c.p / c.goal}%"></i></div>${c.claimed ? '<span class="tiny good">✓</span>' : c.p >= c.goal ? `<button class="btn gold sm" data-a="claimCt" data-v="${i}">+${c.gold}</button>` : `<span class="tiny dim">${c.gold} or</span>`}</div></div>`).join("") + `<div class="sep" style="margin:8px 0"></div><button class="btn ${S.daily.done ? "ghost off" : "main"} sm" style="width:100%" data-a="dailyRun">${ico("star")}${S.daily.done ? "Expédition du jour accomplie" : "Expédition du jour (+récompenses)"}</button>` + weekPanel()}
-    </div>`;
+    </div>` : hubRailHTML()}`;
   },
   mount: () => { tutoHint("bastion", "Touchez un bâtiment pour y entrer. <b>La Porte</b> mène aux expéditions."); },
   resize: () => refresh(),
 };
+ACT.hubPanel = () => { UI.hubOpen = !UI.hubOpen; try { localStorage.setItem("cc-hubOpen", UI.hubOpen ? "1" : ""); } catch (e) {} refresh(); };
 ACT.toggleDaily = () => { UI.hideDaily = !UI.hideDaily; refresh(); };
 ACT.claimCt = i => { const c = S.daily.contracts[+i]; if (!c || c.claimed || c.p < c.goal) return; c.claimed = 1; S.gold += c.gold; sfx("coin"); toast(`+${c.gold} or`, "good"); save(); refresh(); };
 function weekPanel() {
@@ -5431,6 +5433,20 @@ function bondResultsHTML(res) {
 }
 
 ACT.hudOpt = k => { S.opts.hud = S.opts.hud || {}; S.opts.hud[k] = hud(k) ? 0 : 1; save(); };
+
+// ── Bastion : barre d'icônes compacte (le panneau complet s'ouvre à la demande) ──
+function hubRailHTML() {
+  const ct = (S.daily.contracts || []), ready = ct.filter(c => c.p >= c.goal && !c.claimed).length, b = bountyOf(), A = advNext();
+  const dl = S.daily && !S.daily.done;
+  const it = (a, ic, col, lbl, badge, extra = "") => `<button class="hrail" data-a="${a}" ${extra} title="${lbl}">${ico(ic, col, 22)}<span>${lbl}</span>${badge ? `<i>${badge}</i>` : ""}</button>`;
+  return `<div class="hubrail">
+    ${it("hubPanel", "crown", "#e8c878", "Niv. " + A.l, ready || "", 'data-tipn="Tableau du Bastion" data-tipd="Défis du jour, expédition du jour, défi de la semaine."')}
+    ${it("merchant", "coin", "#e8c060", "Marchand", "")}
+    ${it("bounty", "skull", b && !b.done ? "#e05050" : "#7a6a5a", "Prime", b && !b.done ? "!" : "")}
+    ${it("trophies", "trophy", "#e8c878", "Trophées", trophyCount() || "")}
+    ${dl ? it("dailyRun", "star", "#e8c878", "Du jour", "") : ""}
+  </div>`;
+}
 /* ═══════════════════════ Démarrage ═══════════════════════ */
 if (HASWIN) {
   const boot = () => {

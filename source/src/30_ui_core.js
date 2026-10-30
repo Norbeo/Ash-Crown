@@ -1,6 +1,6 @@
 /* ═══════════════════════ Interface : écrans, scène animée, fenêtres ═══════════════════════ */
 const $ = s => document.querySelector(s);
-const UI = { screen: null, arg: null, sel: {} };
+const UI = { screen: null, arg: null, sel: {}, hubOpen: (() => { try { return !!localStorage.getItem("cc-hubOpen"); } catch (e) { return false; } })() };
 const SC = { cv: null, x: null, w: 0, h: 0, dpr: 1, t: 0, last: 0, draw: null, click: null, amb: null, ambKind: null, bg: null };
 const ACT = {}; // actions déclenchées par data-a
 

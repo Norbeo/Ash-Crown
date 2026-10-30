@@ -44,18 +44,18 @@ SCREENS.bastion = {
     const note = k => (k === "taverne" && S.heroes.length < 4) || (k === "fonderie" && idleBank() >= fonderieRate()) || (k === "academie" && S.heroes.some(h => h.lvl >= EVO_LVL && !h.evo)) || (k === "chapelle" && S.heroes.some(isInjured));
     const ct = S.daily.contracts || [];
     const off = $("#view") ? $("#view").getBoundingClientRect().top : 0;
-    if (UI.hideDaily == null) UI.hideDaily = (SC.w || innerWidth) < (SC.h || innerHeight);
+    if (UI.hideDaily == null) UI.hideDaily = false;
     return `${L.map(b => { const hh = b.s * (b.k === "porte" ? 1.62 : b.k === "academie" ? 2.0 : b.k === "chapelle" ? 1.9 : 1.3); return `<button class="hot" style="left:${b.x}px;top:${b.y - off - hh}px;width:${b.s * 1.3}px;height:${hh}px" data-a="bld" data-v="${b.k}"><span class="lbl">${note(b.k) ? '<i class="dotn"></i>' : ""}${names[b.k]}${b.k !== "porte" ? ` <b>${"I II III IV V VI".split(" ")[S.bld[b.k] - 1]}</b>` : ""}</span></button>`; }).join("")}
-    <div class="panel" style="position:absolute;left:10px;top:6px;width:min(300px,calc(100vw - 20px));padding:10px 12px" id="dailyp">
-      <button class="btn sm gold" style="width:100%;margin-bottom:6px" data-a="merchant">${ico("coin", "#e8c060", 14)}Marchand ambulant</button>
-      ${bastionExtraBtns()}
+    ${UI.hubOpen ? `<div class="panel" style="position:absolute;left:10px;top:6px;width:min(300px,calc(100vw - 20px));padding:10px 12px;max-height:calc(100% - 20px);overflow:auto" id="dailyp">
+      <div class="row sp" style="margin-bottom:6px"><b class="small gold">Tableau du Bastion</b><button class="btn sm ghost" data-a="hubPanel" title="Réduire">${ico("close", "#c8b8a0", 12)}Réduire</button></div>
       ${(() => { const A = advNext(); return `<div class="small" data-tipn="Niveau d'aventure" data-tipd="Monte avec les combats gagnés, les expéditions, les gardiens vaincus et la profondeur de l'Abîme. Il conditionne l'amélioration des bâtiments."><b class="gold">${ico("crown", "#e8c878", 14)} Niveau d'aventure ${A.l}</b><div class="bar xp" style="margin:3px 0 8px"><i style="width:${100 * A.cur / A.need}%"></i></div></div>`; })()}<div class="row sp"><h3 style="margin:0">${ico("daily", "#e8c878", 16)} Défis du jour</h3><button class="btn ghost sm" data-a="toggleDaily">${UI.hideDaily ? "+" : "–"}</button></div>
       ${UI.hideDaily ? "" : ct.map((c, i) => `<div style="margin-top:6px"><div class="row sp small"><span>${c.n}</span><span class="${c.p >= c.goal ? "good" : "dim"}">${c.p}/${c.goal}</span></div><div class="row" style="gap:6px"><div class="bar xp" style="flex:1"><i style="width:${100 * c.p / c.goal}%"></i></div>${c.claimed ? '<span class="tiny good">✓</span>' : c.p >= c.goal ? `<button class="btn gold sm" data-a="claimCt" data-v="${i}">+${c.gold}</button>` : `<span class="tiny dim">${c.gold} or</span>`}</div></div>`).join("") + `<div class="sep" style="margin:8px 0"></div><button class="btn ${S.daily.done ? "ghost off" : "main"} sm" style="width:100%" data-a="dailyRun">${ico("star")}${S.daily.done ? "Expédition du jour accomplie" : "Expédition du jour (+récompenses)"}</button>` + weekPanel()}
-    </div>`;
+    </div>` : hubRailHTML()}`;
   },
   mount: () => { tutoHint("bastion", "Touchez un bâtiment pour y entrer. <b>La Porte</b> mène aux expéditions."); },
   resize: () => refresh(),
 };
+ACT.hubPanel = () => { UI.hubOpen = !UI.hubOpen; try { localStorage.setItem("cc-hubOpen", UI.hubOpen ? "1" : ""); } catch (e) {} refresh(); };
 ACT.toggleDaily = () => { UI.hideDaily = !UI.hideDaily; refresh(); };
 ACT.claimCt = i => { const c = S.daily.contracts[+i]; if (!c || c.claimed || c.p < c.goal) return; c.claimed = 1; S.gold += c.gold; sfx("coin"); toast(`+${c.gold} or`, "good"); save(); refresh(); };
 function weekPanel() {

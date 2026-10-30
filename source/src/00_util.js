@@ -36,3 +36,6 @@ const dayKey = (d = new Date()) => d.getFullYear() * 10000 + (d.getMonth() + 1) 
 const hashStr = s => { let h = 2166136261; for (let i = 0; i < s.length; i++) { h ^= s.charCodeAt(i); h = Math.imul(h, 16777619); } return h >>> 0; };
 
 function roman(n) { n = Math.max(1, Math.floor(n)); if (n > 3999) return String(n); const V = [[1000, "M"], [900, "CM"], [500, "D"], [400, "CD"], [100, "C"], [90, "XC"], [50, "L"], [40, "XL"], [10, "X"], [9, "IX"], [5, "V"], [4, "IV"], [1, "I"]]; let s = ""; for (const [v, r] of V) while (n >= v) { s += r; n -= v; } return s; }
+
+// nom court d'une unité : sans article (« Le Docteur Peste » → « Docteur Peste »), un ou deux mots
+function shortName(n) { const w = String(n || "").replace(/^(le|la|les|l')\s*/i, "").split(/[ ,]+/).filter(Boolean); if (!w.length) return n; const two = w.length > 1 && /^[A-ZÉÈÀ]/.test(w[1]) && (w[0] + " " + w[1]).length <= 14; return two ? w[0] + " " + w[1] : w[0]; }

@@ -2,7 +2,8 @@
 function hubLayout(w, h) {
   const port = w < h * .9, s = port ? Math.min(w / 4.2, h / 8) : Math.min(w / 8.5, h / 5.2);
   const P = (k, fx, fy, k2 = 1) => ({ k, x: fx * w, y: fy * h, s: s * k2 });
-  return port ? [P("academie", .26, .36, .8), P("menagerie", .74, .36, .8), P("chapelle", .2, .56, .9), P("fonderie", .8, .56, .9), P("taverne", .2, .78), P("porte", .5, .74, 1.1), P("forge", .8, .78)]
+  // portrait : tout le monde au sol de la cour, en trois rangées (fond → devant)
+  return port ? [P("academie", .22, .47, .72), P("menagerie", .78, .47, .72), P("chapelle", .14, .64, .82), P("fonderie", .86, .64, .82), P("porte", .5, .7, .98), P("taverne", .25, .85, .9), P("forge", .75, .85, .9)]
     : [P("academie", .33, .6, .78), P("menagerie", .67, .6, .78), P("chapelle", .1, .8), P("taverne", .27, .82), P("porte", .5, .78, 1.15), P("forge", .73, .82), P("fonderie", .9, .8)];
 }
 // ménagerie : d'abord les compagnons possédés (l'actif en tête), puis ceux qu'on peut acheter, enfin ceux à débloquer plus tard
@@ -29,13 +30,13 @@ function drawBuilding(x, k, bx, by, s, lvl, t) { // bâtiment peint : grandit, s
 SCREENS.bastion = {
   title: "Le Bastion", tab: "bastion",
   scene: () => (x, t, dt) => {
-    backdrop(artHas("bg_bastion2") ? "bastion2" : "bastion", { align: .9 })(x, t, dt);
+    backdrop(SC.w < SC.h * .9 && artHas("bg_bastion_port") ? "bastion_port" : artHas("bg_bastion2") ? "bastion2" : "bastion", { align: .9, portShift: SC.w < SC.h * .9 && !artHas("bg_bastion_port") ? .16 : 0 })(x, t, dt);
     const L = hubLayout(SC.w, SC.h);
     // sol de la cour
     x.fillStyle = lgrad(x, 0, SC.h * .5, 0, SC.h, [[0, "rgba(10,8,10,0)"], [1, "rgba(10,8,10,.6)"]]); x.fillRect(0, SC.h * .5, SC.w, SC.h);
     for (const b of L) { x.fillStyle = "rgba(0,0,0,.45)"; x.beginPath(); x.ellipse(b.x, b.y, b.s * .75, b.s * .1, 0, 0, 7); x.fill(); drawBuilding(x, b.k, b.x, b.y, b.s, b.k === "porte" ? 1 : S.bld[b.k], t); }
     // feu de camp central
-    const fx = SC.w * .5, fy = SC.h * (SC.w < SC.h * .9 ? .88 : .93); const f = .8 + Math.sin(t * 9) * .1;
+    const fx = SC.w * .5, fy = SC.h * (SC.w < SC.h * .9 ? .84 : .93); const f = .8 + Math.sin(t * 9) * .1;
     glow(x, fx, fy, 90, "#ff6a1a", .35 * f); x.save(); x.globalCompositeOperation = "lighter"; for (let i = 0; i < 5; i++) glow(x, fx + Math.sin(t * 5 + i) * 4, fy - 8 - i * 6, 14 - i * 2, i < 2 ? "#ffe08a" : "#ff7a2a", .7); x.restore();
   },
   html: () => {

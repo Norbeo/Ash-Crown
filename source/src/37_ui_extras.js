@@ -173,7 +173,7 @@ ACT.teamLoad = i => { const t = (S.teams || [])[+i]; if (!t) return; const E = U
 
 // ── Journal du combat : qui a fait quoi, pour comprendre d'où viennent les dégâts ──
 function cbLog(e) {
-  const B = CB.B; if (!B || !CB.log) return; const N = id => { const u = unitById(B, id) || [...B.fallen, ...(B.dead || [])].find(x => x.uid === id); return u ? esc(u.name.split(" ")[0]) : id === "PET" ? "Compagnon" : "?"; };
+  const B = CB.B; if (!B || !CB.log) return; const N = id => { const u = unitById(B, id) || [...B.fallen, ...(B.dead || [])].find(x => x.uid === id); return u ? esc(shortName(u.name)) : id === "PET" ? "Compagnon" : "?"; };
   const side = id => { const u = unitById(B, id) || [...B.fallen].find(x => x.uid === id); return u && u.side === "h" ? "good" : "bad"; };
   let l = null;
   if (e.k === "act") l = `<b class="${side(e.u)}">${N(e.u)}</b> : ${esc(e.sk)}`;
@@ -242,7 +242,7 @@ function turnQueue(B) { // reste du tour courant puis estimation du tour suivant
   const next = [...B.heroes, ...B.enemies].filter(alive).sort((a, b) => effSpd(b) - effSpd(a));
   return { now, next };
 }
-const ordName = u => esc(u.name.split(/[ ,]/)[0].slice(0, 9));
+const ordName = u => esc(shortName(u.name));
 const hud = k => !S.opts.hud || S.opts.hud[k] !== 0;
 // mini-portrait : tête du sprite de combat, mise en cache en data URL
 function unitFace(u) {
@@ -263,7 +263,7 @@ function turnOrderHTML() {
   const { now, next } = turnQueue(B), q = now.concat(next).slice(0, 5), pv = CB.preview || new Set();
   return `<div class="cbord">${q.map((u, i) => { const f = unitFace(u); return `${i ? '<i>›</i>' : ""}<span class="${u.side === "h" ? "h" : "e"} ${i === 0 ? "now" : ""} ${pv.has(u.uid) && i < now.length ? "pv" : ""}" data-a="ordPeek" data-v="${u.uid}" title="${esc(u.name)}">${f ? `<img src="${f}" alt="">` : ""}<em>${ordName(u)}</em></span>`; }).join("")}<i class="more" data-a="turnOrder" title="Ordre complet">⋯</i></div>`;
 }
-ACT.ordPeek = id => { const v = V(id), u = U(id); if (!v || !u) return; glowAt(v, u.side === "h" ? "#8ad06a" : "#ff6a4a", 1.3); CB.peek = { id, t: 2 }; popText(id, u.name.split(/[ ,]/)[0], "#ffe08a"); };
+ACT.ordPeek = id => { const v = V(id), u = U(id); if (!v || !u) return; glowAt(v, u.side === "h" ? "#8ad06a" : "#ff6a4a", 1.3); CB.peek = { id, t: 2 }; popText(id, shortName(u.name), "#ffe08a"); };
 ACT.turnOrder = () => {
   const B = CB.B; if (!B) return; const { now, next } = turnQueue(B);
   const row = (u, i, cur) => `<div class="row" style="gap:8px;padding:4px 8px;border-radius:4px;cursor:pointer;background:${cur ? "#e8c87822" : "#0006"};border-left:3px solid ${u.side === "h" ? "#5a9a4a" : "#b03a3a"}" data-a="ordPeekClose" data-v="${u.uid}"><b class="tiny" style="width:16px">${i + 1}</b>${unitFace(u) ? `<img src="${unitFace(u)}" style="width:26px;height:26px;border-radius:3px">` : ""}<span style="flex:1" class="small ${u.side === "h" ? "" : "bad"}">${esc(u.name)}${cur ? ' <span class="gold tiny">— joue maintenant</span>' : ""}</span><span class="tiny dim">vitesse ${Math.round(effSpd(u))}</span></div>`;

@@ -28,7 +28,7 @@ function ambPlay(k) {
   SND.ambWant = k; const c = SND.ctx; if (!c) return;
   if (SND.amb && SND.amb.k === k) return;
   const n = "amb_" + k; if (!SBUF[n]) { sfxLoad(n); if (SND.amb) { const old = SND.amb; old.g.gain.setTargetAtTime(0, c.currentTime, .8); setTimeout(() => { try { old.s.stop(); } catch (e) { } }, 4000); SND.amb = null; } return; }
-  if (!SND.ambG) { SND.ambG = c.createGain(); SND.ambG.connect(SND.master); }
+  if (!SND.ambG) { SND.ambG = c.createGain(); SND.ambG.connect(SND.music); /* l'option Musique règle le volume des ambiances */ }
   SND.ambG.gain.value = S && !S.opts.sound ? 0 : .55;
   const s = c.createBufferSource(), g = c.createGain(); s.buffer = SBUF[n]; s.loop = true; g.gain.value = 0; s.connect(g); g.connect(SND.ambG); s.start(); g.gain.setTargetAtTime(1, c.currentTime, 1.2);
   if (SND.amb) { const old = SND.amb; old.g.gain.setTargetAtTime(0, c.currentTime, 1); setTimeout(() => { try { old.s.stop(); } catch (e) { } }, 5000); }
@@ -79,11 +79,11 @@ const SFX = {
 };
 const SFX_REC = { slash: .8, hit: .9, heavy: 1, crit: 1, shoot: .8, miss: .6, fire: .8, holy: .7, dark: .8, heal: .7, die: .8, coin: .7, door: .8, forge: .8, step: .5, bell: .7, open: .6 };
 // bruitages de combat enregistrés en plusieurs variantes (fx_<k>_1…n) : on en tire une au hasard, jamais deux fois la même d'affilée
-const SFX_VOL = { slash: .75, hit: 1, heavy: 1, crit: 1, shoot: .85, miss: .6, block: .95, fire: .8, holy: .55, heal: .5, buff: .55, debuff: .45, dark: .6, poison: .7, bleed: .85, die: .9, fall: .7, stun: .8, ult: .8, frost: .75, shock: .75, coin: .55, door: .7, step: .35, forge: .7, open: .45, bell: .6 };
+const SFX_VOL = { slash: .75, hit: 1, heavy: 1, crit: 1, shoot: .85, miss: .6, block: .95, fire: .8, holy: .55, heal: .5, buff: .55, debuff: .45, dark: .6, poison: .7, bleed: .85, die: .9, fall: .7, stun: .8, ult: .8, frost: .75, shock: .75, click: .3, level: .6, win: .6, lose: .6, coin: .55, door: .7, step: .35, forge: .7, open: .45, bell: .6 };
 const SFX_LAST = {};
 function sfxVariant(k) { const L = []; for (let i = 1; i <= 6; i++) if (SFX_SET.has("fx_" + k + "_" + i)) L.push("fx_" + k + "_" + i); if (!L.length) return null; let n = L[Math.floor(Math.random() * L.length)]; if (L.length > 1 && n === SFX_LAST[k]) n = L[(L.indexOf(n) + 1) % L.length]; SFX_LAST[k] = n; return n; }
 function sfx(k) { try { if (SFX_VOL[k] != null && sfxOn() && SND.ctx) { const n = sfxVariant(k); if (n) { if (SBUF[n]) { playBuf(n, SFX_VOL[k], .96 + Math.random() * .08); return; } sfxLoad(n); for (let i = 1; i <= 6; i++) sfxLoad("fx_" + k + "_" + i); } } } catch (e) { }
-  sfx0(k); }
+  /* plus aucun son synthétique : seulement les enregistrements */ }
 function sfx0(k) { try { if (SFX_REC[k] != null && sfxOn() && SND.ctx) { const n = "fx_" + k; if (SBUF[n]) { playBuf(n, SFX_REC[k], .93 + Math.random() * .14); return; } sfxLoad(n); } if (SFX[k]) SFX[k](); } catch (e) { } }
 // musique : nappes graves et cloches lentes, en mode mineur
 const MUSIC = { bastion: [110, [0, 3, 7, 10]], combat: [98, [0, 3, 7, 8]], boss: [82, [0, 1, 7, 8]], map: [104, [0, 3, 5, 7]], titre: [110, [0, 3, 7, 12]] };
@@ -91,24 +91,7 @@ function musicPlay(kind) {
   if (!SND.ctx) return; SND.mKind = kind;
   ambPlay(kind === "titre" ? "bastion" : kind === "bastion" ? "bastion" : S && S.run ? S.run.region : "bastion");
   const on = S ? S.opts.music : 1;
-  SND.music.gain.setTargetAtTime(on ? .32 : 0, SND.ctx.currentTime, .8);
-  if (SND.mOn) return; SND.mOn = true;
-  let step = 0;
-  const tick = () => {
-    const c = SND.ctx; if (!c) return; const M = MUSIC[SND.mKind] || MUSIC.bastion, root = M[0], sc = M[1];
-    const t = c.currentTime;
-    if (step % 4 === 0) { // nappe
-      for (const iv of [0, sc[1], sc[2]]) { const f = root * Math.pow(2, (iv + (step % 16 >= 8 ? sc[3] - sc[2] : 0)) / 12); const o = c.createOscillator(), g = c.createGain(), fl = c.createBiquadFilter(); o.type = "sawtooth"; o.frequency.value = f / 2; fl.type = "lowpass"; fl.frequency.value = 340; g.gain.setValueAtTime(0, t); g.gain.linearRampToValueAtTime(.05, t + 1.5); g.gain.linearRampToValueAtTime(0, t + 6.2); o.connect(fl); fl.connect(g); g.connect(SND.music); g.connect(SND.rev); o.start(t); o.stop(t + 6.5); }
-    }
-    if (Math.random() < (SND.mKind === "combat" || SND.mKind === "boss" ? .3 : .22)) { // glas grave, rare (plus de « harpe » aiguë)
-      const iv = sc[Math.floor(Math.random() * sc.length)]; const f = root * Math.pow(2, iv / 12);
-      const o = c.createOscillator(), g = c.createGain(); o.type = "sine"; o.frequency.value = f; g.gain.setValueAtTime(0, t); g.gain.linearRampToValueAtTime(.045, t + .04); g.gain.exponentialRampToValueAtTime(.0005, t + 4); o.connect(g); g.connect(SND.music); g.connect(SND.rev); o.start(t); o.stop(t + 4.1);
-    }
-    if ((SND.mKind === "combat" || SND.mKind === "boss") && step % 2 === 0) { // tambour
-      const o = c.createOscillator(), g = c.createGain(); o.frequency.setValueAtTime(70, t); o.frequency.exponentialRampToValueAtTime(35, t + .3); g.gain.setValueAtTime(.18, t); g.gain.exponentialRampToValueAtTime(.001, t + .35); o.connect(g); g.connect(SND.music); o.start(t); o.stop(t + .4);
-    }
-    step++;
-  };
-  tick(); SND.mTimer = setInterval(tick, 1500);
+  SND.music.gain.setTargetAtTime(on ? .9 : 0, SND.ctx.currentTime, .8);
+  // la musique synthétique (nappes, glas, tambour) est remplacée par les ambiances enregistrées de chaque région
 }
-function musicMute(on) { if (SND.ctx) SND.music.gain.setTargetAtTime(on ? .32 : 0, SND.ctx.currentTime, .3); }
+function musicMute(on) { if (SND.ctx) SND.music.gain.setTargetAtTime(on ? .9 : 0, SND.ctx.currentTime, .3); }

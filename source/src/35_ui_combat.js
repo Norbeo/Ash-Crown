@@ -68,7 +68,7 @@ async function startCombat(node) {
   $("#cb-flee").style.display = "";
   cbTopLeft(); cbBar(null);
   if (node.type === "boss") { const bs = B.enemies.find(e => e.boss); await bossIntro(bs); }
-  else if (node.type === "elite") await showBanner("Élite", B.enemies.find(e => e.elite)?.name || "", "#ff8a4a", 1100);
+  else if (node.type === "elite") { const el = B.enemies.find(e => e.elite); if (el && !(S.eliteSeen || {})[el.key] && ELITE_INFO[el.key]) await eliteIntro(el); else await showBanner(node.nestOn ? "Nid d'élites" : node.nightAmbush ? "Embuscade !" : "Élite", el ? el.name : "", "#ff8a4a", 1100); }
   else await wait(500);
   combatLoop();
 }
@@ -305,7 +305,7 @@ async function combatEnd(over) {
   CB.B = null; CB.resolve = null;
   afterBattle(run, B);
   if (over === "flee" && node.type === "boss") { save(); toast("Vous fuyez le gardien et rentrez au Bastion.", "bad"); finishRun("retreat"); return; } // fuir un gardien met fin à l'expédition (sans victoire)
-  if (over === "flee") { node.done = 1; save(); go("map"); return; }
+  if (over === "flee") { node.done = 1; if (node.nightAmbush && run.pendingNode) { const pn = run.pendingNode; run.pendingNode = null; save(); go("map"); const n0 = run.map[pn.c][pn.i]; if (n0) resolveNode(n0); return; } save(); go("map"); return; }
   if (over === "win") {
     await new Promise(r => setTimeout(r, 300));
     const R = rewardFor(run, node.ambush ? { c: node.c, type: "combat" } : node);
@@ -324,7 +324,7 @@ async function combatEnd(over) {
       return;
     }
     go("map");
-    rewardModal(node.type === "elite" ? "Élite vaincue" : "Victoire", "", R, ups);
+    rewardModal(node.type === "elite" ? (node.nightAmbush ? "Embuscade repoussée" : node.nestOn ? "Nid d'élites détruit" : "Élite vaincue") : "Victoire", eliteNewsText(run), R, ups, () => { const pn = run.pendingNode; if (pn) { run.pendingNode = null; const n0 = run.map[pn.c] && run.map[pn.c][pn.i]; if (n0) resolveNode(n0); } });
     return;
   }
   // défaite

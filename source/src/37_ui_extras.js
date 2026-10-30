@@ -472,10 +472,10 @@ ACT.newCycle = () => confirmBox(`Commencer le cycle ${roman(cycleN() + 2)} ? La 
 ACT.showFinale = () => showFinale();
 
 // ── Entrée du gardien : plan cinématique (portrait, nom, titre, réplique) ──
-function bossIntro(bs) {
+function bossIntro(bs, ov) {
   return new Promise(res => {
-    const I = (typeof BOSS_INFO !== "undefined" && BOSS_INFO[bs.key]) || ["Gardien", ""], el = document.createElement("div"); el.id = "bossin";
-    el.innerHTML = `<div class="bbars t"></div><div class="bbars b"></div><div class="bi-wrap"><canvas width="360" height="380" data-cv="bi"></canvas><div class="bi-txt"><div class="bi-sub">${bs.hard ? "Gardien enragé — Hardi" : "Gardien"}</div><div class="bi-name">${esc(bs.name)}</div><div class="bi-title">${esc(I[0])}</div><div class="bi-q">${esc(I[1])}</div></div></div>`;
+    const I = ov ? [ov.title, ov.q] : (typeof BOSS_INFO !== "undefined" && BOSS_INFO[bs.key]) || ["Gardien", ""], el = document.createElement("div"); el.id = "bossin";
+    el.innerHTML = `<div class="bbars t"></div><div class="bbars b"></div><div class="bi-wrap"><canvas width="360" height="380" data-cv="bi"></canvas><div class="bi-txt"><div class="bi-sub">${ov ? ov.sub : bs.hard ? "Gardien enragé — Hardi" : "Gardien"}</div><div class="bi-name">${esc(bs.name)}</div><div class="bi-title">${esc(I[0])}</div><div class="bi-q">${esc(I[1])}</div></div></div>`;
     document.body.appendChild(el); try { sfx("bell"); setTimeout(() => sfx("dark"), 400); } catch (e) { }
     fillCanvases(el, c => paintMon(c, bs.key));
     let done = false; const end = () => { if (done) return; done = true; el.classList.add("out"); setTimeout(() => { el.remove(); res(); }, 450); };
@@ -523,3 +523,19 @@ function hardToggleHTML(E) {
   return `<div class="row" style="margin-top:6px"><button class="btn sm ${E.hard ? "gold" : "ghost"}" data-a="toggleHard">${ico("skull", E.hard ? "#ff6a4a" : "#9a8c7a", 14)}Gardien Hardi${gt ? " " + ico("trophy", "#ffd27a", 12) : ""}</button><span class="tiny dim">Gardien +50 % PV, +30 % dégâts, enragé. Victoire : trophée doré du chapitre${gt ? " (déjà obtenu)" : ""}.</span></div>`;
 }
 ACT.toggleHard = () => { UI.expe.hard = !UI.expe.hard; refresh(); };
+
+// ── Élites : choix du nid, récit de première rencontre, nouvelles après combat, codex ──
+ACT.nest = v => { const [c, i, on] = v.split(":").map(Number), run = S.run, n = run.map[c][i]; n.nestOn = on; closeModal(); ACT.node(c + ":" + i); };
+function eliteIntro(el) { (S.eliteSeen = S.eliteSeen || {})[el.key] = 1; save(); const I = ELITE_INFO[el.key];
+  return bossIntro(Object.assign({}, el, { boss: 0 }), { sub: el.named ? "Élite revenue d'ailleurs" : "Élite", title: I[0], q: I[1] }); }
+function eliteNewsText(run) { const o = run.eliteNews; run.eliteNews = null; if (!o) return ""; const t = [];
+  for (const m of o.marks) t.push(`🏆 Marque de chasse : ${esc(m)} (+10 % de dégâts contre elle, pour toujours)`);
+  for (const g of o.grudges) t.push(`⚔ ${esc(g.h.split(" ")[0])} a une revanche à prendre sur ${esc(g.e)} (+20 % de dégâts la prochaine fois)`);
+  return t.join("<br>"); }
+function eliteCodexHTML() {
+  const ks = Object.keys(MONSTERS).filter(k => MONSTERS[k].elite && !MONSTERS[k].boss);
+  return `<p class="small dim">Les élites rencontrées. Après 3 victoires, leur faiblesse est révélée ; après ${HUNT_N}, vous gagnez une marque de chasse (+10 % de dégâts contre elles).</p><div class="grid" style="--min:250px">${ks.map(k => { const M = MONSTERS[k], L = (S.eliteLog || {})[k] || { wins: 0, met: 0, drops: 0 }, I = ELITE_INFO[k] || ["", "", "", ""], seen = L.met > 0 || (S.seen.monsters[k] != null);
+    return `<div class="card ${seen ? "" : "lock"}" style="cursor:${seen ? "pointer" : "default"}" ${seen ? `data-a="monSheet" data-v="${k}"` : ""}><div class="row" style="gap:8px">${seen ? canvasSlot("mo:" + k, 70, 70) : ico("quest", "#5a4a3a", 40)}<div style="flex:1;min-width:0"><b>${seen ? M.n : "???"}</b>${huntMark(k) ? ` ${ico("trophy", "#ffd27a", 12)}` : ""}<div class="tiny dim">${seen ? I[0] : ""}</div>
+      <div class="tiny">${L.wins} victoire${L.wins > 1 ? "s" : ""} · ${Math.min(L.wins, HUNT_N)}/${HUNT_N} vers la marque</div>${seen && I[2] ? `<div class="tiny">Butin favori : <span class="rar3">${esc(I[2])}</span> (${L.drops} obtenu${L.drops > 1 ? "s" : ""})</div>` : ""}
+      <div class="tiny ${L.wins >= 3 ? "good" : "dim"}">${L.wins >= 3 ? "Faiblesse : " + esc(I[3]) : "Faiblesse inconnue (3 victoires)"}</div></div></div></div>`; }).join("")}</div>`;
+}

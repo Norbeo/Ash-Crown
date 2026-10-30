@@ -1805,6 +1805,7 @@ function makeGear(kind, cls, tier, rar, key, evo) {
 function gearName(it) {
   if (!it) return "—";
   if (it.uniq && typeof UNIQ !== "undefined" && UNIQ[it.uniq]) return UNIQ[it.uniq].n; // objet unique de gardien
+  if (it.fav && typeof ELITE_INFO !== "undefined" && ELITE_INFO[it.fav]) return ELITE_INFO[it.fav][2]; // butin favori d'élite
   if (it.kind === "tr") return TRINKETS[it.key].n;
   const L = GEAR_NAMES[it.cls][it.kind === "wpn" ? "wpn" : "arm"], n = it.tier >= 6 ? (it.evo && CLASSES[it.cls].evos[it.evo] ? "Armure ascendante : " + CLASSES[it.cls].evos[it.evo].n : "Ascendant : " + L[4]) : L[it.tier - 1];
   return n + (it.up ? " +" + it.up : "");
@@ -1924,7 +1925,7 @@ function newBattle(heroes, enemyKeys, opt = {}) {
   const relicH = opt.relicH || {};
   const B = { heroes: heroes.map(h => heroUnit(h, relicH)), enemies: [], fallen: [], round: 0, order: [], turn: -1, morale: clamp(50 + (relicH.morale || 0) + (opt.morale || 0), 0, 100),
     light: opt.light == null ? 100 : opt.light, relicH, pet: null, over: null, log: [], kills: 0, crits: 0, opt, revived: 0, firstRound: true, mods: opt.mods || {} };
-  for (const k of enemyKeys) { const m = Object.assign({}, opt.mods); if (k.f) { m.hp = (m.hp || 1) * k.f.hp; m.dmg = (m.dmg || 1) * k.f.dmg; m.prot = (m.prot || 0) + k.f.prot * .5; } if (k.corrupt) { m.hp = (m.hp || 1) * 1.3; m.dmg = (m.dmg || 1) * 1.2; } const eu = monUnit(k.key || k, k.lvl || opt.lvl || 1, m); if (k.corrupt) { eu.corrupt = 1; eu.name += " corrompu"; eu.res = (eu.res || 0) + 15; } B.enemies.push(eu); }
+  for (const k of enemyKeys) { const m = Object.assign({}, opt.mods); if (k.f) { m.hp = (m.hp || 1) * k.f.hp; m.dmg = (m.dmg || 1) * k.f.dmg; m.prot = (m.prot || 0) + k.f.prot * .5; } if (k.corrupt) { m.hp = (m.hp || 1) * 1.3; m.dmg = (m.dmg || 1) * 1.2; } const eu = monUnit(k.key || k, k.lvl || opt.lvl || 1, m); if (k.corrupt) { eu.corrupt = 1; eu.name += " corrompu"; eu.res = (eu.res || 0) + 15; } if (k.named && typeof namedElite === "function") namedElite(eu); B.enemies.push(eu); }
   if (opt.pet) B.pet = { id: opt.pet, lvl: petLvl(opt.pet), evo: petEvolved(opt.pet), pw: petPower(opt.pet), n: 0 };
   if (relicH.startWeak) for (const e of B.enemies) addSt(B, null, e, { k: "weak", t: 2 }, []);
   if (typeof applyBonds === "function") applyBonds(B); // amis et rivaux côte à côte
@@ -2375,6 +2376,7 @@ function genMap(rng, cols, opt = {}) {
     }
     // pas deux colporteurs/camps dans la même colonne
     const seen = {}; for (const nd of col) { if ((nd.type === "shop" || nd.type === "camp" || nd.type === "treasure") && !last && c !== cols - 2) { if (seen[nd.type]) nd.type = "combat"; seen[nd.type] = 1; } }
+    for (const nd of col) if (nd.type === "elite" && rng() < .3) nd.nest = 1; // nid d'élites (optionnel)
     map.push(col);
   }
   for (let c = 0; c < cols - 1; c++) {
@@ -2498,7 +2500,9 @@ function genEncounter0(run, node, rng = RNG) {
     const ref = rng.pick(R.elite), last = (S.lastElite || (S.lastElite = {}))[R.id], won = Object.keys(S.beatenElites || {}).filter(k => MONSTERS[k] && MONSTERS[k].elite);
     const own = R.elite.filter(k => !(S.beatenElites || {})[k]), cand = won.filter(k => k !== last);
     let ek = run.region !== "abime" && own.length ? rng.pick(own) : cand.length ? rng.pick(cand) : won.length ? rng.pick(won) : ref; const bk = typeof bountyKey === "function" ? bountyKey() : null; if (bk && bk !== last && rng() < .5) ek = bk; S.lastElite[R.id] = ek; // prime : l'élite recherchée se montre souvent
-    out.push({ key: ek, lvl: lvl + 1, f: monNorm(ek, ref) }); ranks += MONSTERS[ek].sz || 1; n = Math.min(n, 3); }
+    out.push({ key: ek, lvl: lvl + 1, f: monNorm(ek, ref), named: run.region !== "abime" && !R.elite.includes(ek) ? 1 : 0 }); ranks += MONSTERS[ek].sz || 1; n = Math.min(n, 3);
+    if (node.nestOn) { const e2 = rng.pick(won.filter(k => k !== ek).concat(R.elite.filter(k => k !== ek)).concat([ek])); out.push({ key: e2, lvl: lvl + 1, f: monNorm(e2, ref), named: !R.elite.includes(e2) ? 1 : 0 }); ranks += MONSTERS[e2].sz || 1; n = Math.min(n, 3); } // nid d'élites : deux élites
+  }
   while (out.length < n && ranks < 4) { const k = pickFor(ranks + 1); out.push({ key: k, lvl }); ranks += MONSTERS[k].sz || 1; }
   // les monstres de mêlée devant
   out.sort((a, b) => Math.min(...MONSTERS[a.key].rk) - Math.min(...MONSTERS[b.key].rk));
@@ -2524,6 +2528,8 @@ function rewardFor(run, node, rng = RNG) {
     R.shards = first ? 3 : 1 + (run.region === "abime" && run.floor % 3 === 0 ? 1 : 0) + Math.floor(run.oaths.length / 3); R.relic = randRelic(run, rng, 2);
   }
   R.gold = Math.round(R.gold * goldM * diffOf().gold * (run.night ? 1.35 : 1)); R.xp = Math.round(R.xp * (1 + run.threat * .2) * diffOf().xp); R.petXp = Math.round(R.xp * .8);
+  if (run.favDrop) { R.loot.push(run.favDrop); R.fav = run.favDrop; run.favDrop = null; } // butin favori d'une élite
+  if (node && node.nestOn) { R.gold = Math.round(R.gold * 1.8); R.xp = Math.round(R.xp * 1.5); R.loot.push(lootGear(lvl + 2, .35, null, 3)); R.shards = (R.shards || 0) + 1; } // nid d'élites : gros butin
   R.tome = t === "boss" ? 1 : t === "elite" ? (rng.chance(.22) ? 1 : 0) : t === "treasure" ? (rng.chance(.14) ? 1 : 0) : 0; // tome d'expérience
   if (typeof cycleLoot === "function" && cycleN()) { const c = cycleLoot(); R.gold = Math.round(R.gold * c); R.xp = Math.round(R.xp * c); }
   return R;
@@ -2830,6 +2836,7 @@ function battleFor(run, node, enc) {
   if (run.buff) { rh.dmg = (rh.dmg || 0) + .2; }
   const B = newBattle(party, enc, { relicH: rh, pet: run.pet, light: run.light, mods, morale: (run.morale || 0) + S.bld.chapelle * 2, onLight: v => { run.light = clamp(run.light + v, 0, 100); B.light = run.light; } });
   B.node = node;
+  if (typeof eliteBonuses === "function") eliteBonuses(B);
   if (mods.hardBoss) for (const e of B.enemies) if (e.boss) { e.st.push({ k: "dmgUp", v: HARD_BOSS.dmg - 1, t: 99 }); e.hard = 1; } // gardien enragé dès le départ
   return B;
 }
@@ -2856,7 +2863,9 @@ function afterBattle(run, B) {
   contractProgress("impie", (B.dead || []).filter(e => e.tags.includes("impie")).length);
   if (B.node && B.node.type === "elite" && B.over === "win") contractProgress("elites");
   for (const e of B.dead || []) S.seen.monsters[e.key] = (S.seen.monsters[e.key] || 0) + 1;
-  if (B.over === "win") for (const e of B.dead || []) if (e.elite) (S.beatenElites = S.beatenElites || {})[e.key] = 1; // élites vaincues : elles peuvent revenir ailleurs
+  if (B.over === "win") for (const e of B.dead || []) if (e.elite) (S.beatenElites = S.beatenElites || {})[e.key] = 1;
+  if (typeof elitesAfterBattle === "function") { const o = elitesAfterBattle(B, run); run.eliteNews = o; if (B.over === "win") { const fav = eliteFavDrop(B, runLevel(run, B.node)); if (fav) (run.favDrop = fav); } }
+  if (B.over === "win") for (const u of B.heroes) if (u.revenge) { const h = heroById(u.hid); if (h && (B.dead || []).some(e => e.key === u.revenge)) h.grudge = null; } // vengeance accomplie // élites vaincues : elles peuvent revenir ailleurs
 }
 // une potion : soigne 40 % et purge (utilisée à la place d'une action)
 function usePotion(B, run, u, tgt) {
@@ -3265,6 +3274,49 @@ const CLASS_GOALS = [3, 10, 25];
 function classChallengeTick(run) { const won = S.classWins = S.classWins || {}, out = [];
   for (const h of run.party.map(heroById).filter(Boolean)) { const c = h.cls; won[c] = (won[c] || 0) + 1; const g = CLASS_GOALS.indexOf(won[c]); if (g >= 0) { const gold = [300, 900, 2500][g], sh = [1, 3, 6][g]; S.gold += gold; S.shards += sh; out.push({ cls: c, g, gold, sh }); } }
   return out; }
+// ── Élites (oct. 2026) : élites nommées, nids d'élites, marques de chasse, récits, codex, vengeance, embuscades de nuit ──
+const ELITE_INFO = {
+  boucher: ["Le boucher de la grand-place", "« Approchez. J'ai de la place sur l'étal. »", "Couperet du Boucher", "Recule devant la lumière sainte : +15 % de dégâts sacrés"],
+  alpha: ["Le chef de meute", "« … » Il hurle, et la forêt répond.", "Croc d'alpha", "Ralenti, il perd sa meute : vulnérable au Ralenti"],
+  chevalier_os: ["Le gardien de la crypte", "« Nul ne passe avant le Jugement. »", "Écu d'os", "Ses os craquent sous les masses : sensible aux coups étourdissants"],
+  prieur: ["Le prieur sanglant", "« Votre sang lavera mes péchés. »", "Fouet du Prieur", "Il saigne autant qu'il fait saigner"],
+  hydre: ["La jeune hydre", "Trois têtes sifflent ensemble.", "Écaille d'hydre", "Le feu cautérise ses têtes"],
+  ogre: ["Le mangeur d'hommes", "« Encore… faim… »", "Massue de l'Ogre", "Lent : agissez avant lui"],
+  bourreau: ["La hache du roi", "« Agenouillez-vous. C'est plus propre. »", "Hache du Bourreau", "Sans armure : la protection brisée le ruine"],
+  colosse_braise: ["Le géant de lave", "Le sol fond sous ses pas.", "Cœur de braise", "La glace fend sa carapace"],
+  jarl_mort: ["Le seigneur des Cimes", "« Mon trône de glace ne sera jamais vôtre. »", "Hache des glaces", "Le feu le ramollit"],
+  leviathan: ["La bête des citernes", "Les tentacules sortent de l'eau noire.", "Œil du Léviathan", "Hors de l'eau, il s'épuise : les dégâts sur la durée le ruinent"],
+  contremaitre: ["Le contremaître de fer", "« Au travail. Jusqu'à la mort. »", "Fouet de chaînes", "Son armure rouille : la protection brisée le ruine"],
+  champion_roi: ["Invaincu en cent duels", "« Le cent unième. Enfin. »", "Rapière du Champion", "Il ne frappe qu'un seul ennemi à la fois"],
+};
+const ELITE_EPI = ["revenu des morts", "le Revenant", "qui ne meurt pas", "à la rancune tenace", "aux cicatrices neuves"];
+const HUNT_N = 10; // victoires pour la marque de chasse
+// élite d'un autre chapitre : surnom, +10 % PV, une compétence en plus
+function namedElite(u) {
+  u.named = 1; u.name = u.name + ", " + ELITE_EPI[hashStr(u.key) % ELITE_EPI.length]; u.hpMax = Math.round(u.hpMax * 1.1); u.hp = u.hpMax;
+  u.skills = u.skills.concat([{ id: "rev", n: "Rancune du revenant", m: 1.25, t: "e", at: [1, 2, 3], fx: [{ k: "bleed", v: .5, t: 3, ch: .9 }, { k: "weak", t: 2, ch: .5 }], cd: 2, w: .8 }]);
+}
+const eliteStats = k => ((S.eliteLog || (S.eliteLog = {}))[k] = S.eliteLog[k] || { wins: 0, met: 0, drops: 0 });
+const huntMark = k => eliteStats(k).wins >= HUNT_N;
+// après un combat : victoires, marques de chasse, rancunes (héros mis à terre par une élite)
+function elitesAfterBattle(B, run) {
+  const out = { marks: [], grudges: [] };
+  for (const e of [...B.enemies, ...(B.dead || [])]) if (e.elite) eliteStats(e.key).met++;
+  if (B.over === "win") for (const e of B.dead || []) if (e.elite) { const L = eliteStats(e.key); L.wins++; if (L.wins === HUNT_N) out.marks.push(e.name.split(",")[0]); }
+  for (const u of [...B.heroes, ...B.fallen]) { if (!u.agonyN && !u.fallen) continue; const h = heroById(u.hid); const el = [...B.enemies, ...(B.dead || [])].find(e => e.elite); if (h && el) { h.grudge = el.key; out.grudges.push({ h: h.name, e: el.name.split(",")[0] }); } }
+  return out;
+}
+// au début d'un combat : marque de chasse (+10 % contre l'élite), vengeance (+20 % pour le héros qui lui en veut)
+function eliteBonuses(B) {
+  for (const e of B.enemies) { if (!e.elite) continue;
+    if (huntMark(e.key)) { e.hunted = 1; e.st.push({ k: "vuln", t: 99, v: 0, hunt: 1 }); }
+    for (const u of B.heroes) { const h = heroById(u.hid); if (h && h.grudge === e.key) { u.st.push({ k: "dmgUp", v: .2, t: 99 }); u.revenge = e.key; } } }
+}
+// butin favori : 10 % de chance par victoire contre une élite, qualité Épique au minimum
+function eliteFavDrop(B, lvl) {
+  const e = (B.dead || []).find(x => x.elite && ELITE_INFO[x.key]); if (!e || !chance(.1)) return null;
+  const it = lootGear(lvl + 1, .3, null, 3); it.fav = e.key; eliteStats(e.key).drops++; return it;
+}
 // ── Gardiens : titres, répliques d'entrée, butin unique ; mode Hardi par chapitre ; dernières paroles ──
 const BOSS_INFO = {
   docteur_peste: ["Le dernier médecin de Morvaine", "« Restez immobiles. Le remède ne fait mal qu'une fois. »", "Bec du Docteur", "arm"],
@@ -4663,6 +4715,12 @@ ACT.retreat = () => confirmBox("Rentrer au Bastion ? Vous gardez l'or et le buti
 ACT.node = v => {
   const [c, i] = v.split(":").map(Number); const run = S.run, n = run.map[c][i];
   if (!availableNodes(run).includes(n)) return;
+  if (n.type === "elite" && n.nest && n.nestOn == null) return modal(`<h2>${ico("skull", "#e05050")} Nid d'élites</h2><p class="lore">Deux silhouettes massives se dressent dans l'ombre. Elles ne vous ont pas encore vus.</p><p class="small">Affronter le nid : <b>deux élites</b> à la fois, mais <b>or ×1,8, expérience ×1,5</b>, un objet Épique garanti et un éclat. Ou n'en attirer qu'une seule.</p><div class="row sp" style="margin-top:10px"><button class="btn" data-a="nest" data-v="${v}:0">Une seule élite</button><button class="btn main" data-a="nest" data-v="${v}:1">Attaquer le nid</button></div>`);
+  if (run.night && !["combat", "elite", "boss"].includes(n.type) && !n.ambushed && chance(.15)) { // nuit : une élite surgit en chemin
+    n.ambushed = 1; enterNode(run, n); run.pendingNode = { c: n.c, i: n.i }; save();
+    const fake = { c: n.c, i: n.i, type: "elite", nightAmbush: 1, links: [] }; toast(`${ico("skull", "#e05050")} Une élite surgit des ténèbres sur le chemin !`, "bad");
+    return go("travel", { node: fake });
+  }
   enterNode(run, n); save();
   go("travel", { node: n });
 };
@@ -4906,7 +4964,7 @@ async function startCombat(node) {
   $("#cb-flee").style.display = "";
   cbTopLeft(); cbBar(null);
   if (node.type === "boss") { const bs = B.enemies.find(e => e.boss); await bossIntro(bs); }
-  else if (node.type === "elite") await showBanner("Élite", B.enemies.find(e => e.elite)?.name || "", "#ff8a4a", 1100);
+  else if (node.type === "elite") { const el = B.enemies.find(e => e.elite); if (el && !(S.eliteSeen || {})[el.key] && ELITE_INFO[el.key]) await eliteIntro(el); else await showBanner(node.nestOn ? "Nid d'élites" : node.nightAmbush ? "Embuscade !" : "Élite", el ? el.name : "", "#ff8a4a", 1100); }
   else await wait(500);
   combatLoop();
 }
@@ -5143,7 +5201,7 @@ async function combatEnd(over) {
   CB.B = null; CB.resolve = null;
   afterBattle(run, B);
   if (over === "flee" && node.type === "boss") { save(); toast("Vous fuyez le gardien et rentrez au Bastion.", "bad"); finishRun("retreat"); return; } // fuir un gardien met fin à l'expédition (sans victoire)
-  if (over === "flee") { node.done = 1; save(); go("map"); return; }
+  if (over === "flee") { node.done = 1; if (node.nightAmbush && run.pendingNode) { const pn = run.pendingNode; run.pendingNode = null; save(); go("map"); const n0 = run.map[pn.c][pn.i]; if (n0) resolveNode(n0); return; } save(); go("map"); return; }
   if (over === "win") {
     await new Promise(r => setTimeout(r, 300));
     const R = rewardFor(run, node.ambush ? { c: node.c, type: "combat" } : node);
@@ -5162,7 +5220,7 @@ async function combatEnd(over) {
       return;
     }
     go("map");
-    rewardModal(node.type === "elite" ? "Élite vaincue" : "Victoire", "", R, ups);
+    rewardModal(node.type === "elite" ? (node.nightAmbush ? "Embuscade repoussée" : node.nestOn ? "Nid d'élites détruit" : "Élite vaincue") : "Victoire", eliteNewsText(run), R, ups, () => { const pn = run.pendingNode; if (pn) { run.pendingNode = null; const n0 = run.map[pn.c] && run.map[pn.c][pn.i]; if (n0) resolveNode(n0); } });
     return;
   }
   // défaite
@@ -5331,12 +5389,13 @@ SCREENS.codex = {
   scene: () => backdrop("catacombes", { dark: .6 }),
   html: () => {
     const tab = UI.codexTab || "classes";
-    const T = [["classes", "helm", "Classes"], ["bestiaire", "skull", "Bestiaire"], ["synergies", "link", "Synergies"], ["reliques", "gem", "Reliques"], ["defis", "trophy", "Défis de classe"], ["memorial", "skull", "Mémorial"], ["histoire", "scroll", "Chroniques"], ["succes", "trophy", "Succès"], ["records", "cup", "Registres"], ["glossaire", "book", "Glossaire"]];
+    const T = [["classes", "helm", "Classes"], ["bestiaire", "skull", "Bestiaire"], ["synergies", "link", "Synergies"], ["reliques", "gem", "Reliques"], ["defis", "trophy", "Défis de classe"], ["elites", "skull", "Élites"], ["memorial", "skull", "Mémorial"], ["histoire", "scroll", "Chroniques"], ["succes", "trophy", "Succès"], ["records", "cup", "Registres"], ["glossaire", "book", "Glossaire"]];
     let body = "";
     if (tab === "glossaire") body = glossaryHTML();
     if (tab === "reliques") body = relicsCodexHTML();
     if (tab === "defis") body = classChCodexHTML();
     if (tab === "memorial") body = memorialHTML();
+    if (tab === "elites") body = eliteCodexHTML();
     if (tab === "succes") body += hiddenAchHTML();
     if (tab === "classes") body = `<div class="grid" style="--min:280px">${CLASS_IDS.map(k => { const C = CLASSES[k], un = classUnlocked(k); return `<div class="card ${un ? "" : "lock"}" style="cursor:default"><div class="row" style="flex-wrap:nowrap;gap:8px">${canvasSlot("cl:" + k, 90, 112)}<div style="flex:1"><h3 style="margin:0">${C.n} ${un ? "" : ico("lock", "#9a8c7a", 13)}</h3>${roleTag(C.role)}<p class="tiny lore" style="margin:4px 0">${C.lore}</p><div class="tiny">Voies : ${Object.values(C.evos).map(e => `<b class="gold">${e.n}</b>`).join(" ou ")}</div>${un ? "" : `<div class="tiny dim">Débloquée au chapitre ${C.unlock}</div>`}</div></div></div>`; }).join("")}</div>`;
     if (tab === "synergies") body = `<p class="small dim">Certaines classes se complètent. Quand elles partent ensemble en expédition, tout le groupe en profite.</p><div class="grid" style="--min:260px">${Object.keys(SYNERGIES).map(k => { const Y = SYNERGIES[k]; return `<div class="card" style="cursor:default"><h3 style="margin:0">${ico("link", "#e8c878", 15)} ${Y.n}</h3><div class="tiny gold" style="margin:3px 0">${synergyNeedText(Y)}</div><p class="small" style="margin:0">${gl(Y.d)}</p></div>`; }).join("")}</div>`;
@@ -5848,10 +5907,10 @@ ACT.newCycle = () => confirmBox(`Commencer le cycle ${roman(cycleN() + 2)} ? La 
 ACT.showFinale = () => showFinale();
 
 // ── Entrée du gardien : plan cinématique (portrait, nom, titre, réplique) ──
-function bossIntro(bs) {
+function bossIntro(bs, ov) {
   return new Promise(res => {
-    const I = (typeof BOSS_INFO !== "undefined" && BOSS_INFO[bs.key]) || ["Gardien", ""], el = document.createElement("div"); el.id = "bossin";
-    el.innerHTML = `<div class="bbars t"></div><div class="bbars b"></div><div class="bi-wrap"><canvas width="360" height="380" data-cv="bi"></canvas><div class="bi-txt"><div class="bi-sub">${bs.hard ? "Gardien enragé — Hardi" : "Gardien"}</div><div class="bi-name">${esc(bs.name)}</div><div class="bi-title">${esc(I[0])}</div><div class="bi-q">${esc(I[1])}</div></div></div>`;
+    const I = ov ? [ov.title, ov.q] : (typeof BOSS_INFO !== "undefined" && BOSS_INFO[bs.key]) || ["Gardien", ""], el = document.createElement("div"); el.id = "bossin";
+    el.innerHTML = `<div class="bbars t"></div><div class="bbars b"></div><div class="bi-wrap"><canvas width="360" height="380" data-cv="bi"></canvas><div class="bi-txt"><div class="bi-sub">${ov ? ov.sub : bs.hard ? "Gardien enragé — Hardi" : "Gardien"}</div><div class="bi-name">${esc(bs.name)}</div><div class="bi-title">${esc(I[0])}</div><div class="bi-q">${esc(I[1])}</div></div></div>`;
     document.body.appendChild(el); try { sfx("bell"); setTimeout(() => sfx("dark"), 400); } catch (e) { }
     fillCanvases(el, c => paintMon(c, bs.key));
     let done = false; const end = () => { if (done) return; done = true; el.classList.add("out"); setTimeout(() => { el.remove(); res(); }, 450); };
@@ -5899,6 +5958,22 @@ function hardToggleHTML(E) {
   return `<div class="row" style="margin-top:6px"><button class="btn sm ${E.hard ? "gold" : "ghost"}" data-a="toggleHard">${ico("skull", E.hard ? "#ff6a4a" : "#9a8c7a", 14)}Gardien Hardi${gt ? " " + ico("trophy", "#ffd27a", 12) : ""}</button><span class="tiny dim">Gardien +50 % PV, +30 % dégâts, enragé. Victoire : trophée doré du chapitre${gt ? " (déjà obtenu)" : ""}.</span></div>`;
 }
 ACT.toggleHard = () => { UI.expe.hard = !UI.expe.hard; refresh(); };
+
+// ── Élites : choix du nid, récit de première rencontre, nouvelles après combat, codex ──
+ACT.nest = v => { const [c, i, on] = v.split(":").map(Number), run = S.run, n = run.map[c][i]; n.nestOn = on; closeModal(); ACT.node(c + ":" + i); };
+function eliteIntro(el) { (S.eliteSeen = S.eliteSeen || {})[el.key] = 1; save(); const I = ELITE_INFO[el.key];
+  return bossIntro(Object.assign({}, el, { boss: 0 }), { sub: el.named ? "Élite revenue d'ailleurs" : "Élite", title: I[0], q: I[1] }); }
+function eliteNewsText(run) { const o = run.eliteNews; run.eliteNews = null; if (!o) return ""; const t = [];
+  for (const m of o.marks) t.push(`🏆 Marque de chasse : ${esc(m)} (+10 % de dégâts contre elle, pour toujours)`);
+  for (const g of o.grudges) t.push(`⚔ ${esc(g.h.split(" ")[0])} a une revanche à prendre sur ${esc(g.e)} (+20 % de dégâts la prochaine fois)`);
+  return t.join("<br>"); }
+function eliteCodexHTML() {
+  const ks = Object.keys(MONSTERS).filter(k => MONSTERS[k].elite && !MONSTERS[k].boss);
+  return `<p class="small dim">Les élites rencontrées. Après 3 victoires, leur faiblesse est révélée ; après ${HUNT_N}, vous gagnez une marque de chasse (+10 % de dégâts contre elles).</p><div class="grid" style="--min:250px">${ks.map(k => { const M = MONSTERS[k], L = (S.eliteLog || {})[k] || { wins: 0, met: 0, drops: 0 }, I = ELITE_INFO[k] || ["", "", "", ""], seen = L.met > 0 || (S.seen.monsters[k] != null);
+    return `<div class="card ${seen ? "" : "lock"}" style="cursor:${seen ? "pointer" : "default"}" ${seen ? `data-a="monSheet" data-v="${k}"` : ""}><div class="row" style="gap:8px">${seen ? canvasSlot("mo:" + k, 70, 70) : ico("quest", "#5a4a3a", 40)}<div style="flex:1;min-width:0"><b>${seen ? M.n : "???"}</b>${huntMark(k) ? ` ${ico("trophy", "#ffd27a", 12)}` : ""}<div class="tiny dim">${seen ? I[0] : ""}</div>
+      <div class="tiny">${L.wins} victoire${L.wins > 1 ? "s" : ""} · ${Math.min(L.wins, HUNT_N)}/${HUNT_N} vers la marque</div>${seen && I[2] ? `<div class="tiny">Butin favori : <span class="rar3">${esc(I[2])}</span> (${L.drops} obtenu${L.drops > 1 ? "s" : ""})</div>` : ""}
+      <div class="tiny ${L.wins >= 3 ? "good" : "dim"}">${L.wins >= 3 ? "Faiblesse : " + esc(I[3]) : "Faiblesse inconnue (3 victoires)"}</div></div></div></div>`; }).join("")}</div>`;
+}
 /* ═══════════════════════ Démarrage ═══════════════════════ */
 if (HASWIN) {
   const boot = () => {

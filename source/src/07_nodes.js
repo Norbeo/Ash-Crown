@@ -139,6 +139,7 @@ function battleFor(run, node, enc) {
   if (run.buff) { rh.dmg = (rh.dmg || 0) + .2; }
   const B = newBattle(party, enc, { relicH: rh, pet: run.pet, light: run.light, mods, morale: (run.morale || 0) + S.bld.chapelle * 2, onLight: v => { run.light = clamp(run.light + v, 0, 100); B.light = run.light; } });
   B.node = node;
+  if (typeof eliteBonuses === "function") eliteBonuses(B);
   if (mods.hardBoss) for (const e of B.enemies) if (e.boss) { e.st.push({ k: "dmgUp", v: HARD_BOSS.dmg - 1, t: 99 }); e.hard = 1; } // gardien enragé dès le départ
   return B;
 }
@@ -165,7 +166,9 @@ function afterBattle(run, B) {
   contractProgress("impie", (B.dead || []).filter(e => e.tags.includes("impie")).length);
   if (B.node && B.node.type === "elite" && B.over === "win") contractProgress("elites");
   for (const e of B.dead || []) S.seen.monsters[e.key] = (S.seen.monsters[e.key] || 0) + 1;
-  if (B.over === "win") for (const e of B.dead || []) if (e.elite) (S.beatenElites = S.beatenElites || {})[e.key] = 1; // élites vaincues : elles peuvent revenir ailleurs
+  if (B.over === "win") for (const e of B.dead || []) if (e.elite) (S.beatenElites = S.beatenElites || {})[e.key] = 1;
+  if (typeof elitesAfterBattle === "function") { const o = elitesAfterBattle(B, run); run.eliteNews = o; if (B.over === "win") { const fav = eliteFavDrop(B, runLevel(run, B.node)); if (fav) (run.favDrop = fav); } }
+  if (B.over === "win") for (const u of B.heroes) if (u.revenge) { const h = heroById(u.hid); if (h && (B.dead || []).some(e => e.key === u.revenge)) h.grudge = null; } // vengeance accomplie // élites vaincues : elles peuvent revenir ailleurs
 }
 // une potion : soigne 40 % et purge (utilisée à la place d'une action)
 function usePotion(B, run, u, tgt) {

@@ -104,6 +104,12 @@ ACT.retreat = () => confirmBox("Rentrer au Bastion ? Vous gardez l'or et le buti
 ACT.node = v => {
   const [c, i] = v.split(":").map(Number); const run = S.run, n = run.map[c][i];
   if (!availableNodes(run).includes(n)) return;
+  if (n.type === "elite" && n.nest && n.nestOn == null) return modal(`<h2>${ico("skull", "#e05050")} Nid d'élites</h2><p class="lore">Deux silhouettes massives se dressent dans l'ombre. Elles ne vous ont pas encore vus.</p><p class="small">Affronter le nid : <b>deux élites</b> à la fois, mais <b>or ×1,8, expérience ×1,5</b>, un objet Épique garanti et un éclat. Ou n'en attirer qu'une seule.</p><div class="row sp" style="margin-top:10px"><button class="btn" data-a="nest" data-v="${v}:0">Une seule élite</button><button class="btn main" data-a="nest" data-v="${v}:1">Attaquer le nid</button></div>`);
+  if (run.night && !["combat", "elite", "boss"].includes(n.type) && !n.ambushed && chance(.15)) { // nuit : une élite surgit en chemin
+    n.ambushed = 1; enterNode(run, n); run.pendingNode = { c: n.c, i: n.i }; save();
+    const fake = { c: n.c, i: n.i, type: "elite", nightAmbush: 1, links: [] }; toast(`${ico("skull", "#e05050")} Une élite surgit des ténèbres sur le chemin !`, "bad");
+    return go("travel", { node: fake });
+  }
   enterNode(run, n); save();
   go("travel", { node: n });
 };

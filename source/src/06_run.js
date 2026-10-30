@@ -29,6 +29,7 @@ function genMap(rng, cols, opt = {}) {
     }
     // pas deux colporteurs/camps dans la même colonne
     const seen = {}; for (const nd of col) { if ((nd.type === "shop" || nd.type === "camp" || nd.type === "treasure") && !last && c !== cols - 2) { if (seen[nd.type]) nd.type = "combat"; seen[nd.type] = 1; } }
+    for (const nd of col) if (nd.type === "elite" && rng() < .3) nd.nest = 1; // nid d'élites (optionnel)
     map.push(col);
   }
   for (let c = 0; c < cols - 1; c++) {
@@ -152,7 +153,9 @@ function genEncounter0(run, node, rng = RNG) {
     const ref = rng.pick(R.elite), last = (S.lastElite || (S.lastElite = {}))[R.id], won = Object.keys(S.beatenElites || {}).filter(k => MONSTERS[k] && MONSTERS[k].elite);
     const own = R.elite.filter(k => !(S.beatenElites || {})[k]), cand = won.filter(k => k !== last);
     let ek = run.region !== "abime" && own.length ? rng.pick(own) : cand.length ? rng.pick(cand) : won.length ? rng.pick(won) : ref; const bk = typeof bountyKey === "function" ? bountyKey() : null; if (bk && bk !== last && rng() < .5) ek = bk; S.lastElite[R.id] = ek; // prime : l'élite recherchée se montre souvent
-    out.push({ key: ek, lvl: lvl + 1, f: monNorm(ek, ref) }); ranks += MONSTERS[ek].sz || 1; n = Math.min(n, 3); }
+    out.push({ key: ek, lvl: lvl + 1, f: monNorm(ek, ref), named: run.region !== "abime" && !R.elite.includes(ek) ? 1 : 0 }); ranks += MONSTERS[ek].sz || 1; n = Math.min(n, 3);
+    if (node.nestOn) { const e2 = rng.pick(won.filter(k => k !== ek).concat(R.elite.filter(k => k !== ek)).concat([ek])); out.push({ key: e2, lvl: lvl + 1, f: monNorm(e2, ref), named: !R.elite.includes(e2) ? 1 : 0 }); ranks += MONSTERS[e2].sz || 1; n = Math.min(n, 3); } // nid d'élites : deux élites
+  }
   while (out.length < n && ranks < 4) { const k = pickFor(ranks + 1); out.push({ key: k, lvl }); ranks += MONSTERS[k].sz || 1; }
   // les monstres de mêlée devant
   out.sort((a, b) => Math.min(...MONSTERS[a.key].rk) - Math.min(...MONSTERS[b.key].rk));
@@ -178,6 +181,8 @@ function rewardFor(run, node, rng = RNG) {
     R.shards = first ? 3 : 1 + (run.region === "abime" && run.floor % 3 === 0 ? 1 : 0) + Math.floor(run.oaths.length / 3); R.relic = randRelic(run, rng, 2);
   }
   R.gold = Math.round(R.gold * goldM * diffOf().gold * (run.night ? 1.35 : 1)); R.xp = Math.round(R.xp * (1 + run.threat * .2) * diffOf().xp); R.petXp = Math.round(R.xp * .8);
+  if (run.favDrop) { R.loot.push(run.favDrop); R.fav = run.favDrop; run.favDrop = null; } // butin favori d'une élite
+  if (node && node.nestOn) { R.gold = Math.round(R.gold * 1.8); R.xp = Math.round(R.xp * 1.5); R.loot.push(lootGear(lvl + 2, .35, null, 3)); R.shards = (R.shards || 0) + 1; } // nid d'élites : gros butin
   R.tome = t === "boss" ? 1 : t === "elite" ? (rng.chance(.22) ? 1 : 0) : t === "treasure" ? (rng.chance(.14) ? 1 : 0) : 0; // tome d'expérience
   if (typeof cycleLoot === "function" && cycleN()) { const c = cycleLoot(); R.gold = Math.round(R.gold * c); R.xp = Math.round(R.xp * c); }
   return R;

@@ -4755,18 +4755,22 @@ SCREENS.travel = {
     const pet = run.pet ? [petSprite(run.pet, { evo: petEvolved(run.pet) }, 0, sc * .9), petSprite(run.pet, { evo: petEvolved(run.pet) }, .4, sc * .9)] : null;
     const t0 = SC.t, dur = a.node.type === "boss" ? 2.6 : 1.7;
     let doneOnce = false; UI.travelDone = () => { if (doneOnce) return; doneOnce = true; resolveNode(a.node); };
-    let stepT = 0;
+    let stepT = 0, walkFit = null;
     return (x, t, dt) => {
       const k = (t - t0) / dur, bg = paintRegion(run.region, 1280, 720);
       const bw = Math.max(W, H * 16 / 9) * 1.25, bh = bw * 9 / 16, scroll = ((t - t0) * 70) % bw;
       for (const o of [0, 1]) x.drawImage(bg, -scroll + o * bw - (bw - W) / 2 * 0, Math.min(0, H - bh) * .6, bw, Math.max(bh, H));
       if (!SC.amb || SC.ambKind !== run.region) { SC.amb = makeAmbient(REGION_AMB[run.region] || "braises", 36, W, H); SC.ambKind = run.region; }
       drawAmbient(x, SC.amb, t, dt);
-      const gy = H * (port ? .78 : .86), gap = 64 * sc * 1.15, fi = Math.floor((t - t0) * 7);
+      // espacement d'après la largeur réelle des illustrations ; en portrait on réduit le groupe pour qu'il tienne sans se chevaucher
+      if (!walkFit || walkFit.W !== W) { let bw = 0; for (const fr of frames) { const b = spriteBox(fr[0]); bw = Math.max(bw, b ? b.w : 64 * sc); } const pw = pet ? ((spriteBox(pet[0]) || {}).w || 60 * sc) : 0;
+        const need = bw * .82 * (party.length - 1) + bw * .5 + (pet ? pw * .9 + bw * .2 : 0), avail = W * (port ? .9 : .7); walkFit = { W, ds: Math.min(1, avail / need), gap: bw * .82, pg: bw * .5 + pw * .5 }; }
+      const ds = walkFit.ds, gy = H * (port ? .78 : .86), gap = Math.max(64 * sc * 1.15 * ds, walkFit.gap * ds), fi = Math.floor((t - t0) * 7);
       if (fi !== stepT && fi % 2 === 0) { stepT = fi; sfx("step"); }
-      const front = W * (port ? .62 : .58) + Math.min(1, k * 1.5) * 20;
-      if (pet) { const cv = pet[fi % 2]; x.save(); x.translate(front - gap * (party.length + .3), gy - Math.abs(Math.sin(t * 9)) * 4); x.fillStyle = "rgba(0,0,0,.4)"; x.beginPath(); x.ellipse(0, 4, 30 * sc, 6 * sc, 0, 0, 7); x.fill(); x.drawImage(cv, -cv.ax, -cv.ay); x.restore(); }
-      party.forEach((h, i) => { const cv = frames[i][(fi + i) % 4]; const px = front - gap * i; x.fillStyle = "rgba(0,0,0,.45)"; x.beginPath(); x.ellipse(px, gy + 2, 34 * sc, 7 * sc, 0, 0, 7); x.fill(); x.drawImage(cv, px - cv.ax, gy - cv.ay); });
+      const front = W * (port ? .9 : .58) - (port ? walkFit.gap * .5 * ds : 0) + Math.min(1, k * 1.5) * 20 * ds;
+      const blit = (cv, px, py) => x.drawImage(cv, px - cv.ax * ds, py - cv.ay * ds, cv.width * ds, cv.height * ds);
+      if (pet) { const cv = pet[fi % 2], px = front - gap * (party.length - 1) - walkFit.pg * ds, py = gy - Math.abs(Math.sin(t * 9)) * 4; x.fillStyle = "rgba(0,0,0,.4)"; x.beginPath(); x.ellipse(px, py + 4, 30 * sc * ds, 6 * sc * ds, 0, 0, 7); x.fill(); blit(cv, px, py); }
+      party.forEach((h, i) => { const cv = frames[i][(fi + i) % 4]; const px = front - gap * i; x.fillStyle = "rgba(0,0,0,.45)"; x.beginPath(); x.ellipse(px, gy + 2, 34 * sc * ds, 7 * sc * ds, 0, 0, 7); x.fill(); blit(cv, px, gy); });
       // torche portée par le groupe
       const f = .8 + Math.sin(t * 9) * .1; glow(x, front + 20 * sc, gy - 120 * sc, 200 * sc * (run.light / 100 + .4), "#ff9a4a", .22 * f);
       const vg = x.createRadialGradient(front, gy - 60, 40, front, gy - 60, Math.max(W, H) * (.35 + run.light / 250)); vg.addColorStop(0, "rgba(0,0,0,0)"); vg.addColorStop(1, "rgba(0,0,0,.85)"); x.fillStyle = vg; x.fillRect(0, 0, W, H);

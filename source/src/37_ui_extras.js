@@ -617,3 +617,62 @@ function combatHints(B, node) {
   if (E.some(e => (e.st || []).some(s => s.k === "riposte"))) hintOnce("riposte");
   if (S.heroes.some(h => (h.stress || 0) >= 30)) hintOnce("stress");
 }
+
+// ── Atlas : chaque lieu peint, son histoire, ses habitants, ce que vous y avez accompli ──
+function atlasHTML() {
+  const regs = REGIONS.concat(typeof ABYSS !== "undefined" && !REGIONS.includes(ABYSS) ? [ABYSS] : []);
+  return `<p class="small dim">Les terres de la Couronne, telles que vos chroniqueurs les ont peintes. Un lieu se dévoile dès votre première expédition.</p><div class="grid" style="--min:300px">${regs.map(r => { const P = S.prog[r.id] || {}, seen = P.clears || (S.stats.regionRuns || {})[r.id] || regionUnlocked(r.id);
+    const img = artHas("bg_" + r.id) ? `assets/bg_${r.id}.webp` : null, foes = (r.pool || []).filter(k => MONSTERS[k]).slice(0, 6);
+    return `<div class="card" style="cursor:default;padding:0;overflow:hidden;${seen ? "" : "opacity:.5"}">${img && seen ? `<img src="${img}" alt="" style="width:100%;aspect-ratio:16/9;object-fit:cover;display:block">` : `<div style="aspect-ratio:16/9;background:#0a0808;display:flex;align-items:center;justify-content:center">${ico("lock", "#5a4a3a", 28)}</div>`}
+      <div style="padding:8px 10px"><b class="gold">${seen ? esc(r.n) : "Terre inconnue"}</b> <span class="tiny dim">${r.sub || ""}${r.lvl ? " · niv " + r.lvl : ""}</span>${seen ? `<div class="small lore" style="margin:4px 0">${esc(r.d || "")}</div>
+      ${MONSTERS[r.boss] ? `<div class="tiny">${ico("skull", "#e05050", 12)} Gardien : <b>${(S.beaten || {})[r.boss] || P.clears ? MONSTERS[r.boss].n : "???"}</b></div>` : ""}
+      ${foes.length ? `<div class="tiny dim">Habitants : ${foes.map(k => (S.stats.monKills || {})[k] ? MONSTERS[k].n : "???").join(", ")}</div>` : ""}
+      <div class="tiny" style="margin-top:2px">${P.clears ? `${ico("trophy", "#e8c878", 12)} Vaincu ${P.clears} fois${P.threat ? " · menace " + roman(P.threat) : ""}` : r.id === "abime" ? `Profondeur record : ${S.abyss.best || 0}` : "Pas encore conquis"}</div>` : ""}</div></div>`; }).join("")}</div>`;
+}
+
+// ── Héros légendaires : rares, avec une histoire, ils se présentent à la Taverne après certains exploits ──
+const LEGENDS = [
+  { id: "aldric", cls: "templier", name: "Aldric le Briseur de Peste", cond: () => ((S.prog.bourg || {}).clears || 0) >= 3, how: "Vaincre trois fois le Bourg pestiféré.", story: "Il a tenu seul la porte de l'hospice pendant que la peste brûlait la ville. Ses mains tremblent encore, son bouclier jamais." },
+  { id: "morwenna", cls: "sorciere", name: "Morwenna des Ronces", cond: () => ((S.prog.foret || {}).clears || 0) >= 3, how: "Vaincre trois fois la Forêt des Pendus.", story: "Les pendus de la forêt lui murmurent des recettes. Elle les écoute, et elle répond." },
+  { id: "osric", cls: "exorciste", name: "Frère Osric de Saint-Morne", cond: () => ((S.prog.catacombes || {}).clears || 0) >= 2, how: "Vaincre deux fois les Catacombes.", story: "Seul survivant de l'abbaye. Il a chassé l'Abbé de sa propre crypte, un psaume à la bouche et un pieu à la main." },
+  { id: "isaure", cls: "arbaletriere", name: "Isaure la Noyée", cond: () => ((S.prog.marais || {}).clears || 0) >= 2, how: "Vaincre deux fois le Marais des Noyés.", story: "Elle s'est noyée une fois. Le marais l'a recrachée avec une arbalète et une très mauvaise humeur." },
+  { id: "gaspard", cls: "chasseur_sorcieres", name: "Gaspard Cendrelame", cond: () => ((S.prog.citadelle || {}).clears || 0) >= 1, how: "Vaincre le Roi de Cendres.", story: "Il traquait le Roi bien avant vous. Il ne vous pardonnera jamais de l'avoir eu en premier — mais il vous suivra." },
+  { id: "bran", cls: "hallebardier", name: "Bran, dernier de la Garde", cond: () => (S.abyss.best || 0) >= 10, how: "Atteindre la profondeur 10 de l'Abîme.", story: "Dernier hallebardier de la garde royale. Il est descendu dans l'Abîme chercher son roi, et n'en est jamais vraiment remonté." },
+];
+const legendCost = () => { const lv = Math.max(1, ...S.heroes.map(h => h.lvl)); return { gold: 900 + lv * 60, shards: 3 }; };
+function legendsHTML() {
+  S.legends = S.legends || {}; const L = LEGENDS.filter(l => !S.legends[l.id] && CLASSES[l.cls]);
+  if (!L.length) return "";
+  const c = legendCost();
+  return `<h3 style="margin-top:6px">${ico("crown", "#ffb848", 15)} Légendes</h3><p class="tiny dim">Des héros dont on chante déjà le nom. Ils ne rejoignent que ceux qui ont prouvé leur valeur — et une seule fois.</p>
+    <div class="col">${L.filter(l => l.cond()).map(l => `<div class="row card" style="cursor:default;gap:10px;border-color:#ffb84877">${canvasSlot("lg:" + l.id, 70, 84)}<div style="flex:1;min-width:0">
+      <b class="rar4">${esc(l.name)}</b> <span class="tiny dim">${CLASSES[l.cls].n}</span><div class="tiny lore">${esc(l.story)}</div><div class="tiny">${ico("star", "#ffb848", 11)} Trait unique : <b>Légende vivante</b> — ${TRAITS.legende.d}</div></div>
+      <button class="btn sm gold" data-a="legendHire" data-v="${l.id}">${fmt(c.gold)} or · ${c.shards} éclats</button></div>`).join("")}</div>
+    ${L.some(l => !l.cond()) ? `<div class="tiny dim" style="margin:4px 0 8px">${ico("lock", "#7a6a5a", 11)} À venir : ${L.filter(l => !l.cond()).map(l => `<span title="${esc(l.how)}">${CLASSES[l.cls].n} (${l.how.replace(/\.$/, "")})</span>`).join(" · ")}</div>` : ""}`;
+}
+ACT.legendHire = id => {
+  const l = LEGENDS.find(x => x.id === id); if (!l || !l.cond() || (S.legends || {})[id]) return;
+  if (S.heroes.length >= rosterMax()) return toast("La caserne est pleine.", "bad");
+  const c = legendCost(); if (S.gold < c.gold || (S.shards || 0) < c.shards) return toast("Il vous faut " + fmt(c.gold) + " or et " + c.shards + " éclats.", "bad");
+  S.gold -= c.gold; S.shards -= c.shards;
+  const lv = Math.max(1, Math.max(...S.heroes.map(h => h.lvl)) - 2), h = makeHero(l.cls, { name: l.name, lvl: lv, traits: ["legende"] });
+  const tier = Math.max(1, TIER_LVL.filter(x => x <= lv).length - 1); h.gear.wpn = makeGear("wpn", l.cls, Math.min(5, tier), 4); h.gear.arm = makeGear("arm", l.cls, Math.min(5, tier), 4);
+  h.legend = id; addHero(h); S.legends[id] = 1; save(); sfx("holy"); renderHud(); toast(`${ico("crown", "#ffb848", 14)} ${esc(l.name)} rejoint le Bastion !`, "good"); openBuilding("taverne");
+};
+
+// ── Fin de chapitre : grande illustration plein écran (décor du chapitre + gardien vaincu) ──
+function chapterCard(reg) {
+  const R = regionById(reg); if (!R || $("#chapcard")) return; const M = MONSTERS[R.boss];
+  const el = document.createElement("div"); el.id = "chapcard";
+  el.style.cssText = "position:fixed;inset:0;z-index:120;background:#000;display:flex;align-items:center;justify-content:center;overflow:hidden;cursor:pointer;opacity:0;transition:opacity 1.2s";
+  el.innerHTML = `${artHas("bg_" + reg) ? `<img src="assets/bg_${reg}.webp" alt="" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;filter:none;opacity:.55;animation:kb 14s ease-out forwards">` : ""}
+    <div style="position:absolute;inset:0;background:radial-gradient(ellipse at 50% 55%,transparent 20%,#000d 80%)"></div>
+    ${M && artHas("mon_" + (M.art || R.boss)) ? `<img src="assets/mon_${M.art || R.boss}.webp" alt="" style="position:absolute;bottom:8%;left:50%;transform:translateX(-50%);height:52%;max-width:80%;object-fit:contain;opacity:.85;animation:bossfade 3.5s ease-out forwards">` : ""}
+    <div style="position:relative;text-align:center;padding:20px;margin-bottom:38vh"><div style="font-family:var(--f-title);color:#b8a88a;letter-spacing:.3em;font-size:clamp(12px,2.4vw,16px)">${esc(R.sub || "")}</div>
+    <div style="font-family:var(--f-title);color:var(--gold2);font-size:clamp(28px,6vw,54px);text-shadow:0 0 22px #ff7a2a88">${esc(R.n)}</div>
+    <div style="font-family:var(--f-title);color:#e8d8b8;letter-spacing:.25em;margin-top:6px">LIBÉRÉ</div>${M ? `<div class="lore" style="margin-top:10px;font-size:15px">${esc(M.n)} n'est plus.</div>` : ""}</div>
+    <div class="tiny dim" style="position:absolute;bottom:14px;width:100%;text-align:center">Touchez pour continuer</div>
+    <style>@keyframes kb{from{transform:scale(1.12)}to{transform:scale(1)}}@keyframes bossfade{0%{opacity:.95}100%{opacity:.3}}</style>`;
+  document.body.appendChild(el); requestAnimationFrame(() => el.style.opacity = 1); sfx("holy");
+  const close = () => { el.style.opacity = 0; setTimeout(() => el.remove(), 900); }; el.onclick = close; setTimeout(close, 9000);
+}

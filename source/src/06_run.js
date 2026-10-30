@@ -254,6 +254,7 @@ function endRun(outcome) {
     p.clears++; if (threatMax(run.region) > tm) res.threatUp = { region: run.region, t: threatMax(run.region) };
     S.stats["boss_" + run.region] = (S.stats["boss_" + run.region] || 0) + 1;
   }
+  if (run.region === "abime" && run.gouffre) { const d = run.floor - (outcome === "victory" ? 0 : 1); S.gouffre = S.gouffre || {}; S.gouffre[run.gouffre] = Math.max(S.gouffre[run.gouffre] || 0, d); res.gouffre = d; }
   if (run.region === "abime") { const depth = run.floor - (outcome === "victory" ? 0 : 1); S.abyss.best = Math.max(S.abyss.best, depth); S.stats.abyss = Math.max(S.stats.abyss, S.abyss.best); if (outcome === "victory" || outcome === "retreat") S.stats.oath = Math.max(S.stats.oath, run.oaths.length); }
   const after = regionsCleared();
   if (after > before) {
@@ -321,6 +322,8 @@ const WEEK_RULES = [
   { k: "fer", n: "Murailles de fer", d: "Les ennemis ont +20 % de PV et +10 % de protection.", oaths: ["fer", "pierre"] },
   { k: "silence", n: "Le silence", d: "Les ultimes se chargent 30 % moins vite, mais la résolution commence à 70.", oaths: ["silence"], morale: 20 },
 ];
+// Gouffre de la semaine : graine et serments identiques pour tout le monde (dérivés du numéro de semaine)
+function gouffreWeek() { const key = weekKey(), rng = mkRng(key * 7919 + 3), ks = Object.keys(OATHS).filter(k => k !== "jeune"); rng.shuffle(ks); return { key, seed: key * 104729 + 17, oaths: ks.slice(0, 2) }; }
 const weekKey = (d = new Date()) => { const t = new Date(Date.UTC(d.getFullYear(), d.getMonth(), d.getDate())); const day = (t.getUTCDay() + 6) % 7; t.setUTCDate(t.getUTCDate() - day + 3); const y = t.getUTCFullYear(), w1 = new Date(Date.UTC(y, 0, 4)); return y * 100 + 1 + Math.round(((t - w1) / 864e5 - 3 + ((w1.getUTCDay() + 6) % 7)) / 7); };
 function weekCheck() {
   const k = weekKey(); if (S.week && S.week.key === k) return false;

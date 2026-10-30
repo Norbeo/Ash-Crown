@@ -411,6 +411,7 @@ const APEX = {
 };
 // traits aléatoires des recrues : ce qui rend chaque héros unique
 const TRAITS = {
+  legende: { n: "Légende vivante", good: 1, unique: 1, d: "+10 % de dégâts et de PV, +10 résistance, le groupe garde courage (+5 résolution par victime).", pas: [{ k: "stat", s: "dmg", v: .1 }, { k: "stat", s: "hp", v: .1 }, { k: "stat", s: "res", v: 10 }, { k: "killMorale", v: 5 }] },
   pieux: { n: "Pieux", good: 1, d: "+20 % de soins reçus.", pas: [{ k: "healTaken", v: .2 }] },
   colosse: { n: "Colosse", good: 1, d: "+12 % de PV.", pas: [{ k: "stat", s: "hp", v: .12 }] },
   vif: { n: "Vif", good: 1, d: "+2 de vitesse.", pas: [{ k: "stat", s: "spd", v: 2 }] },

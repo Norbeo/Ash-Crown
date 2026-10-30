@@ -697,6 +697,7 @@ const APEX = {
 };
 // traits aléatoires des recrues : ce qui rend chaque héros unique
 const TRAITS = {
+  legende: { n: "Légende vivante", good: 1, unique: 1, d: "+10 % de dégâts et de PV, +10 résistance, le groupe garde courage (+5 résolution par victime).", pas: [{ k: "stat", s: "dmg", v: .1 }, { k: "stat", s: "hp", v: .1 }, { k: "stat", s: "res", v: 10 }, { k: "killMorale", v: 5 }] },
   pieux: { n: "Pieux", good: 1, d: "+20 % de soins reçus.", pas: [{ k: "healTaken", v: .2 }] },
   colosse: { n: "Colosse", good: 1, d: "+12 % de PV.", pas: [{ k: "stat", s: "hp", v: .12 }] },
   vif: { n: "Vif", good: 1, d: "+2 de vitesse.", pas: [{ k: "stat", s: "spd", v: 2 }] },
@@ -2627,6 +2628,7 @@ function endRun(outcome) {
     p.clears++; if (threatMax(run.region) > tm) res.threatUp = { region: run.region, t: threatMax(run.region) };
     S.stats["boss_" + run.region] = (S.stats["boss_" + run.region] || 0) + 1;
   }
+  if (run.region === "abime" && run.gouffre) { const d = run.floor - (outcome === "victory" ? 0 : 1); S.gouffre = S.gouffre || {}; S.gouffre[run.gouffre] = Math.max(S.gouffre[run.gouffre] || 0, d); res.gouffre = d; }
   if (run.region === "abime") { const depth = run.floor - (outcome === "victory" ? 0 : 1); S.abyss.best = Math.max(S.abyss.best, depth); S.stats.abyss = Math.max(S.stats.abyss, S.abyss.best); if (outcome === "victory" || outcome === "retreat") S.stats.oath = Math.max(S.stats.oath, run.oaths.length); }
   const after = regionsCleared();
   if (after > before) {
@@ -2694,6 +2696,8 @@ const WEEK_RULES = [
   { k: "fer", n: "Murailles de fer", d: "Les ennemis ont +20 % de PV et +10 % de protection.", oaths: ["fer", "pierre"] },
   { k: "silence", n: "Le silence", d: "Les ultimes se chargent 30 % moins vite, mais la résolution commence à 70.", oaths: ["silence"], morale: 20 },
 ];
+// Gouffre de la semaine : graine et serments identiques pour tout le monde (dérivés du numéro de semaine)
+function gouffreWeek() { const key = weekKey(), rng = mkRng(key * 7919 + 3), ks = Object.keys(OATHS).filter(k => k !== "jeune"); rng.shuffle(ks); return { key, seed: key * 104729 + 17, oaths: ks.slice(0, 2) }; }
 const weekKey = (d = new Date()) => { const t = new Date(Date.UTC(d.getFullYear(), d.getMonth(), d.getDate())); const day = (t.getUTCDay() + 6) % 7; t.setUTCDate(t.getUTCDate() - day + 3); const y = t.getUTCFullYear(), w1 = new Date(Date.UTC(y, 0, 4)); return y * 100 + 1 + Math.round(((t - w1) / 864e5 - 3 + ((w1.getUTCDay() + 6) % 7)) / 7); };
 function weekCheck() {
   const k = weekKey(); if (S.week && S.week.key === k) return false;
@@ -4367,7 +4371,7 @@ function openBuilding(k, tab) {
   const B = BUILDINGS[k]; let body = "";
   UI.bldTab = tab || UI.bldTab || "";
   if (k === "taverne") {
-    body = `<p class="lore">Une odeur de bière tiède et de sang séché. Des âmes perdues attendent un capitaine.</p><p class="small">Caserne : <b>${S.heroes.length}/${rosterMax()}</b> héros.</p>
+    body = `<p class="lore">Une odeur de bière tiède et de sang séché. Des âmes perdues attendent un capitaine.</p><p class="small">Caserne : <b>${S.heroes.length}/${rosterMax()}</b> héros.</p>${typeof legendsHTML === "function" ? legendsHTML() : ""}
     <div class="grid" style="--min:170px">${S.recruits.map((h, i) => { const C = CLASSES[h.cls], c = recruitPrice(i); return `<div class="card" style="text-align:center">${canvasSlot("r:" + i, 150, 188)}<h3 style="margin:2px 0">${esc(h.name)}</h3><div class="row" style="justify-content:center;gap:4px">${roleTag(C.role)}<span class="tag">${h.evo ? CLASSES[h.cls].evos[h.evo].n : C.n} · niv ${h.lvl}</span></div><p class="tiny" style="min-height:30px;margin-bottom:2px">${h.traits.map(t => `<span class="${TRAITS[t].good ? "good" : "bad"}" ${tipAttr(TRAITS[t].n, TRAITS[t].d)}>${TRAITS[t].n}</span>`).join(" · ")}</p><div class="tiny dim" style="margin-bottom:6px">${h.skills.map(k => skillDef(h, k).n).join(" · ")}</div><div class="row" style="justify-content:center;gap:4px"><button class="btn ghost sm" data-a="recruitInfo" data-v="${i}">${ico("info")}Détails</button><button class="btn ${c === 0 ? "main" : ""} sm" data-a="recruit" data-v="${i}">${c === 0 ? "Gratuit" : c + " " + ico("coin", "#e8c060")}</button></div></div>`; }).join("") || '<div class="empty">Plus personne. Revenez après une expédition.</div>'}</div>
     <div class="row" style="margin-top:10px"><button class="btn ghost sm" data-a="reroll">${ico("dice")}Nouvelles recrues (${40 + S.bld.taverne * 20} or)</button><span class="small dim">Les recrues changent après chaque expédition. Classes débloquées : ${CLASS_IDS.filter(classUnlocked).length}/${CLASS_IDS.length}.</span></div>${tavernCalmHTML()}`;
   }
@@ -4402,7 +4406,7 @@ function openBuilding(k, tab) {
     const b = idleBank();
     body = `<p class="lore">Les âmes des morts brûlent ici, et leur chaleur se change en or. Elle travaille même quand vous dormez.</p><div class="row sp card" style="cursor:default"><div><div class="small dim">Réserve</div><div style="font-size:28px;font-family:var(--f-head)" class="gold">${fmt(b)} or</div><div class="small dim">${fonderieRate()} or par heure · réserve pleine en ${fonderieCap()} h</div></div><button class="btn main ${b > 0 ? "glow" : "off"}" data-a="collect">${ico("coin")}Récolter</button></div>`;
   }
-  modal(`<h2>${ico(B.ic, "#e8c878")} ${B.n}</h2>${body}${bldFooter(k)}`, { wide: 1, mount: m => fillCanvases(m, (c, id) => { const p = id.split(":"); if (p[0] === "r") paintHero(c, S.recruits[+p[1]], true); if (p[0] === "h") paintHero(c, heroById(p[1])); if (p[0] === "p") paintPet(c, p[1], p[2] === "1"); if (p[0] === "tier") { const x = c.getContext("2d"); const sp = heroSprite({ cls: p[1], tier: +p[2], wtier: +p[2], evo: p[3] || null, skin: SKINS[1], hair: 1, hairCol: HAIRCOL[1], beard: 0 }, {}, 0, c.width / 230 * 1.2); x.drawImage(sp, c.width / 2 - sp.ax, c.height - 4 - sp.ay); } if (p[0] === "it") paintItem(c, findItem(p[1])); }) });
+  modal(`<h2>${ico(B.ic, "#e8c878")} ${B.n}</h2>${body}${bldFooter(k)}`, { wide: 1, mount: m => fillCanvases(m, (c, id) => { const p = id.split(":"); if (p[0] === "r") paintHero(c, S.recruits[+p[1]], true); if (p[0] === "lg") { const L = LEGENDS.find(l => l.id === p[1]); if (L) paintHero(c, { cls: L.cls, lvl: 20, gear: { wpn: { tier: 5, rar: 4 }, arm: { tier: 5, rar: 4 } }, look: { skin: SKINS[1], hair: 1, hairCol: HAIRCOL[1], beard: 0 }, traits: [], name: L.name }, true); } if (p[0] === "h") paintHero(c, heroById(p[1])); if (p[0] === "p") paintPet(c, p[1], p[2] === "1"); if (p[0] === "tier") { const x = c.getContext("2d"); const sp = heroSprite({ cls: p[1], tier: +p[2], wtier: +p[2], evo: p[3] || null, skin: SKINS[1], hair: 1, hairCol: HAIRCOL[1], beard: 0 }, {}, 0, c.width / 230 * 1.2); x.drawImage(sp, c.width / 2 - sp.ax, c.height - 4 - sp.ay); } if (p[0] === "it") paintItem(c, findItem(p[1])); }) });
   UI.bldOpen = k;
 }
 ACT.bldTab = v => { const [k, t] = v.split(":"); UI.bldTab = t; openBuilding(k, t); };
@@ -4707,12 +4711,18 @@ SCREENS.expe = {
 function abyssOpts(E) {
   const best = S.abyss.best, cps = [1]; for (let f = 5; f <= best; f += 5) cps.push(f);
   E.floor = cps.includes(E.floor) ? E.floor : 1;
+  const G = gouffreWeek(), gb = (S.gouffre || {})[G.key] || 0, hist = Object.entries(S.gouffre || {}).sort((a, b) => b[0] - a[0]).slice(0, 6);
+  const gHTML = `<div class="panel" style="padding:10px;margin-top:8px;border-color:${E.gouffre ? "#e8c878" : ""}"><div class="row sp"><b class="small">${ico("trophy", "#e8c878", 14)} Gouffre de la semaine</b><button class="btn sm ${E.gouffre ? "gold" : "ghost"}" data-a="gouffre">${E.gouffre ? "Activé" : "Tenter"}</button></div>
+    <div class="tiny dim">Même graine et mêmes serments pour tous les joueurs cette semaine (code <b>${G.key}</b>) : comparez votre profondeur avec vos amis. Départ à la profondeur 1.</div>
+    <div class="tiny" style="margin-top:4px">Serments imposés : ${G.oaths.map(k => `<b>${OATHS[k].n}</b>`).join(", ")} · votre record : <b class="gold">${gb ? "prof. " + gb : "—"}</b>${hist.length > 1 ? ` · semaines passées : ${hist.slice(1).map(([k, v]) => `${k} → ${v}`).join(", ")}` : ""}</div></div>`;
+  if (E.gouffre) return gHTML;
   const oathOk = REGIONS.every(r => S.prog[r.id] && S.prog[r.id].clears);
-  return `<div class="panel" style="padding:10px;margin-top:8px"><div class="row"><span class="small">Départ :</span>${cps.map(f => `<button class="btn sm ${E.floor === f ? "gold" : "ghost"}" data-a="abFloor" data-v="${f}">Prof. ${f}</button>`).join("")}</div>
+  return gHTML + `<div class="panel" style="padding:10px;margin-top:8px"><div class="row"><span class="small">Départ :</span>${cps.map(f => `<button class="btn sm ${E.floor === f ? "gold" : "ghost"}" data-a="abFloor" data-v="${f}">Prof. ${f}</button>`).join("")}</div>
   <div class="small" style="margin-top:8px"><b>Serments</b> ${oathOk ? "<span class='dim'>— plus de difficulté, plus d'or et d'éclats</span>" : "<span class='dim'>— disponibles après le Roi de Cendres</span>"}</div>
   ${oathOk ? `<div class="row" style="margin-top:4px">${Object.entries(OATHS).map(([k, O]) => `<button class="btn sm ${S.abyss.oaths.includes(k) ? "main" : "ghost"}" data-a="oath" data-v="${k}" title="${O.d}">${O.n}</button>`).join("")}</div><div class="tiny dim">${S.abyss.oaths.map(k => OATHS[k].d).join(" ")}</div>` : ""}</div>`;
 }
 ACT.toMap = () => go("map");
+ACT.gouffre = () => { UI.expe.gouffre = UI.expe.gouffre ? 0 : 1; refresh(); };
 ACT.noWeek = () => { UI.expe.week = null; refresh(); };
 ACT.noDaily = () => { UI.expe.daily = null; refresh(); };
 ACT.pickReg = v => { UI.expe.region = v; UI.expe.threat = 0; SC.draw = backdrop(v, { dark: .5 }); refresh(); };
@@ -4730,9 +4740,10 @@ ACT.launch = () => {
   const opt = { threat: E.region === "abime" ? 0 : E.threat, floor: E.region === "abime" ? E.floor : 1, night: E.region !== "abime" && !E.daily && E.night ? 1 : 0, hardBoss: E.hard && hardOk(E) ? 1 : 0 };
   if (E.week) { const err = weekPartyOk(E.party); if (err) return toast(err, "bad"); if (E.region !== S.week.region) E.week = null; else { opt.week = 1; opt.seed = S.week.seed; } }
   if (E.daily) { opt.relics = E.daily.relics; opt.seed = E.daily.seed; opt.daily = 1; }
+  if (E.region === "abime" && E.gouffre) { const G = gouffreWeek(); opt.seed = G.seed; opt.oaths = G.oaths; opt.floor = 1; opt.gouffre = G.key; }
   if (E.rush && rushAvailable()) { startRush(E.party, E.pet); E.rush = 0; save(); sfx("door"); musicPlay("map"); go("map"); toast("Boss rush : les gardiens vous attendent.", "good"); return; }
-  startRun(E.region, E.party, E.pet, opt);
-  E.daily = null; E.week = null; save(); sfx("door"); musicPlay("map");
+  startRun(E.region, E.party, E.pet, opt); if (opt.gouffre) S.run.gouffre = opt.gouffre;
+  E.daily = null; E.gouffre = 0; E.week = null; save(); sfx("door"); musicPlay("map");
   go("map");
   if (!(S.seenScene || {})[S.run.region] && SCENES[S.run.region]) return showScene(S.run.region);
   const R = regionById(S.run.region);
@@ -4929,6 +4940,7 @@ SCREENS.results = {
   noNav: 1, title: "Retour au Bastion",
   scene: res => backdrop(res && res.region ? res.region : "bastion", { dark: .6 }),
   html: res => {
+    if (res && res.story && !res._cs && typeof chapterCard === "function") { res._cs = 1; setTimeout(() => chapterCard(res.region), 350); }
     const T = { victory: ["Victoire", "Le gardien est tombé. Vos héros rentrent, couverts de gloire et de sang."], retreat: ["Retraite", "Vous rentrez avant que la nuit ne vous dévore."], wipe: ["Déroute", "Personne n'est resté debout. Vos héros sont ramenés au Bastion par des inconnus… sans leur butin."] }[res.outcome];
     return `<div class="wrap" style="max-width:640px"><div class="panel frame" style="margin-top:10px"><span class="corner c1"></span><span class="corner c2"></span><span class="corner c3"></span><span class="corner c4"></span>
       <h1 style="text-align:center;color:${res.outcome === "wipe" ? "#ff6a5a" : res.outcome === "victory" ? "var(--gold2)" : "var(--txt)"}">${T[0]}</h1><p class="lore" style="text-align:center">${T[1]}</p>
@@ -5294,7 +5306,7 @@ async function combatEnd(over) {
 }
 function rewardHTML(R) { return `${R.uniq ? `<div class="reward" style="color:var(--gold2)">${ico("crown", "#ffd27a", 22)}<b>Objet unique de gardien : <span class="rar4">${gearName(R.uniq)}</span> !</b></div>` : ""}${R.gold ? `<div class="reward">${ico("coin", "#e8c060", 22)}<b>+${R.gold} or</b></div>` : ""}${(R.loot || []).map(i => `<div class="reward" style="align-items:flex-start">${slotHTML(i, "itemInfo", i.id)}<div style="flex:1;min-width:0"><b class="rar${i.rar}">${gearName(i)}</b><div class="tiny dim">${i.cls ? CLASSES[i.cls].n + " — " : ""}${itemLine(i)}</div>${runEquipBtns(i)}</div></div>`).join("")}${R.relic ? `<div class="reward">${ico("gem", "#c87aff", 22)}<b>${RELICS[R.relic].n}</b> <span class="tiny">${gl(RELICS[R.relic].d)}</span></div>` : ""}${R.shards ? `<div class="reward">${ico("shard", "#c090ff", 22)}<b>+${R.shards} éclats</b></div>` : ""}`; }
 ACT.abyssUp = () => { closeModal(); finishRun("victory"); };
-ACT.abyssDown = () => { const run = S.run; run.floor++; run.map = genMap(RNG, 6, { elite: run.oaths.includes("elite") }); run.pos = null; run.light = clamp(run.light + 30, 0, 100); S.abyss.best = Math.max(S.abyss.best, run.floor - 1); save(); closeModal(); go("map"); toast(`Profondeur ${run.floor}…`, "epic"); };
+ACT.abyssDown = () => { const run = S.run; run.floor++; run.map = genMap(run.gouffre ? mkRng(run.seed + run.floor * 977) : RNG, 6, { elite: run.oaths.includes("elite") }); run.pos = null; run.light = clamp(run.light + 30, 0, 100); S.abyss.best = Math.max(S.abyss.best, run.floor - 1); save(); closeModal(); go("map"); toast(`Profondeur ${run.floor}…`, "epic"); };
 // ── dessin ──
 function drawCombat(x, t, dt) {
   const B = CB.B, run = S.run;
@@ -5458,7 +5470,7 @@ SCREENS.codex = {
   scene: () => backdrop("catacombes", { dark: .6 }),
   html: () => {
     const tab = UI.codexTab || "classes";
-    const T = [["classes", "helm", "Classes"], ["bestiaire", "skull", "Bestiaire"], ["synergies", "link", "Synergies"], ["reliques", "gem", "Reliques"], ["defis", "trophy", "Défis de classe"], ["elites", "skull", "Élites"], ["memorial", "skull", "Mémorial"], ["histoire", "scroll", "Chroniques"], ["succes", "trophy", "Succès"], ["records", "cup", "Registres"], ["glossaire", "book", "Glossaire"]];
+    const T = [["classes", "helm", "Classes"], ["bestiaire", "skull", "Bestiaire"], ["atlas", "map", "Atlas"], ["synergies", "link", "Synergies"], ["reliques", "gem", "Reliques"], ["defis", "trophy", "Défis de classe"], ["elites", "skull", "Élites"], ["memorial", "skull", "Mémorial"], ["histoire", "scroll", "Chroniques"], ["succes", "trophy", "Succès"], ["records", "cup", "Registres"], ["glossaire", "book", "Glossaire"]];
     let body = "";
     if (tab === "glossaire") body = glossaryHTML();
     if (tab === "reliques") body = relicsCodexHTML();
@@ -5469,6 +5481,7 @@ SCREENS.codex = {
     if (tab === "classes") body = `<div class="grid" style="--min:280px">${CLASS_IDS.map(k => { const C = CLASSES[k], un = classUnlocked(k); return `<div class="card ${un ? "" : "lock"}" style="cursor:default"><div class="row" style="flex-wrap:nowrap;gap:8px">${canvasSlot("cl:" + k, 90, 112)}<div style="flex:1"><h3 style="margin:0">${C.n} ${un ? "" : ico("lock", "#9a8c7a", 13)}</h3>${roleTag(C.role)}<p class="tiny lore" style="margin:4px 0">${C.lore}</p><div class="tiny">Voies : ${Object.values(C.evos).map(e => `<b class="gold">${e.n}</b>`).join(" ou ")}</div>${un ? "" : `<div class="tiny dim">Débloquée au chapitre ${C.unlock}</div>`}</div></div></div>`; }).join("")}</div>`;
     if (tab === "synergies") body = `<p class="small dim">Certaines classes se complètent. Quand elles partent ensemble en expédition, tout le groupe en profite.</p><div class="grid" style="--min:260px">${Object.keys(SYNERGIES).map(k => { const Y = SYNERGIES[k]; return `<div class="card" style="cursor:default"><h3 style="margin:0">${ico("link", "#e8c878", 15)} ${Y.n}</h3><div class="tiny gold" style="margin:3px 0">${synergyNeedText(Y)}</div><p class="small" style="margin:0">${gl(Y.d)}</p></div>`; }).join("")}</div>`;
     if (tab === "bestiaire") body = bestiaryHTML();
+    if (tab === "atlas") body = atlasHTML();
     if (tab === "histoire") body = `<div class="panel" style="padding:14px"><h3>Prologue</h3>${STORY.intro.map(l => `<p class="lore">${l}</p>`).join("")}${REGIONS.map(r => S.prog[r.id] && S.prog[r.id].clears ? `<div class="sep"></div><h3>${r.sub} — ${r.n}</h3><p class="lore">${STORY[r.id]}</p>` : `<div class="sep"></div><h3 class="dim">${r.sub} — ???</h3>`).join("")}</div>`;
     if (tab === "succes") body = `<p class="small dim">${Object.keys(S.ach).length}/${ACHIEVEMENTS.length} succès.</p><div class="grid" style="--min:240px">${ACHIEVEMENTS.map(a => { const done = S.ach[a.id], p = Math.min(a.v, S.stats[a.k] || 0); return `<div class="card ${done ? "sel" : ""}" style="cursor:default"><div class="row" style="flex-wrap:nowrap">${ico("trophy", done ? "#e8c878" : "#5a4a3a", 28)}<div style="flex:1"><b>${a.n}</b><div class="tiny">${a.d}</div>${done ? '<div class="tiny good">Accompli</div>' : `<div class="bar xp" style="margin-top:3px"><i style="width:${100 * p / a.v}%"></i></div>`}<div class="tiny dim">${a.gold ? a.gold + " or" : ""}${a.shards ? a.shards + " éclats" : ""}</div></div></div></div>`; }).join("")}</div>`;
     if (tab === "records") { const s = S.stats; body = `<div class="panel" style="padding:14px"><div class="statgrid"><div>Expéditions <b>${s.runs}</b></div><div>Victoires en combat <b>${s.wins}</b></div><div>Ennemis tués <b>${fmt(s.kills)}</b></div><div>Gardiens vaincus <b>${REGIONS.reduce((a, r) => a + (s["boss_" + r.id] || 0), 0)}</b></div><div>Record de l'Abîme <b>${S.abyss.best}</b></div><div>Évolutions <b>${s.evos}</b></div><div>Objets forgés <b>${s.crafts}</b></div><div>Expéditions du jour <b>${s.daily}</b></div><div>Mode <b>${S.opts.hardcore ? "Hardi" : "Normal"}</b></div></div>${S.graves && S.graves.length ? `<div class="sep"></div><h3>${ico("skull", "#c8b8a0", 16)} Le cimetière</h3>${S.graves.slice(-20).reverse().map(g => `<div class="small">${esc(g.name)} — ${CLASSES[g.cls].n}, niveau ${g.lvl}</div>`).join("")}` : ""}</div>`; }
@@ -6123,6 +6136,65 @@ function combatHints(B, node) {
   if (E.some(e => (MONSTERS[e.key] || {}).sk && MONSTERS[e.key].sk.some(s => s.summon))) hintOnce("summon");
   if (E.some(e => (e.st || []).some(s => s.k === "riposte"))) hintOnce("riposte");
   if (S.heroes.some(h => (h.stress || 0) >= 30)) hintOnce("stress");
+}
+
+// ── Atlas : chaque lieu peint, son histoire, ses habitants, ce que vous y avez accompli ──
+function atlasHTML() {
+  const regs = REGIONS.concat(typeof ABYSS !== "undefined" && !REGIONS.includes(ABYSS) ? [ABYSS] : []);
+  return `<p class="small dim">Les terres de la Couronne, telles que vos chroniqueurs les ont peintes. Un lieu se dévoile dès votre première expédition.</p><div class="grid" style="--min:300px">${regs.map(r => { const P = S.prog[r.id] || {}, seen = P.clears || (S.stats.regionRuns || {})[r.id] || regionUnlocked(r.id);
+    const img = artHas("bg_" + r.id) ? `assets/bg_${r.id}.webp` : null, foes = (r.pool || []).filter(k => MONSTERS[k]).slice(0, 6);
+    return `<div class="card" style="cursor:default;padding:0;overflow:hidden;${seen ? "" : "opacity:.5"}">${img && seen ? `<img src="${img}" alt="" style="width:100%;aspect-ratio:16/9;object-fit:cover;display:block">` : `<div style="aspect-ratio:16/9;background:#0a0808;display:flex;align-items:center;justify-content:center">${ico("lock", "#5a4a3a", 28)}</div>`}
+      <div style="padding:8px 10px"><b class="gold">${seen ? esc(r.n) : "Terre inconnue"}</b> <span class="tiny dim">${r.sub || ""}${r.lvl ? " · niv " + r.lvl : ""}</span>${seen ? `<div class="small lore" style="margin:4px 0">${esc(r.d || "")}</div>
+      ${MONSTERS[r.boss] ? `<div class="tiny">${ico("skull", "#e05050", 12)} Gardien : <b>${(S.beaten || {})[r.boss] || P.clears ? MONSTERS[r.boss].n : "???"}</b></div>` : ""}
+      ${foes.length ? `<div class="tiny dim">Habitants : ${foes.map(k => (S.stats.monKills || {})[k] ? MONSTERS[k].n : "???").join(", ")}</div>` : ""}
+      <div class="tiny" style="margin-top:2px">${P.clears ? `${ico("trophy", "#e8c878", 12)} Vaincu ${P.clears} fois${P.threat ? " · menace " + roman(P.threat) : ""}` : r.id === "abime" ? `Profondeur record : ${S.abyss.best || 0}` : "Pas encore conquis"}</div>` : ""}</div></div>`; }).join("")}</div>`;
+}
+
+// ── Héros légendaires : rares, avec une histoire, ils se présentent à la Taverne après certains exploits ──
+const LEGENDS = [
+  { id: "aldric", cls: "templier", name: "Aldric le Briseur de Peste", cond: () => ((S.prog.bourg || {}).clears || 0) >= 3, how: "Vaincre trois fois le Bourg pestiféré.", story: "Il a tenu seul la porte de l'hospice pendant que la peste brûlait la ville. Ses mains tremblent encore, son bouclier jamais." },
+  { id: "morwenna", cls: "sorciere", name: "Morwenna des Ronces", cond: () => ((S.prog.foret || {}).clears || 0) >= 3, how: "Vaincre trois fois la Forêt des Pendus.", story: "Les pendus de la forêt lui murmurent des recettes. Elle les écoute, et elle répond." },
+  { id: "osric", cls: "exorciste", name: "Frère Osric de Saint-Morne", cond: () => ((S.prog.catacombes || {}).clears || 0) >= 2, how: "Vaincre deux fois les Catacombes.", story: "Seul survivant de l'abbaye. Il a chassé l'Abbé de sa propre crypte, un psaume à la bouche et un pieu à la main." },
+  { id: "isaure", cls: "arbaletriere", name: "Isaure la Noyée", cond: () => ((S.prog.marais || {}).clears || 0) >= 2, how: "Vaincre deux fois le Marais des Noyés.", story: "Elle s'est noyée une fois. Le marais l'a recrachée avec une arbalète et une très mauvaise humeur." },
+  { id: "gaspard", cls: "chasseur_sorcieres", name: "Gaspard Cendrelame", cond: () => ((S.prog.citadelle || {}).clears || 0) >= 1, how: "Vaincre le Roi de Cendres.", story: "Il traquait le Roi bien avant vous. Il ne vous pardonnera jamais de l'avoir eu en premier — mais il vous suivra." },
+  { id: "bran", cls: "hallebardier", name: "Bran, dernier de la Garde", cond: () => (S.abyss.best || 0) >= 10, how: "Atteindre la profondeur 10 de l'Abîme.", story: "Dernier hallebardier de la garde royale. Il est descendu dans l'Abîme chercher son roi, et n'en est jamais vraiment remonté." },
+];
+const legendCost = () => { const lv = Math.max(1, ...S.heroes.map(h => h.lvl)); return { gold: 900 + lv * 60, shards: 3 }; };
+function legendsHTML() {
+  S.legends = S.legends || {}; const L = LEGENDS.filter(l => !S.legends[l.id] && CLASSES[l.cls]);
+  if (!L.length) return "";
+  const c = legendCost();
+  return `<h3 style="margin-top:6px">${ico("crown", "#ffb848", 15)} Légendes</h3><p class="tiny dim">Des héros dont on chante déjà le nom. Ils ne rejoignent que ceux qui ont prouvé leur valeur — et une seule fois.</p>
+    <div class="col">${L.filter(l => l.cond()).map(l => `<div class="row card" style="cursor:default;gap:10px;border-color:#ffb84877">${canvasSlot("lg:" + l.id, 70, 84)}<div style="flex:1;min-width:0">
+      <b class="rar4">${esc(l.name)}</b> <span class="tiny dim">${CLASSES[l.cls].n}</span><div class="tiny lore">${esc(l.story)}</div><div class="tiny">${ico("star", "#ffb848", 11)} Trait unique : <b>Légende vivante</b> — ${TRAITS.legende.d}</div></div>
+      <button class="btn sm gold" data-a="legendHire" data-v="${l.id}">${fmt(c.gold)} or · ${c.shards} éclats</button></div>`).join("")}</div>
+    ${L.some(l => !l.cond()) ? `<div class="tiny dim" style="margin:4px 0 8px">${ico("lock", "#7a6a5a", 11)} À venir : ${L.filter(l => !l.cond()).map(l => `<span title="${esc(l.how)}">${CLASSES[l.cls].n} (${l.how.replace(/\.$/, "")})</span>`).join(" · ")}</div>` : ""}`;
+}
+ACT.legendHire = id => {
+  const l = LEGENDS.find(x => x.id === id); if (!l || !l.cond() || (S.legends || {})[id]) return;
+  if (S.heroes.length >= rosterMax()) return toast("La caserne est pleine.", "bad");
+  const c = legendCost(); if (S.gold < c.gold || (S.shards || 0) < c.shards) return toast("Il vous faut " + fmt(c.gold) + " or et " + c.shards + " éclats.", "bad");
+  S.gold -= c.gold; S.shards -= c.shards;
+  const lv = Math.max(1, Math.max(...S.heroes.map(h => h.lvl)) - 2), h = makeHero(l.cls, { name: l.name, lvl: lv, traits: ["legende"] });
+  const tier = Math.max(1, TIER_LVL.filter(x => x <= lv).length - 1); h.gear.wpn = makeGear("wpn", l.cls, Math.min(5, tier), 4); h.gear.arm = makeGear("arm", l.cls, Math.min(5, tier), 4);
+  h.legend = id; addHero(h); S.legends[id] = 1; save(); sfx("holy"); renderHud(); toast(`${ico("crown", "#ffb848", 14)} ${esc(l.name)} rejoint le Bastion !`, "good"); openBuilding("taverne");
+};
+
+// ── Fin de chapitre : grande illustration plein écran (décor du chapitre + gardien vaincu) ──
+function chapterCard(reg) {
+  const R = regionById(reg); if (!R || $("#chapcard")) return; const M = MONSTERS[R.boss];
+  const el = document.createElement("div"); el.id = "chapcard";
+  el.style.cssText = "position:fixed;inset:0;z-index:120;background:#000;display:flex;align-items:center;justify-content:center;overflow:hidden;cursor:pointer;opacity:0;transition:opacity 1.2s";
+  el.innerHTML = `${artHas("bg_" + reg) ? `<img src="assets/bg_${reg}.webp" alt="" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;filter:none;opacity:.55;animation:kb 14s ease-out forwards">` : ""}
+    <div style="position:absolute;inset:0;background:radial-gradient(ellipse at 50% 55%,transparent 20%,#000d 80%)"></div>
+    ${M && artHas("mon_" + (M.art || R.boss)) ? `<img src="assets/mon_${M.art || R.boss}.webp" alt="" style="position:absolute;bottom:8%;left:50%;transform:translateX(-50%);height:52%;max-width:80%;object-fit:contain;opacity:.85;animation:bossfade 3.5s ease-out forwards">` : ""}
+    <div style="position:relative;text-align:center;padding:20px;margin-bottom:38vh"><div style="font-family:var(--f-title);color:#b8a88a;letter-spacing:.3em;font-size:clamp(12px,2.4vw,16px)">${esc(R.sub || "")}</div>
+    <div style="font-family:var(--f-title);color:var(--gold2);font-size:clamp(28px,6vw,54px);text-shadow:0 0 22px #ff7a2a88">${esc(R.n)}</div>
+    <div style="font-family:var(--f-title);color:#e8d8b8;letter-spacing:.25em;margin-top:6px">LIBÉRÉ</div>${M ? `<div class="lore" style="margin-top:10px;font-size:15px">${esc(M.n)} n'est plus.</div>` : ""}</div>
+    <div class="tiny dim" style="position:absolute;bottom:14px;width:100%;text-align:center">Touchez pour continuer</div>
+    <style>@keyframes kb{from{transform:scale(1.12)}to{transform:scale(1)}}@keyframes bossfade{0%{opacity:.95}100%{opacity:.3}}</style>`;
+  document.body.appendChild(el); requestAnimationFrame(() => el.style.opacity = 1); sfx("holy");
+  const close = () => { el.style.opacity = 0; setTimeout(() => el.remove(), 900); }; el.onclick = close; setTimeout(close, 9000);
 }
 /* ═══════════════════════ Démarrage ═══════════════════════ */
 if (HASWIN) {

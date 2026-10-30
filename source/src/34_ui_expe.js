@@ -41,12 +41,18 @@ SCREENS.expe = {
 function abyssOpts(E) {
   const best = S.abyss.best, cps = [1]; for (let f = 5; f <= best; f += 5) cps.push(f);
   E.floor = cps.includes(E.floor) ? E.floor : 1;
+  const G = gouffreWeek(), gb = (S.gouffre || {})[G.key] || 0, hist = Object.entries(S.gouffre || {}).sort((a, b) => b[0] - a[0]).slice(0, 6);
+  const gHTML = `<div class="panel" style="padding:10px;margin-top:8px;border-color:${E.gouffre ? "#e8c878" : ""}"><div class="row sp"><b class="small">${ico("trophy", "#e8c878", 14)} Gouffre de la semaine</b><button class="btn sm ${E.gouffre ? "gold" : "ghost"}" data-a="gouffre">${E.gouffre ? "Activé" : "Tenter"}</button></div>
+    <div class="tiny dim">Même graine et mêmes serments pour tous les joueurs cette semaine (code <b>${G.key}</b>) : comparez votre profondeur avec vos amis. Départ à la profondeur 1.</div>
+    <div class="tiny" style="margin-top:4px">Serments imposés : ${G.oaths.map(k => `<b>${OATHS[k].n}</b>`).join(", ")} · votre record : <b class="gold">${gb ? "prof. " + gb : "—"}</b>${hist.length > 1 ? ` · semaines passées : ${hist.slice(1).map(([k, v]) => `${k} → ${v}`).join(", ")}` : ""}</div></div>`;
+  if (E.gouffre) return gHTML;
   const oathOk = REGIONS.every(r => S.prog[r.id] && S.prog[r.id].clears);
-  return `<div class="panel" style="padding:10px;margin-top:8px"><div class="row"><span class="small">Départ :</span>${cps.map(f => `<button class="btn sm ${E.floor === f ? "gold" : "ghost"}" data-a="abFloor" data-v="${f}">Prof. ${f}</button>`).join("")}</div>
+  return gHTML + `<div class="panel" style="padding:10px;margin-top:8px"><div class="row"><span class="small">Départ :</span>${cps.map(f => `<button class="btn sm ${E.floor === f ? "gold" : "ghost"}" data-a="abFloor" data-v="${f}">Prof. ${f}</button>`).join("")}</div>
   <div class="small" style="margin-top:8px"><b>Serments</b> ${oathOk ? "<span class='dim'>— plus de difficulté, plus d'or et d'éclats</span>" : "<span class='dim'>— disponibles après le Roi de Cendres</span>"}</div>
   ${oathOk ? `<div class="row" style="margin-top:4px">${Object.entries(OATHS).map(([k, O]) => `<button class="btn sm ${S.abyss.oaths.includes(k) ? "main" : "ghost"}" data-a="oath" data-v="${k}" title="${O.d}">${O.n}</button>`).join("")}</div><div class="tiny dim">${S.abyss.oaths.map(k => OATHS[k].d).join(" ")}</div>` : ""}</div>`;
 }
 ACT.toMap = () => go("map");
+ACT.gouffre = () => { UI.expe.gouffre = UI.expe.gouffre ? 0 : 1; refresh(); };
 ACT.noWeek = () => { UI.expe.week = null; refresh(); };
 ACT.noDaily = () => { UI.expe.daily = null; refresh(); };
 ACT.pickReg = v => { UI.expe.region = v; UI.expe.threat = 0; SC.draw = backdrop(v, { dark: .5 }); refresh(); };
@@ -64,9 +70,10 @@ ACT.launch = () => {
   const opt = { threat: E.region === "abime" ? 0 : E.threat, floor: E.region === "abime" ? E.floor : 1, night: E.region !== "abime" && !E.daily && E.night ? 1 : 0, hardBoss: E.hard && hardOk(E) ? 1 : 0 };
   if (E.week) { const err = weekPartyOk(E.party); if (err) return toast(err, "bad"); if (E.region !== S.week.region) E.week = null; else { opt.week = 1; opt.seed = S.week.seed; } }
   if (E.daily) { opt.relics = E.daily.relics; opt.seed = E.daily.seed; opt.daily = 1; }
+  if (E.region === "abime" && E.gouffre) { const G = gouffreWeek(); opt.seed = G.seed; opt.oaths = G.oaths; opt.floor = 1; opt.gouffre = G.key; }
   if (E.rush && rushAvailable()) { startRush(E.party, E.pet); E.rush = 0; save(); sfx("door"); musicPlay("map"); go("map"); toast("Boss rush : les gardiens vous attendent.", "good"); return; }
-  startRun(E.region, E.party, E.pet, opt);
-  E.daily = null; E.week = null; save(); sfx("door"); musicPlay("map");
+  startRun(E.region, E.party, E.pet, opt); if (opt.gouffre) S.run.gouffre = opt.gouffre;
+  E.daily = null; E.gouffre = 0; E.week = null; save(); sfx("door"); musicPlay("map");
   go("map");
   if (!(S.seenScene || {})[S.run.region] && SCENES[S.run.region]) return showScene(S.run.region);
   const R = regionById(S.run.region);
@@ -263,6 +270,7 @@ SCREENS.results = {
   noNav: 1, title: "Retour au Bastion",
   scene: res => backdrop(res && res.region ? res.region : "bastion", { dark: .6 }),
   html: res => {
+    if (res && res.story && !res._cs && typeof chapterCard === "function") { res._cs = 1; setTimeout(() => chapterCard(res.region), 350); }
     const T = { victory: ["Victoire", "Le gardien est tombé. Vos héros rentrent, couverts de gloire et de sang."], retreat: ["Retraite", "Vous rentrez avant que la nuit ne vous dévore."], wipe: ["Déroute", "Personne n'est resté debout. Vos héros sont ramenés au Bastion par des inconnus… sans leur butin."] }[res.outcome];
     return `<div class="wrap" style="max-width:640px"><div class="panel frame" style="margin-top:10px"><span class="corner c1"></span><span class="corner c2"></span><span class="corner c3"></span><span class="corner c4"></span>
       <h1 style="text-align:center;color:${res.outcome === "wipe" ? "#ff6a5a" : res.outcome === "victory" ? "var(--gold2)" : "var(--txt)"}">${T[0]}</h1><p class="lore" style="text-align:center">${T[1]}</p>

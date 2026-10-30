@@ -145,7 +145,8 @@ function fixHeroName(h) {
 }
 function migrate(s) {
   const base = newState();
-  for (const h of s.heroes || []) if (h.hp != null && !Number.isFinite(h.hp)) h.hp = null; // PV corrompus (bogue du compagnon) : soignés
+  for (const h of s.heroes || []) if (h.hp != null && !Number.isFinite(h.hp)) h.hp = null;
+  if (s.opts && s.opts.fast == null && typeof matchMedia !== "undefined" && matchMedia("(pointer:coarse)").matches) s.opts.fast = 1; // téléphone : partie rapide par défaut // PV corrompus (bogue du compagnon) : soignés
   for (const k in base) if (s[k] === undefined) s[k] = base[k];
   for (const k in base.stats) if (s.stats[k] === undefined) s.stats[k] = 0;
   for (const k in base.bld) if (!s.bld[k]) s.bld[k] = 1;

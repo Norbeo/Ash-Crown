@@ -44,12 +44,15 @@ SCREENS.options = {
     <label class="row sp"><span>${ico("eye")} Mode apaisé <span class="tiny dim">— sans tremblement ni éclair d'écran</span></span><input type="checkbox" data-opt="calm" ${S.opts.calm ? "checked" : ""}></label>
     <div class="small" style="margin-top:6px"><b>Combat : panneaux affichés</b></div>${[["ord", "Ordre de passage"], ["log", "Mini-journal"], ["mor", "Résolution et tour"]].map(([k, n]) => `<label class="row sp"><span>${n}</span><input type="checkbox" data-a="hudOpt" data-v="${k}" ${hud(k) ? "checked" : ""}></label>`).join("")}
     <label class="row sp"><span>${ico("speed")} Animations rapides <span class="tiny dim">— enchaîne les actions plus vite</span></span><input type="checkbox" data-opt="quick" ${S.opts.quick ? "checked" : ""}></label>
+    <label class="row sp"><span>${ico("run")} Partie rapide <span class="tiny dim">— combats en vitesse ×3 et animations rapides (idéal sur téléphone)</span></span><input type="checkbox" data-opt="fast" ${S.opts.fast ? "checked" : ""}></label>
+    <label class="row sp"><span>${ico("star")} Mode auto économe <span class="tiny dim">— en automatique, garde les ultimes pour les élites, les gardiens et les coups durs</span></span><input type="checkbox" data-opt="smartUlt" ${S.opts.smartUlt !== 0 ? "checked" : ""}></label>
+    <label class="row sp"><span>${ico("info")} Astuces <span class="tiny dim">— explique une mécanique la première fois qu'elle apparaît</span></span><input type="checkbox" data-opt="hintsOn" ${!S.opts.noHints ? "checked" : ""}></label>
     <div class="row sp"><span>${ico("skull")} Mode</span><span class="gold">${S.opts.hardcore ? "Hardi (mort définitive)" : "Normal"}</span></div>
     <div class="sep"></div>
     <div class="row">${PWA.standalone ? `<span class="tag good">Appli installée</span>` : `<button class="btn" data-a="install">${ico("install")}Installer sur l'appareil</button>`}<button class="btn ghost" data-a="exportSave">${ico("scroll")}Exporter la sauvegarde</button><button class="btn ghost" data-a="importSave">Importer</button></div>
     <div class="sep"></div><button class="btn ghost" data-a="toTitle">Écran-titre</button><button class="btn ghost" style="color:var(--bad)" data-a="wipeSave">Effacer la partie</button>
   </div></div><p class="tiny dim" style="text-align:center;margin-top:10px">Couronne de Cendres · RPG tactique dark fantasy · sauvegarde locale automatique</p></div>`,
-  mount: () => document.querySelectorAll("[data-opt]").forEach(i => i.onchange = () => { S.opts[i.dataset.opt] = i.checked ? 1 : 0; if (i.dataset.opt === "sound") ambVolume(); if (i.dataset.opt === "music") musicMute(i.checked); save(); }),
+  mount: () => document.querySelectorAll("[data-opt]").forEach(i => i.onchange = () => { S.opts[i.dataset.opt] = i.checked ? 1 : 0; if (i.dataset.opt === "hintsOn") S.opts.noHints = i.checked ? 0 : 1; if (i.dataset.opt === "sound") ambVolume(); if (i.dataset.opt === "music") musicMute(i.checked); save(); }),
 };
 ACT.optSpeed = v => { S.opts.speed = +v; save(); refresh(); };
 ACT.toTitle = () => { save(); go("title"); };

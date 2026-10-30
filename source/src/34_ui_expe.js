@@ -104,6 +104,7 @@ ACT.retreat = () => confirmBox("Rentrer au Bastion ? Vous gardez l'or et le buti
 ACT.node = v => {
   const [c, i] = v.split(":").map(Number); const run = S.run, n = run.map[c][i];
   if (!availableNodes(run).includes(n)) return;
+  if (n.type === "boss" && !n.briefed && typeof bossBriefing === "function") return bossBriefing(run, n, v);
   if (n.type === "elite" && n.nest && n.nestOn == null) return modal(`<h2>${ico("skull", "#e05050")} Nid d'élites</h2><p class="lore">Deux silhouettes massives se dressent dans l'ombre. Elles ne vous ont pas encore vus.</p><p class="small">Affronter le nid : <b>deux élites</b> à la fois, mais <b>or ×1,8, expérience ×1,5</b>, un objet Épique garanti et un éclat. Ou n'en attirer qu'une seule.</p><div class="row sp" style="margin-top:10px"><button class="btn" data-a="nest" data-v="${v}:0">Une seule élite</button><button class="btn main" data-a="nest" data-v="${v}:1">Attaquer le nid</button></div>`);
   if (run.night && !["combat", "elite", "boss"].includes(n.type) && !n.ambushed && chance(.15)) { // nuit : une élite surgit en chemin
     n.ambushed = 1; enterNode(run, n); run.pendingNode = { c: n.c, i: n.i }; save();
@@ -208,7 +209,7 @@ ACT.runEquip = (v, el, e) => {
   e && e.stopPropagation(); const [id, hid, sl] = v.split(":"); const run = S.run; if (!run) return;
   const it = run.loot.find(x => x.id === id), h = heroById(hid); if (!it || !h) return;
   if (it.kind === "tr" && !sl && h.gear.tr1 && h.gear.tr2) { // deux bibelots portés : choisir lequel remplacer, sur place
-    const row = el.closest(".eqrow"); if (row) row.querySelector(".eqcmp").innerHTML = `<span class="tiny">Remplacer :</span> ${["tr1", "tr2"].map(s => `<button class="btn sm ghost" data-a="runEquip" data-v="${id}:${hid}:${s}"><span class="rar${h.gear[s].rar}">${gearName(h.gear[s])}</span></button>`).join(" ")}`; return; }
+    const row = el.closest(".eqrow"); if (row) row.querySelector(".eqcmp").innerHTML = `<div class="tiny" style="width:100%">Remplacer lequel ? <span class="dim">(nouveau : <b class="rar${it.rar}">${gearName(it)}</b> — ${itemLine(it)})</span></div>${["tr1", "tr2"].map(s => `<button class="btn sm ghost" style="display:block;width:100%;text-align:left;margin-top:4px;white-space:normal" data-a="runEquip" data-v="${id}:${hid}:${s}">${ico("swap", "#c8b8a0", 12)} <b class="rar${h.gear[s].rar}">${gearName(h.gear[s])}</b><div class="tiny dim">${itemLine(h.gear[s])}</div></button>`).join("")}`; return; }
   const old = it.kind === "tr" ? null : h.gear[it.kind];
   if (!runEquip(h, it, run, sl)) return toast("Impossible d'équiper cet objet.", "bad");
   sfx("forge"); save();

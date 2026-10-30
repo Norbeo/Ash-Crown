@@ -1,6 +1,6 @@
 /* ═══════════════════════ Combat : scène, animations, commandes ═══════════════════════ */
 const CB = { B: null, vis: {}, fx: [], txt: [], proj: [], shake: 0, flash: 0, banner: null, resolve: null, actor: null, sel: null, hoverU: null, speed: 1, auto: false, busy: false, barH: 150, zoom: 0 };
-const wait = ms => new Promise(r => setTimeout(r, ms / (CB.speed || 1) / (S.opts.quick ? 1.7 : 1)));
+const wait = ms => new Promise(r => setTimeout(r, ms / (CB.speed || 1) / (S.opts.quick || S.opts.fast ? 1.7 : 1)));
 const HPOSE = {
   idle: () => ({}),
   windup: st => ({ lean: -.08, aFs: st.aFs - .7, aFe: st.aFe + .5, wa: (st.wa || 2.5) + .6 }),
@@ -59,7 +59,7 @@ async function startCombat(node) {
   const run = S.run;
   const enc = genEncounter(run, node);
   const B = CB.B = battleFor(run, node, enc);
-  CB.vis = {}; CB.fx = []; CB.txt = []; CB.proj = []; CB.log = []; CB.node = node; CB.speed = S.opts.speed || 1; CB.auto = !!S.opts.auto; CB.banner = null;
+  CB.vis = {}; CB.fx = []; CB.txt = []; CB.proj = []; CB.log = []; CB.node = node; CB.speed = S.opts.fast ? 3 : S.opts.speed || 1; CB.auto = !!S.opts.auto; CB.banner = null;
   CB.barH = $("#cbar").offsetHeight + 6 || 150;
   cbLayout();
   SC.click = cbClick; SC.hover = cbHover;
@@ -70,6 +70,7 @@ async function startCombat(node) {
   if (node.type === "boss") { const bs = B.enemies.find(e => e.boss); await bossIntro(bs); }
   else if (node.type === "elite") { const el = B.enemies.find(e => e.elite); if (el && !(S.eliteSeen || {})[el.key] && ELITE_INFO[el.key]) await eliteIntro(el); else await showBanner(node.nestOn ? "Nid d'élites" : node.nightAmbush ? "Embuscade !" : "Élite", el ? el.name : "", "#ff8a4a", 1100); }
   else await wait(500);
+  if (typeof combatHints === "function") combatHints(B, node);
   combatLoop();
 }
 async function combatLoop() {
@@ -110,7 +111,9 @@ function autoChoice(u) {
   const B = CB.B; const run = S.run;
   const dying = B.heroes.find(h => alive(h) && h.agony);
   if (dying && run.potions > 0 && !B.heroes.some(h => h.role === "soin" && alive(h) && h !== dying)) return { potion: 1, tgt: dying };
-  const a = heroAuto(B, u, "bal"); return a.move ? { move: a.move } : a;
+  // auto économe : l'ultime est gardé pour les élites, les gardiens ou quand un allié est en danger
+  const keep = u.ultV, spare = S.opts.smartUlt !== 0 && u.ultV >= 100 && !B.enemies.some(e => e.boss || e.elite) && !B.heroes.some(h => alive(h) && (h.agony || h.hp / h.hpMax < .35));
+  if (spare) u.ultV = 99; const a = heroAuto(B, u, "bal"); u.ultV = keep; return a.move ? { move: a.move } : a;
 }
 // ── choix du joueur ──
 function playerChoice(u) {

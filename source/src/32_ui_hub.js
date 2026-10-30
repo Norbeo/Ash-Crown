@@ -152,18 +152,22 @@ function gearDelta(h, it, relicH = {}) {
   add("Dégâts", (b.dmgLo + b.dmgHi - a.dmgLo - a.dmgHi) / 2, "n", 3); add("PV", b.hp - a.hp, "n", .6); add("Protection", b.prot - a.prot, "pct", 120);
   add("Critique", b.crit - a.crit, "n", 1.2); add("Vitesse", b.spd - a.spd, "n", 3); add("Esquive", b.dodge - a.dodge, "n", .8); add("Précision", b.acc - a.acc, "n", .6);
   add("Résistance", b.res - a.res, "n", .3); add("Soins", b.healPow - a.healPow, "pct", 60); add("Vol de vie", b.leech - a.leech, "pct", 80);
-  return { slot, old, list: out, score: out.reduce((s, x) => s + x.w, 0) + (it.kind === "tr" && !old ? 5 : 0) };
+  // estimations globales : dégâts par tour (dégâts moyens × chance de critique × vitesse) et survie (PV effectifs × esquive)
+  const dps = x => (x.dmgLo + x.dmgHi) / 2 * (1 + Math.min(.6, x.crit / 100) * .5) * (1 + x.spd / 40), surv = x => x.hp / Math.max(.1, 1 - x.prot) / Math.max(.4, 1 - x.dodge / 150);
+  const dD = dps(b) / Math.max(.01, dps(a)) - 1, dS = surv(b) / Math.max(.01, surv(a)) - 1;
+  return { slot, old, list: out, dps: dD, surv: dS, score: out.reduce((s, x) => s + x.w, 0) + (it.kind === "tr" && !old ? 5 : 0) };
 }
 function deltaChips(D) {
   if (!D.list.length) return `<span class="tiny dim">${D.old ? "Aucun changement de caractéristiques" : "Effet spécial du bibelot"}</span>`;
-  return D.list.map(x => `<span class="chip ${x.d > 0 ? "up" : "down"}">${x.n} ${x.txt}</span>`).join("");
+  const est = (n, v) => Math.abs(v) >= .01 ? `<span class="chip ${v > 0 ? "up" : "down"}" style="font-weight:700" title="Estimation globale">${n} ${v > 0 ? "+" : "−"}${Math.round(Math.abs(v) * 100)} %</span>` : "";
+  return est("Dégâts/tour", D.dps || 0) + est("Survie", D.surv || 0) + D.list.map(x => `<span class="chip ${x.d > 0 ? "up" : "down"}">${x.n} ${x.txt}</span>`).join("");
 }
 function heroLabel(h) { return `<b>${esc(h.name.split(" ")[0])}</b> <span class="tag" style="color:${ROLES[CLASSES[h.cls].role].c}">${ico(ROLES[CLASSES[h.cls].role].ic, ROLES[CLASSES[h.cls].role].c, 12)}${heroTitle(h)}</span> <span class="tiny dim">niv ${h.lvl}</span>`; }
 // une ligne de choix : qui, ce qui est remplacé, les écarts, et le bouton
 function equipRow(h, it, act, v, relicH = {}) {
   const D = gearDelta(h, it, relicH), good = D.score > 0;
   return `<div class="eqrow ${good ? "better" : ""}"><div class="eqtop"><span class="eqwho">${heroLabel(h)}</span><button class="btn sm ${good ? "gold" : "ghost"}" data-a="${act}" data-v="${v}">${ico(good ? "up" : "swap", good ? "#8ad06a" : "#9a8c7a", 12)}Équiper</button></div>
-    <div class="eqcmp"><span class="tiny dim">${D.old ? `Remplace <span class="rar${D.old.rar}">${gearName(D.old)}</span>` : "Emplacement libre"}</span><span class="chips">${deltaChips(D)}</span></div></div>`;
+    <div class="eqcmp"><span class="tiny dim">${it.kind === "tr" && h.gear.tr1 && h.gear.tr2 ? `Remplacera au choix : ${["tr1", "tr2"].map(s => `<span class="rar${h.gear[s].rar}">${gearName(h.gear[s])}</span> <i>(${itemLine(h.gear[s])})</i>`).join(" ou ")}` : D.old ? `Remplace <span class="rar${D.old.rar}">${gearName(D.old)}</span>${it.kind === "tr" ? ` <i>(${itemLine(D.old)})</i>` : ""}` : "Emplacement libre"}</span><span class="chips">${deltaChips(D)}</span></div></div>`;
 }
 // ── icônes d'équipement peintes : l'arme réelle, l'armure portée sur un mannequin, les bibelots en médaillon ciselé ──
 const ITEM_ART = {}, ITEM_WAIT = Object.assign(new Map(), { n: 0 });
@@ -267,7 +271,7 @@ ACT.equipPick = id => { const it = findItem(id); const hs = S.heroes.filter(h =>
 function askTrSlot(h, it, cb) {
   if (it.kind !== "tr" || !h.gear.tr1 || !h.gear.tr2) return cb(null);
   const back = UI.screen === "hero" ? null : bldBack();
-  modal(`<h2>${ico("gem", "#e8c878")} Quel bibelot remplacer ?</h2><p class="small">${esc(h.name)} porte déjà deux bibelots. <b class="rar${it.rar}">${gearName(it)}</b> prendra la place de :</p>
+  modal(`<h2>${ico("gem", "#e8c878")} Quel bibelot remplacer ?</h2><p class="small">${esc(h.name)} porte déjà deux bibelots. <b class="rar${it.rar}">${gearName(it)}</b> <span class="tiny dim">(${itemLine(it)})</span> prendra la place de :</p>
     ${["tr1", "tr2"].map(s => { const o = h.gear[s]; return `<div class="row card" data-a="trSlotPick" data-v="${s}">${slotHTML(o, "", "")}<div style="flex:1;min-width:0"><b class="rar${o.rar}">${gearName(o)}</b><div class="tiny dim">${itemLine(o)}</div></div><button class="btn sm">${ico("swap")}Remplacer</button></div>`; }).join("")}`, { onClose: back });
   ACT.trSlotPick = s => { UI.modalClose = null; closeModal(); cb(s); };
 }

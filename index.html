@@ -1852,7 +1852,8 @@ function fixHeroName(h) {
 }
 function migrate(s) {
   const base = newState();
-  for (const h of s.heroes || []) if (h.hp != null && !Number.isFinite(h.hp)) h.hp = null; // PV corrompus (bogue du compagnon) : soignés
+  for (const h of s.heroes || []) if (h.hp != null && !Number.isFinite(h.hp)) h.hp = null;
+  if (s.opts && s.opts.fast == null && typeof matchMedia !== "undefined" && matchMedia("(pointer:coarse)").matches) s.opts.fast = 1; // téléphone : partie rapide par défaut // PV corrompus (bogue du compagnon) : soignés
   for (const k in base) if (s[k] === undefined) s[k] = base[k];
   for (const k in base.stats) if (s.stats[k] === undefined) s.stats[k] = 0;
   for (const k in base.bld) if (!s.bld[k]) s.bld[k] = 1;
@@ -4399,18 +4400,22 @@ function gearDelta(h, it, relicH = {}) {
   add("Dégâts", (b.dmgLo + b.dmgHi - a.dmgLo - a.dmgHi) / 2, "n", 3); add("PV", b.hp - a.hp, "n", .6); add("Protection", b.prot - a.prot, "pct", 120);
   add("Critique", b.crit - a.crit, "n", 1.2); add("Vitesse", b.spd - a.spd, "n", 3); add("Esquive", b.dodge - a.dodge, "n", .8); add("Précision", b.acc - a.acc, "n", .6);
   add("Résistance", b.res - a.res, "n", .3); add("Soins", b.healPow - a.healPow, "pct", 60); add("Vol de vie", b.leech - a.leech, "pct", 80);
-  return { slot, old, list: out, score: out.reduce((s, x) => s + x.w, 0) + (it.kind === "tr" && !old ? 5 : 0) };
+  // estimations globales : dégâts par tour (dégâts moyens × chance de critique × vitesse) et survie (PV effectifs × esquive)
+  const dps = x => (x.dmgLo + x.dmgHi) / 2 * (1 + Math.min(.6, x.crit / 100) * .5) * (1 + x.spd / 40), surv = x => x.hp / Math.max(.1, 1 - x.prot) / Math.max(.4, 1 - x.dodge / 150);
+  const dD = dps(b) / Math.max(.01, dps(a)) - 1, dS = surv(b) / Math.max(.01, surv(a)) - 1;
+  return { slot, old, list: out, dps: dD, surv: dS, score: out.reduce((s, x) => s + x.w, 0) + (it.kind === "tr" && !old ? 5 : 0) };
 }
 function deltaChips(D) {
   if (!D.list.length) return `<span class="tiny dim">${D.old ? "Aucun changement de caractéristiques" : "Effet spécial du bibelot"}</span>`;
-  return D.list.map(x => `<span class="chip ${x.d > 0 ? "up" : "down"}">${x.n} ${x.txt}</span>`).join("");
+  const est = (n, v) => Math.abs(v) >= .01 ? `<span class="chip ${v > 0 ? "up" : "down"}" style="font-weight:700" title="Estimation globale">${n} ${v > 0 ? "+" : "−"}${Math.round(Math.abs(v) * 100)} %</span>` : "";
+  return est("Dégâts/tour", D.dps || 0) + est("Survie", D.surv || 0) + D.list.map(x => `<span class="chip ${x.d > 0 ? "up" : "down"}">${x.n} ${x.txt}</span>`).join("");
 }
 function heroLabel(h) { return `<b>${esc(h.name.split(" ")[0])}</b> <span class="tag" style="color:${ROLES[CLASSES[h.cls].role].c}">${ico(ROLES[CLASSES[h.cls].role].ic, ROLES[CLASSES[h.cls].role].c, 12)}${heroTitle(h)}</span> <span class="tiny dim">niv ${h.lvl}</span>`; }
 // une ligne de choix : qui, ce qui est remplacé, les écarts, et le bouton
 function equipRow(h, it, act, v, relicH = {}) {
   const D = gearDelta(h, it, relicH), good = D.score > 0;
   return `<div class="eqrow ${good ? "better" : ""}"><div class="eqtop"><span class="eqwho">${heroLabel(h)}</span><button class="btn sm ${good ? "gold" : "ghost"}" data-a="${act}" data-v="${v}">${ico(good ? "up" : "swap", good ? "#8ad06a" : "#9a8c7a", 12)}Équiper</button></div>
-    <div class="eqcmp"><span class="tiny dim">${D.old ? `Remplace <span class="rar${D.old.rar}">${gearName(D.old)}</span>` : "Emplacement libre"}</span><span class="chips">${deltaChips(D)}</span></div></div>`;
+    <div class="eqcmp"><span class="tiny dim">${it.kind === "tr" && h.gear.tr1 && h.gear.tr2 ? `Remplacera au choix : ${["tr1", "tr2"].map(s => `<span class="rar${h.gear[s].rar}">${gearName(h.gear[s])}</span> <i>(${itemLine(h.gear[s])})</i>`).join(" ou ")}` : D.old ? `Remplace <span class="rar${D.old.rar}">${gearName(D.old)}</span>${it.kind === "tr" ? ` <i>(${itemLine(D.old)})</i>` : ""}` : "Emplacement libre"}</span><span class="chips">${deltaChips(D)}</span></div></div>`;
 }
 // ── icônes d'équipement peintes : l'arme réelle, l'armure portée sur un mannequin, les bibelots en médaillon ciselé ──
 const ITEM_ART = {}, ITEM_WAIT = Object.assign(new Map(), { n: 0 });
@@ -4514,7 +4519,7 @@ ACT.equipPick = id => { const it = findItem(id); const hs = S.heroes.filter(h =>
 function askTrSlot(h, it, cb) {
   if (it.kind !== "tr" || !h.gear.tr1 || !h.gear.tr2) return cb(null);
   const back = UI.screen === "hero" ? null : bldBack();
-  modal(`<h2>${ico("gem", "#e8c878")} Quel bibelot remplacer ?</h2><p class="small">${esc(h.name)} porte déjà deux bibelots. <b class="rar${it.rar}">${gearName(it)}</b> prendra la place de :</p>
+  modal(`<h2>${ico("gem", "#e8c878")} Quel bibelot remplacer ?</h2><p class="small">${esc(h.name)} porte déjà deux bibelots. <b class="rar${it.rar}">${gearName(it)}</b> <span class="tiny dim">(${itemLine(it)})</span> prendra la place de :</p>
     ${["tr1", "tr2"].map(s => { const o = h.gear[s]; return `<div class="row card" data-a="trSlotPick" data-v="${s}">${slotHTML(o, "", "")}<div style="flex:1;min-width:0"><b class="rar${o.rar}">${gearName(o)}</b><div class="tiny dim">${itemLine(o)}</div></div><button class="btn sm">${ico("swap")}Remplacer</button></div>`; }).join("")}`, { onClose: back });
   ACT.trSlotPick = s => { UI.modalClose = null; closeModal(); cb(s); };
 }
@@ -4732,6 +4737,7 @@ ACT.retreat = () => confirmBox("Rentrer au Bastion ? Vous gardez l'or et le buti
 ACT.node = v => {
   const [c, i] = v.split(":").map(Number); const run = S.run, n = run.map[c][i];
   if (!availableNodes(run).includes(n)) return;
+  if (n.type === "boss" && !n.briefed && typeof bossBriefing === "function") return bossBriefing(run, n, v);
   if (n.type === "elite" && n.nest && n.nestOn == null) return modal(`<h2>${ico("skull", "#e05050")} Nid d'élites</h2><p class="lore">Deux silhouettes massives se dressent dans l'ombre. Elles ne vous ont pas encore vus.</p><p class="small">Affronter le nid : <b>deux élites</b> à la fois, mais <b>or ×1,8, expérience ×1,5</b>, un objet Épique garanti et un éclat. Ou n'en attirer qu'une seule.</p><div class="row sp" style="margin-top:10px"><button class="btn" data-a="nest" data-v="${v}:0">Une seule élite</button><button class="btn main" data-a="nest" data-v="${v}:1">Attaquer le nid</button></div>`);
   if (run.night && !["combat", "elite", "boss"].includes(n.type) && !n.ambushed && chance(.15)) { // nuit : une élite surgit en chemin
     n.ambushed = 1; enterNode(run, n); run.pendingNode = { c: n.c, i: n.i }; save();
@@ -4836,7 +4842,7 @@ ACT.runEquip = (v, el, e) => {
   e && e.stopPropagation(); const [id, hid, sl] = v.split(":"); const run = S.run; if (!run) return;
   const it = run.loot.find(x => x.id === id), h = heroById(hid); if (!it || !h) return;
   if (it.kind === "tr" && !sl && h.gear.tr1 && h.gear.tr2) { // deux bibelots portés : choisir lequel remplacer, sur place
-    const row = el.closest(".eqrow"); if (row) row.querySelector(".eqcmp").innerHTML = `<span class="tiny">Remplacer :</span> ${["tr1", "tr2"].map(s => `<button class="btn sm ghost" data-a="runEquip" data-v="${id}:${hid}:${s}"><span class="rar${h.gear[s].rar}">${gearName(h.gear[s])}</span></button>`).join(" ")}`; return; }
+    const row = el.closest(".eqrow"); if (row) row.querySelector(".eqcmp").innerHTML = `<div class="tiny" style="width:100%">Remplacer lequel ? <span class="dim">(nouveau : <b class="rar${it.rar}">${gearName(it)}</b> — ${itemLine(it)})</span></div>${["tr1", "tr2"].map(s => `<button class="btn sm ghost" style="display:block;width:100%;text-align:left;margin-top:4px;white-space:normal" data-a="runEquip" data-v="${id}:${hid}:${s}">${ico("swap", "#c8b8a0", 12)} <b class="rar${h.gear[s].rar}">${gearName(h.gear[s])}</b><div class="tiny dim">${itemLine(h.gear[s])}</div></button>`).join("")}`; return; }
   const old = it.kind === "tr" ? null : h.gear[it.kind];
   if (!runEquip(h, it, run, sl)) return toast("Impossible d'équiper cet objet.", "bad");
   sfx("forge"); save();
@@ -4917,7 +4923,7 @@ function resumeNode() {
 }
 /* ═══════════════════════ Combat : scène, animations, commandes ═══════════════════════ */
 const CB = { B: null, vis: {}, fx: [], txt: [], proj: [], shake: 0, flash: 0, banner: null, resolve: null, actor: null, sel: null, hoverU: null, speed: 1, auto: false, busy: false, barH: 150, zoom: 0 };
-const wait = ms => new Promise(r => setTimeout(r, ms / (CB.speed || 1) / (S.opts.quick ? 1.7 : 1)));
+const wait = ms => new Promise(r => setTimeout(r, ms / (CB.speed || 1) / (S.opts.quick || S.opts.fast ? 1.7 : 1)));
 const HPOSE = {
   idle: () => ({}),
   windup: st => ({ lean: -.08, aFs: st.aFs - .7, aFe: st.aFe + .5, wa: (st.wa || 2.5) + .6 }),
@@ -4976,7 +4982,7 @@ async function startCombat(node) {
   const run = S.run;
   const enc = genEncounter(run, node);
   const B = CB.B = battleFor(run, node, enc);
-  CB.vis = {}; CB.fx = []; CB.txt = []; CB.proj = []; CB.log = []; CB.node = node; CB.speed = S.opts.speed || 1; CB.auto = !!S.opts.auto; CB.banner = null;
+  CB.vis = {}; CB.fx = []; CB.txt = []; CB.proj = []; CB.log = []; CB.node = node; CB.speed = S.opts.fast ? 3 : S.opts.speed || 1; CB.auto = !!S.opts.auto; CB.banner = null;
   CB.barH = $("#cbar").offsetHeight + 6 || 150;
   cbLayout();
   SC.click = cbClick; SC.hover = cbHover;
@@ -4987,6 +4993,7 @@ async function startCombat(node) {
   if (node.type === "boss") { const bs = B.enemies.find(e => e.boss); await bossIntro(bs); }
   else if (node.type === "elite") { const el = B.enemies.find(e => e.elite); if (el && !(S.eliteSeen || {})[el.key] && ELITE_INFO[el.key]) await eliteIntro(el); else await showBanner(node.nestOn ? "Nid d'élites" : node.nightAmbush ? "Embuscade !" : "Élite", el ? el.name : "", "#ff8a4a", 1100); }
   else await wait(500);
+  if (typeof combatHints === "function") combatHints(B, node);
   combatLoop();
 }
 async function combatLoop() {
@@ -5027,7 +5034,9 @@ function autoChoice(u) {
   const B = CB.B; const run = S.run;
   const dying = B.heroes.find(h => alive(h) && h.agony);
   if (dying && run.potions > 0 && !B.heroes.some(h => h.role === "soin" && alive(h) && h !== dying)) return { potion: 1, tgt: dying };
-  const a = heroAuto(B, u, "bal"); return a.move ? { move: a.move } : a;
+  // auto économe : l'ultime est gardé pour les élites, les gardiens ou quand un allié est en danger
+  const keep = u.ultV, spare = S.opts.smartUlt !== 0 && u.ultV >= 100 && !B.enemies.some(e => e.boss || e.elite) && !B.heroes.some(h => alive(h) && (h.agony || h.hp / h.hpMax < .35));
+  if (spare) u.ultV = 99; const a = heroAuto(B, u, "bal"); u.ultV = keep; return a.move ? { move: a.move } : a;
 }
 // ── choix du joueur ──
 function playerChoice(u) {
@@ -5444,12 +5453,15 @@ SCREENS.options = {
     <label class="row sp"><span>${ico("eye")} Mode apaisé <span class="tiny dim">— sans tremblement ni éclair d'écran</span></span><input type="checkbox" data-opt="calm" ${S.opts.calm ? "checked" : ""}></label>
     <div class="small" style="margin-top:6px"><b>Combat : panneaux affichés</b></div>${[["ord", "Ordre de passage"], ["log", "Mini-journal"], ["mor", "Résolution et tour"]].map(([k, n]) => `<label class="row sp"><span>${n}</span><input type="checkbox" data-a="hudOpt" data-v="${k}" ${hud(k) ? "checked" : ""}></label>`).join("")}
     <label class="row sp"><span>${ico("speed")} Animations rapides <span class="tiny dim">— enchaîne les actions plus vite</span></span><input type="checkbox" data-opt="quick" ${S.opts.quick ? "checked" : ""}></label>
+    <label class="row sp"><span>${ico("run")} Partie rapide <span class="tiny dim">— combats en vitesse ×3 et animations rapides (idéal sur téléphone)</span></span><input type="checkbox" data-opt="fast" ${S.opts.fast ? "checked" : ""}></label>
+    <label class="row sp"><span>${ico("star")} Mode auto économe <span class="tiny dim">— en automatique, garde les ultimes pour les élites, les gardiens et les coups durs</span></span><input type="checkbox" data-opt="smartUlt" ${S.opts.smartUlt !== 0 ? "checked" : ""}></label>
+    <label class="row sp"><span>${ico("info")} Astuces <span class="tiny dim">— explique une mécanique la première fois qu'elle apparaît</span></span><input type="checkbox" data-opt="hintsOn" ${!S.opts.noHints ? "checked" : ""}></label>
     <div class="row sp"><span>${ico("skull")} Mode</span><span class="gold">${S.opts.hardcore ? "Hardi (mort définitive)" : "Normal"}</span></div>
     <div class="sep"></div>
     <div class="row">${PWA.standalone ? `<span class="tag good">Appli installée</span>` : `<button class="btn" data-a="install">${ico("install")}Installer sur l'appareil</button>`}<button class="btn ghost" data-a="exportSave">${ico("scroll")}Exporter la sauvegarde</button><button class="btn ghost" data-a="importSave">Importer</button></div>
     <div class="sep"></div><button class="btn ghost" data-a="toTitle">Écran-titre</button><button class="btn ghost" style="color:var(--bad)" data-a="wipeSave">Effacer la partie</button>
   </div></div><p class="tiny dim" style="text-align:center;margin-top:10px">Couronne de Cendres · RPG tactique dark fantasy · sauvegarde locale automatique</p></div>`,
-  mount: () => document.querySelectorAll("[data-opt]").forEach(i => i.onchange = () => { S.opts[i.dataset.opt] = i.checked ? 1 : 0; if (i.dataset.opt === "sound") ambVolume(); if (i.dataset.opt === "music") musicMute(i.checked); save(); }),
+  mount: () => document.querySelectorAll("[data-opt]").forEach(i => i.onchange = () => { S.opts[i.dataset.opt] = i.checked ? 1 : 0; if (i.dataset.opt === "hintsOn") S.opts.noHints = i.checked ? 0 : 1; if (i.dataset.opt === "sound") ambVolume(); if (i.dataset.opt === "music") musicMute(i.checked); save(); }),
 };
 ACT.optSpeed = v => { S.opts.speed = +v; save(); refresh(); };
 ACT.toTitle = () => { save(); go("title"); };
@@ -6011,6 +6023,64 @@ function eliteCodexHTML() {
     return `<div class="card ${seen ? "" : "lock"}" style="cursor:${seen ? "pointer" : "default"}" ${seen ? `data-a="monSheet" data-v="${k}"` : ""}><div class="row" style="gap:8px">${seen ? canvasSlot("mo:" + k, 70, 70) : ico("quest", "#5a4a3a", 40)}<div style="flex:1;min-width:0"><b>${seen ? M.n : "???"}</b>${huntMark(k) ? ` ${ico("trophy", "#ffd27a", 12)}` : ""}<div class="tiny dim">${seen ? I[0] : ""}</div>
       <div class="tiny">${L.wins} victoire${L.wins > 1 ? "s" : ""} · ${Math.min(L.wins, HUNT_N)}/${HUNT_N} vers la marque</div>${seen && I[2] ? `<div class="tiny">Butin favori : <span class="rar3">${esc(I[2])}</span> (${L.drops} obtenu${L.drops > 1 ? "s" : ""})</div>` : ""}
       <div class="tiny ${L.wins >= 3 ? "good" : "dim"}">${L.wins >= 3 ? "Faiblesse : " + esc(I[3]) : "Faiblesse inconnue (3 victoires)"}</div></div></div></div>`; }).join("")}</div>`;
+}
+
+// ── Récapitulatif avant un gardien : capacités, phase, faiblesses et conseils de composition ──
+function bossAdvice(M) {
+  const sk = M.sk || [], has = f => sk.some(f), fx = k => has(x => (x.fx || []).some(f => f.k === k));
+  const A = [];
+  if (has(x => x.t === "ae")) A.push(["heal", "Frappes de zone : un soigneur de groupe (Prêtresse, Sorcière, Médecin) et des boucliers."]);
+  if (fx("bleed") || fx("poison") || fx("burn")) A.push(["cleanse", "Saignements, poison ou brûlures : emportez de quoi purifier (Exorciste, Médecin de peste)."]);
+  if (fx("stun")) A.push(["stun", "Étourdissements : la résistance et la Hâte limitent les tours perdus."]);
+  if (has(x => x.summon) || M.summon) A.push(["boom", "Il appelle des renforts : prévoyez des dégâts de zone pour nettoyer la ligne."]);
+  if (has(x => x.heal)) A.push(["blood", "Il se soigne : concentrez les dégâts et gardez l'ultime pour finir."]);
+  if ((M.prot || 0) >= .25) A.push(["pierce", "Très protégé : armure brisée, poison et brûlure contournent sa protection."]);
+  if ((M.dodge || 0) >= 14) A.push(["aim", "Il esquive beaucoup : marquez-le et misez sur la précision."]);
+  if (M.tags.includes("impie")) A.push(["bless", "Impie : les compétences sacrées (Exorciste, Prêtresse, Chasseur de sorcières) le frappent plus fort."]);
+  if (!A.length) A.push(["shield", "Un tank au rang 1 et un soigneur suffisent ; gardez les ultimes pour la seconde phase."]);
+  return A;
+}
+function bossBriefing(run, n, v) {
+  const enc = genEncounter(run, n), b = enc.find(e => MONSTERS[e.key] && MONSTERS[e.key].boss) || enc[0]; if (!b) { n.briefed = 1; return ACT.node(v); }
+  const M = MONSTERS[b.key], adds = enc.filter(e => e !== b).map(e => MONSTERS[e.key].n);
+  const lv = Math.round(runParty().reduce((a, h) => a + h.lvl, 0) / Math.max(1, runParty().length));
+  modal(`<h2>${ico("skull", "#e05050")} Gardien en vue</h2><div class="row" style="gap:12px;flex-wrap:wrap;align-items:flex-start"><div style="margin:0 auto">${canvasSlot("bb", 200, 220)}</div><div style="flex:1;min-width:220px">
+    <b class="gold" style="font-size:18px">${esc(M.n)}</b><div class="tiny dim">${M.tags.map(t => t === "impie" ? "impie" : t === "bete" ? "bête" : "humain").join(", ")}${adds.length ? " · escorté de " + adds.join(", ") : ""} · votre groupe : niveau ${lv}</div>
+    ${(M.sk || []).map(sk => `<div class="small" style="margin-top:4px">${ico(sk.heal ? "heal" : sk.summon ? "boom" : sk.t === "ae" ? "whirl" : "sword", "#e8b8a0", 13)} <b>${sk.n}</b> <span class="tiny dim">${skillText(sk, null)}</span></div>`).join("")}
+    ${M.phase ? `<div class="small bad" style="margin-top:6px">${ico("rage", "#ff6a4a", 13)} Sous ${Math.round(M.phase.at * 100)} % de PV : <i>${esc(M.phase.n)}</i></div>` : ""}</div></div>
+    <h3 style="margin-top:10px">Conseils</h3>${bossAdvice(M).map(([ic, t]) => `<div class="small" style="margin:3px 0">${ico(ic, "#e8c878", 13)} ${t}</div>`).join("")}
+    <div class="row" style="gap:8px;margin-top:12px"><button class="btn gold" style="flex:1" data-a="bossGo" data-v="${v}">${ico("swords")}Affronter</button><button class="btn ghost" style="flex:1" data-a="closeModal">Se préparer</button></div>`,
+    { wide: 1, mount: m => fillCanvases(m, c => paintMon(c, b.key)) });
+}
+ACT.bossGo = v => { const [c, i] = v.split(":").map(Number), n = S.run && S.run.map[c][i]; if (!n) return; n.briefed = 1; closeModal(); ACT.node(v); };
+
+// ── Astuces contextuelles : la première fois qu'une mécanique apparaît, deux lignes d'explication ──
+const HINTS = {
+  named: ["Élite nommée", "Une élite venue d'un autre chapitre : +10 % de PV et un surnom. Elle laisse un meilleur butin."],
+  corrupt: ["Créature corrompue", "Menace IV–V : plus de PV et de dégâts, mais un butin plus riche."],
+  nest: ["Nid d'élites", "Deux élites d'un coup. Dangereux, mais le butin est doublé."],
+  night: ["Expédition de nuit", "Plus d'embuscades et d'élites, plus d'or et d'expérience. La lueur compte double."],
+  weather: ["Météo", "Brouillard, pluie ou lune rouge modifient la précision, les dégâts ou le stress pendant toute l'expédition."],
+  stress: ["Stress", "Chaque combat difficile stresse vos héros. À 100, une affliction (ou une vertu) apparaît. La Taverne l'apaise."],
+  summon: ["Renforts", "Ce gardien appelle des alliés : nettoyez-les vite avec des attaques de zone."],
+  riposte: ["Riposte", "Cette unité contre-attaque quand on la frappe au corps à corps. Les attaques à distance l'évitent."],
+};
+function hintOnce(k) {
+  const H = HINTS[k]; if (!H) return; S.hints = S.hints || {}; if (S.hints[k] || (S.opts && S.opts.noHints)) return; S.hints[k] = 1; save();
+  const t = document.createElement("div"); t.className = "toast hint"; t.style.cssText = "max-width:min(360px,90vw);text-align:left";
+  t.innerHTML = `${ico("info", "#e8c878", 14)} <b class="gold">${H[0]}</b><div class="small" style="margin-top:2px">${H[1]}</div>`;
+  $("#toasts").appendChild(t); setTimeout(() => t.remove(), 7000);
+}
+function combatHints(B, node) {
+  const run = S.run || {}, E = B.enemies;
+  if (E.some(e => e.named)) hintOnce("named");
+  if (E.some(e => e.corrupt)) hintOnce("corrupt");
+  if (node && node.nestOn) hintOnce("nest");
+  if (run.night) hintOnce("night");
+  if (run.weather) hintOnce("weather");
+  if (E.some(e => (MONSTERS[e.key] || {}).sk && MONSTERS[e.key].sk.some(s => s.summon))) hintOnce("summon");
+  if (E.some(e => (e.st || []).some(s => s.k === "riposte"))) hintOnce("riposte");
+  if (S.heroes.some(h => (h.stress || 0) >= 30)) hintOnce("stress");
 }
 /* ═══════════════════════ Démarrage ═══════════════════════ */
 if (HASWIN) {

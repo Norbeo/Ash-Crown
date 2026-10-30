@@ -554,3 +554,61 @@ function eliteCodexHTML() {
       <div class="tiny">${L.wins} victoire${L.wins > 1 ? "s" : ""} · ${Math.min(L.wins, HUNT_N)}/${HUNT_N} vers la marque</div>${seen && I[2] ? `<div class="tiny">Butin favori : <span class="rar3">${esc(I[2])}</span> (${L.drops} obtenu${L.drops > 1 ? "s" : ""})</div>` : ""}
       <div class="tiny ${L.wins >= 3 ? "good" : "dim"}">${L.wins >= 3 ? "Faiblesse : " + esc(I[3]) : "Faiblesse inconnue (3 victoires)"}</div></div></div></div>`; }).join("")}</div>`;
 }
+
+// ── Récapitulatif avant un gardien : capacités, phase, faiblesses et conseils de composition ──
+function bossAdvice(M) {
+  const sk = M.sk || [], has = f => sk.some(f), fx = k => has(x => (x.fx || []).some(f => f.k === k));
+  const A = [];
+  if (has(x => x.t === "ae")) A.push(["heal", "Frappes de zone : un soigneur de groupe (Prêtresse, Sorcière, Médecin) et des boucliers."]);
+  if (fx("bleed") || fx("poison") || fx("burn")) A.push(["cleanse", "Saignements, poison ou brûlures : emportez de quoi purifier (Exorciste, Médecin de peste)."]);
+  if (fx("stun")) A.push(["stun", "Étourdissements : la résistance et la Hâte limitent les tours perdus."]);
+  if (has(x => x.summon) || M.summon) A.push(["boom", "Il appelle des renforts : prévoyez des dégâts de zone pour nettoyer la ligne."]);
+  if (has(x => x.heal)) A.push(["blood", "Il se soigne : concentrez les dégâts et gardez l'ultime pour finir."]);
+  if ((M.prot || 0) >= .25) A.push(["pierce", "Très protégé : armure brisée, poison et brûlure contournent sa protection."]);
+  if ((M.dodge || 0) >= 14) A.push(["aim", "Il esquive beaucoup : marquez-le et misez sur la précision."]);
+  if (M.tags.includes("impie")) A.push(["bless", "Impie : les compétences sacrées (Exorciste, Prêtresse, Chasseur de sorcières) le frappent plus fort."]);
+  if (!A.length) A.push(["shield", "Un tank au rang 1 et un soigneur suffisent ; gardez les ultimes pour la seconde phase."]);
+  return A;
+}
+function bossBriefing(run, n, v) {
+  const enc = genEncounter(run, n), b = enc.find(e => MONSTERS[e.key] && MONSTERS[e.key].boss) || enc[0]; if (!b) { n.briefed = 1; return ACT.node(v); }
+  const M = MONSTERS[b.key], adds = enc.filter(e => e !== b).map(e => MONSTERS[e.key].n);
+  const lv = Math.round(runParty().reduce((a, h) => a + h.lvl, 0) / Math.max(1, runParty().length));
+  modal(`<h2>${ico("skull", "#e05050")} Gardien en vue</h2><div class="row" style="gap:12px;flex-wrap:wrap;align-items:flex-start"><div style="margin:0 auto">${canvasSlot("bb", 200, 220)}</div><div style="flex:1;min-width:220px">
+    <b class="gold" style="font-size:18px">${esc(M.n)}</b><div class="tiny dim">${M.tags.map(t => t === "impie" ? "impie" : t === "bete" ? "bête" : "humain").join(", ")}${adds.length ? " · escorté de " + adds.join(", ") : ""} · votre groupe : niveau ${lv}</div>
+    ${(M.sk || []).map(sk => `<div class="small" style="margin-top:4px">${ico(sk.heal ? "heal" : sk.summon ? "boom" : sk.t === "ae" ? "whirl" : "sword", "#e8b8a0", 13)} <b>${sk.n}</b> <span class="tiny dim">${skillText(sk, null)}</span></div>`).join("")}
+    ${M.phase ? `<div class="small bad" style="margin-top:6px">${ico("rage", "#ff6a4a", 13)} Sous ${Math.round(M.phase.at * 100)} % de PV : <i>${esc(M.phase.n)}</i></div>` : ""}</div></div>
+    <h3 style="margin-top:10px">Conseils</h3>${bossAdvice(M).map(([ic, t]) => `<div class="small" style="margin:3px 0">${ico(ic, "#e8c878", 13)} ${t}</div>`).join("")}
+    <div class="row" style="gap:8px;margin-top:12px"><button class="btn gold" style="flex:1" data-a="bossGo" data-v="${v}">${ico("swords")}Affronter</button><button class="btn ghost" style="flex:1" data-a="closeModal">Se préparer</button></div>`,
+    { wide: 1, mount: m => fillCanvases(m, c => paintMon(c, b.key)) });
+}
+ACT.bossGo = v => { const [c, i] = v.split(":").map(Number), n = S.run && S.run.map[c][i]; if (!n) return; n.briefed = 1; closeModal(); ACT.node(v); };
+
+// ── Astuces contextuelles : la première fois qu'une mécanique apparaît, deux lignes d'explication ──
+const HINTS = {
+  named: ["Élite nommée", "Une élite venue d'un autre chapitre : +10 % de PV et un surnom. Elle laisse un meilleur butin."],
+  corrupt: ["Créature corrompue", "Menace IV–V : plus de PV et de dégâts, mais un butin plus riche."],
+  nest: ["Nid d'élites", "Deux élites d'un coup. Dangereux, mais le butin est doublé."],
+  night: ["Expédition de nuit", "Plus d'embuscades et d'élites, plus d'or et d'expérience. La lueur compte double."],
+  weather: ["Météo", "Brouillard, pluie ou lune rouge modifient la précision, les dégâts ou le stress pendant toute l'expédition."],
+  stress: ["Stress", "Chaque combat difficile stresse vos héros. À 100, une affliction (ou une vertu) apparaît. La Taverne l'apaise."],
+  summon: ["Renforts", "Ce gardien appelle des alliés : nettoyez-les vite avec des attaques de zone."],
+  riposte: ["Riposte", "Cette unité contre-attaque quand on la frappe au corps à corps. Les attaques à distance l'évitent."],
+};
+function hintOnce(k) {
+  const H = HINTS[k]; if (!H) return; S.hints = S.hints || {}; if (S.hints[k] || (S.opts && S.opts.noHints)) return; S.hints[k] = 1; save();
+  const t = document.createElement("div"); t.className = "toast hint"; t.style.cssText = "max-width:min(360px,90vw);text-align:left";
+  t.innerHTML = `${ico("info", "#e8c878", 14)} <b class="gold">${H[0]}</b><div class="small" style="margin-top:2px">${H[1]}</div>`;
+  $("#toasts").appendChild(t); setTimeout(() => t.remove(), 7000);
+}
+function combatHints(B, node) {
+  const run = S.run || {}, E = B.enemies;
+  if (E.some(e => e.named)) hintOnce("named");
+  if (E.some(e => e.corrupt)) hintOnce("corrupt");
+  if (node && node.nestOn) hintOnce("nest");
+  if (run.night) hintOnce("night");
+  if (run.weather) hintOnce("weather");
+  if (E.some(e => (MONSTERS[e.key] || {}).sk && MONSTERS[e.key].sk.some(s => s.summon))) hintOnce("summon");
+  if (E.some(e => (e.st || []).some(s => s.k === "riposte"))) hintOnce("riposte");
+  if (S.heroes.some(h => (h.stress || 0) >= 30)) hintOnce("stress");
+}

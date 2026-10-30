@@ -241,7 +241,7 @@ async function playEvents(ev) {
           for (const t of targetsAfter(ev, i)) projectile(v, V(t), "bolt", srcCol);
           await wait(220);
         } else if (e.anim === "cast") {
-          v.pose = u.side === "h" ? "cast" : "strike"; v.pt = .6; sfx(/feu|flamme|Météore|Embras|Combust|Bûcher/i.test(e.sk) ? "fire" : u.side === "h" && ["pretresse", "templier", "exorciste", "chasseur_sorcieres"].includes(u.cls) ? "holy" : "dark");
+          v.pose = u.side === "h" ? "cast" : "strike"; v.pt = .6; sfx(/feu|flamme|Météore|Embras|Combust|Bûcher|braise|magma|Fonte/i.test(e.sk) ? "fire" : /glac|givre|gel|hiver|blizzard|froid|neige/i.test(e.sk) ? "frost" : /foudre|éclair|décharge|tonnerre/i.test(e.sk) ? "shock" : /poison|venin|peste|toxi|acide/i.test(e.sk) ? "poison" : u.side === "h" && ["pretresse", "templier", "exorciste", "chasseur_sorcieres"].includes(u.cls) ? "holy" : "dark");
           glowAt(v, srcCol, 1); for (const t of targetsAfter(ev, i)) projectile(v, V(t), "orb", srcCol);
           await wait(300);
         } else if (e.anim === "heal" || e.anim === "buff" || e.anim === "potion") {

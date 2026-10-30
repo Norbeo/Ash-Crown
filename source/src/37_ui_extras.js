@@ -268,7 +268,19 @@ function turnQueue(B) { // reste du tour courant puis estimation du tour suivant
 const ordName = u => esc(shortName(u.name));
 const hud = k => !S.opts.hud || S.opts.hud[k] !== 0;
 // mini-portrait : tête du sprite de combat, mise en cache en data URL
-function unitFace(u) { // mini-portrait cadré sur la tête (on ignore les armes levées : on cherche la tête au-dessus du torse)
+// portrait recadré d'après art/faces.json (cadres calculés hors ligne + corrections à la main dans faces_fix.json)
+const FACE_URL = {};
+function artFace(n, bg) {
+  const F = typeof window !== "undefined" && window.ART_FACE ? window.ART_FACE[n] : null, im = F && artImg(n); if (!im) return null;
+  if (FACE_URL[n]) return FACE_URL[n];
+  try {
+    const W = im.naturalWidth || im.width, H = im.naturalHeight || im.height, s = F[2] * H, c = document.createElement("canvas"); c.width = c.height = 48;
+    const x = c.getContext("2d"); x.fillStyle = bg; x.fillRect(0, 0, 48, 48); x.drawImage(im, F[0] * W - s / 2, F[1] * H - s / 2, s, s, 0, 0, 48, 48);
+    return FACE_URL[n] = c.toDataURL();
+  } catch (e) { return null; }
+}
+function unitFace(u) {
+  if (u.side === "e") { const M = MONSTERS[u.key] || {}, f = artFace("mon_" + (M.art || u.key), "#2a1212"); if (f) return f; } // mini-portrait cadré sur la tête (on ignore les armes levées : on cherche la tête au-dessus du torse)
   CB.faces = CB.faces || {}; const k = u.uid + (u.side === "h" ? ":" + ((CB.vis[u.uid] || {}).lookKey || "") : "");
   if (CB.faces[k]) return CB.faces[k];
   try {
@@ -301,7 +313,7 @@ ACT.hudMin = k => { S.opts.hudMin = S.opts.hudMin || {}; S.opts.hudMin[k] = hudM
 function turnOrderHTML() {
   const B = CB.B; if (!B || !B.order || !hud("ord")) return "";
   const { now, next } = turnQueue(B), q = now.concat(next).slice(0, hudMin("ord") ? 1 : 5), pv = CB.preview || new Set();
-  return `<div class="cbord">${q.map((u, i) => { const f = unitFace(u); return `${i ? '<i>›</i>' : ""}<span class="${u.side === "h" ? "h" : "e"} ${i === 0 ? "now" : ""} ${pv.has(u.uid) && i < now.length ? "pv" : ""}" data-a="ordPeek" data-v="${u.uid}" title="${esc(u.name)}">${f ? `<img src="${f}" alt="">` : ""}<em>${ordName(u)}</em></span>`; }).join("")}${B.pet && !hudMin("ord") && q.length < 6 ? `<i>›</i><span class="h pet" title="Le compagnon agit en fin de tour">${artHas("pet_" + B.pet.id) ? `<img src="assets/pet_${B.pet.id}.webp" style="object-fit:contain;background:#1a2416">` : ""}<em>${esc(petName(B.pet.id).split(" ")[0])}</em></span>` : ""}${hudMin("ord") ? "" : '<i class="more" data-a="turnOrder" title="Ordre complet">⋯</i>'}<i class="min" data-a="hudMin" data-v="ord" title="${hudMin("ord") ? "Agrandir" : "Réduire"}">${hudMin("ord") ? "▸" : "◂"}</i></div>`;
+  return `<div class="cbord">${q.map((u, i) => { const f = unitFace(u); return `${i ? '<i>›</i>' : ""}<span class="${u.side === "h" ? "h" : "e"} ${i === 0 ? "now" : ""} ${pv.has(u.uid) && i < now.length ? "pv" : ""}" data-a="ordPeek" data-v="${u.uid}" title="${esc(u.name)}">${f ? `<img src="${f}" alt="">` : ""}<em>${ordName(u)}</em></span>`; }).join("")}${B.pet && !hudMin("ord") && q.length < 6 ? `<i>›</i><span class="h pet" title="Le compagnon agit en fin de tour">${(() => { const pf = artFace("pet_" + B.pet.id + (B.pet.evo && artHas("pet_" + B.pet.id + "_evo") ? "_evo" : ""), "#1a2416"); return pf ? `<img src="${pf}" alt="">` : artHas("pet_" + B.pet.id) ? `<img src="assets/pet_${B.pet.id}.webp" style="object-fit:contain;background:#1a2416">` : ""; })()}<em>${esc(petName(B.pet.id).split(" ")[0])}</em></span>` : ""}${hudMin("ord") ? "" : '<i class="more" data-a="turnOrder" title="Ordre complet">⋯</i>'}<i class="min" data-a="hudMin" data-v="ord" title="${hudMin("ord") ? "Agrandir" : "Réduire"}">${hudMin("ord") ? "▸" : "◂"}</i></div>`;
 }
 ACT.ordPeek = id => { const v = V(id), u = U(id); if (!v || !u) return; glowAt(v, u.side === "h" ? "#8ad06a" : "#ff6a4a", 1.3); CB.peek = { id, t: 2 }; popText(id, shortName(u.name), "#ffe08a"); };
 ACT.turnOrder = () => {

@@ -3,7 +3,7 @@
 cd "$(dirname "$0")"
 OUT=/tmp/claude-0/cc/all.js
 # liste des illustrations livrées et de celles à retourner (lues par 17_art_images.js)
-ARTJS="window.ART_LIST=[$(ls assets 2>/dev/null | sed -n 's/\.webp$//p' | sed 's/.*/"&"/' | paste -sd,)];window.ART_META=$(cat art/meta.json 2>/dev/null | tr -d '\n' || echo {});window.SFX_LIST=[$(ls sfx 2>/dev/null | sed -n 's/\.mp3$//p' | sed 's/.*/"&"/' | paste -sd,)];window.ART_FLIP=[$(grep -v '^#' art/flip.txt 2>/dev/null | grep . | sed 's/.*/"&"/' | paste -sd,)];"
+ARTJS="window.ART_LIST=[$(ls assets 2>/dev/null | sed -n 's/\.webp$//p' | sed 's/.*/"&"/' | paste -sd,)];window.ART_META=$(cat art/meta.json 2>/dev/null | tr -d '\n' || echo {});window.ART_FACE=$(cat art/faces.json 2>/dev/null || echo {});window.SFX_LIST=[$(ls sfx 2>/dev/null | sed -n 's/\.mp3$//p' | sed 's/.*/"&"/' | paste -sd,)];window.ART_FLIP=[$(grep -v '^#' art/flip.txt 2>/dev/null | grep . | sed 's/.*/"&"/' | paste -sd,)];"
 { echo "$ARTJS"; cat src/0*.js src/1*.js src/2*.js src/3*.js; } > $OUT && node --check $OUT || exit 1
 PWAHEAD='<meta name="theme-color" content="#07060a">
 <meta name="color-scheme" content="dark">

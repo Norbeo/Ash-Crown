@@ -441,3 +441,17 @@ function bastionLife(x, L, t, dt) {
     x.translate(w.x, w.y - bob); if (left) x.scale(-1, 1); x.globalAlpha = .95; x.drawImage(sp, -sp.ax, -sp.ay); x.restore();
   }
 }
+
+// ── Carte du monde : les chapitres reliés par une route, l'Abîme au centre ──
+const WMAP = { bourg: [.1, .8], foret: [.2, .5], catacombes: [.33, .74], marais: [.42, .4], citadelle: [.54, .66], terres: [.63, .36], cimes: [.72, .14], cite: [.84, .34], mines: [.9, .64], trone: [.78, .86], abime: [.47, .9] };
+ACT.mapView = () => { UI.listView = !UI.listView; refresh(); };
+function worldMapHTML(E, regs) {
+  const pos = r => WMAP[r.id] || [.5, .5], chain = regs.filter(r => r.id !== "abime");
+  const path = chain.map((r, i) => `${i ? "L" : "M"}${pos(r)[0] * 1000},${pos(r)[1] * 560}`).join(" ");
+  const cit = regs.find(r => r.id === "citadelle"), ab = regs.find(r => r.id === "abime");
+  const sel = regs.find(r => r.id === E.region), un = sel && regionUnlocked(sel.id), p = sel && S.prog[sel.id];
+  const node = r => { const ok = regionUnlocked(r.id), cl = S.prog[r.id] && S.prog[r.id].clears, [x, y] = pos(r);
+    return `<button class="wnode ${E.region === r.id ? "sel" : ""} ${ok ? "" : "lock"} ${r.id === "abime" ? "abyss" : ""}" style="left:${x * 100}%;top:${y * 100}%" data-a="${ok && !E.daily ? "pickReg" : ""}" data-v="${r.id}" title="${esc(r.n)}"><i style="background-image:url(assets/bg_${r.id}.webp)"></i>${!ok ? `<em>${ico("lock", "#c8b8a0", 14)}</em>` : cl ? `<em class="cl">${ico("crown", "#e8c878", 14)}</em>` : ""}<span>${esc(r.n.replace(/^(Les|Le|La|L') ?/, ""))}</span></button>`; };
+  return `<div class="wmap ${artHas("bg_worldmap") ? "img" : ""}"><svg viewBox="0 0 1000 560" preserveAspectRatio="none"><path d="${path}" class="road"/>${cit && ab ? `<path d="M${pos(cit)[0] * 1000},${pos(cit)[1] * 560} L${pos(ab)[0] * 1000},${pos(ab)[1] * 560}" class="road abyss"/>` : ""}</svg>${regs.map(node).join("")}</div>
+    ${sel ? `<div class="panel wsel"><div class="tiny dim">${sel.sub}${sel.id === "abime" ? ` · record ${S.abyss.best}` : ` · niveau ${sel.lvl}+`}${p && p.clears ? ` · vaincu ${p.clears} fois` : ""}</div><h3 style="margin:2px 0">${sel.n}</h3><p class="small" style="margin:0">${un ? sel.d : "Terminez le chapitre précédent pour ouvrir la route."}</p></div>` : ""}`;
+}

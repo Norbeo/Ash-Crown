@@ -414,3 +414,30 @@ function bestiaryHTML() {
     return `<h3 style="margin-top:14px">${esc(g.n)} <span class="tiny dim">${n}/${g.ks.length}</span></h3><div class="grid" style="--min:130px">${g.ks.map(k => { const M = MONSTERS[k], seen = S.seen.monsters[k] != null;
       return `<div class="card ${seen ? "" : "lock"}" style="text-align:center;padding:6px;cursor:${seen ? "pointer" : "default"}" ${seen ? `data-a="monSheet" data-v="${k}"` : ""}>${seen ? canvasSlot("mo:" + k, 116, 116) : `<div style="height:116px;display:flex;align-items:center;justify-content:center">${ico("quest", "#5a4a3a", 40)}</div>`}<div class="small" style="margin-top:2px"><b>${seen ? M.n : "???"}</b></div><div class="tiny dim">${seen ? (M.boss ? "Gardien" : M.elite ? "Élite" : "Créature") + " · " + (S.seen.monsters[k] || 0) + " vaincus" : ""}</div></div>`; }).join("")}</div>`; }).join("");
 }
+
+// ── Bastion vivant : fumées et fenêtres selon le niveau des bâtiments, héros qui flânent dans la cour ──
+const BLIFE = { smoke: [], walk: null, sig: "" };
+function bastionLife(x, L, t, dt) {
+  const B = Object.fromEntries(L.map(b => [b.k, b]));
+  const chim = { forge: [.06, 1.12, "#4a4440"], fonderie: [0, 1.08, "#3a5a4a"], taverne: [-.25, 1.12, "#4a4440"] }; // cheminées (décalage x, hauteur relative)
+  for (const k in chim) { const b = B[k]; if (!b) continue; const lvl = S.bld[k] || 1, [ox, oy, col] = chim[k];
+    if (Math.random() < dt * (1.5 + lvl * 1.2)) BLIFE.smoke.push({ x: b.x + ox * b.s, y: b.y - b.s * oy * (k === "forge" ? 1.1 : 1), vx: 6 + Math.random() * 8, vy: -18 - Math.random() * 14, r: b.s * .05, a: .35 + lvl * .04, col, life: 0 }); }
+  BLIFE.smoke = BLIFE.smoke.filter(p => (p.life += dt) < 4.5);
+  for (const p of BLIFE.smoke) { p.x += p.vx * dt; p.y += p.vy * dt; p.r += dt * 2.6; const a = p.a * .6 * (1 - p.life / 4.5); x.fillStyle = rgba(p.col, a); x.beginPath(); x.arc(p.x, p.y, p.r, 0, 7); x.fill(); }
+  // braises de la forge et lueur des fenêtres : plus le bâtiment est développé, plus il vit
+  const fl = (k, ox, oy, col, r) => { const b = B[k]; if (!b) return; const lvl = S.bld[k] || 1; glow(x, b.x + ox * b.s, b.y - oy * b.s, b.s * r * (.6 + lvl * .12), col, (.08 + lvl * .04) * (.75 + .25 * Math.sin(t * (5 + ox * 3) + b.x))); };
+  fl("forge", 0, .25, "#ff7a2a", .5); fl("taverne", -.15, .45, "#ffb050", .55); fl("taverne", .2, .5, "#ffb050", .4); fl("chapelle", 0, .9, "#ffd890", .45); fl("fonderie", 0, .35, "#6aff9a", .45); fl("menagerie", 0, .3, "#ffa040", .35);
+  // héros qui se promènent (jusqu'à 3, hors expédition)
+  const idle = S.heroes.filter(h => !isInjured(h)).slice(0, 3), sig = idle.map(h => h.id).join(",") + "|" + Math.round(SC.w) + "x" + Math.round(SC.h);
+  if (BLIFE.sig !== sig) { BLIFE.sig = sig; const ys = L.map(b => b.y), y0 = Math.min(...ys), y1 = Math.max(...ys);
+    BLIFE.walk = idle.map((h, i) => { const y = Math.min(SC.h * .93, y1 + SC.h * (.025 + i * .028)); void y0; /* devant les bâtiments, sur le pavé */ return { id: h.id, x: SC.w * (.2 + Math.random() * .6), y, tx: SC.w * (.15 + Math.random() * .7), wait: Math.random() * 3, v: 26 + Math.random() * 14 }; }); }
+  const sc = Math.min(SC.w, SC.h) / 900 * .55;
+  for (const w of (BLIFE.walk || []).sort((a, b) => a.y - b.y)) {
+    const h = heroById(w.id); if (!h) continue;
+    if (w.wait > 0) w.wait -= dt; else { const d = w.tx - w.x; if (Math.abs(d) < 4) { w.wait = 2 + Math.random() * 5; w.tx = SC.w * (.12 + Math.random() * .76); } else w.x += Math.sign(d) * w.v * dt; }
+    if (!w.sp || w.sp.blank || w.spSc !== sc) { try { w.sp = heroSprite(heroLook(h), {}, 0, sc); w.spSc = sc; } catch (e) { continue; } } const sp = w.sp; if (!sp || sp.blank || !sp.ax) continue;
+    const moving = w.wait <= 0, bob = moving ? Math.abs(Math.sin(t * 7 + w.x * .05)) * 3 : 0, left = w.tx < w.x;
+    x.save(); x.fillStyle = "rgba(0,0,0,.4)"; x.beginPath(); x.ellipse(w.x, w.y, 16 * sc / .55, 4 * sc / .55, 0, 0, 7); x.fill();
+    x.translate(w.x, w.y - bob); if (left) x.scale(-1, 1); x.globalAlpha = .95; x.drawImage(sp, -sp.ax, -sp.ay); x.restore();
+  }
+}

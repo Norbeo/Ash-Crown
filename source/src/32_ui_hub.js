@@ -35,6 +35,7 @@ SCREENS.bastion = {
     // sol de la cour
     x.fillStyle = lgrad(x, 0, SC.h * .5, 0, SC.h, [[0, "rgba(10,8,10,0)"], [1, "rgba(10,8,10,.6)"]]); x.fillRect(0, SC.h * .5, SC.w, SC.h);
     for (const b of L) { x.fillStyle = "rgba(0,0,0,.45)"; x.beginPath(); x.ellipse(b.x, b.y, b.s * .75, b.s * .1, 0, 0, 7); x.fill(); drawBuilding(x, b.k, b.x, b.y, b.s, b.k === "porte" ? 1 : S.bld[b.k], t); }
+    if (typeof bastionLife === "function") bastionLife(x, L, t, dt); // fumées, fenêtres, héros qui se promènent
     // feu de camp central
     const fx = SC.w * .5, fy = SC.h * (SC.w < SC.h * .9 ? .84 : .93); const f = .8 + Math.sin(t * 9) * .1;
     glow(x, fx, fy, 90, "#ff6a1a", .35 * f); x.save(); x.globalCompositeOperation = "lighter"; for (let i = 0; i < 5; i++) glow(x, fx + Math.sin(t * 5 + i) * 4, fy - 8 - i * 6, 14 - i * 2, i < 2 ? "#ffe08a" : "#ff7a2a", .7); x.restore();

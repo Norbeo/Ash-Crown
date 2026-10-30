@@ -79,7 +79,7 @@ const SFX = {
 };
 const SFX_REC = { slash: .8, hit: .9, heavy: 1, crit: 1, shoot: .8, miss: .6, fire: .8, holy: .7, dark: .8, heal: .7, die: .8, coin: .7, door: .8, forge: .8, step: .5, bell: .7, open: .6 };
 // bruitages de combat enregistrés en plusieurs variantes (fx_<k>_1…n) : on en tire une au hasard, jamais deux fois la même d'affilée
-const SFX_VOL = { slash: .75, hit: 1, heavy: 1, crit: 1, shoot: .85, miss: .6, block: .95, fire: .8, holy: .55, heal: .5, buff: .55, debuff: .45, dark: .6, poison: .7, bleed: .85, die: .9, fall: .7, stun: .8, ult: .8 };
+const SFX_VOL = { slash: .75, hit: 1, heavy: 1, crit: 1, shoot: .85, miss: .6, block: .95, fire: .8, holy: .55, heal: .5, buff: .55, debuff: .45, dark: .6, poison: .7, bleed: .85, die: .9, fall: .7, stun: .8, ult: .8, coin: .55, door: .7, step: .35, forge: .7, open: .45, bell: .6 };
 const SFX_LAST = {};
 function sfxVariant(k) { const L = []; for (let i = 1; i <= 6; i++) if (SFX_SET.has("fx_" + k + "_" + i)) L.push("fx_" + k + "_" + i); if (!L.length) return null; let n = L[Math.floor(Math.random() * L.length)]; if (L.length > 1 && n === SFX_LAST[k]) n = L[(L.indexOf(n) + 1) % L.length]; SFX_LAST[k] = n; return n; }
 function sfx(k) { try { if (SFX_VOL[k] != null && sfxOn() && SND.ctx) { const n = sfxVariant(k); if (n) { if (SBUF[n]) { playBuf(n, SFX_VOL[k], .96 + Math.random() * .08); return; } sfxLoad(n); for (let i = 1; i <= 6; i++) sfxLoad("fx_" + k + "_" + i); } } } catch (e) { }

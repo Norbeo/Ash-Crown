@@ -50,7 +50,7 @@ function cbLayout() {
 SCREENS.combat = {
   noNav: 1, noHud: 1, pass: 1,
   scene: () => drawCombat,
-  html: () => `<div class="ctop l" id="cb-tl"></div><div id="cb-hud"><div id="cb-ord"></div><div id="cb-mlog"></div></div><div id="cb-boss"></div><div class="ctop" id="cb-tr"><button class="btn ghost sm" data-a="cbSpeed" title="Vitesse">${ico("speed")}<span id="cb-spd">×${S.opts.fast ? 3 : S.opts.speed || 1}</span></button><button class="btn ghost sm ${S.opts.auto ? "on" : ""}" data-a="cbAuto" title="Combat automatique">${ico("auto")}<span id="cb-auto">${S.opts.auto ? "Auto" : "Manuel"}</span></button><button class="btn ghost sm" data-a="cbLogShow" title="Journal du combat">${ico("scroll")}</button><button class="btn ghost sm" data-a="cbFlee" id="cb-flee" title="Fuir">${ico("flee")}</button></div><div id="cbar"><div class="skdesc" id="cb-desc"></div><div class="skills" id="cb-skills"></div></div>`,
+  html: () => `<div class="ctop l" id="cb-tl"></div><div id="cb-hud"><div id="cb-ord"></div><div id="cb-mlog"></div></div><div id="cb-boss"></div><div class="ctop" id="cb-tr"><button class="btn ghost sm" data-a="cbSpeed" title="Vitesse">${ico("speed")}<span id="cb-spd">×${S.opts.fast ? 3 : S.opts.speed || 1}</span></button><button class="btn ghost sm ${S.opts.auto ? "on" : ""}" data-a="cbAuto" title="Combat automatique">${ico("auto")}<span id="cb-auto">${S.opts.auto ? "Auto" : "Manuel"}</span></button><button class="btn ghost sm" data-a="cbLogShow" title="Journal du combat">${ico("scroll")}</button><button class="btn ghost sm" data-a="cbFlee" id="cb-flee" title="Fuir">${ico("flee")}</button></div><div id="cbar"><div class="skdesc" id="cb-desc" data-a="cbDesc"></div><div class="skills" id="cb-skills"></div></div>`,
   mount: arg => startCombat(arg.node),
   leave: () => { CB.B = null; CB.resolve = null; { const ci = $("#cbinfo"); if (ci) ci.remove(); } const c = $("#coach"); if (c) c.remove(); UI.coach = null; document.querySelectorAll(".coachon").forEach(e => e.classList.remove("coachon")); },
   resize: () => { if (CB.B) { CB.barH = $("#cbar") ? $("#cbar").offsetHeight + 6 : 150; cbLayout(); } },
@@ -118,7 +118,7 @@ function autoChoice(u) {
 // ── choix du joueur ──
 function playerChoice(u) {
   return new Promise(res => {
-    CB.resolve = res; CB.sel = null;
+    CB.resolve = res; CB.sel = null; CB.descOpen = false;
     cbBar(u);
     // présélection : première compétence utilisable
     const first = u.ultV >= 100 ? u.ult : u.skills.find(sk => canUse(CB.B, u, sk));
@@ -148,13 +148,18 @@ function coachShow() {
 ACT.coachNext = () => { UI.coach++; coachShow(); };
 ACT.coachSkip = () => { UI.coach = COACH.length; coachShow(); };
 function choose(a) { if (CB.busy) return; const r = CB.resolve; CB.resolve = null; CB.sel = null; if (r) r(a); }
+function skMini() { return !!S.opts.skMini; }
+// toucher la description compacte l'ouvre en entier (et inversement), sans changer l'option
+ACT.cbDesc = (v, el, e) => { if (!skMini() || !CB.sel || !CB.sel.sk) return; if (e && e.target.closest("[data-tip]")) return; CB.descOpen = !CB.descOpen; selectSkill(CB.sel.sk); };
 function selectSkill(sk) {
   const B = CB.B, u = CB.actor; if (!u || !canUse(B, u, sk)) return;
   CB.sel = { sk, tg: validTargets(B, u, sk) };
   const t = sk.t || "e";
-  $("#cb-desc").innerHTML = `<b class="gold">${sk.n}</b>${sk.isUlt ? ' <span class="tag" style="color:#ff9a4a">ULTIME</span>' : ""} ${sk.use ? rankPips(sk.use, t === "e" || t === "ae" ? sk.at : null) : ""}<br><span class="small">${skillText(sk, u)}</span><br><span class="tiny dim">${t === "e" || t === "a" ? "Touchez une cible en surbrillance." : "Touchez une cible en surbrillance (ou la compétence à nouveau) pour lancer."}</span>`;
+  const d = $("#cb-desc"), mini = skMini() && !CB.descOpen;
+  d.classList.toggle("mini", mini);
+  d.innerHTML = `<b class="gold">${sk.n}</b>${sk.isUlt ? ' <span class="tag" style="color:#ff9a4a">ULTIME</span>' : ""} ${sk.use ? rankPips(sk.use, t === "e" || t === "ae" ? sk.at : null) : ""}${mini ? " " : "<br>"}<span class="small one">${skillText(sk, u)}</span>${mini ? "" : `<br><span class="tiny dim">${t === "e" || t === "a" ? "Touchez une cible en surbrillance." : "Touchez une cible en surbrillance (ou la compétence à nouveau) pour lancer."}</span>`}`;
   document.querySelectorAll("#cb-skills .sk").forEach(b => b.classList.toggle("on", b.dataset.v === sk.id));
-  $("#cb-desc").insertAdjacentHTML("beforeend", skillPreviewHTML(u, sk));
+  if (!mini) d.insertAdjacentHTML("beforeend", skillPreviewHTML(u, sk));
 }
 ACT.cbSk = id => {
   const u = CB.actor; if (!u || !CB.resolve) return;
@@ -163,7 +168,7 @@ ACT.cbSk = id => {
   if (CB.sel && CB.sel.sk === sk && ["aa", "ae", "s"].includes(sk.t || "e")) return choose({ sk, tgt: null });
   selectSkill(sk);
 };
-ACT.cbPotion = () => { const u = CB.actor; if (!u || !CB.resolve) return; if (S.run.potions <= 0) return toast("Plus de potion.", "bad"); CB.sel = { potion: 1, tg: CB.B.heroes.filter(alive) }; $("#cb-desc").innerHTML = `<b class="gold">Potion de soin</b> (${S.run.potions})<br><span class="small">Soigne 40 % des PV, purge les altérations et sauve de l'agonie. Utilise le tour.</span>`; document.querySelectorAll("#cb-skills .sk").forEach(b => b.classList.toggle("on", b.dataset.v === "potion")); };
+ACT.cbPotion = () => { const u = CB.actor; if (!u || !CB.resolve) return; if (S.run.potions <= 0) return toast("Plus de potion.", "bad"); CB.sel = { potion: 1, tg: CB.B.heroes.filter(alive) }; $("#cb-desc").classList.remove("mini"); $("#cb-desc").innerHTML = `<b class="gold">Potion de soin</b> (${S.run.potions})<br><span class="small">Soigne 40 % des PV, purge les altérations et sauve de l'agonie. Utilise le tour.</span>`; document.querySelectorAll("#cb-skills .sk").forEach(b => b.classList.toggle("on", b.dataset.v === "potion")); };
 ACT.cbMove = d => { const u = CB.actor; if (!u || !CB.resolve) return; const r = rankOf(CB.B, u), n = CB.B.heroes.length; if ((+d < 0 && r <= 1) || (+d > 0 && r >= n)) return; choose({ move: +d }); };
 ACT.cbPass = () => { if (CB.resolve) choose({ pass: 1 }); };
 ACT.cbDelay = () => { const u = CB.actor; if (!u || !CB.resolve) return; if (u.delayR === CB.B.round) return toast("Déjà retardé ce tour.", "bad"); if (!turnQueue(CB.B).now.slice(1).length) return toast("Personne ne joue après lui ce tour.", "bad"); choose({ delay: 1 }); };
@@ -172,7 +177,7 @@ ACT.cbSpeed = () => { CB.speed = CB.speed >= 3 ? 1 : CB.speed + 1; S.opts.speed 
 ACT.cbAuto = (v, el) => { CB.auto = !CB.auto; S.opts.auto = CB.auto ? 1 : 0; save(); $("#cb-auto").textContent = CB.auto ? "Auto" : "Manuel"; el.classList.toggle("on", CB.auto); if (CB.auto && CB.resolve && CB.actor) choose(autoChoice(CB.actor)); };
 function cbBar(u) {
   CB.preview = null;
-  const box = $("#cb-skills"), d = $("#cb-desc"); if (!box) return;
+  const box = $("#cb-skills"), d = $("#cb-desc"); if (!box) return; d.classList.remove("mini");
   if (!u) { box.innerHTML = ""; d.innerHTML = CB.actor && CB.actor.side === "e" ? `<span class="bad">${esc(CB.actor.name)}</span> agit…` : '<span class="dim">…</span>'; return; }
   const B = CB.B, r = rankOf(B, u), n = B.heroes.length;
   const btn = (sk) => { const ok = canUse(B, u, sk); const cd = u.cds[sk.id] > 0 ? u.cds[sk.id] : 0; return `<button class="sk ${ok ? "" : "no"} ${sk.isUlt ? "ult" + (u.ultV >= 100 ? " ready" : "") : ""}" data-a="cbSk" data-v="${sk.id}">${ico(sk.ic, sk.isUlt ? "#ff9a4a" : ok ? "#e8d8b8" : "#6a5a4a")}<span>${sk.n}</span>${sk.rank > 1 ? `<span class="rk">${roman(sk.rank)}</span>` : ""}${cd ? `<span class="cd">${cd}</span>` : ""}${sk.isUlt && u.ultV < 100 ? `<span class="cd" style="font-size:13px">${Math.floor(u.ultV)} %</span>` : ""}</button>`; };

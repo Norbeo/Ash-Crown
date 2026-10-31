@@ -153,7 +153,7 @@ p{margin:6px 0;line-height:1.45}
 .sk.ult{border-color:#a05a2a;background:radial-gradient(#4a1a0a,#140806)}.sk.ult.ready{animation:btnglow 1.2s infinite;border-color:#ffb04a}
 .sk.pet{border-color:#5a7a3a;background:radial-gradient(#1e2e12,#0c1006)}
 .sk .rk{position:absolute;top:2px;right:4px;font-size:9px;color:var(--gold)}
-.skdesc{max-width:620px;width:100%;font-size:13px;background:#000c;border:1px solid #3a2a22;border-radius:3px;padding:6px 10px;min-height:38px;line-height:1.35}
+#cb-desc.mini{min-height:0;cursor:pointer;position:relative;padding-right:70px}#cb-desc.mini .one{display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}#cb-desc.mini::after{content:"⋯ détails";position:absolute;top:5px;right:8px;font-size:11px;color:#8a7a68}.skdesc{max-width:620px;width:100%;font-size:13px;background:#000c;border:1px solid #3a2a22;border-radius:3px;padding:6px 10px;min-height:38px;line-height:1.35}
 .turnbar{position:fixed;top:calc(env(safe-area-inset-top) + 6px);left:50%;transform:translateX(-50%);display:flex;gap:3px;z-index:5}
 .turnbar i{width:26px;height:26px;border-radius:50%;border:2px solid #4a3a2a;background:#120c0a;display:flex;align-items:center;justify-content:center;font-style:normal;font-size:10px;font-family:var(--f-head)}
 .turnbar i.h{border-color:#5a8ac0}.turnbar i.e{border-color:#a03a2a}.turnbar i.cur{transform:scale(1.25);box-shadow:0 0 10px #ffb04a}
@@ -1959,6 +1959,7 @@ function fixHeroName(h) {
 function migrate(s) {
   const base = newState();
   for (const h of s.heroes || []) if (h.hp != null && !Number.isFinite(h.hp)) h.hp = null;
+  if (s.opts && s.opts.skMini == null && typeof matchMedia !== "undefined" && matchMedia("(pointer:coarse)").matches) s.opts.skMini = 1; // téléphone : descriptions compactes par défaut
   if (s.opts && s.opts.fast == null && typeof matchMedia !== "undefined" && matchMedia("(pointer:coarse)").matches) s.opts.fast = 1; // téléphone : partie rapide par défaut // PV corrompus (bogue du compagnon) : soignés
   for (const k in base) if (s[k] === undefined) s[k] = base[k];
   for (const k in base.stats) if (s.stats[k] === undefined) s.stats[k] = 0;
@@ -4760,26 +4761,35 @@ function heroSheetHTML(h, foot = "") {
     ${foot}`;
 }
 function heroSheet(h, foot) { modal(heroSheetHTML(h, foot), { wide: 1, onClose: bldBack(), mount: m => fillCanvases(m, c => paintHero(c, h, true)) }); }
-function petSkillText(s) {
-  const out = [], tg = { low: "l'allié le plus blessé", aa: "tout le groupe", e: "un ennemi", ae: "les ennemis visés" }[s.t] || "";
-  if (s.m) out.push(`Dégâts ${Math.round(s.m * 100)} % sur ${tg}`);
-  if (s.heal) out.push(`Soigne ${tg} de ${Math.round(s.heal * 100)} %`);
-  if (s.regen) out.push(`Régénération ${Math.round(s.regen * 100)} %`);
-  if (s.shield) out.push(`Bouclier ${Math.round(s.shield * 100)} % sur ${tg}`);
-  if (s.leechLow) out.push(`Soigne l'allié le plus blessé de ${Math.round(s.leechLow * 100)} % des dégâts`);
-  if (s.cleanse1) out.push("Purge une altération");
+function petSkillText(s, id) {
+  const out = [], t = s.t || "e";
+  const one = s.tgt === "high" ? "l'ennemi le plus robuste" : "l'ennemi le plus blessé";
+  const tg = { low: "l'allié le plus blessé", aa: "tout le groupe", e: one, ae: "tous les ennemis à portée" }[t] || "";
+  const ranks = s.at && (t === "e" || t === "ae") && s.at.length < 4 ? ` (${s.at.length > 1 ? "rangs" : "rang"} ${s.at.join("-")})` : "";
+  const pw = id && typeof petPower === "function" ? petPower(id) : null;
+  if (s.m) { const lo = pw ? Math.max(1, Math.round(pw.dmg * .8 * s.m)) : 0, hi = pw ? Math.round(pw.dmg * 1.2 * s.m) : 0; out.push(`Dégâts ${Math.round(s.m * 100)} %${pw ? ` (<b class="num">${lo === hi ? lo : lo + "–" + hi}</b>)` : ""}${s.hits > 1 ? " × " + s.hits + " coups" : ""} sur ${tg}${ranks}`); }
+  else if (t === "e" || t === "ae") out.push(`Vise ${tg}${ranks}`);
+  if (s.exec) out.push("Dégâts doublés sur une cible sous 35 % PV");
+  if (s.cr) out.push(`+${s.cr} % de critique`);
+  if (s.heal) out.push(`Soigne ${tg} de ${Math.round(s.heal * 100)} % de ses PV max`);
+  if (s.regen) out.push(`Régénération ${Math.round(s.regen * 100)} % (2 t.) sur ${tg}`);
+  if (s.shield) out.push(`Bouclier ${Math.round(s.shield * 100)} % des PV (2 t.) sur ${tg}`);
+  if (s.leechLow) out.push(`Rend ${Math.round(s.leechLow * 100)} % des dégâts infligés à l'allié le plus blessé`);
+  if (s.cleanse1) out.push("Purge une altération de l'allié le plus blessé");
+  const fxs = (arr, pre) => { if (!arr || !arr.length) return; const tx = skillText({ t: "s", fx: arr.map(f => Object.assign({ ch: f.ch == null ? 1 : f.ch }, f)) }).replace(/<[^>]+>/g, ""); if (tx) out.push(pre + tx); };
+  fxs(s.fx, t === "e" ? "Sur la cible : " : t === "ae" ? "Sur les cibles : " : "");
+  fxs(s.afx, "Tout le groupe : ");
+  fxs(s.lowfx, "Allié le plus blessé : ");
+  if (s.morale) out.push(`+${s.morale} résolution`);
+  if (s.ult) out.push(`+${s.ult} jauge d'ultime pour chaque héros`);
   if (s.light) out.push(`+${s.light} lueur`);
-  if (s.cr) out.push(`+${s.cr} % critique`);
-  const fx = skillText({ t: s.t === "low" ? "a" : s.t, fx: s.fx, afx: s.afx });
-  if (fx) out.push(fx);
-  if (s.at && !s.m && !s.fx) out.push(`sur ${tg}`);
-  return out.join(" · ") + (s.every ? ` · tous les ${s.every} tours` : " · chaque tour");
+  return gl(out.join(" · ") + (s.every ? ` · tous les ${s.every} tours` : s.base ? " · les autres tours" : " · chaque tour"));
 }
 function petSheet(id, foot = "") {
   const P = PETS[id];
   modal(`<div class="row" style="gap:12px;flex-wrap:wrap"><div style="margin:0 auto">${canvasSlot("pet", 200, 150)}</div><div style="flex:1;min-width:220px"><h2 style="margin:0">${P.n}</h2><div class="row" style="gap:4px;margin:4px 0">${roleTag(P.role)}${P.gold ? `<span class="tag gold">+${Math.round(P.gold * 100)} % d'or</span>` : ""}</div><p class="lore small">${P.d}</p><p class="tiny dim">Le compagnon agit seul à la fin de chaque tour. Il gagne des niveaux avec le groupe et évolue au niveau ${PET_EVO_LVL}.</p></div></div>
-    ${P.rank > 1.001 ? `<div class="tiny gold" style="margin-top:6px">${ico("star", "#e8c878", 11)} Puissance du rang : +${Math.round((P.rank - 1) * 100)} % sur toutes ses compétences</div>` : ""}<h3 style="margin-top:10px">Compétences</h3><div class="col">${P.sk.map(s => `<div class="skl" style="cursor:default">${ico(s.m ? "claw" : s.heal ? "heal" : s.shield ? "shield" : "star", "#e8c878")}<div><b>${s.n}</b><div class="tiny">${petSkillText(petSkScaled(s, P.rank || 1))}</div></div></div>`).join("")}</div>
-    <h3 style="margin-top:10px">Évolution : ${P.evo.n}</h3><p class="tiny lore">${P.evo.d}</p><div class="skl" style="cursor:default;border-color:#a05a2a">${ico("star", "#ff9a4a")}<div><b>${P.evo.sk.n}</b><div class="tiny">${petSkillText(Object.assign({ every: 2 }, petSkScaled(P.evo.sk, P.rank || 1)))}</div></div></div>${foot}`, { wide: 1, onClose: bldBack(), mount: m => fillCanvases(m, c => paintPet(c, id, 0)) });
+    ${P.rank > 1.001 ? `<div class="tiny gold" style="margin-top:6px">${ico("star", "#e8c878", 11)} Puissance du rang : +${Math.round((P.rank - 1) * 100)} % sur toutes ses compétences</div>` : ""}<h3 style="margin-top:10px">Compétences</h3><div class="col">${P.sk.map((s, i) => `<div class="skl" style="cursor:default">${ico(s.m ? "claw" : s.heal ? "heal" : s.shield ? "shield" : "star", "#e8c878")}<div><b>${s.n}</b><div class="tiny">${petSkillText(Object.assign(i === 1 && !s.every ? { every: 3 } : {}, petSkScaled(s, P.rank || 1), i === 0 && P.sk[1] ? { base: 1 } : {}), id)}</div></div></div>`).join("")}</div>
+    <h3 style="margin-top:10px">Évolution : ${P.evo.n}</h3><p class="tiny lore">${P.evo.d}</p><div class="skl" style="cursor:default;border-color:#a05a2a">${ico("star", "#ff9a4a")}<div><b>${P.evo.sk.n}</b><div class="tiny">${petSkillText(Object.assign({ every: 2 }, petSkScaled(P.evo.sk, P.rank || 1)), id)}</div></div></div>${foot}`, { wide: 1, onClose: bldBack(), mount: m => fillCanvases(m, c => paintPet(c, id, 0)) });
 }
 ACT.petInfo = (id, el, e) => { e && e.stopPropagation(); petSheet(id, `<div class="row" style="justify-content:flex-end;margin-top:10px"><button class="btn" data-a="bld" data-v="menagerie">Retour à la Ménagerie</button></div>`); };
 ACT.recruitInfo = (i, el, e) => { e && e.stopPropagation(); const h = S.recruits[+i]; if (!h) return; const c = recruitPrice(+i); heroSheet(h, `<div class="row" style="justify-content:flex-end;gap:6px;margin-top:12px"><button class="btn ghost" data-a="bld" data-v="taverne">Retour</button><button class="btn main" data-a="recruit" data-v="${i}">Recruter · ${c === 0 ? "gratuit" : c + " or"}</button></div>`); };
@@ -5134,7 +5144,7 @@ function cbLayout() {
 SCREENS.combat = {
   noNav: 1, noHud: 1, pass: 1,
   scene: () => drawCombat,
-  html: () => `<div class="ctop l" id="cb-tl"></div><div id="cb-hud"><div id="cb-ord"></div><div id="cb-mlog"></div></div><div id="cb-boss"></div><div class="ctop" id="cb-tr"><button class="btn ghost sm" data-a="cbSpeed" title="Vitesse">${ico("speed")}<span id="cb-spd">×${S.opts.fast ? 3 : S.opts.speed || 1}</span></button><button class="btn ghost sm ${S.opts.auto ? "on" : ""}" data-a="cbAuto" title="Combat automatique">${ico("auto")}<span id="cb-auto">${S.opts.auto ? "Auto" : "Manuel"}</span></button><button class="btn ghost sm" data-a="cbLogShow" title="Journal du combat">${ico("scroll")}</button><button class="btn ghost sm" data-a="cbFlee" id="cb-flee" title="Fuir">${ico("flee")}</button></div><div id="cbar"><div class="skdesc" id="cb-desc"></div><div class="skills" id="cb-skills"></div></div>`,
+  html: () => `<div class="ctop l" id="cb-tl"></div><div id="cb-hud"><div id="cb-ord"></div><div id="cb-mlog"></div></div><div id="cb-boss"></div><div class="ctop" id="cb-tr"><button class="btn ghost sm" data-a="cbSpeed" title="Vitesse">${ico("speed")}<span id="cb-spd">×${S.opts.fast ? 3 : S.opts.speed || 1}</span></button><button class="btn ghost sm ${S.opts.auto ? "on" : ""}" data-a="cbAuto" title="Combat automatique">${ico("auto")}<span id="cb-auto">${S.opts.auto ? "Auto" : "Manuel"}</span></button><button class="btn ghost sm" data-a="cbLogShow" title="Journal du combat">${ico("scroll")}</button><button class="btn ghost sm" data-a="cbFlee" id="cb-flee" title="Fuir">${ico("flee")}</button></div><div id="cbar"><div class="skdesc" id="cb-desc" data-a="cbDesc"></div><div class="skills" id="cb-skills"></div></div>`,
   mount: arg => startCombat(arg.node),
   leave: () => { CB.B = null; CB.resolve = null; { const ci = $("#cbinfo"); if (ci) ci.remove(); } const c = $("#coach"); if (c) c.remove(); UI.coach = null; document.querySelectorAll(".coachon").forEach(e => e.classList.remove("coachon")); },
   resize: () => { if (CB.B) { CB.barH = $("#cbar") ? $("#cbar").offsetHeight + 6 : 150; cbLayout(); } },
@@ -5202,7 +5212,7 @@ function autoChoice(u) {
 // ── choix du joueur ──
 function playerChoice(u) {
   return new Promise(res => {
-    CB.resolve = res; CB.sel = null;
+    CB.resolve = res; CB.sel = null; CB.descOpen = false;
     cbBar(u);
     // présélection : première compétence utilisable
     const first = u.ultV >= 100 ? u.ult : u.skills.find(sk => canUse(CB.B, u, sk));
@@ -5232,13 +5242,18 @@ function coachShow() {
 ACT.coachNext = () => { UI.coach++; coachShow(); };
 ACT.coachSkip = () => { UI.coach = COACH.length; coachShow(); };
 function choose(a) { if (CB.busy) return; const r = CB.resolve; CB.resolve = null; CB.sel = null; if (r) r(a); }
+function skMini() { return !!S.opts.skMini; }
+// toucher la description compacte l'ouvre en entier (et inversement), sans changer l'option
+ACT.cbDesc = (v, el, e) => { if (!skMini() || !CB.sel || !CB.sel.sk) return; if (e && e.target.closest("[data-tip]")) return; CB.descOpen = !CB.descOpen; selectSkill(CB.sel.sk); };
 function selectSkill(sk) {
   const B = CB.B, u = CB.actor; if (!u || !canUse(B, u, sk)) return;
   CB.sel = { sk, tg: validTargets(B, u, sk) };
   const t = sk.t || "e";
-  $("#cb-desc").innerHTML = `<b class="gold">${sk.n}</b>${sk.isUlt ? ' <span class="tag" style="color:#ff9a4a">ULTIME</span>' : ""} ${sk.use ? rankPips(sk.use, t === "e" || t === "ae" ? sk.at : null) : ""}<br><span class="small">${skillText(sk, u)}</span><br><span class="tiny dim">${t === "e" || t === "a" ? "Touchez une cible en surbrillance." : "Touchez une cible en surbrillance (ou la compétence à nouveau) pour lancer."}</span>`;
+  const d = $("#cb-desc"), mini = skMini() && !CB.descOpen;
+  d.classList.toggle("mini", mini);
+  d.innerHTML = `<b class="gold">${sk.n}</b>${sk.isUlt ? ' <span class="tag" style="color:#ff9a4a">ULTIME</span>' : ""} ${sk.use ? rankPips(sk.use, t === "e" || t === "ae" ? sk.at : null) : ""}${mini ? " " : "<br>"}<span class="small one">${skillText(sk, u)}</span>${mini ? "" : `<br><span class="tiny dim">${t === "e" || t === "a" ? "Touchez une cible en surbrillance." : "Touchez une cible en surbrillance (ou la compétence à nouveau) pour lancer."}</span>`}`;
   document.querySelectorAll("#cb-skills .sk").forEach(b => b.classList.toggle("on", b.dataset.v === sk.id));
-  $("#cb-desc").insertAdjacentHTML("beforeend", skillPreviewHTML(u, sk));
+  if (!mini) d.insertAdjacentHTML("beforeend", skillPreviewHTML(u, sk));
 }
 ACT.cbSk = id => {
   const u = CB.actor; if (!u || !CB.resolve) return;
@@ -5247,7 +5262,7 @@ ACT.cbSk = id => {
   if (CB.sel && CB.sel.sk === sk && ["aa", "ae", "s"].includes(sk.t || "e")) return choose({ sk, tgt: null });
   selectSkill(sk);
 };
-ACT.cbPotion = () => { const u = CB.actor; if (!u || !CB.resolve) return; if (S.run.potions <= 0) return toast("Plus de potion.", "bad"); CB.sel = { potion: 1, tg: CB.B.heroes.filter(alive) }; $("#cb-desc").innerHTML = `<b class="gold">Potion de soin</b> (${S.run.potions})<br><span class="small">Soigne 40 % des PV, purge les altérations et sauve de l'agonie. Utilise le tour.</span>`; document.querySelectorAll("#cb-skills .sk").forEach(b => b.classList.toggle("on", b.dataset.v === "potion")); };
+ACT.cbPotion = () => { const u = CB.actor; if (!u || !CB.resolve) return; if (S.run.potions <= 0) return toast("Plus de potion.", "bad"); CB.sel = { potion: 1, tg: CB.B.heroes.filter(alive) }; $("#cb-desc").classList.remove("mini"); $("#cb-desc").innerHTML = `<b class="gold">Potion de soin</b> (${S.run.potions})<br><span class="small">Soigne 40 % des PV, purge les altérations et sauve de l'agonie. Utilise le tour.</span>`; document.querySelectorAll("#cb-skills .sk").forEach(b => b.classList.toggle("on", b.dataset.v === "potion")); };
 ACT.cbMove = d => { const u = CB.actor; if (!u || !CB.resolve) return; const r = rankOf(CB.B, u), n = CB.B.heroes.length; if ((+d < 0 && r <= 1) || (+d > 0 && r >= n)) return; choose({ move: +d }); };
 ACT.cbPass = () => { if (CB.resolve) choose({ pass: 1 }); };
 ACT.cbDelay = () => { const u = CB.actor; if (!u || !CB.resolve) return; if (u.delayR === CB.B.round) return toast("Déjà retardé ce tour.", "bad"); if (!turnQueue(CB.B).now.slice(1).length) return toast("Personne ne joue après lui ce tour.", "bad"); choose({ delay: 1 }); };
@@ -5256,7 +5271,7 @@ ACT.cbSpeed = () => { CB.speed = CB.speed >= 3 ? 1 : CB.speed + 1; S.opts.speed 
 ACT.cbAuto = (v, el) => { CB.auto = !CB.auto; S.opts.auto = CB.auto ? 1 : 0; save(); $("#cb-auto").textContent = CB.auto ? "Auto" : "Manuel"; el.classList.toggle("on", CB.auto); if (CB.auto && CB.resolve && CB.actor) choose(autoChoice(CB.actor)); };
 function cbBar(u) {
   CB.preview = null;
-  const box = $("#cb-skills"), d = $("#cb-desc"); if (!box) return;
+  const box = $("#cb-skills"), d = $("#cb-desc"); if (!box) return; d.classList.remove("mini");
   if (!u) { box.innerHTML = ""; d.innerHTML = CB.actor && CB.actor.side === "e" ? `<span class="bad">${esc(CB.actor.name)}</span> agit…` : '<span class="dim">…</span>'; return; }
   const B = CB.B, r = rankOf(B, u), n = B.heroes.length;
   const btn = (sk) => { const ok = canUse(B, u, sk); const cd = u.cds[sk.id] > 0 ? u.cds[sk.id] : 0; return `<button class="sk ${ok ? "" : "no"} ${sk.isUlt ? "ult" + (u.ultV >= 100 ? " ready" : "") : ""}" data-a="cbSk" data-v="${sk.id}">${ico(sk.ic, sk.isUlt ? "#ff9a4a" : ok ? "#e8d8b8" : "#6a5a4a")}<span>${sk.n}</span>${sk.rank > 1 ? `<span class="rk">${roman(sk.rank)}</span>` : ""}${cd ? `<span class="cd">${cd}</span>` : ""}${sk.isUlt && u.ultV < 100 ? `<span class="cd" style="font-size:13px">${Math.floor(u.ultV)} %</span>` : ""}</button>`; };
@@ -5619,6 +5634,7 @@ SCREENS.options = {
     <div class="small" style="margin-top:6px"><b>Combat : panneaux affichés</b></div>${[["ord", "Ordre de passage"], ["log", "Mini-journal"], ["mor", "Résolution et tour"]].map(([k, n]) => `<label class="row sp"><span>${n}</span><input type="checkbox" data-a="hudOpt" data-v="${k}" ${hud(k) ? "checked" : ""}></label>`).join("")}
     <label class="row sp"><span>${ico("speed")} Animations rapides <span class="tiny dim">— enchaîne les actions plus vite</span></span><input type="checkbox" data-opt="quick" ${S.opts.quick ? "checked" : ""}></label>
     <label class="row sp"><span>${ico("run")} Partie rapide <span class="tiny dim">— combats en vitesse ×3 et animations rapides (idéal sur téléphone)</span></span><input type="checkbox" data-opt="fast" ${S.opts.fast ? "checked" : ""}></label>
+    <label class="row sp"><span>${ico("scroll")} Descriptions de compétences compactes <span class="tiny dim">— en combat, une ou deux lignes seulement pour garder les ennemis et les PV visibles (touchez la description pour tout lire)</span></span><input type="checkbox" data-opt="skMini" ${S.opts.skMini ? "checked" : ""}></label>
     <label class="row sp"><span>${ico("star")} Mode auto économe <span class="tiny dim">— en automatique, garde les ultimes pour les élites, les gardiens et les coups durs</span></span><input type="checkbox" data-opt="smartUlt" ${S.opts.smartUlt !== 0 ? "checked" : ""}></label>
     <label class="row sp"><span>${ico("info")} Astuces <span class="tiny dim">— explique une mécanique la première fois qu'elle apparaît</span></span><input type="checkbox" data-opt="hintsOn" ${!S.opts.noHints ? "checked" : ""}></label>
     <div class="row sp"><span>${ico("skull")} Mode</span><span class="gold">${S.opts.hardcore ? "Hardi (mort définitive)" : "Normal"}</span></div>

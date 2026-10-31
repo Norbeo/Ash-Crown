@@ -82,26 +82,35 @@ function heroSheetHTML(h, foot = "") {
     ${foot}`;
 }
 function heroSheet(h, foot) { modal(heroSheetHTML(h, foot), { wide: 1, onClose: bldBack(), mount: m => fillCanvases(m, c => paintHero(c, h, true)) }); }
-function petSkillText(s) {
-  const out = [], tg = { low: "l'allié le plus blessé", aa: "tout le groupe", e: "un ennemi", ae: "les ennemis visés" }[s.t] || "";
-  if (s.m) out.push(`Dégâts ${Math.round(s.m * 100)} % sur ${tg}`);
-  if (s.heal) out.push(`Soigne ${tg} de ${Math.round(s.heal * 100)} %`);
-  if (s.regen) out.push(`Régénération ${Math.round(s.regen * 100)} %`);
-  if (s.shield) out.push(`Bouclier ${Math.round(s.shield * 100)} % sur ${tg}`);
-  if (s.leechLow) out.push(`Soigne l'allié le plus blessé de ${Math.round(s.leechLow * 100)} % des dégâts`);
-  if (s.cleanse1) out.push("Purge une altération");
+function petSkillText(s, id) {
+  const out = [], t = s.t || "e";
+  const one = s.tgt === "high" ? "l'ennemi le plus robuste" : "l'ennemi le plus blessé";
+  const tg = { low: "l'allié le plus blessé", aa: "tout le groupe", e: one, ae: "tous les ennemis à portée" }[t] || "";
+  const ranks = s.at && (t === "e" || t === "ae") && s.at.length < 4 ? ` (${s.at.length > 1 ? "rangs" : "rang"} ${s.at.join("-")})` : "";
+  const pw = id && typeof petPower === "function" ? petPower(id) : null;
+  if (s.m) { const lo = pw ? Math.max(1, Math.round(pw.dmg * .8 * s.m)) : 0, hi = pw ? Math.round(pw.dmg * 1.2 * s.m) : 0; out.push(`Dégâts ${Math.round(s.m * 100)} %${pw ? ` (<b class="num">${lo === hi ? lo : lo + "–" + hi}</b>)` : ""}${s.hits > 1 ? " × " + s.hits + " coups" : ""} sur ${tg}${ranks}`); }
+  else if (t === "e" || t === "ae") out.push(`Vise ${tg}${ranks}`);
+  if (s.exec) out.push("Dégâts doublés sur une cible sous 35 % PV");
+  if (s.cr) out.push(`+${s.cr} % de critique`);
+  if (s.heal) out.push(`Soigne ${tg} de ${Math.round(s.heal * 100)} % de ses PV max`);
+  if (s.regen) out.push(`Régénération ${Math.round(s.regen * 100)} % (2 t.) sur ${tg}`);
+  if (s.shield) out.push(`Bouclier ${Math.round(s.shield * 100)} % des PV (2 t.) sur ${tg}`);
+  if (s.leechLow) out.push(`Rend ${Math.round(s.leechLow * 100)} % des dégâts infligés à l'allié le plus blessé`);
+  if (s.cleanse1) out.push("Purge une altération de l'allié le plus blessé");
+  const fxs = (arr, pre) => { if (!arr || !arr.length) return; const tx = skillText({ t: "s", fx: arr.map(f => Object.assign({ ch: f.ch == null ? 1 : f.ch }, f)) }).replace(/<[^>]+>/g, ""); if (tx) out.push(pre + tx); };
+  fxs(s.fx, t === "e" ? "Sur la cible : " : t === "ae" ? "Sur les cibles : " : "");
+  fxs(s.afx, "Tout le groupe : ");
+  fxs(s.lowfx, "Allié le plus blessé : ");
+  if (s.morale) out.push(`+${s.morale} résolution`);
+  if (s.ult) out.push(`+${s.ult} jauge d'ultime pour chaque héros`);
   if (s.light) out.push(`+${s.light} lueur`);
-  if (s.cr) out.push(`+${s.cr} % critique`);
-  const fx = skillText({ t: s.t === "low" ? "a" : s.t, fx: s.fx, afx: s.afx });
-  if (fx) out.push(fx);
-  if (s.at && !s.m && !s.fx) out.push(`sur ${tg}`);
-  return out.join(" · ") + (s.every ? ` · tous les ${s.every} tours` : " · chaque tour");
+  return gl(out.join(" · ") + (s.every ? ` · tous les ${s.every} tours` : s.base ? " · les autres tours" : " · chaque tour"));
 }
 function petSheet(id, foot = "") {
   const P = PETS[id];
   modal(`<div class="row" style="gap:12px;flex-wrap:wrap"><div style="margin:0 auto">${canvasSlot("pet", 200, 150)}</div><div style="flex:1;min-width:220px"><h2 style="margin:0">${P.n}</h2><div class="row" style="gap:4px;margin:4px 0">${roleTag(P.role)}${P.gold ? `<span class="tag gold">+${Math.round(P.gold * 100)} % d'or</span>` : ""}</div><p class="lore small">${P.d}</p><p class="tiny dim">Le compagnon agit seul à la fin de chaque tour. Il gagne des niveaux avec le groupe et évolue au niveau ${PET_EVO_LVL}.</p></div></div>
-    ${P.rank > 1.001 ? `<div class="tiny gold" style="margin-top:6px">${ico("star", "#e8c878", 11)} Puissance du rang : +${Math.round((P.rank - 1) * 100)} % sur toutes ses compétences</div>` : ""}<h3 style="margin-top:10px">Compétences</h3><div class="col">${P.sk.map(s => `<div class="skl" style="cursor:default">${ico(s.m ? "claw" : s.heal ? "heal" : s.shield ? "shield" : "star", "#e8c878")}<div><b>${s.n}</b><div class="tiny">${petSkillText(petSkScaled(s, P.rank || 1))}</div></div></div>`).join("")}</div>
-    <h3 style="margin-top:10px">Évolution : ${P.evo.n}</h3><p class="tiny lore">${P.evo.d}</p><div class="skl" style="cursor:default;border-color:#a05a2a">${ico("star", "#ff9a4a")}<div><b>${P.evo.sk.n}</b><div class="tiny">${petSkillText(Object.assign({ every: 2 }, petSkScaled(P.evo.sk, P.rank || 1)))}</div></div></div>${foot}`, { wide: 1, onClose: bldBack(), mount: m => fillCanvases(m, c => paintPet(c, id, 0)) });
+    ${P.rank > 1.001 ? `<div class="tiny gold" style="margin-top:6px">${ico("star", "#e8c878", 11)} Puissance du rang : +${Math.round((P.rank - 1) * 100)} % sur toutes ses compétences</div>` : ""}<h3 style="margin-top:10px">Compétences</h3><div class="col">${P.sk.map((s, i) => `<div class="skl" style="cursor:default">${ico(s.m ? "claw" : s.heal ? "heal" : s.shield ? "shield" : "star", "#e8c878")}<div><b>${s.n}</b><div class="tiny">${petSkillText(Object.assign(i === 1 && !s.every ? { every: 3 } : {}, petSkScaled(s, P.rank || 1), i === 0 && P.sk[1] ? { base: 1 } : {}), id)}</div></div></div>`).join("")}</div>
+    <h3 style="margin-top:10px">Évolution : ${P.evo.n}</h3><p class="tiny lore">${P.evo.d}</p><div class="skl" style="cursor:default;border-color:#a05a2a">${ico("star", "#ff9a4a")}<div><b>${P.evo.sk.n}</b><div class="tiny">${petSkillText(Object.assign({ every: 2 }, petSkScaled(P.evo.sk, P.rank || 1)), id)}</div></div></div>${foot}`, { wide: 1, onClose: bldBack(), mount: m => fillCanvases(m, c => paintPet(c, id, 0)) });
 }
 ACT.petInfo = (id, el, e) => { e && e.stopPropagation(); petSheet(id, `<div class="row" style="justify-content:flex-end;margin-top:10px"><button class="btn" data-a="bld" data-v="menagerie">Retour à la Ménagerie</button></div>`); };
 ACT.recruitInfo = (i, el, e) => { e && e.stopPropagation(); const h = S.recruits[+i]; if (!h) return; const c = recruitPrice(+i); heroSheet(h, `<div class="row" style="justify-content:flex-end;gap:6px;margin-top:12px"><button class="btn ghost" data-a="bld" data-v="taverne">Retour</button><button class="btn main" data-a="recruit" data-v="${i}">Recruter · ${c === 0 ? "gratuit" : c + " or"}</button></div>`); };

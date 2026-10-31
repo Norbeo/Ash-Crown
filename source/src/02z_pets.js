@@ -101,11 +101,13 @@ for (const [id, n, role, unlock, d, col, fx, en, ed] of PET_MORE) {
 if (typeof window !== "undefined" && window.ART_LIST) { const L = new Set(window.ART_LIST); for (const p of PET_MORE) if (!L.has("pet_" + p[0])) delete PETS[p[0]]; }
 PET_IDS.push(...PET_MORE.map(p => p[0]).filter(id => PETS[id] && !PET_IDS.includes(id)));
 
-// ── Déblocage progressif : 15 compagnons au départ (3–4 par rôle), puis un par chapitre vaincu et par niveau de menace vaincu ──
-const PET_START = ["loup", "vipere", "belette", "rat_geant", "corbeau", "renard", "hibou_gris", "pie", "chouette", "cerf", "lievre", "luciole", "molosse", "ours", "chevre"];
-const PET_ORDER = ["crapaud", "chat_noir", "blaireau", "serpent_eau", "cygne_noir", "chien_berger", "corneille", "salamandre", "sanglier", "mouton_noir", "sangsue", "frelon", "tortue",
+// ── Déblocage progressif : 5 compagnons au départ (un par rôle + un), puis exactement un par chapitre vaincu et par menace vaincue (10 chapitres × 5 menaces = 50) ──
+const PET_START = ["loup", "vipere", "molosse", "chouette", "corbeau"];
+const PET_ORDER = ["renard", "ours", "cerf", "belette", "hibou_gris", "chevre", "lievre", "rat_geant", "pie", "luciole",
+  "crapaud", "chat_noir", "blaireau", "serpent_eau", "cygne_noir", "chien_berger", "corneille", "salamandre", "sanglier", "mouton_noir", "sangsue", "frelon", "tortue",
   "feu_follet", "chauve_souris", "scarabee", "lynx", "phalene", "araignee", "chacal", "elan", "paon", "griffon", "gargouille", "kirin", "mante", "anguille", "bouc_sacre", "ange_dechu",
   "chimere", "scorpion", "golem_os", "drake", "phenix", "sphinx", "wyverne", "mammouth", "basilic", "ombre_chat", "licorne"];
+for (const id in PETS) if (PETS[id].starter && !PET_START.includes(id)) PETS[id].starter = 0; // seuls les 5 du départ sont proposés en nouvelle partie
 for (const id of PET_START) if (PETS[id]) PETS[id].pool0 = 1;
 PET_ORDER.forEach((id, i) => { if (PETS[id]) { PETS[id].unl = [Math.floor(i / 5), (i % 5) + 1]; PETS[id].cost = 500 + i * 90; } });
 for (const id of PET_START) if (PETS[id] && !PETS[id].starter) PETS[id].cost = 450; // [chapitre (0 = Bourg), menace vaincue (1 = I … 5 = V)]

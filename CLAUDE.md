@@ -100,6 +100,8 @@ Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
 - Artefact : limite de 512 fichiers par version — relancer `python3 art/mkatlas.py` après ajout d'une icône ui_.
 - Art terminé le 31 oct. (v105) : bâtiments évolutifs, armures V, et les 63 compagnons peints (dont mythiques P9 et prestige P10–P11). Sujets sombres troués : `T=3 IT=5 cutlum.py` ; sujets dans la brume : `cut.py` (ISNet) ; puis supprimer l'asset et relancer mkassets/meta/cx/face.
 
+- 31 oct. (v106) : descriptions de compétences compactes en combat (`S.opts.skMini`, défaut sur écran tactile, toucher = `ACT.cbDesc` / `CB.descOpen`) ; `petSkillText(s, id)` détaille tout (coups multiples, exécution, cible, rangs, groupe/allié blessé, résolution, jauge, dégâts chiffrés via `petPower`).
+
 ## Reste à faire (prochaine séance)
 1. (Armures V : fait.) Gardiens de menace II–V : déjà présents (`THREAT_BOSS`) — à confirmer avec l'utilisateur s'il en veut d'autres.
 2. Liste du 26 oct. ci-dessus (contenu ×2, 6e chapitre, compagnons ×3, sons sombres, accueil, idées validées).

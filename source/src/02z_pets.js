@@ -118,14 +118,17 @@ for (const [id, n, role, unlock, d, col, fx, en, ed] of PET_MORE) {
 if (typeof window !== "undefined" && window.ART_LIST) { const L = new Set(window.ART_LIST); for (const p of PET_MORE) if (!L.has("pet_" + p[0])) delete PETS[p[0]]; }
 PET_IDS.push(...PET_MORE.map(p => p[0]).filter(id => PETS[id] && !PET_IDS.includes(id)));
 
-// ── Déblocage progressif : 5 compagnons au départ (un par rôle + un), puis exactement un par chapitre vaincu et par menace vaincue (10 chapitres × 5 menaces = 50) ──
-const PET_START = ["loup", "vipere", "molosse", "chouette", "corbeau", "panthere", "faucon", "cerbere", "destrier", "grue", "renarde", "vautour", "raie"];
-const PET_ORDER = ["renard", "ours", "cerf", "belette", "hibou_gris", "chevre", "lievre", "rat_geant", "pie", "luciole",
-  "crapaud", "chat_noir", "blaireau", "serpent_eau", "cygne_noir", "chien_berger", "corneille", "salamandre", "sanglier", "mouton_noir", "sangsue", "frelon", "tortue",
-  "feu_follet", "chauve_souris", "scarabee", "lynx", "phalene", "araignee", "chacal", "elan", "paon", "griffon", "gargouille", "kirin", "mante", "anguille", "bouc_sacre", "ange_dechu",
-  "chimere", "scorpion", "golem_os", "drake", "phenix", "sphinx", "wyverne", "mammouth", "basilic", "ombre_chat", "licorne"];
-for (const id in PETS) if (PETS[id].starter && !PET_START.includes(id)) PETS[id].starter = 0; // seuls les 5 du départ sont proposés en nouvelle partie
+// ── Déblocage progressif : 13 compagnons simples au départ (3 tirés au hasard en nouvelle partie), puis exactement un par chapitre et par menace vaincue,
+// du plus modeste au plus puissant (les compagnons « de prestige » et les créatures mythiques arrivent en fin de progression) ──
+const PET_START = ["rat_geant", "belette", "vipere", "loup", "chevre", "molosse", "chien_berger", "lievre", "crapaud", "luciole", "pie", "corbeau", "hibou_gris"];
+const PET_ORDER = [
+  "chouette", "renard", "ours", "cerf", "serpent_eau", "corneille", "blaireau", "mouton_noir", "chat_noir", "tortue",
+  "cygne_noir", "sangsue", "sanglier", "salamandre", "phalene", "frelon", "scarabee", "feu_follet", "lynx", "elan",
+  "paon", "chauve_souris", "kirin", "araignee", "chacal", "bouc_sacre", "mante", "anguille", "gargouille", "ange_dechu",
+  "griffon", "chimere", "scorpion", "golem_os", "grue", "vautour", "panthere", "cerbere", "renarde", "raie",
+  "faucon", "destrier", "wyverne", "sphinx", "mammouth", "basilic", "ombre_chat", "phenix", "drake", "licorne"];
+for (const id in PETS) if (PETS[id].starter && !PET_START.includes(id)) PETS[id].starter = 0;
 for (const id of PET_START) if (PETS[id]) { PETS[id].pool0 = 1; PETS[id].starter = 1; }
-PET_ORDER.forEach((id, i) => { if (PETS[id]) { PETS[id].unl = [Math.floor(i / 5), (i % 5) + 1]; PETS[id].cost = 500 + i * 90; } });
+PET_ORDER.forEach((id, i) => { if (PETS[id]) { PETS[id].unl = [Math.floor(i / 5), (i % 5) + 1]; PETS[id].cost = 500 + i * 90; PETS[id].rank = 1 + i * .012; } }); // jusqu'à +60 % de puissance pour les derniers
 for (const id of PET_START) if (PETS[id] && !PETS[id].starter) PETS[id].cost = 450; // [chapitre (0 = Bourg), menace vaincue (1 = I … 5 = V)]
 function petUnlockText(id) { const u = PETS[id].unl; if (!u) return ""; const R = REGIONS[u[0]]; return R ? `${R.n} : vaincre le gardien${u[1] > 1 ? " en menace " + ["I", "II", "III", "IV", "V"][u[1] - 1] : ""}` : "Plus tard"; }

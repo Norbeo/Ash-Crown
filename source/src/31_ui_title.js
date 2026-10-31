@@ -19,17 +19,17 @@ SCREENS.title = {
       const g = x.createRadialGradient(w / 2, h / 2, Math.min(w, h) * .3, w / 2, h / 2, Math.max(w, h) * .75); g.addColorStop(0, "rgba(0,0,0,0)"); g.addColorStop(1, "rgba(0,0,0,.7)"); x.fillStyle = g; x.fillRect(0, 0, w, h); } }); },
   html: () => {
     const has = !!load();
-    return `<div class="titlebox">
+    return `<div class="titlebox"><div class="tl-a">
       ${artHas("ui_emblem") ? `<img src="assets/ui_emblem.webp" alt="" style="width:84px;height:84px;object-fit:contain;filter:drop-shadow(0 0 16px #ff7a2a88);margin-bottom:-6px">` : ""}
       <div class="logo">Couronne<br>de Cendres<small>LE DERNIER BASTION</small></div>
-      <p class="lore" style="max-width:460px;margin:6px 0 14px">Un royaume maudit. Une couronne brisée. Des héros perdus, et vous pour les mener dans l'ombre.</p>
+      <p class="lore" style="max-width:460px;margin:6px 0 14px">Un royaume maudit. Une couronne brisée. Des héros perdus, et vous pour les mener dans l'ombre.</p></div><div class="tl-b">
       ${has ? (() => { const d = load(); const ch = REGIONS.filter(r => d.prog && d.prog[r.id] && d.prog[r.id].clears).length, top = (d.heroes || []).slice().sort((a, b) => b.lvl - a.lvl)[0];
         return `<div class="panel" style="padding:8px 14px;margin-bottom:8px;max-width:340px;text-align:left"><div class="small"><b class="gold">${ch ? "Chapitre " + ["I", "II", "III", "IV", "V", "V"][Math.min(5, ch)] + (ch >= 5 ? " terminé" : "") : "Chapitre I"}</b> · ${(d.heroes || []).length} héros${top ? ` · ${esc(top.name.split(" ")[0])} niv ${top.lvl}` : ""}</div><div class="tiny dim">${d.run ? "Une expédition est en cours." : "Le Bastion vous attend."}</div></div>`; })() : ""}
       ${has ? `<button class="btn main glow" data-a="continue">${ico("castle")}Continuer</button>` : ""}
       <button class="btn ${has ? "" : "main glow"}" data-a="newgame">${ico("plus")}Nouvelle partie</button>
       ${PWA.standalone ? "" : `<button class="btn ghost" data-a="install">${ico("install")}Installer l'appli</button>`}
       <p class="tiny dim" style="margin-top:10px">Jeu sauvegardé sur cet appareil · fonctionne hors connexion une fois installé</p>
-    </div>`;
+    </div></div>`;
   },
   mount: () => { audioInit(); },
 };

@@ -114,6 +114,11 @@ p{margin:6px 0;line-height:1.45}
 /* écran-titre */
 .titlebox{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;padding:0 16px calc(env(safe-area-inset-bottom) + 9vh);gap:12px;text-align:center}
 .logo{font-family:var(--f-title);font-weight:900;font-size:clamp(36px,8vw,76px);line-height:.95;color:#f0d8a0;text-shadow:0 0 30px #ff5a1a,0 0 60px #ff3a0a88,0 4px 0 #3a1408,0 6px 20px #000;letter-spacing:.02em;animation:logo 4s ease-in-out infinite}
+@media (max-height:560px){.titlebox{justify-content:center;overflow-y:auto;gap:6px;padding:calc(env(safe-area-inset-top) + 8px) calc(env(safe-area-inset-right) + 16px) calc(env(safe-area-inset-bottom) + 8px) calc(env(safe-area-inset-left) + 16px)}
+.titlebox img{width:48px!important;height:48px!important}.titlebox .logo{font-size:clamp(26px,9vh,48px)}.titlebox .logo small{margin-top:4px}.titlebox .lore{margin:2px 0 4px!important;font-size:14px}
+.titlebox .btn{padding-top:7px;padding-bottom:7px}.titlebox .panel{margin-bottom:2px!important;padding:5px 12px!important}.titlebox p.tiny{margin-top:2px!important}}
+.tl-a,.tl-b{display:contents}
+@media (max-height:440px) and (orientation:landscape){.titlebox{flex-direction:row;justify-content:center;align-items:center;gap:32px}.tl-a,.tl-b{display:flex;flex-direction:column;align-items:center;gap:6px}.tl-a{flex:1 1 auto;max-width:420px}.tl-b{flex:0 1 320px;min-width:240px}.tl-b>.btn,.tl-b>.panel{width:100%}.tl-b>p.tiny{font-size:10px}}
 .logo small{display:block;font-size:.3em;letter-spacing:.5em;color:#c8a070;text-shadow:0 0 10px #000;margin-top:8px}
 @keyframes logo{50%{text-shadow:0 0 40px #ff7a2a,0 0 80px #ff4a1aaa,0 4px 0 #3a1408,0 6px 20px #000}}
 .titlebox .btn{min-width:240px}

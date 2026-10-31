@@ -18,6 +18,7 @@ const BOSS_INFO = {
   coeur_montagne: ["Le cœur mis à nu", "« BOUM… BOUM… BOUM… »", "Cœur de magma", "tr"],
   roi_vide: ["Ce que la Couronne laisse des rois", "« Asseyez-vous. Le trône vous attendait. »", "Couronne vide", "arm"],
 };
+if (typeof SECRET_INFO !== "undefined") Object.assign(BOSS_INFO, SECRET_INFO); // gardiens secrets
 const UNIQ = Object.fromEntries(Object.entries(BOSS_INFO).map(([k, v]) => [k, { n: v[2], kind: v[3], boss: k }]));
 // butin unique : 30 % à la première victoire contre ce gardien, 12 % ensuite ; qualité Mythique, +1 propriété
 function uniqueDrop(bk, lvl, first) {

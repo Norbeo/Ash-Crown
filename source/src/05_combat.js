@@ -51,7 +51,7 @@ function newBattle(heroes, enemyKeys, opt = {}) {
     light: opt.light == null ? 100 : opt.light, relicH, pet: null, over: null, log: [], kills: 0, crits: 0, opt, revived: 0, firstRound: true, mods: opt.mods || {} };
   for (const k of enemyKeys) { const m = Object.assign({}, opt.mods); if (k.f) { m.hp = (m.hp || 1) * k.f.hp; m.dmg = (m.dmg || 1) * k.f.dmg; m.prot = (m.prot || 0) + k.f.prot * .5; } if (k.corrupt) { m.hp = (m.hp || 1) * 1.3; m.dmg = (m.dmg || 1) * 1.2; } const eu = monUnit(k.key || k, k.lvl || opt.lvl || 1, m); if (k.corrupt) { eu.corrupt = 1; eu.name += " corrompu"; eu.res = (eu.res || 0) + 15; } if (k.named && typeof namedElite === "function") namedElite(eu); B.enemies.push(eu); }
   if (opt.pet && typeof S !== "undefined" && S && S.petHurt && S.petHurt[opt.pet] > 0) opt = Object.assign({}, opt, { pet: null }); // compagnon blessé : au repos
-  if (opt.pet) B.pet = { id: opt.pet, lvl: petLvl(opt.pet), evo: petEvolved(opt.pet), pw: petPower(opt.pet), n: 0 };
+  if (opt.pet) { B.pet = { id: opt.pet, lvl: petLvl(opt.pet), evo: petEvolved(opt.pet), pw: petPower(opt.pet), n: 0 }; if (typeof petMul === "function" && petMul(opt.pet).morale) B.morale = clamp(B.morale + petMul(opt.pet).morale, 0, 100); }
   if (relicH.startWeak) for (const e of B.enemies) addSt(B, null, e, { k: "weak", t: 2 }, []);
   if (typeof applyBonds === "function") applyBonds(B); // amis et rivaux côte à côte
   return B;
@@ -69,6 +69,7 @@ function startRound(B) {
   if (B.round > 14) for (const e of B.enemies.filter(alive)) { const r = e.st.find(z => z.k === "dmgUp" && z.rage); if (r) { r.v += .12; r.t = 99; } else e.st.push({ k: "dmgUp", v: .12, t: 99, rage: 1 }); }
   if (B.round === 15) B.rageMsg = 1;
   if (B.relicH.roundHeal) for (const h of B.heroes.filter(alive)) healUnit(B, null, h, h.hpMax * B.relicH.roundHeal, []);
+  terrainRound(B);
   planIntents(B);
 }
 function delayTurn(B, u) { // retarder : rejouer en fin de tour, garde haute
@@ -197,15 +198,36 @@ function gainUlt(u, v) { if (u.side !== "h") return; u.ultV = Math.min(100, u.ul
 
 function rollHit(B, u, x, sk) {
   if (u.side === x.side) return true;
-  let acc = u.acc + (sk.acc || 0) + stSum(u, "accUp") - stSum(u, "accDn") - effDodge(x) - (B.mods.fog || 0);
+  let acc = u.acc + (sk.acc || 0) + stSum(u, "accUp") - stSum(u, "accDn") - effDodge(x) - (B.mods.fog || 0) - (B.terrain === "brume" && rankOf(B, x) >= 3 ? 12 : 0);
   if (u.side === "h" && B.morale <= 20) acc -= 10;
   return rnd() * 100 < clamp(acc, 8, 97);
 }
+// ── faiblesses et résistances des ennemis selon leur nature (sacré, feu, ombre, saignement, poison) ──
+const AFFINITY = {
+  impie: { "sacré": 1.3, feu: 1.15, ombre: .85, bleed: .6, poison: .6 },
+  bete: { feu: 1.2, bleed: 1.3, "sacré": .9 },
+  humain: { poison: 1.3, ombre: 1.15, feu: .9 },
+};
+const AFF_N = { "sacré": "Sacré", feu: "Feu", ombre: "Ombre", bleed: "Saignement", poison: "Poison" };
+function affinity(x, k) { if (!x || x.side === "h") return 1; if (k === "burn") k = "feu"; let m = 1; for (const t of x.tags || []) { const a = AFFINITY[t]; if (a && a[k]) m *= a[k]; } if (x.corrupt && m < 1) m *= .9; return m; }
+function affinityOf(tags) { const W = [], R = []; for (const k in AFF_N) { let m = 1; for (const t of tags || []) { const a = AFFINITY[t]; if (a && a[k]) m *= a[k]; } if (m > 1.01) W.push(AFF_N[k] + " +" + Math.round((m - 1) * 100) + " %"); else if (m < .99) R.push(AFF_N[k] + " −" + Math.round((1 - m) * 100) + " %"); } return { W, R }; }
+// ── terrains : certaines salles de combat ont un lieu particulier ──
+const TERRAINS = {
+  autel: { n: "Autel oublié", ic: "chapel", d: "Au début de chaque tour, les héros récupèrent 4 % de leurs PV." },
+  piege: { n: "Sol piégé", ic: "trap", d: "Au début de chaque tour, l'unité au rang 1 de chaque camp subit 6 % de ses PV." },
+  brume: { n: "Brume épaisse", ic: "smoke", d: "Les unités aux rangs 3 et 4 sont plus dures à toucher (−12 précision contre elles)." },
+  sacre: { n: "Terre consacrée", ic: "sanct", d: "Les compétences sacrées font 25 % de dégâts en plus ; les impies perdent 10 % de protection." },
+  tenebres: { n: "Ténèbres", ic: "moon", d: "La lueur baisse de 20 en entrant ; les coups critiques des deux camps sont plus fréquents (+5 %)." },
+};
+function terrainRound(B) {
+  const T = B.terrain; if (!T) return;
+  if (T === "autel") for (const h of B.heroes.filter(alive)) healUnit(B, null, h, h.hpMax * .04, [], { regen: 1 });
+  if (T === "piege") for (const arr of [B.heroes, B.enemies]) { const x = arr.find(alive); if (x && !x.agony) applyDamage(B, null, x, Math.max(1, Math.round(x.hpMax * .06)), [], { dot: 1 }); }
+}
+// combos : frapper une cible étourdie (+25 %) ou déjà touchée par un autre héros ce tour-ci (+10 %)
+function comboBonus(B, u, x) { let c = 0; if (hasSt(x, "stun")) c += .25; if (x._hr === B.round && x._hu && x._hu !== u.uid) c += .1; return c; }
 // une frappe : renvoie true si elle touche
-function strike(B, u, x, sk, mult, ev) {
-  if (!rollHit(B, u, x, sk)) { ev.push({ k: "miss", u: x.uid, src: u.uid }); if (x.hooks.dodgeRiposte && x.side === "h" && rankOf(B, u) <= 2 && chance(x.hooks.dodgeRiposte)) counter(B, x, u, .7, ev); if (x.hooks.dodgeBleed && chance(x.hooks.dodgeBleed)) addSt(B, x, u, { k: "bleed", v: avgDmg(x) * .35, t: 2 }, ev); return false; }
-  let d = rnd() * (u.dmgHi - u.dmgLo) + u.dmgLo;
-  d *= mult;
+function strikeMul(B, u, x, sk, ev) {
   let mod = 1 + stSum(u, "dmgUp") * (u.side === "h" ? 1 : 1);
   if (hasSt(u, "weak")) mod -= .25;
   const hk = u.hooks, hpr = x.hp / x.hpMax;
@@ -217,18 +239,30 @@ function strike(B, u, x, sk, mult, ev) {
   if (hasSt(x, "vuln")) mod += .25;
   if (u.side === "h") { if (B.relicH.vsImpie && x.tags.includes("impie")) mod += B.relicH.vsImpie; if (B.relicH.darkDmg && B.light < 50) mod += B.relicH.darkDmg; if (B.morale >= 80) mod += .15; if (B.morale <= 20) mod -= .15; if (B.light < 30) mod += .05; }
   else { if (B.light < 30) mod += .12; if (B.mods.edmg) mod += B.mods.edmg; }
-  const bn = sk.bonus;
+  let bx = 1; const bn = sk.bonus;
   if (bn) {
-    if (bn.tag && x.tags.includes(bn.tag)) d *= bn.x;
-    if (bn.st === "stealth_self" ? hasSt(u, "stealth") : bn.st && hasSt(x, bn.st)) d *= bn.x;
-    if (bn.low && hpr < bn.low) d *= bn.x;
-    if (bn.selfHit && u.hitSince) d *= bn.x;
-    if (bn.fallen) d *= 1 + bn.x * B.kills;
+    if (bn.tag && x.tags.includes(bn.tag)) bx *= bn.x;
+    if (bn.st === "stealth_self" ? hasSt(u, "stealth") : bn.st && hasSt(x, bn.st)) bx *= bn.x;
+    if (bn.low && hpr < bn.low) bx *= bn.x;
+    if (bn.selfHit && u.hitSince) bx *= bn.x;
+    if (bn.fallen) bx *= 1 + bn.x * B.kills;
   }
   if (u.bondDmg) mod += u.bondDmg;
-  d *= Math.max(.2, mod);
+  let d = Math.max(.2, mod) * bx;
   if (B.mods.rain && sk.tags && sk.tags.includes("feu")) d *= .75; // pluie : le feu prend mal
-  let critC = u.crit + (sk.cr || 0) + stSum(u, "critUp") + (u.side === "h" && B.light < 30 ? 5 : 0) + (u.side === "h" && B.morale >= 80 ? 5 : 0);
+  if (x.side === "e" && sk.tags) for (const g of sk.tags) d *= affinity(x, g); // faiblesses et résistances
+  if (B.terrain === "sacre" && sk.tags && sk.tags.includes("sacré")) d *= 1.25;
+  const cb = u.side === "h" ? comboBonus(B, u, x) : 0; if (cb) { d *= 1 + cb; if (ev) ev.push({ k: "combo", u: x.uid, v: cb }); }
+  return d;
+}
+
+function strike(B, u, x, sk, mult, ev) {
+  if (!rollHit(B, u, x, sk)) { ev.push({ k: "miss", u: x.uid, src: u.uid }); if (x.hooks.dodgeRiposte && x.side === "h" && rankOf(B, u) <= 2 && chance(x.hooks.dodgeRiposte)) counter(B, x, u, .7, ev); if (x.hooks.dodgeBleed && chance(x.hooks.dodgeBleed)) addSt(B, x, u, { k: "bleed", v: avgDmg(x) * .35, t: 2 }, ev); return false; }
+  let d = rnd() * (u.dmgHi - u.dmgLo) + u.dmgLo;
+  d *= mult;
+  d *= strikeMul(B, u, x, sk, ev);
+  const hk = u.hooks;
+  let critC = (B.terrain === "tenebres" ? 5 : 0) + u.crit + (sk.cr || 0) + stSum(u, "critUp") + (u.side === "h" && B.light < 30 ? 5 : 0) + (u.side === "h" && B.morale >= 80 ? 5 : 0);
   const crit = rnd() * 100 < critC;
   if (crit) { d *= 1.5 + (hk.critDmg || 0); B.crits++; }
   d *= 1 - effProt(x);
@@ -266,7 +300,7 @@ function applyDamage(B, src, x, d, ev, o = {}) {
   // statistiques du bilan d'expédition
   if (src && src.side === "h" && x.side !== "h") { const T = B.tally || (B.tally = { dmg: {}, heal: {}, taken: {}, best: null }); const dd = Math.round(Math.min(d, x.hp)); T.dmg[src.hid] = (T.dmg[src.hid] || 0) + dd; if (!o.dot && (!T.best || d > T.best.v)) T.best = { v: Math.round(d), hid: src.hid, sk: B.curSk, vs: x.name, crit: !!o.crit }; }
   if (x.side === "h") { const T = B.tally || (B.tally = { dmg: {}, heal: {}, taken: {}, best: null }); T.taken[x.hid] = (T.taken[x.hid] || 0) + Math.round(d); }
-  x.hitSince = 1;
+  x.hitSince = 1; if (src && src.side === "h" && src.uid !== "PET") { x._hr = B.round; x._hu = src.uid; }
   if (x.side === "h") gainUlt(x, 8);
   if (x.side === "h" && x.agony) {
     // à l'agonie : chaque coup peut être le dernier
@@ -337,7 +371,7 @@ function addSt0(B, u, x, f, ev, rk = 1) {
   if (DOTS.includes(f.k)) {
     const pw = 1 + (u ? (u.hooks.dotPow || 0) + (f.k === "burn" ? u.hooks.burnPow || 0 : 0) : 0) + (u && u.side === "h" ? B.relicH.dot || 0 : 0);
     const wet = f.k === "burn" && B.mods.rain ? .6 : 1;
-    s.v = Math.max(1, (f.v || .4) * (u ? avgDmg(u) : 3) * pw * rk * wet);
+    s.v = Math.max(1, (f.v || .4) * (u ? avgDmg(u) : 3) * pw * rk * wet * affinity(x, f.k));
     if (u && u.side === "h") s.t += (f.k === "bleed" ? B.relicH.bleedT || 0 : f.k === "burn" ? B.relicH.burnT || 0 : B.relicH.poisonT || 0);
     if (f.k === "bleed" && x.hooks.bleedTaken) s.t += x.hooks.bleedTaken;
     if (x.st.filter(z => z.k === f.k).length >= 4) { const old = x.st.find(z => z.k === f.k); x.st.splice(x.st.indexOf(old), 1); }
@@ -381,10 +415,11 @@ function petAct(B, ev, extra) {
   const P = B.pet; if (!P || B.over) return;
   const D = PETS[P.id]; P.n++;
   let sk = D.sk[0];
-  if (!extra && D.sk[1] && P.n % (D.sk[1].every || 3) === 0) sk = D.sk[1];
+  const PM = typeof petMul === "function" ? petMul(P.id) : { sup: 1, every: 0 };
+  if (!extra && D.sk[1] && P.n % Math.max(2, (D.sk[1].every || 3) + PM.every) === 0) sk = D.sk[1];
   if (P.evo && !extra && P.n % 2 === 0) sk = D.evo.sk;
   if (extra) sk = D.sk.find(s => s.m) || D.evo.sk;
-  sk = petSkScaled(sk, D.rank || 1); // puissance du compagnon selon son rang de déblocage
+  sk = petSkScaled(sk, (D.rank || 1) * PM.sup); // puissance du compagnon : rang de déblocage, collier et trait
   const fake = { uid: "PET", side: "h", name: petName(P.id), dmgLo: P.pw.dmg * .8, dmgHi: P.pw.dmg * 1.2, crit: 8, acc: 98, hooks: {}, st: [], healPow: P.pw.heal, sz: 1, leech: 0, tags: ["bete"] };
   const boost = 1 + (B.heroes.reduce((a, h) => a + (h.hooks.petDmg || 0), 0)) + (B.relicH.pet || 0);
   fake.dmgLo *= boost; fake.dmgHi *= boost;

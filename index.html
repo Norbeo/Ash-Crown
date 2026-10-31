@@ -200,6 +200,7 @@ p{margin:6px 0;line-height:1.45}
 ::-webkit-scrollbar{width:8px}::-webkit-scrollbar-thumb{background:#3a2a22;border-radius:4px}::-webkit-scrollbar-track{background:transparent}
 #modal .scnbox{max-height:55vh;overflow:auto}.scn{margin:8px 0;line-height:1.35}
 .hubrail{position:absolute;left:8px;top:8px;display:flex;flex-direction:column;gap:5px;z-index:3}.hrail{position:relative;width:54px;padding:5px 2px 4px;display:flex;flex-direction:column;align-items:center;gap:2px;background:#0c0806cc;border:1px solid #c9a24a55;border-radius:6px;color:#d8c8a8;font:inherit;cursor:pointer}.hrail:hover{border-color:#e8c878}.hrail span{font-size:9px;line-height:1;white-space:nowrap}.hrail i{position:absolute;top:-4px;right:-4px;min-width:15px;height:15px;border-radius:8px;background:#b02a1a;color:#fff;font-size:9px;font-style:normal;display:flex;align-items:center;justify-content:center;padding:0 3px}
+@media (orientation:portrait) and (max-width:600px){#cbar .sk.sec{width:calc((100vw - 56px)/6);min-height:46px;font-size:8px;padding:2px 1px}#cbar .sk.sec .ic,#cbar .sk.sec img{width:18px;height:18px}#cbar .skills{gap:4px}}
 @media (orientation:portrait){.hubrail{flex-direction:row;left:50%;transform:translateX(-50%);top:6px}.hrail{width:58px}}
 #cb-hud{position:fixed;left:8px;top:calc(env(safe-area-inset-top) + 50px);z-index:6;display:flex;flex-direction:column;align-items:flex-start;gap:3px;max-width:min(330px,60vw)}.cbord{display:flex;align-items:center;gap:2px;background:#000b;border:1px solid #ffffff1a;border-radius:4px;padding:3px 4px;flex-wrap:nowrap}.cbord span{display:flex;flex-direction:column;align-items:center;font-size:9px;line-height:1.1;padding:1px;border-radius:3px;color:#d8c8a8;white-space:nowrap;border:1px solid transparent;cursor:pointer}.cbord span img{width:30px;height:30px;border-radius:3px;border:1px solid #5a9a4a66}.cbord span.e img{border-color:#b03a3a88}.cbord span em{font-style:normal;max-width:64px;overflow:hidden;text-overflow:ellipsis}.cbord span.h em{color:#b8d8a0}.cbord span.e em{color:#ffb0a0}.cbord span.now{border-color:#e8c878;background:#e8c87822}.cbord span.now em{color:#ffe08a}.cbord span.pv{box-shadow:0 0 0 1px #ff4a3a inset;background:#ff3a2a22}.cbord i{font-style:normal;font-size:10px;color:#8a7a60}.cbord i.min,.cbmlog i.min{font-style:normal;color:#c8b8a0;font-size:12px;padding:0 5px;cursor:pointer;align-self:center}.cbmlog{display:flex;gap:4px;align-items:flex-start}.cbmlog>div{flex:1;min-width:0}.cbmlog.min{display:inline-flex;align-self:flex-start;cursor:pointer;padding:3px 8px}.cbord i.more{margin-left:3px;color:#e8c878;font-size:14px;padding:0 4px;cursor:pointer}.cbmlog{background:#000a;border:1px solid #ffffff14;border-radius:4px;padding:3px 6px;font-size:10px;line-height:1.35;color:#c8b8a0;cursor:pointer}.cbmlog div{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 @media (max-width:560px){.ctop.l{top:calc(env(safe-area-inset-top) + 46px)}#cb-hud{top:calc(env(safe-area-inset-top) + 92px);max-width:calc(100vw - 16px)}.cbmlog div:not(:last-child){display:none}}
@@ -1808,6 +1809,43 @@ const CHAIN_EVENTS = [
   ["suite_herault", "L'armée du héraut", "Le héraut a rassemblé les morts de la garde royale. Ils mettent genou à terre devant vous.", [["Les mener au combat", { buff: 1, morale: 20 }], ["Les libérer de leur serment", { xp: 60, heal: .2 }]], { need: "herault", reg: ["citadelle"] }],
 ];
 for (const [id, n, t, ch, o] of CHAIN_EVENTS) EVENTS.push(Object.assign({ id, n, t, ch: ch.map(([cn, fx]) => ({ n: cn, fx })), chain: 1 }, o));
+// ── Quêtes de région (3 étapes, sur plusieurs expéditions) et événements de compagnon ──
+// Étape 1 : événement ordinaire du chapitre (pose un drapeau de sauvegarde). Étapes 2 et 3 : suites (sneed).
+// La dernière étape agit sur le gardien de l'expédition en cours : bossWeak (−PV) ou bossRage (+PV, butin en plus).
+const QUEST_EVENTS = [
+  // Bourg pestiféré
+  ["q_bourg1", "La cloche fêlée", "Dans le clocher éventré, une cloche fendue sonne seule. Gravée à l'intérieur : « Trois coups pour le médecin, et il descendra. »", [["Noter l'inscription", { sflag: "q_bourg1", xp: 20 }], ["Faire taire la cloche", { morale: 6 }]], { reg: ["bourg"], snot: ["q_bourg1", "q_bourg2"] }],
+  ["q_bourg2", "Le carnet du médecin", "Vous retrouvez la maison du vieux médecin. Un carnet couvert de croquis de becs et de fioles, et une liste de noms barrés.", [["Garder le carnet", { sflag: "q_bourg2", xp: 40 }], ["Brûler la maison", { light: 20, morale: 5 }]], { reg: ["bourg"], sneed: "q_bourg1" }],
+  ["q_bourg3", "Le remède du Docteur", "Le carnet mène à une cave : l'antidote que le Docteur n'a jamais su utiliser. Ou la souche pure de sa peste.", [["Emporter l'antidote (gardien affaibli)", { bossWeak: .2, heal: .2 }], ["Briser la souche dans les égouts (gardien enragé, butin)", { bossRage: .2, gold: 120 }]], { reg: ["bourg"], sneed: "q_bourg2" }],
+  // Forêt des Pendus
+  ["q_foret1", "La corde coupée", "Un pendu a été décroché. Des traces de pas d'enfant s'éloignent vers les ronces.", [["Suivre les traces", { sflag: "q_foret1", petXp: 40 }], ["Rependre le corps, par prudence", { morale: -3, xp: 20 }]], { reg: ["foret"], snot: ["q_foret1", "q_foret2"] }],
+  ["q_foret2", "Le cercle de pierres", "Au cœur des ronces, un cercle de pierres. Des poupées de racines y sont alignées, chacune avec un nom.", [["Prendre la poupée qui porte le nom d'un de vos héros", { sflag: "q_foret2", relic: 1 }], ["Tout brûler", { light: 25 }]], { reg: ["foret"], sneed: "q_foret1" }],
+  ["q_foret3", "Le cœur de la Mère", "La poupée vous conduit au cœur battant de la forêt : une graine noire, chaude comme une main.", [["Planter du sel autour (gardien affaibli)", { bossWeak: .2, morale: 10 }], ["Arroser la graine de sang (gardien enragé, butin)", { bossRage: .2, loot: 1 }]], { reg: ["foret"], sneed: "q_foret2" }],
+  // Catacombes
+  ["q_cata1", "Le psautier inachevé", "Sur un lutrin, un psautier dont la dernière page est restée blanche. L'encre est encore humide.", [["Prendre le psautier", { sflag: "q_cata1", xp: 30 }], ["Écrire votre nom sur la page", { morale: 8, curse: 1 }]], { reg: ["catacombes"], snot: ["q_cata1", "q_cata2"] }],
+  ["q_cata2", "Le moine qui chante", "Un squelette agenouillé chante encore la même note. Le psautier frémit entre vos mains.", [["Lui lire la dernière prière", { sflag: "q_cata2", heal: .15 }], ["Briser sa mâchoire", { mat: 3 }]], { reg: ["catacombes"], sneed: "q_cata1" }],
+  ["q_cata3", "La crypte scellée", "La prière ouvre une crypte. À l'intérieur, l'os de saint qui garde la liche prisonnière de sa propre éternité.", [["Bénir l'os (gardien affaibli)", { bossWeak: .2, light: 20 }], ["Le voler (gardien enragé, butin)", { bossRage: .2, relic: 1 }]], { reg: ["catacombes"], sneed: "q_cata2" }],
+  // Marais des Noyés
+  ["q_marais1", "La barque vide", "Une barque dérive, une lanterne allumée à la proue. Quelqu'un attendait un passager.", [["Monter à bord", { sflag: "q_marais1", light: 15 }], ["La couler", { mat: 2 }]], { reg: ["marais"], snot: ["q_marais1", "q_marais2"] }],
+  ["q_marais2", "Le passeur", "La barque vous mène à un vieillard aux yeux laiteux. « Une pièce pour l'aller. Le retour, c'est elle qui décide. »", [["Payer le passeur (40 or)", { cost: 40, sflag: "q_marais2" }], ["Le menacer", { fight: 1, gold: 50 }]], { reg: ["marais"], sneed: "q_marais1" }],
+  ["q_marais3", "Le nom de la Mère", "Le passeur murmure enfin le vrai nom de la Mère des Noyés, celui qu'elle portait vivante.", [["Le prononcer face à l'eau (gardien affaibli)", { bossWeak: .2, morale: 12 }], ["Le garder pour la provoquer (gardien enragé, butin)", { bossRage: .2, gold: 150 }]], { reg: ["marais"], sneed: "q_marais2" }],
+  // Citadelle
+  ["q_cit1", "Le blason effacé", "Sur un mur de la Citadelle, un blason a été gratté au couteau. Il reste une couronne et un loup.", [["Recopier ce qu'il en reste", { sflag: "q_cit1", xp: 40 }], ["L'achever", { morale: 5 }]], { reg: ["citadelle"], snot: ["q_cit1", "q_cit2"] }],
+  ["q_cit2", "Le chambellan", "Un spectre en livrée vous reconnaît. « Le blason… Vous cherchez le frère du Roi. Personne ne le cherche plus. »", [["Le suivre", { sflag: "q_cit2", light: 20 }], ["Le chasser", { xp: 30 }]], { reg: ["citadelle"], sneed: "q_cit1" }],
+  ["q_cit3", "La lettre du frère", "Dans une chambre murée, la lettre du frère trahi : la faiblesse du Roi y est écrite noir sur blanc.", [["Lire la lettre (gardien affaibli)", { bossWeak: .25, buff: 1 }], ["La lui rendre en face (gardien enragé, butin)", { bossRage: .25, loot: 1, relic: 1 }]], { reg: ["citadelle"], sneed: "q_cit2" }],
+];
+for (const [id, n, t, ch, o] of QUEST_EVENTS) EVENTS.push(Object.assign({ id, n, t, ch: ch.map(([cn, fx]) => ({ n: cn, fx })), quest: 1 }, o, o.sneed ? { chain: 1 } : {}));
+
+// événements de compagnon : seulement si un compagnon accompagne le groupe
+const PET_EVENTS = [
+  ["pet_trouvaille", "Une trouvaille", "Votre compagnon gratte furieusement le sol, puis lève la tête, fier, quelque chose entre les crocs.", [["Voir ce qu'il a trouvé", { loot: 1, petXp: 40 }], ["Le récompenser", { morale: 8, petXp: 60 }]]],
+  ["pet_fugue", "La fugue", "Votre compagnon a flairé quelque chose et file dans l'obscurité sans se retourner.", [["Le suivre", { gamble: [.6, { gold: 90, petXp: 60 }, { hurt: .08, light: -10 }] }], ["L'attendre", { light: -10, morale: -4 }], ["L'appeler sèchement", { morale: -2 }]]],
+  ["pet_allie", "Un ami de la meute", "Votre compagnon revient accompagné : une bête sauvage de son espèce, blessée, qui vous observe sans crainte.", [["Soigner la bête (une potion)", { potionCost: 1, buff: 1, petXp: 80 }], ["La laisser repartir", { morale: 6 }]]],
+  ["pet_garde", "Veille de nuit", "Pendant votre halte, votre compagnon reste éveillé. À l'aube, des traces de griffes entourent le camp.", [["Le remercier", { heal: .15, morale: 10 }], ["Suivre les traces", { fight: 1, gold: 60, petXp: 50 }]]],
+  ["pet_os", "L'os maudit", "Votre compagnon a rapporté un os gravé de runes. Il refuse de le lâcher et gronde quand on approche.", [["Le lui laisser", { petXp: 100, curse: 1 }], ["Le lui arracher", { gamble: [.5, { relic: 1 }, { petHurt: 1 }] }]]],
+  ["pet_eclaireur", "L'éclaireur", "Votre compagnon part en avant et revient, nerveux. Il tourne autour de vos jambes en grondant vers le chemin.", [["Écouter son instinct", { light: 15, buff: 1 }], ["Ignorer et avancer", { fight: 1, xp: 40 }]]],
+];
+for (const [id, n, t, ch] of PET_EVENTS) EVENTS.push({ id, n, t, ch: ch.map(([cn, fx]) => ({ n: cn, fx })), pet: 1 });
 /* ═══════════════════════ État du jeu, héros, objets, sauvegarde ═══════════════════════ */
 let S = null;
 
@@ -1868,6 +1906,7 @@ function heroPassives(h) {
   if (h.mark && typeof GUARD_MARKS !== "undefined" && GUARD_MARKS[h.mark]) out.push(...GUARD_MARKS[h.mark].pas); // marque d'un gardien vaincu
   if (h.affl && typeof AFFLICTIONS !== "undefined" && AFFLICTIONS[h.affl]) out.push(...AFFLICTIONS[h.affl].pas); // stress : affliction ou vertu
   if (h.talents && typeof talentPas === "function") out.push(...talentPas(h));
+  if (typeof setPassives === "function") out.push(...setPassives(h), ...ascPassives(h)); // panoplies et ascension
   if (h.vet && typeof VET_TITLES !== "undefined" && VET_TITLES[h.vet]) out.push(...VET_TITLES[h.vet].pas); // titre de vétéran // arbre de talents (après le niveau 15)
   return out;
 }
@@ -1907,6 +1946,7 @@ function makeGear(kind, cls, tier, rar, key, evo) {
   for (let i = 0; i < nAff; i++) { const A = AFFIXES[keys[i]], sc = 1 + (it.tier - 1) * .25; let v = lerp(A.v[0], A.v[1], rnd()) * sc; v = A.fmt === "pct" ? Math.round(v * 100) / 100 : Math.round(v); it.aff.push({ k: keys[i], v }); }
   // effet unique (Épique 25 %, Légendaire 60 %, Mythique et Divin toujours) : change la façon de combattre
   if (kind !== "tr" && it.rar >= 3 && chance([0, 0, 0, .25, .6, 1, 1][it.rar])) { const pool = Object.keys(ITEM_MODS).filter(k => ITEM_MODS[k].kind === kind); it.mod = pick(pool); }
+  if (typeof rollSet === "function") rollSet(it); // panoplie (Légendaire et plus)
   return it;
 }
 // effets uniques d'équipement (crochets de combat existants)
@@ -1950,7 +1990,7 @@ function petLvl(id) { return (S && S.pets.lvl[id]) || 1; }
 const petXpNeed = l => Math.round(60 + 40 * Math.pow(l - 1, 1.35));
 function petEvolved(id) { return !!(S && S.pets.evo[id]); }
 function petName(id) { return petEvolved(id) ? PETS[id].evo.n : PETS[id].n; }
-function petPower(id) { const l = petLvl(id), r = (PETS[id] && PETS[id].rank) || 1; return { dmg: (3.2 + l * .95) * r, heal: 1 + l * .03 }; }
+function petPower(id) { const l = petLvl(id), r = (PETS[id] && PETS[id].rank) || 1, m = typeof petMul === "function" ? petMul(id) : { dmg: 1 }; return { dmg: (3.2 + l * .95) * r * m.dmg, heal: 1 + l * .03 }; }
 
 // ── Sauvegarde ──
 function save() {
@@ -2050,7 +2090,7 @@ function newBattle(heroes, enemyKeys, opt = {}) {
     light: opt.light == null ? 100 : opt.light, relicH, pet: null, over: null, log: [], kills: 0, crits: 0, opt, revived: 0, firstRound: true, mods: opt.mods || {} };
   for (const k of enemyKeys) { const m = Object.assign({}, opt.mods); if (k.f) { m.hp = (m.hp || 1) * k.f.hp; m.dmg = (m.dmg || 1) * k.f.dmg; m.prot = (m.prot || 0) + k.f.prot * .5; } if (k.corrupt) { m.hp = (m.hp || 1) * 1.3; m.dmg = (m.dmg || 1) * 1.2; } const eu = monUnit(k.key || k, k.lvl || opt.lvl || 1, m); if (k.corrupt) { eu.corrupt = 1; eu.name += " corrompu"; eu.res = (eu.res || 0) + 15; } if (k.named && typeof namedElite === "function") namedElite(eu); B.enemies.push(eu); }
   if (opt.pet && typeof S !== "undefined" && S && S.petHurt && S.petHurt[opt.pet] > 0) opt = Object.assign({}, opt, { pet: null }); // compagnon blessé : au repos
-  if (opt.pet) B.pet = { id: opt.pet, lvl: petLvl(opt.pet), evo: petEvolved(opt.pet), pw: petPower(opt.pet), n: 0 };
+  if (opt.pet) { B.pet = { id: opt.pet, lvl: petLvl(opt.pet), evo: petEvolved(opt.pet), pw: petPower(opt.pet), n: 0 }; if (typeof petMul === "function" && petMul(opt.pet).morale) B.morale = clamp(B.morale + petMul(opt.pet).morale, 0, 100); }
   if (relicH.startWeak) for (const e of B.enemies) addSt(B, null, e, { k: "weak", t: 2 }, []);
   if (typeof applyBonds === "function") applyBonds(B); // amis et rivaux côte à côte
   return B;
@@ -2068,6 +2108,7 @@ function startRound(B) {
   if (B.round > 14) for (const e of B.enemies.filter(alive)) { const r = e.st.find(z => z.k === "dmgUp" && z.rage); if (r) { r.v += .12; r.t = 99; } else e.st.push({ k: "dmgUp", v: .12, t: 99, rage: 1 }); }
   if (B.round === 15) B.rageMsg = 1;
   if (B.relicH.roundHeal) for (const h of B.heroes.filter(alive)) healUnit(B, null, h, h.hpMax * B.relicH.roundHeal, []);
+  terrainRound(B);
   planIntents(B);
 }
 function delayTurn(B, u) { // retarder : rejouer en fin de tour, garde haute
@@ -2196,15 +2237,36 @@ function gainUlt(u, v) { if (u.side !== "h") return; u.ultV = Math.min(100, u.ul
 
 function rollHit(B, u, x, sk) {
   if (u.side === x.side) return true;
-  let acc = u.acc + (sk.acc || 0) + stSum(u, "accUp") - stSum(u, "accDn") - effDodge(x) - (B.mods.fog || 0);
+  let acc = u.acc + (sk.acc || 0) + stSum(u, "accUp") - stSum(u, "accDn") - effDodge(x) - (B.mods.fog || 0) - (B.terrain === "brume" && rankOf(B, x) >= 3 ? 12 : 0);
   if (u.side === "h" && B.morale <= 20) acc -= 10;
   return rnd() * 100 < clamp(acc, 8, 97);
 }
+// ── faiblesses et résistances des ennemis selon leur nature (sacré, feu, ombre, saignement, poison) ──
+const AFFINITY = {
+  impie: { "sacré": 1.3, feu: 1.15, ombre: .85, bleed: .6, poison: .6 },
+  bete: { feu: 1.2, bleed: 1.3, "sacré": .9 },
+  humain: { poison: 1.3, ombre: 1.15, feu: .9 },
+};
+const AFF_N = { "sacré": "Sacré", feu: "Feu", ombre: "Ombre", bleed: "Saignement", poison: "Poison" };
+function affinity(x, k) { if (!x || x.side === "h") return 1; if (k === "burn") k = "feu"; let m = 1; for (const t of x.tags || []) { const a = AFFINITY[t]; if (a && a[k]) m *= a[k]; } if (x.corrupt && m < 1) m *= .9; return m; }
+function affinityOf(tags) { const W = [], R = []; for (const k in AFF_N) { let m = 1; for (const t of tags || []) { const a = AFFINITY[t]; if (a && a[k]) m *= a[k]; } if (m > 1.01) W.push(AFF_N[k] + " +" + Math.round((m - 1) * 100) + " %"); else if (m < .99) R.push(AFF_N[k] + " −" + Math.round((1 - m) * 100) + " %"); } return { W, R }; }
+// ── terrains : certaines salles de combat ont un lieu particulier ──
+const TERRAINS = {
+  autel: { n: "Autel oublié", ic: "chapel", d: "Au début de chaque tour, les héros récupèrent 4 % de leurs PV." },
+  piege: { n: "Sol piégé", ic: "trap", d: "Au début de chaque tour, l'unité au rang 1 de chaque camp subit 6 % de ses PV." },
+  brume: { n: "Brume épaisse", ic: "smoke", d: "Les unités aux rangs 3 et 4 sont plus dures à toucher (−12 précision contre elles)." },
+  sacre: { n: "Terre consacrée", ic: "sanct", d: "Les compétences sacrées font 25 % de dégâts en plus ; les impies perdent 10 % de protection." },
+  tenebres: { n: "Ténèbres", ic: "moon", d: "La lueur baisse de 20 en entrant ; les coups critiques des deux camps sont plus fréquents (+5 %)." },
+};
+function terrainRound(B) {
+  const T = B.terrain; if (!T) return;
+  if (T === "autel") for (const h of B.heroes.filter(alive)) healUnit(B, null, h, h.hpMax * .04, [], { regen: 1 });
+  if (T === "piege") for (const arr of [B.heroes, B.enemies]) { const x = arr.find(alive); if (x && !x.agony) applyDamage(B, null, x, Math.max(1, Math.round(x.hpMax * .06)), [], { dot: 1 }); }
+}
+// combos : frapper une cible étourdie (+25 %) ou déjà touchée par un autre héros ce tour-ci (+10 %)
+function comboBonus(B, u, x) { let c = 0; if (hasSt(x, "stun")) c += .25; if (x._hr === B.round && x._hu && x._hu !== u.uid) c += .1; return c; }
 // une frappe : renvoie true si elle touche
-function strike(B, u, x, sk, mult, ev) {
-  if (!rollHit(B, u, x, sk)) { ev.push({ k: "miss", u: x.uid, src: u.uid }); if (x.hooks.dodgeRiposte && x.side === "h" && rankOf(B, u) <= 2 && chance(x.hooks.dodgeRiposte)) counter(B, x, u, .7, ev); if (x.hooks.dodgeBleed && chance(x.hooks.dodgeBleed)) addSt(B, x, u, { k: "bleed", v: avgDmg(x) * .35, t: 2 }, ev); return false; }
-  let d = rnd() * (u.dmgHi - u.dmgLo) + u.dmgLo;
-  d *= mult;
+function strikeMul(B, u, x, sk, ev) {
   let mod = 1 + stSum(u, "dmgUp") * (u.side === "h" ? 1 : 1);
   if (hasSt(u, "weak")) mod -= .25;
   const hk = u.hooks, hpr = x.hp / x.hpMax;
@@ -2216,18 +2278,30 @@ function strike(B, u, x, sk, mult, ev) {
   if (hasSt(x, "vuln")) mod += .25;
   if (u.side === "h") { if (B.relicH.vsImpie && x.tags.includes("impie")) mod += B.relicH.vsImpie; if (B.relicH.darkDmg && B.light < 50) mod += B.relicH.darkDmg; if (B.morale >= 80) mod += .15; if (B.morale <= 20) mod -= .15; if (B.light < 30) mod += .05; }
   else { if (B.light < 30) mod += .12; if (B.mods.edmg) mod += B.mods.edmg; }
-  const bn = sk.bonus;
+  let bx = 1; const bn = sk.bonus;
   if (bn) {
-    if (bn.tag && x.tags.includes(bn.tag)) d *= bn.x;
-    if (bn.st === "stealth_self" ? hasSt(u, "stealth") : bn.st && hasSt(x, bn.st)) d *= bn.x;
-    if (bn.low && hpr < bn.low) d *= bn.x;
-    if (bn.selfHit && u.hitSince) d *= bn.x;
-    if (bn.fallen) d *= 1 + bn.x * B.kills;
+    if (bn.tag && x.tags.includes(bn.tag)) bx *= bn.x;
+    if (bn.st === "stealth_self" ? hasSt(u, "stealth") : bn.st && hasSt(x, bn.st)) bx *= bn.x;
+    if (bn.low && hpr < bn.low) bx *= bn.x;
+    if (bn.selfHit && u.hitSince) bx *= bn.x;
+    if (bn.fallen) bx *= 1 + bn.x * B.kills;
   }
   if (u.bondDmg) mod += u.bondDmg;
-  d *= Math.max(.2, mod);
+  let d = Math.max(.2, mod) * bx;
   if (B.mods.rain && sk.tags && sk.tags.includes("feu")) d *= .75; // pluie : le feu prend mal
-  let critC = u.crit + (sk.cr || 0) + stSum(u, "critUp") + (u.side === "h" && B.light < 30 ? 5 : 0) + (u.side === "h" && B.morale >= 80 ? 5 : 0);
+  if (x.side === "e" && sk.tags) for (const g of sk.tags) d *= affinity(x, g); // faiblesses et résistances
+  if (B.terrain === "sacre" && sk.tags && sk.tags.includes("sacré")) d *= 1.25;
+  const cb = u.side === "h" ? comboBonus(B, u, x) : 0; if (cb) { d *= 1 + cb; if (ev) ev.push({ k: "combo", u: x.uid, v: cb }); }
+  return d;
+}
+
+function strike(B, u, x, sk, mult, ev) {
+  if (!rollHit(B, u, x, sk)) { ev.push({ k: "miss", u: x.uid, src: u.uid }); if (x.hooks.dodgeRiposte && x.side === "h" && rankOf(B, u) <= 2 && chance(x.hooks.dodgeRiposte)) counter(B, x, u, .7, ev); if (x.hooks.dodgeBleed && chance(x.hooks.dodgeBleed)) addSt(B, x, u, { k: "bleed", v: avgDmg(x) * .35, t: 2 }, ev); return false; }
+  let d = rnd() * (u.dmgHi - u.dmgLo) + u.dmgLo;
+  d *= mult;
+  d *= strikeMul(B, u, x, sk, ev);
+  const hk = u.hooks;
+  let critC = (B.terrain === "tenebres" ? 5 : 0) + u.crit + (sk.cr || 0) + stSum(u, "critUp") + (u.side === "h" && B.light < 30 ? 5 : 0) + (u.side === "h" && B.morale >= 80 ? 5 : 0);
   const crit = rnd() * 100 < critC;
   if (crit) { d *= 1.5 + (hk.critDmg || 0); B.crits++; }
   d *= 1 - effProt(x);
@@ -2265,7 +2339,7 @@ function applyDamage(B, src, x, d, ev, o = {}) {
   // statistiques du bilan d'expédition
   if (src && src.side === "h" && x.side !== "h") { const T = B.tally || (B.tally = { dmg: {}, heal: {}, taken: {}, best: null }); const dd = Math.round(Math.min(d, x.hp)); T.dmg[src.hid] = (T.dmg[src.hid] || 0) + dd; if (!o.dot && (!T.best || d > T.best.v)) T.best = { v: Math.round(d), hid: src.hid, sk: B.curSk, vs: x.name, crit: !!o.crit }; }
   if (x.side === "h") { const T = B.tally || (B.tally = { dmg: {}, heal: {}, taken: {}, best: null }); T.taken[x.hid] = (T.taken[x.hid] || 0) + Math.round(d); }
-  x.hitSince = 1;
+  x.hitSince = 1; if (src && src.side === "h" && src.uid !== "PET") { x._hr = B.round; x._hu = src.uid; }
   if (x.side === "h") gainUlt(x, 8);
   if (x.side === "h" && x.agony) {
     // à l'agonie : chaque coup peut être le dernier
@@ -2336,7 +2410,7 @@ function addSt0(B, u, x, f, ev, rk = 1) {
   if (DOTS.includes(f.k)) {
     const pw = 1 + (u ? (u.hooks.dotPow || 0) + (f.k === "burn" ? u.hooks.burnPow || 0 : 0) : 0) + (u && u.side === "h" ? B.relicH.dot || 0 : 0);
     const wet = f.k === "burn" && B.mods.rain ? .6 : 1;
-    s.v = Math.max(1, (f.v || .4) * (u ? avgDmg(u) : 3) * pw * rk * wet);
+    s.v = Math.max(1, (f.v || .4) * (u ? avgDmg(u) : 3) * pw * rk * wet * affinity(x, f.k));
     if (u && u.side === "h") s.t += (f.k === "bleed" ? B.relicH.bleedT || 0 : f.k === "burn" ? B.relicH.burnT || 0 : B.relicH.poisonT || 0);
     if (f.k === "bleed" && x.hooks.bleedTaken) s.t += x.hooks.bleedTaken;
     if (x.st.filter(z => z.k === f.k).length >= 4) { const old = x.st.find(z => z.k === f.k); x.st.splice(x.st.indexOf(old), 1); }
@@ -2380,10 +2454,11 @@ function petAct(B, ev, extra) {
   const P = B.pet; if (!P || B.over) return;
   const D = PETS[P.id]; P.n++;
   let sk = D.sk[0];
-  if (!extra && D.sk[1] && P.n % (D.sk[1].every || 3) === 0) sk = D.sk[1];
+  const PM = typeof petMul === "function" ? petMul(P.id) : { sup: 1, every: 0 };
+  if (!extra && D.sk[1] && P.n % Math.max(2, (D.sk[1].every || 3) + PM.every) === 0) sk = D.sk[1];
   if (P.evo && !extra && P.n % 2 === 0) sk = D.evo.sk;
   if (extra) sk = D.sk.find(s => s.m) || D.evo.sk;
-  sk = petSkScaled(sk, D.rank || 1); // puissance du compagnon selon son rang de déblocage
+  sk = petSkScaled(sk, (D.rank || 1) * PM.sup); // puissance du compagnon : rang de déblocage, collier et trait
   const fake = { uid: "PET", side: "h", name: petName(P.id), dmgLo: P.pw.dmg * .8, dmgHi: P.pw.dmg * 1.2, crit: 8, acc: 98, hooks: {}, st: [], healPow: P.pw.heal, sz: 1, leech: 0, tags: ["bete"] };
   const boost = 1 + (B.heroes.reduce((a, h) => a + (h.hooks.petDmg || 0), 0)) + (B.relicH.pet || 0);
   fake.dmgLo *= boost; fake.dmgHi *= boost;
@@ -2610,7 +2685,7 @@ function monNorm(key, ref) {
   return { hp: R.hp / M.hp * .92, dmg: avg(R) / avg(M) * .95, prot: (R.prot || 0) - (M.prot || 0) };
 }
 // gardiens déjà vaincus (anciennes sauvegardes : ceux des chapitres terminés)
-function beatenBosses() { const b = S.beaten = S.beaten || {}; for (const r of REGIONS) if (S.prog[r.id] && S.prog[r.id].clears) b[r.boss] = 1; return Object.keys(b).filter(k => MONSTERS[k] && MONSTERS[k].boss); }
+function beatenBosses() { const b = S.beaten = S.beaten || {}; for (const r of REGIONS) if (S.prog[r.id] && S.prog[r.id].clears) b[r.boss] = 1; return Object.keys(b).filter(k => MONSTERS[k] && MONSTERS[k].boss && !MONSTERS[k].secret); }
 // la rencontre est tirée une seule fois par salle : quitter puis reprendre redonne les mêmes ennemis (et le même gardien)
 function genEncounter(run, node, rng = RNG) {
   if (node.enc) return node.enc.map(e => Object.assign({}, e));
@@ -2630,7 +2705,8 @@ function genEncounter0(run, node, rng = RNG) {
     const tb = run.threat >= 1 && run.region !== "abime" && THREAT_BOSS[run.threat], tbNew = tb && !(S.beaten || {})[tb];
     const bk = firstTime ? R.boss : tbNew ? tb : run.region === "abime" && run.floor % 5 === 0 && S.season && S.season.boss ? S.season.boss : rng.pick(pool); S.lastBoss[R.id] = bk; // l'Abîme : gardien de la saison tous les 5 étages
     out.push({ key: pickFor(1), lvl });
-    out.push({ key: bk, lvl: lvl + 1, f: monNorm(bk, ref) });
+    const sb = !firstTime && typeof secretBossFor === "function" ? secretBossFor(run, rng) : null; // gardien secret
+    out.push({ key: sb || bk, lvl: lvl + 1, f: monNorm(sb ? SECRET_BOSSES[sb].base : bk, ref) });
     if (run.region === "abime" || R.lvl >= 9) out.push({ key: pickFor(4), lvl });
     return out;
   }
@@ -2655,7 +2731,7 @@ function genEncounter0(run, node, rng = RNG) {
 // ── récompenses ──
 function rewardFor(run, node, rng = RNG) {
   const lvl = runLevel(run, node), rh = relicHooks(run), luck0 = (run.light < 30 ? .05 : 0) + (run.night ? .08 : 0) + (run.weather === "lune" ? .06 : 0); let luck = luck0;
-  const goldM = 1 + (rh.gold || 0) + run.party.map(heroById).filter(Boolean).reduce((a, h) => a + heroPassives(h).filter(p => p.k === "gold").reduce((b, p) => b + p.v, 0), 0) + (run.pet && PETS[run.pet].gold ? PETS[run.pet].gold : 0) + (run.daily ? .25 : 0) + run.oaths.length * .15 + run.threat * .3;
+  const goldM = 1 + (rh.gold || 0) + run.party.map(heroById).filter(Boolean).reduce((a, h) => a + heroPassives(h).filter(p => p.k === "gold").reduce((b, p) => b + p.v, 0), 0) + (run.pet && PETS[run.pet].gold ? PETS[run.pet].gold : 0) + (run.pet && typeof petMul === "function" ? petMul(run.pet).gold : 0) + (run.daily ? .25 : 0) + run.oaths.length * .15 + run.threat * .3;
   const R = { gold: 0, xp: 0, loot: [], relic: null, mats: { fer: 0, essence: 0, cendre: 0 }, shards: 0, petXp: 0 };
   const t = node.type;
   const corr = node.enc ? node.enc.filter(e => e.corrupt).length : 0; if (corr) luck += .04 * corr;
@@ -2667,6 +2743,7 @@ function rewardFor(run, node, rng = RNG) {
     const first = run.region !== "abime" && !(S.prog[run.region] && S.prog[run.region].clears);
     R.gold = (120 + lvl * 22) * (first ? 1.5 : 1); R.xp = 120 + lvl * 22; R.mats.fer = 3; R.mats.essence = 2 + Math.floor(lvl / 8); R.mats.cendre = lvl >= 13 ? 1 : 0;
     R.loot.push(lootGear(lvl + 3, .25, null, 2)); if (rng.chance(.5)) R.loot.push(lootGear(lvl + 2, .2, null, 2)); // gardien : rare au minimum
+    if (run.bossRage) { R.loot.push(lootGear(lvl + 3, .4, null, 4)); R.gold *= 1.5; } // quête : gardien enragé, trésor plus riche
     { const be = node && node.enc && node.enc.find(e => MONSTERS[e.key] && MONSTERS[e.key].boss); if (be && typeof uniqueDrop === "function") { const u = uniqueDrop(be.key, lvl, !(S.uniqs && S.uniqs[be.key]) && !((S.stats.monKills || {})[be.key] > 1)); if (u) { R.loot.push(u); R.uniq = u; } } }
     R.shards = first ? 3 : 1 + (run.region === "abime" && run.floor % 3 === 0 ? 1 : 0) + Math.floor(run.oaths.length / 3); R.relic = randRelic(run, rng, 2);
   }
@@ -2858,7 +2935,7 @@ function enterNode(run, node) {
 function pickEvent(run) {
   run.seenEv = run.seenEv || [];
   const fl = run.flags || [], sf = (S && S.flags) || [];
-  const ok = e => (!e.reg || e.reg.includes(run.region)) && (!e.need || fl.includes(e.need)) && (!e.sneed || sf.includes(e.sneed));
+  const ok = e => (!e.reg || e.reg.includes(run.region)) && (!e.need || fl.includes(e.need)) && (!e.sneed || sf.includes(e.sneed)) && (!e.snot || ![].concat(e.snot).some(f => sf.includes(f))) && (!e.pet || (run.pet && !((S && S.petHurt) || {})[run.pet]));
   const here = EVENTS.filter(ok), pool = here.filter(e => !run.seenEv.includes(e.id));
   const chains = pool.filter(e => e.chain); // une suite attendue a de bonnes chances d'arriver
   const e = chains.length && chance(.6) ? pick(chains) : pick(pool.filter(e => !e.chain).length ? pool.filter(e => !e.chain) : here.filter(e => !e.chain));
@@ -2921,7 +2998,8 @@ function resolveEvent(run, evId, ci) {
     if (f.potion) { run.potions++; out.text.push("+1 potion"); }
     if (f.potionCost) { if (run.potions > 0) { run.potions--; out.text.push("-1 potion"); } else out.text.push("Vous n'aviez plus de potion… il vous remercie quand même."); }
     if (f.cleanse) out.text.push("Les esprits s'apaisent.");
-    if (f.petHurt && run.pet) { S.petHurt = S.petHurt || {}; S.petHurt[run.pet] = f.petHurt; out.text.push(`${petName(run.pet)} est blessé : il ne combattra plus pendant ${f.petHurt} expéditions (repos à la Ménagerie).`); }
+    if (f.petHurt && run.pet && typeof petMul === "function" && petMul(run.pet).robust) out.text.push(`${petName(run.pet)}, robuste, s'en sort sans une égratignure.`);
+    else if (f.petHurt && run.pet) { S.petHurt = S.petHurt || {}; S.petHurt[run.pet] = f.petHurt; out.text.push(`${petName(run.pet)} est blessé : il ne combattra plus pendant ${f.petHurt} expéditions (repos à la Ménagerie).`); }
     if (f.heroCurse) { const hs = runParty().filter(h => !run.fallen.includes(h.id)); if (hs.length) { const h = hs[Math.floor(rnd() * hs.length)]; h.cursed = f.heroCurse; out.text.push(`${h.name} porte la larme de l'idole : −12 % de dégâts pendant ${f.heroCurse} expéditions (la Chapelle peut l'en laver).`); } }
     if (f.lootLose) { if (run.loot.length) { const it = run.loot.splice(Math.floor(rnd() * run.loot.length), 1)[0]; out.text.push(`Vous cédez ${gearName(it)}.`); } else { run.gold = Math.max(0, run.gold - 80); out.text.push("Faute d'objet, il prend 80 or."); } }
     if (f.curse) { run.curse = (run.curse || 0) + 1; out.text.push("Une malédiction pèse sur vous : les ennemis frappent plus fort."); }
@@ -2929,6 +3007,8 @@ function resolveEvent(run, evId, ci) {
     if (f.buff) { run.buff = (run.buff || 0) + 1; out.text.push("Une chaleur étrange : +20 % de dégâts au prochain combat."); }
     if (f.upgrade) { const its = party.flatMap(h => [h.gear.wpn, h.gear.arm]).filter(it => it && it.up < 10); if (its.length) { const it = pick(its); it.up++; out.text.push(gearName(it) + " est amélioré."); } }
     if (f.fight) { out.fight = true; out.text.push("Une embuscade !"); }
+    if (f.bossWeak) { run.bossWeak = f.bossWeak; out.text.push(`Le gardien de ce chapitre vous attendra affaibli (−${Math.round(f.bossWeak * 100)} % de PV).`); }
+    if (f.bossRage) { run.bossRage = f.bossRage; out.text.push(`Le gardien vous attendra enragé (+${Math.round(f.bossRage * 100)} % de PV), mais son trésor sera plus riche.`); }
     if (f.flag) { run.flags = (run.flags || []).concat(f.flag); out.text.push("<i>Ce geste aura peut-être une suite…</i>"); }
     if (f.sflag) { S.flags = (S.flags || []).filter(x => x !== f.sflag).concat(f.sflag); out.text.push("<i>Quelqu'un se souviendra de vous…</i>"); }
   };
@@ -2981,6 +3061,7 @@ function battleFor(run, node, enc) {
   const D = diffOf(), mods = { hp: D.hp, dmg: D.dmg * (1 + (run.curse || 0) * .1), prot: 0, spd: 0 };
   if (run.night) { mods.hp *= 1.15; mods.dmg *= 1.15; } // expédition de nuit
   if (typeof cycleFoe === "function") { const c = cycleFoe(); mods.hp *= c; mods.dmg *= c; } // nouveau cycle
+  if (node && node.type === "boss" && (run.bossWeak || run.bossRage)) mods.bossHp = (mods.bossHp || 0) + (run.bossRage || 0) - (run.bossWeak || 0); // quête de région
   if (run.hardBoss && node && node.type === "boss") { mods.bossHp = (mods.bossHp || 0) + HARD_BOSS.hp - 1; mods.hardBoss = 1; } // mode Hardi
   const W = run.weather && WEATHERS[run.weather]; if (W) { if (W.mods.fog) mods.fog = W.mods.fog; if (W.mods.rain) mods.rain = 1; if (W.mods.edmgM) mods.dmg *= 1 + W.mods.edmgM; if (W.mods.espd) mods.spd += W.mods.espd; } // météo
   if (run.region === "abime") { mods.hp *= 1 + run.floor * .04; mods.dmg *= 1 + run.floor * .025; }
@@ -2990,6 +3071,10 @@ function battleFor(run, node, enc) {
   if (run.buff) { rh.dmg = (rh.dmg || 0) + .2; }
   const B = newBattle(party, enc, { relicH: rh, pet: run.pet, light: run.light, mods, morale: (run.morale || 0) + S.bld.chapelle * 2, onLight: v => { run.light = clamp(run.light + v, 0, 100); B.light = run.light; } });
   B.node = node;
+  // terrain : une salle de combat sur quatre (jamais le gardien), tiré une fois et mémorisé dans la salle
+  if (node && (node.type === "combat" || node.type === "elite")) { if (node.terrain === undefined) node.terrain = chance(.25) ? pick(Object.keys(TERRAINS)) : null; B.terrain = node.terrain; }
+  if (B.terrain === "sacre") for (const e of B.enemies) if (e.tags.includes("impie")) e.prot -= .1;
+  if (B.terrain === "tenebres") { run.light = clamp(run.light - 20, 0, 100); B.light = run.light; }
   if (typeof eliteBonuses === "function") eliteBonuses(B);
   if (mods.hardBoss) for (const e of B.enemies) if (e.boss) { e.st.push({ k: "dmgUp", v: HARD_BOSS.dmg - 1, t: 99 }); e.hard = 1; } // gardien enragé dès le départ
   return B;
@@ -3129,6 +3214,66 @@ function advXp() { const st = S.stats || {}; return (st.wins || 0) + (st.runs ||
 function advLevel() { return 1 + Math.floor(Math.sqrt(advXp() / 3)); }
 function advNext() { const l = advLevel(); return { l, cur: advXp() - 3 * (l - 1) * (l - 1), need: 3 * l * l - 3 * (l - 1) * (l - 1) }; }
 const bldAdvReq = k => Math.max(1, S.bld[k] * 3);
+// ── Progression avancée : panoplies, enchantement, ascension, colliers et traits des compagnons ──
+
+// Panoplies : les objets Légendaires ou mieux peuvent appartenir à une panoplie (arme, armure, bibelots)
+const SETS = {
+  roi: { n: "Panoplie du Roi de Cendres", c: "#ff9a4a", b2: { d: "+10 % de dégâts", pas: [{ k: "stat", s: "dmg", v: .1 }] }, b3: { d: "+15 % de dégâts critiques, +6 % de critique", pas: [{ k: "critDmg", v: .15 }, { k: "stat", s: "crit", v: 6 }] } },
+  veilleur: { n: "Panoplie du Veilleur", c: "#8ab8ff", b2: { d: "+8 % de PV, +5 % de protection", pas: [{ k: "stat", s: "hp", v: .08 }, { k: "stat", s: "prot", v: .05 }] }, b3: { d: "Les boucliers posés sont 30 % plus solides, +10 résistance", pas: [{ k: "shieldPow", v: .3 }, { k: "stat", s: "res", v: 10 }] } },
+  peste: { n: "Panoplie de la Peste", c: "#8ad06a", b2: { d: "+20 % de dégâts des altérations", pas: [{ k: "dotPow", v: .2 }] }, b3: { d: "+20 % de chance d'infliger les altérations, +2 vitesse", pas: [{ k: "debuffPow", v: .2 }, { k: "stat", s: "spd", v: 2 }] } },
+  aube: { n: "Panoplie de l'Aube", c: "#ffe08a", b2: { d: "+12 % de soins", pas: [{ k: "stat", s: "healPow", v: .12 }] }, b3: { d: "+25 % aux bonus donnés au groupe, la jauge d'ultime monte 20 % plus vite", pas: [{ k: "buffPow", v: .25 }, { k: "ultGain", v: .2 }] } },
+  loup: { n: "Panoplie du Loup gris", c: "#c8c0b0", b2: { d: "+8 esquive", pas: [{ k: "stat", s: "dodge", v: 8 }] }, b3: { d: "Le compagnon frappe 35 % plus fort, +25 % de dégâts sous la moitié des PV", pas: [{ k: "petDmg", v: .35 }, { k: "lowHpDmg", v: .25 }] } },
+};
+function rollSet(it) { if (it && it.rar >= 4 && !it.set && chance(it.rar >= 5 ? .35 : .2)) it.set = pick(Object.keys(SETS)); return it; }
+function setCount(h) { const n = {}; for (const s of ["wpn", "arm", "tr1", "tr2"]) { const it = h.gear[s]; if (it && it.set && SETS[it.set]) n[it.set] = (n[it.set] || 0) + 1; } return n; }
+function setPassives(h) { const out = [], n = setCount(h); for (const k in n) { if (n[k] >= 2) out.push(...SETS[k].b2.pas); if (n[k] >= 3) out.push(...SETS[k].b3.pas); } return out; }
+
+// Enchantement : relancer l'effet unique d'un objet Épique ou mieux (choix parmi trois)
+function enchantCost(it) { return { gold: 250 * it.tier + 150 * (it.rar - 2), shards: Math.max(1, it.rar - 2) }; }
+function enchantChoices(it) { const pool = Object.keys(ITEM_MODS).filter(k => ITEM_MODS[k].kind === it.kind && k !== it.mod); RNG.shuffle(pool); return pool.slice(0, 3); }
+
+// Ascension : un héros de niveau 30+ renaît au niveau 15, garde sa voie et gagne un bonus permanent
+const ASC_LVL = 30, ASC_BACK = 15;
+const ASC_AURA = ["#ffffff", "#9af0ff", "#c08aff", "#ff7a9a", "#ffd27a"];
+function canAscend(h) { return h && h.lvl >= ASC_LVL && !!h.evo; }
+function ascend(h) { if (!canAscend(h)) return false; h.asc = (h.asc || 0) + 1; h.lvl = ASC_BACK; h.xp = 0; return true; }
+function ascPassives(h) { const a = h.asc || 0; return a ? [{ k: "stat", s: "dmg", v: .06 * a }, { k: "stat", s: "hp", v: .06 * a }, { k: "stat", s: "res", v: 4 * a }] : []; }
+
+// Compagnons : collier (amélioration achetée) et trait tiré au hasard à l'arrivée
+const PET_TRAITS = {
+  feroce: { n: "Féroce", d: "+15 % de dégâts." },
+  fidele: { n: "Fidèle", d: "Soins, boucliers et bonus 15 % plus forts." },
+  vif: { n: "Vif", d: "Sa compétence spéciale revient un tour plus tôt." },
+  robuste: { n: "Robuste", d: "Ne peut pas être blessé par les événements." },
+  meneur: { n: "Meneur de meute", d: "+4 résolution au début de chaque combat." },
+  flaireur: { n: "Flaireur", d: "+6 % d'or trouvé en expédition." },
+};
+const COLLAR_MAX = 5;
+function petTrait(id) { S.petTraits = S.petTraits || {}; if (!S.petTraits[id] && PETS[id]) S.petTraits[id] = pick(Object.keys(PET_TRAITS)); return S.petTraits[id]; }
+function petCollar(id) { return (S && S.petCollar && S.petCollar[id]) || 0; }
+function collarCost(id) { const n = petCollar(id), r = (PETS[id] && PETS[id].rank) || 1; return { gold: Math.round(300 * (n + 1) * (n + 1) * r), shards: n >= 3 ? n - 2 : 0 }; }
+// multiplicateurs appliqués au compagnon en combat
+function petMul(id) { const c = petCollar(id), t = typeof S !== "undefined" && S && S.pets && S.pets.owned.includes(id) ? petTrait(id) : null; return { dmg: (1 + .08 * c) * (t === "feroce" ? 1.15 : 1), sup: (1 + .06 * c) * (t === "fidele" ? 1.15 : 1), every: t === "vif" ? -1 : 0, morale: t === "meneur" ? 4 : 0, gold: t === "flaireur" ? .06 : 0, robust: t === "robuste" }; }
+
+// ── Gardiens secrets : des conditions cachées remplacent le gardien d'un chapitre par une version inédite ──
+const SECRET_BOSSES = {
+  juge_immacule: { base: "cardinal", n: "Le Juge Immaculé", hue: "#f0e2a0", f: 1.3, hint: "Atteindre un gardien sans avoir perdu un seul héros, en menace II ou plus.", cond: run => run.flawless && run.threat >= 1 },
+  mere_ombres: { base: "reine_sabbat", n: "La Mère des Ombres", hue: "#7a3aff", f: 1.25, hint: "Affronter un gardien au cœur d'une expédition de nuit.", cond: run => !!run.night },
+  boucher: { base: "docteur_peste", n: "Le Boucher Affamé", hue: "#ff2a2a", f: 1.25, hint: "Atteindre un gardien sans aucun soigneur dans le groupe.", cond: run => run.party.map(id => heroById(id)).filter(Boolean).every(h => CLASSES[h.cls].role !== "soin") },
+  roi_oublie: { base: "roi_cendres", n: "Le Roi Oublié", hue: "#40c0ff", f: 1.35, hint: "Descendre dans l'Abîme en prêtant au moins trois serments.", cond: run => run.region === "abime" && (run.oaths || []).length >= 3 },
+};
+const SECRET_INFO = {
+  juge_immacule: ["Celui qui pèse les âmes sans tache", "« Aucune faute ? Alors je jugerai votre orgueil. »", "Balance du Juge", "wpn"],
+  mere_ombres: ["Elle n'apparaît qu'à la nuit tombée", "« Chut… mes enfants dorment dans vos ombres. »", "Voile de la Mère", "arm"],
+  boucher: ["Il sent les groupes sans guérisseur", "« Personne pour recoudre ? Tant mieux. »", "Couperet du Boucher", "wpn"],
+  roi_oublie: ["Le roi que la Couronne a effacé", "« Trois serments… Vous me rappelez quelqu'un. Moi. »", "Couronne oubliée", "tr"],
+};
+for (const k in SECRET_BOSSES) { const D = SECRET_BOSSES[k], M = MONSTERS[D.base]; if (!M) continue; MONSTERS[k] = Object.assign({}, M, { n: D.n, art: M.art || D.base, hue: D.hue, secret: 1, hp: Math.round(M.hp * D.f), dmg: M.dmg.map(v => Math.round(v * (1 + (D.f - 1) * .6))), res: (M.res || 0) + 10 }); }
+// gardien secret à la place du gardien prévu : toujours la première fois que la condition est remplie, puis une fois sur trois
+function secretBossFor(run, rng = RNG) {
+  for (const k in SECRET_BOSSES) { const D = SECRET_BOSSES[k]; if (!MONSTERS[k]) continue; let ok = false; try { ok = D.cond(run); } catch (e) { ok = false; } if (!ok) continue; const won = typeof S !== "undefined" && S && S.beaten && S.beaten[k]; if (!won || rng.chance(.33)) return k; }
+  return null;
+}
 // ── Liens entre héros, trophées, primes, météo (oct. 2026) ──
 // Liens : deux héros côte à côte pendant 3 expéditions deviennent amis (70 %) ou rivaux.
 const BOND_N = 3;
@@ -3491,6 +3636,7 @@ const BOSS_INFO = {
   coeur_montagne: ["Le cœur mis à nu", "« BOUM… BOUM… BOUM… »", "Cœur de magma", "tr"],
   roi_vide: ["Ce que la Couronne laisse des rois", "« Asseyez-vous. Le trône vous attendait. »", "Couronne vide", "arm"],
 };
+if (typeof SECRET_INFO !== "undefined") Object.assign(BOSS_INFO, SECRET_INFO); // gardiens secrets
 const UNIQ = Object.fromEntries(Object.entries(BOSS_INFO).map(([k, v]) => [k, { n: v[2], kind: v[3], boss: k }]));
 // butin unique : 30 % à la première victoire contre ce gardien, 12 % ensuite ; qualité Mythique, +1 propriété
 function uniqueDrop(bk, lvl, first) {
@@ -3573,7 +3719,7 @@ const STANCE = {
 function heroLook(h) {
   const wt = h.gear && h.gear.wpn ? h.gear.wpn.tier : 1, at = h.gear && h.gear.arm ? h.gear.arm.tier : 1;
   const rar = Math.max(h.gear && h.gear.arm ? h.gear.arm.rar : 0, h.gear && h.gear.wpn ? h.gear.wpn.rar : 0);
-  return { cls: h.cls, tier: at, wtier: wt, rar, evo: h.evo, apex: h.lvl >= APEX_LVL && !!h.evo, female: h.female, skin: h.look.skin, hair: h.look.hair, hairCol: h.look.hairCol, beard: h.female ? -1 : h.look.beard, scar: h.look.scar, tint: h.outfit && typeof OUTFITS !== "undefined" ? (OUTFITS.find(o => o.k === h.outfit) || {}).tint || null : null, key: [h.outfit || "", h.cls, at, wt, h.evo, h.female ? 1 : 0, h.look.hair, h.look.beard, h.look.skin, h.look.hairCol, h.lvl >= APEX_LVL ? 1 : 0].join("|") };
+  return { cls: h.cls, tier: at, wtier: wt, rar, evo: h.evo, apex: h.lvl >= APEX_LVL && !!h.evo, asc: h.asc || 0, female: h.female, skin: h.look.skin, hair: h.look.hair, hairCol: h.look.hairCol, beard: h.female ? -1 : h.look.beard, scar: h.look.scar, tint: h.outfit && typeof OUTFITS !== "undefined" ? (OUTFITS.find(o => o.k === h.outfit) || {}).tint || null : null, key: [h.outfit || "", h.cls, at, wt, h.evo, h.female ? 1 : 0, h.look.hair, h.look.beard, h.look.skin, h.look.hairCol, h.lvl >= APEX_LVL ? 1 : 0].join("|") };
 }
 function rotatedCopy(src, ang, W, H) { W = H = Math.ceil(Math.hypot(src.width, src.height)); const cv = mkCanvas(W, H), x = cv.getContext("2d"); x.translate(W / 2, H / 2); x.rotate(ang); x.drawImage(src, -src.width / 2, -src.height / 2); return cv; }
 function blankSprite(w, h, sc) { const cv = mkCanvas(Math.ceil(w * sc), Math.ceil(h * sc)); cv.ax = cv.width / 2; cv.ay = cv.height - 22 * sc; cv.sc = sc; cv.blank = 1; return cv; }
@@ -3756,14 +3902,14 @@ function heroImgSprite(L, pose, sc, o = {}) {
   const im = heroArt(L); if (!im) return null;
   const hurt = pose.lean < -.25 && pose.hx < 0, agony = pose.hy > 15;
   const nm = heroArtName(L), evoArt = nm.indexOf("_t") < 0 || !/_t\d$/.test(nm);
-  return imgSprite(im, { sc, cx: ART_CX[nm], h: 182, maxW: 260, top: ART_META[nm] || ART_META["hero_" + L.cls + "_t3"] || 0, flip: ART_FLIP.has(nm), aura: evoArt && !L.apex ? null : evoAura(L), auraA: L.apex ? .45 : .28,
+  return imgSprite(im, { sc, cx: ART_CX[nm], h: 182, maxW: 260, top: ART_META[nm] || ART_META["hero_" + L.cls + "_t3"] || 0, flip: ART_FLIP.has(nm), aura: L.asc ? ASC_AURA[(L.asc - 1) % ASC_AURA.length] : evoArt && !L.apex ? null : evoAura(L), auraA: L.asc ? .5 : L.apex ? .45 : .28,
     pose: Object.assign({}, pose, { agony, cast: pose.free || pose.aBs > 1.5 }), tint: o.tint || (agony ? "rgba(70,8,8,.38)" : hurt ? "rgba(160,20,20,.16)" : null), hue: L.tint || null });
 }
 function monImgSprite(key, pose, sc) {
   const M = MONSTERS[key] || {}, n = "mon_" + (M.art || key), im = artImg(n); if (!im) return null;
   const big = (M.sz || 1) > 1, f = pose.fig || {};
   return imgSprite(im, { sc, cx: ART_CX[n], h: MON_H[M.art || key] || (M.boss ? 335 : M.elite ? 240 : 190), maxW: big ? 320 : (M.elite ? 200 : 140), flip: !ART_FLIP.has(n),
-    pose: { atk: pose.atk, lean: f.lean, hx: f.hx }, tint: f.lean < 0 ? "rgba(170,20,20,.16)" : null });
+    pose: { atk: pose.atk, lean: f.lean, hx: f.hx }, tint: f.lean < 0 ? "rgba(170,20,20,.16)" : null, hue: M.hue || null });
 }
 function petImgSprite(id, o, sc) {
   const n = "pet_" + id + (o.evo ? "_evo" : ""), im = artImg(n) || artImg("pet_" + id); if (!im) return null;
@@ -4516,7 +4662,7 @@ function openBuilding(k, tab) {
       <div class="grid" style="--min:250px;margin-top:10px">${[1, 2, 3, 4, 5, 6].map(t => { const c = craftCost(t), lock = t > S.bld.forge; return `<div class="card ${lock ? "lock" : ""}" style="cursor:default"><div class="row">${t >= 6 ? Object.keys(CLASSES[cls].evos).map(k => `<span data-a="tierZoom" data-v="${cls}:6:${k}" style="cursor:zoom-in">${canvasSlot("tier:" + cls + ":6:" + k, 60, 95)}</span>`).join("") : `<span data-a="tierZoom" data-v="${cls}:${t}" style="cursor:zoom-in">${canvasSlot("tier:" + cls + ":" + t, 76, 95)}</span>`}<div style="flex:1"><h3>${TIER_N[t]} ${lock ? ico("lock", "#9a8c7a", 14) : ""}</h3><div class="tiny gold">Héros niveau ${TIER_LVL[t]}+</div><div class="tiny dim">${t >= 6 ? "Ascendant : " + GEAR_NAMES[cls].wpn[4] + "<br>" + Object.values(CLASSES[cls].evos).map(E => "Armure ascendante : " + E.n).join("<br>") + '<br><span class="gold">Réservé aux héros évolués : chaque voie a son armure, qui révèle son aspect final</span>' : GEAR_NAMES[cls].wpn[t - 1] + "<br>" + GEAR_NAMES[cls].arm[t - 1]}</div><div class="tiny" style="margin-top:4px">${c.gold} or · ${c.fer} fer${c.essence ? ` · ${c.essence} ess.` : ""}${c.cendre ? ` · ${c.cendre} cendre` : ""}</div></div></div>${lock ? `<p class="tiny dim">Forge niveau ${t} requise</p>` : `<div class="row" style="margin-top:6px"><button class="btn sm ${canPay(c) ? "" : "off"}" data-a="craft" data-v="${cls}:wpn:${t}">${ico("weapon")}Arme</button>${t >= 6 ? Object.entries(CLASSES[cls].evos).map(([k, E]) => `<button class="btn sm ${canPay(c) && S.heroes.some(h => h.cls === cls && h.evo === k) ? "" : "off"}" data-a="craft" data-v="${cls}:arm:6:${k}" ${S.heroes.some(h => h.cls === cls && h.evo === k) ? "" : 'title="Faites d\'abord évoluer un héros dans cette voie"'}>${ico("armor")}${E.n}</button>`).join("") : `<button class="btn sm ${canPay(c) ? "" : "off"}" data-a="craft" data-v="${cls}:arm:${t}">${ico("armor")}Armure</button>`}</div>`}</div>`; }).join("")}</div>`;
     } else {
       const junk = S.inv.filter(it => !itemUseful(it) && !itemFuture(it));
-      body = head + (S.inv.length ? `<div class="row sp" style="margin-bottom:8px"><span class="tiny dim">${junk.length ? `${junk.length} objet${junk.length > 1 ? "s" : ""} moins bon${junk.length > 1 ? "s" : ""} que ce que portent vos héros` : "Tout l'inventaire peut encore servir."}</span><button class="btn sm ${junk.length ? "gold" : "ghost off"}" data-a="salvAll">${ico("iron")}Recyclage rapide</button></div>` : "") + invList();
+      body = head + (typeof enchantBarHTML === "function" ? enchantBarHTML() : "") + (S.inv.length ? `<div class="row sp" style="margin-bottom:8px"><span class="tiny dim">${junk.length ? `${junk.length} objet${junk.length > 1 ? "s" : ""} moins bon${junk.length > 1 ? "s" : ""} que ce que portent vos héros` : "Tout l'inventaire peut encore servir."}</span><button class="btn sm ${junk.length ? "gold" : "ghost off"}" data-a="salvAll">${ico("iron")}Recyclage rapide</button></div>` : "") + invList();
     }
   }
   if (k === "chapelle") {
@@ -4641,6 +4787,7 @@ function itemLine(it) {
   if (it.kind === "arm") stats.push(`+${Math.round((ARM_HP[it.tier] * (1 + .07 * it.up) + it.up * .025) * 100)} % PV`, `+${Math.round(ARM_PROT[it.tier] * 100)} % protection`);
   if (it.kind === "tr") stats.push(TRINKETS[it.key].d);
   if (it.mod && ITEM_MODS[it.mod]) stats.push(`<b style="color:#ffb848">✦ ${ITEM_MODS[it.mod].n}</b> : ${ITEM_MODS[it.mod].d}`);
+  if (it.set && SETS[it.set]) stats.push(`<b style="color:${SETS[it.set].c}">❖ ${SETS[it.set].n}</b> (2 : ${SETS[it.set].b2.d} ; 3 : ${SETS[it.set].b3.d})`);
   for (const f of it.aff || []) { const A = AFFIXES[f.k]; stats.push(`+${A.fmt === "pct" ? Math.round(f.v * 100) + " %" : f.v} ${A.n}`); }
   const req = it.kind !== "tr" && TIER_LVL[it.tier] > 1 ? ` · <span class="tiny dim">niv ${TIER_LVL[it.tier]}+</span>` : "";
   return (gl(stats.filter(t => !/^\+0 %/.test(t)).join(" · ")) || "Équipement de base") + req;
@@ -4649,7 +4796,7 @@ function slotHTML(it, act, v, extra = "") { if (!it) return `<div class="slot" d
 function invList(filter) {
   const items = S.inv.filter(filter || (() => true)).sort((a, b) => b.rar - a.rar || b.tier - a.tier);
   if (!items.length) return '<div class="empty">Inventaire vide. Explorez pour trouver du butin, ou forgez.</div>';
-  return `<div class="col">${items.map(it => `<div class="row card" style="cursor:default;gap:10px">${slotHTML(it, "itemInfo", it.id)}<div style="flex:1;min-width:150px"><b class="rar${it.rar}">${gearName(it)}</b> <span class="tiny dim">${RARITY[it.rar].n}${it.cls ? " · " + CLASSES[it.cls].n : ""}</span><div class="tiny">${itemLine(it)}</div></div><div class="row" style="gap:4px">${it.kind !== "tr" ? `<button class="btn sm" data-a="upItem" data-v="${it.id}" title="Améliorer">${ico("up")}</button>` : ""}<button class="btn sm" data-a="equipPick" data-v="${it.id}">Équiper</button><button class="btn ghost sm" data-a="salv" data-v="${it.id}" title="Recycler">${ico("iron")}</button></div></div>`).join("")}</div>`;
+  return `<div class="col">${items.map(it => `<div class="row card" style="cursor:default;gap:10px">${slotHTML(it, "itemInfo", it.id)}<div style="flex:1;min-width:150px"><b class="rar${it.rar}">${gearName(it)}</b> <span class="tiny dim">${RARITY[it.rar].n}${it.cls ? " · " + CLASSES[it.cls].n : ""}</span><div class="tiny">${itemLine(it)}</div></div><div class="row" style="gap:4px">${it.kind !== "tr" ? `<button class="btn sm" data-a="upItem" data-v="${it.id}" title="Améliorer">${ico("up")}</button>` : ""}${it.kind !== "tr" && it.rar >= 3 ? `<button class="btn sm" data-a="enchant" data-v="${it.id}" title="Enchanter : changer l'effet unique">${ico("gem", "#9ad0ff")}</button>` : ""}<button class="btn sm" data-a="equipPick" data-v="${it.id}">Équiper</button><button class="btn ghost sm" data-a="salv" data-v="${it.id}" title="Recycler">${ico("iron")}</button></div></div>`).join("")}</div>`;
 }
 ACT.itemInfo = id => { const it = findItem(id); if (!it) return; const c = it.kind !== "tr" ? upCost(it) : null; toast(`<b class="rar${it.rar}">${gearName(it)}</b><br><span class="small">${itemLine(it)}</span>${c ? `<br><span class="tiny dim">Amélioration : ${c.gold} or, ${c.fer} fer${c.essence ? ", " + c.essence + " ess." : ""}</span>` : ""}`); };
 ACT.upItem = id => { const it = findItem(id); const r = upgradeItem(it); if (!r || r.err) return toast((r && r.err) || "Impossible.", "bad"); sfx("forge"); toast(`${gearName(it)}`, "good"); save(); renderHud(); if (UI.bldOpen === "forge" && !$("#modal").hidden && !UI.heroOpen) openBuilding("forge", "inv"); else refresh(); };
@@ -4717,7 +4864,7 @@ SCREENS.hero = {
       <div class="panel" style="padding:8px;text-align:center;flex:0 0 auto;margin:0 auto">${canvasSlot("full", 210, 262)}<div class="row" style="justify-content:center">${slotHTML(h.gear.wpn, "gearSlot", h.id + ":wpn")}${slotHTML(h.gear.arm, "gearSlot", h.id + ":arm")}${slotHTML(h.gear.tr1, "gearSlot", h.id + ":tr1")}${slotHTML(h.gear.tr2, "gearSlot", h.id + ":tr2")}</div><div class="tiny dim" style="margin-top:4px">Arme · Armure · Bibelots</div></div>
       <div style="flex:1;min-width:260px">
         <h1 style="margin-bottom:2px">${esc(h.name)} <button class="btn ghost sm" data-a="rename" data-v="${h.id}">✎</button></h1>
-        <div class="row">${roleTag(C.role)}<span class="tag gold">${heroTitle(h)}</span><span class="tag">Niveau ${h.lvl}</span>${isInjured(h) ? '<span class="tag bad">Blessé</span>' : ""}</div>
+        <div class="row">${roleTag(C.role)}<span class="tag gold">${heroTitle(h)}</span><span class="tag">Niveau ${h.lvl}</span>${h.asc ? `<span class="tag" style="color:${ASC_AURA[(h.asc - 1) % ASC_AURA.length]}">${"✦".repeat(Math.min(5, h.asc))} Ascension ${roman(h.asc)}</span>` : ""}${isInjured(h) ? '<span class="tag bad">Blessé</span>' : ""}</div>
         <div class="bar xp" style="margin:8px 0 2px"><i style="width:${h.lvl >= MAX_LVL ? 100 : 100 * h.xp / xpNeed(h.lvl)}%"></i></div><div class="tiny dim">${h.lvl >= MAX_LVL ? "Niveau maximal" : `${h.xp} / ${xpNeed(h.lvl)} XP`}</div>
         <p class="lore small">${C.lore}</p>
         <div class="row small">${h.traits.map(t => `<span class="tag ${TRAITS[t].good ? "good" : "bad"}" ${tipAttr(TRAITS[t].n, TRAITS[t].d)}>${TRAITS[t].n}</span>`).join("")}</div>
@@ -4763,6 +4910,7 @@ function heroSheetHTML(h, foot = "") {
       <h2 style="margin:0">${esc(h.name)}</h2>
       <div class="row" style="gap:4px;margin:4px 0">${roleTag(C.role)}<span class="tag gold">${heroTitle(h)}</span><span class="tag">Niveau ${h.lvl}</span></div>
       <p class="lore small" style="margin:4px 0">${C.lore}</p>
+      ${typeof heroProgressHTML === "function" ? heroProgressHTML(h) : ""}
       <div class="col" style="gap:2px">${h.traits.map(t => `<div class="tiny"><b class="${TRAITS[t].good ? "good" : "bad"}">${TRAITS[t].n}</b> — ${gl(TRAITS[t].d)}</div>`).join("")}</div>
       <div class="statgrid" style="margin-top:8px"><div>PV <b>${Math.round(st.hp)}</b></div><div>Dégâts <b>${Math.round(st.dmgLo)}–${Math.round(st.dmgHi)}</b></div><div>Protection <b>${Math.round(st.prot * 100)} %</b></div><div>Vitesse <b>${Math.round(st.spd)}</b></div><div>Critique <b>${Math.round(st.crit)} %</b></div><div>Esquive <b>${Math.round(st.dodge)}</b></div></div>
       <p class="tiny dim" style="margin:6px 0 0">Rangs préférés : ${C.rk.join(", ")} · Armure ${C.armor}</p>
@@ -4802,7 +4950,7 @@ function petSkillText(s, id) {
 function petSheet(id, foot = "") {
   const P = PETS[id];
   modal(`<div class="row" style="gap:12px;flex-wrap:wrap"><div style="margin:0 auto">${canvasSlot("pet", 200, 150)}</div><div style="flex:1;min-width:220px"><h2 style="margin:0">${P.n}</h2><div class="row" style="gap:4px;margin:4px 0">${roleTag(P.role)}${P.gold ? `<span class="tag gold">+${Math.round(P.gold * 100)} % d'or</span>` : ""}</div><p class="lore small">${P.d}</p><p class="tiny dim">Le compagnon agit seul à la fin de chaque tour. Il gagne des niveaux avec le groupe et évolue au niveau ${PET_EVO_LVL}.</p></div></div>
-    ${P.rank > 1.001 ? `<div class="tiny gold" style="margin-top:6px">${ico("star", "#e8c878", 11)} Puissance du rang : +${Math.round((P.rank - 1) * 100)} % sur toutes ses compétences</div>` : ""}<h3 style="margin-top:10px">Compétences</h3><div class="col">${P.sk.map((s, i) => `<div class="skl" style="cursor:default">${ico(s.m ? "claw" : s.heal ? "heal" : s.shield ? "shield" : "star", "#e8c878")}<div><b>${s.n}</b><div class="tiny">${petSkillText(Object.assign(i === 1 && !s.every ? { every: 3 } : {}, petSkScaled(s, P.rank || 1), i === 0 && P.sk[1] ? { base: 1 } : {}), id)}</div></div></div>`).join("")}</div>
+    ${P.rank > 1.001 ? `<div class="tiny gold" style="margin-top:6px">${ico("star", "#e8c878", 11)} Puissance du rang : +${Math.round((P.rank - 1) * 100)} % sur toutes ses compétences</div>` : ""}${typeof petProgressHTML === "function" ? petProgressHTML(id) : ""}<h3 style="margin-top:10px">Compétences</h3><div class="col">${P.sk.map((s, i) => `<div class="skl" style="cursor:default">${ico(s.m ? "claw" : s.heal ? "heal" : s.shield ? "shield" : "star", "#e8c878")}<div><b>${s.n}</b><div class="tiny">${petSkillText(Object.assign(i === 1 && !s.every ? { every: 3 } : {}, petSkScaled(s, P.rank || 1), i === 0 && P.sk[1] ? { base: 1 } : {}), id)}</div></div></div>`).join("")}</div>
     <h3 style="margin-top:10px">Évolution : ${P.evo.n}</h3><p class="tiny lore">${P.evo.d}</p><div class="skl" style="cursor:default;border-color:#a05a2a">${ico("star", "#ff9a4a")}<div><b>${P.evo.sk.n}</b><div class="tiny">${petSkillText(Object.assign({ every: 2 }, petSkScaled(P.evo.sk, P.rank || 1)), id)}</div></div></div>${foot}`, { wide: 1, onClose: bldBack(), mount: m => fillCanvases(m, c => paintPet(c, id, 0)) });
 }
 ACT.petInfo = (id, el, e) => { e && e.stopPropagation(); petSheet(id, `<div class="row" style="justify-content:flex-end;margin-top:10px"><button class="btn" data-a="bld" data-v="menagerie">Retour à la Ménagerie</button></div>`); };
@@ -5255,6 +5403,8 @@ function coachShow() {
 }
 ACT.coachNext = () => { UI.coach++; coachShow(); };
 ACT.coachSkip = () => { UI.coach = COACH.length; coachShow(); };
+// vibrations du téléphone (coups critiques, chutes, gardien abattu, ultime prêt) — désactivables dans les Options
+function buzz(p) { try { if (S.opts.haptic !== 0 && !S.opts.calm && navigator.vibrate) navigator.vibrate(p); } catch (e) { } }
 function choose(a) { if (CB.busy) return; const r = CB.resolve; CB.resolve = null; CB.sel = null; if (r) r(a); }
 function skMini() { return !!S.opts.skMini; }
 // toucher la description compacte l'ouvre en entier (et inversement), sans changer l'option
@@ -5290,20 +5440,22 @@ function cbBar(u) {
   const B = CB.B, r = rankOf(B, u), n = B.heroes.length;
   const btn = (sk) => { const ok = canUse(B, u, sk); const cd = u.cds[sk.id] > 0 ? u.cds[sk.id] : 0; return `<button class="sk ${ok ? "" : "no"} ${sk.isUlt ? "ult" + (u.ultV >= 100 ? " ready" : "") : ""}" data-a="cbSk" data-v="${sk.id}">${ico(sk.ic, sk.isUlt ? "#ff9a4a" : ok ? "#e8d8b8" : "#6a5a4a")}<span>${sk.n}</span>${sk.rank > 1 ? `<span class="rk">${roman(sk.rank)}</span>` : ""}${cd ? `<span class="cd">${cd}</span>` : ""}${sk.isUlt && u.ultV < 100 ? `<span class="cd" style="font-size:13px">${Math.floor(u.ultV)} %</span>` : ""}</button>`; };
   box.innerHTML = u.skills.map(btn).join("") + btn(u.ult) +
-    `<button class="sk ${S.run.potions ? "" : "no"}" data-a="cbPotion" data-v="potion">${ico("potion", "#e86a5a")}<span>Potion ×${S.run.potions}</span></button>` +
-    `<button class="sk ${r >= n ? "no" : ""}" data-a="cbMove" data-v="1" title="Reculer">${ico("back", "#c8b8a0")}<span>Reculer</span></button>` +
-    `<button class="sk ${r <= 1 ? "no" : ""}" data-a="cbMove" data-v="-1" title="Avancer">${ico("charge", "#c8b8a0")}<span>Avancer</span></button>` +
-    `<button class="sk ${u.delayR === B.round ? "no" : ""}" data-a="cbDelay" title="Retarder : rejouer en fin de tour (+10 % de protection)">${ico("hourglass", "#c8b8a0")}<span>Retarder</span></button>` +
-    `<button class="sk" data-a="cbPass" title="Passer">${ico("skip", "#9a8c7a")}<span>Passer</span></button>` + petBurstBtn();
+    `<button class="sk sec ${S.run.potions ? "" : "no"}" data-a="cbPotion" data-v="potion">${ico("potion", "#e86a5a")}<span>Potion ×${S.run.potions}</span></button>` +
+    `<button class="sk sec ${r >= n ? "no" : ""}" data-a="cbMove" data-v="1" title="Reculer">${ico("back", "#c8b8a0")}<span>Reculer</span></button>` +
+    `<button class="sk sec ${r <= 1 ? "no" : ""}" data-a="cbMove" data-v="-1" title="Avancer">${ico("charge", "#c8b8a0")}<span>Avancer</span></button>` +
+    `<button class="sk sec ${u.delayR === B.round ? "no" : ""}" data-a="cbDelay" title="Retarder : rejouer en fin de tour (+10 % de protection)">${ico("hourglass", "#c8b8a0")}<span>Retarder</span></button>` +
+    `<button class="sk sec" data-a="cbPass" title="Passer">${ico("skip", "#9a8c7a")}<span>Passer</span></button>` + petBurstBtn();
   d.innerHTML = `<b>${esc(u.name)}</b> <span class="dim small">${CLASSES[u.cls].n} · rang ${r}</span>`;
+  if (u.ultV >= 100 && !u._ultBuzz) { u._ultBuzz = 1; buzz([15, 40, 15]); } else if (u.ultV < 100) u._ultBuzz = 0;
   void n;
   CB.barH = $("#cbar").offsetHeight + 6; cbLayout();
 }
 function cbTopLeft() {
   const B = CB.B, el = $("#cb-tl"); if (!el || !B) return; const ord = $("#cb-ord"); if (ord) ord.innerHTML = turnOrderHTML(); miniLogRefresh();
+  if (B.terrain && !B._terrShown && TERRAINS[B.terrain]) { B._terrShown = 1; toast(`${ico(TERRAINS[B.terrain].ic, "#e8c878", 14)} <b>${TERRAINS[B.terrain].n}</b> — ${TERRAINS[B.terrain].d}`, "", 5000); }
   if (!hud("mor")) { el.innerHTML = ""; return; }
   const mc = B.morale >= 80 ? "#ffd27a" : B.morale <= 20 ? "#ff5a4a" : "#c8b8a0";
-  el.innerHTML = `<div class="panel" style="padding:5px 8px;font-size:12px"><div class="row" style="gap:6px;flex-wrap:nowrap"><span data-tip="resolution" style="display:contents">${ico("banner", mc, 16)}</span><div class="bar" style="width:70px"><i style="width:${B.morale}%;background:linear-gradient(${mc},#6a4a2a)"></i></div><span class="gl" data-tip="resolution" style="color:${mc}">${B.morale >= 80 ? "Exaltés" : B.morale <= 20 ? "Ébranlés" : "Résolus"}</span></div><div class="row" style="gap:6px;margin-top:3px;flex-wrap:nowrap"><span class="row" data-tip="lueur" style="gap:4px;flex-wrap:nowrap">${ico("torch", B.light < 30 ? "#ff5a3a" : "#ffb050", 16)}<span class="tiny">${Math.round(B.light)}</span></span><span class="tiny dim">Tour ${B.round}</span></div></div>`;
+  el.innerHTML = `<div class="panel" style="padding:5px 8px;font-size:12px"><div class="row" style="gap:6px;flex-wrap:nowrap"><span data-tip="resolution" style="display:contents">${ico("banner", mc, 16)}</span><div class="bar" style="width:70px"><i style="width:${B.morale}%;background:linear-gradient(${mc},#6a4a2a)"></i></div><span class="gl" data-tip="resolution" style="color:${mc}">${B.morale >= 80 ? "Exaltés" : B.morale <= 20 ? "Ébranlés" : "Résolus"}</span></div><div class="row" style="gap:6px;margin-top:3px;flex-wrap:nowrap"><span class="row" data-tip="lueur" style="gap:4px;flex-wrap:nowrap">${ico("torch", B.light < 30 ? "#ff5a3a" : "#ffb050", 16)}<span class="tiny">${Math.round(B.light)}</span></span><span class="tiny dim">Tour ${B.round}</span>${B.terrain && TERRAINS[B.terrain] ? `<span class="tiny gold gl" ${tipAttr(TERRAINS[B.terrain].n, TERRAINS[B.terrain].d)}>${ico(TERRAINS[B.terrain].ic, "#e8c878", 12)} ${TERRAINS[B.terrain].n}</span>` : ""}</div></div>`;
 }
 // ── saisie sur la scène ──
 function unitAt(px, py) {
@@ -5372,6 +5524,7 @@ async function playEvents(ev) {
         const v = V(e.u), u = U(e.u); if (!v) break;
         if (e.self) { popText(e.u, "-" + e.dmg, "#ff8a7a"); break; }
         v.pose = "hurt"; v.pt = .35; v.flash = 1; v.kick = (u && u.side === "h" ? -1 : 1) * (e.crit ? 26 : 16);
+        if (e.crit) buzz(u && u.side === "h" ? [40, 30, 40] : 25); else if (u && u.side === "h" && e.dmg >= u.hpMax * .25) buzz(30);
         if (!e.dot) CB.fx.push({ slash: 1, x: v.x, y: v.y - 105 * CB.scale, r: (e.crit ? 64 : 48) * CB.scale, a: (u && u.side === "h" ? Math.PI : 0) + (Math.random() - .5) * .8, col: e.crit ? "#ffd04a" : "#ffb08a", t: 0, life: e.crit ? .45 : .32 });
         if (e.crit) CB.flash = Math.max(CB.flash || 0, .25);
         burst(v.x, v.y - 100 * CB.scale, srcCol === "#e8e0c8" ? "#d02a2a" : srcCol, e.crit ? 26 : 12, { sp: e.crit ? 260 : 170 });
@@ -5387,6 +5540,7 @@ async function playEvents(ev) {
       case "heal": if (e.v > 0) { popText(e.u, "+" + e.v, "#8fe07a"); const v = V(e.u); if (v) burst(v.x, v.y - 80 * CB.scale, "#8fe07a", e.regen ? 5 : 10, { up: 90, g: -60, sp: 60 }); } await wait(e.regen ? 200 : 90); break;
       case "st": { const u = U(e.u); if (!u) break; const neg = NEG.has(e.st); popText(e.u, ST_INFO[e.st].n, ST_INFO[e.st].c); if (e.st === "stun") sfx("stun"); else if (neg && e.st !== "mark") sfx("debuff"); await wait(70); break; }
       case "resist": popText(e.u, "Résiste", "#d8d0c0"); await wait(60); break;
+      case "combo": popText(e.u, "Combo +" + Math.round(e.v * 100) + " %", "#ffd27a"); break;
       case "stunned": popText(e.u, "Étourdi", "#ffd84a"); await wait(320); break;
       case "cleanse": popText(e.u, "Purifié", "#e8f0ff"); break;
       case "guard": popText(e.u, "Protège !", "#c0d0e0"); await wait(120); break;
@@ -5397,9 +5551,9 @@ async function playEvents(ev) {
       case "saved": popText(e.u, "Sauvé !", "#8fe07a"); bark(e.u, "saved"); break;
       case "resist_death": popText(e.u, "Tient bon !", "#ffd27a", true); await wait(380); break;
       case "cheat": popText(e.u, "Défie la mort !", "#ffd27a", true); await wait(380); break;
-      case "fall": { popText(e.u, "TOMBÉ", "#ff3a2a", true); sfx("fall"); const v = V(e.u); if (v) v.dying = 1; CB.shake = .3; { const o = CB.B.heroes.filter(h => alive(h) && h.uid !== e.u); if (o.length) bark(pick(o).uid, "ally"); } await wait(700); cbLayout(); break; }
+      case "fall": { buzz([80, 50, 120]); popText(e.u, "TOMBÉ", "#ff3a2a", true); sfx("fall"); const v = V(e.u); if (v) v.dying = 1; CB.shake = .3; { const o = CB.B.heroes.filter(h => alive(h) && h.uid !== e.u); if (o.length) bark(pick(o).uid, "ally"); } await wait(700); cbLayout(); break; }
       case "revive": { popText(e.u, "Se relève !", "#ffe08a", true); sfx("holy"); cbLayout(); const v = V(e.u); if (v) { v.dying = 0; v.a = 1; glowAt(v, "#ffe08a", 1.5); } await wait(400); break; }
-      case "die": { const v = V(e.u); if (cur && U(cur.u) && U(cur.u).side === "h" && alive(U(cur.u))) bark(cur.u, "kill"); if (v) { v.dying = 1; burst(v.x, v.y - 80 * CB.scale, "#2a1a1a", 20, { add: false, g: 200 }); burst(v.x, v.y - 80 * CB.scale, "#ffb070", 10, { up: 140, g: -30 }); } sfx("die"); await wait(e.boss ? 900 : 380); cbLayout(); break; }
+      case "die": { if (e.boss) buzz([60, 40, 60, 40, 200]); const v = V(e.u); if (cur && U(cur.u) && U(cur.u).side === "h" && alive(U(cur.u))) bark(cur.u, "kill"); if (v) { v.dying = 1; burst(v.x, v.y - 80 * CB.scale, "#2a1a1a", 20, { add: false, g: 200 }); burst(v.x, v.y - 80 * CB.scale, "#ffb070", 10, { up: 140, g: -30 }); } sfx("die"); await wait(e.boss ? 900 : 380); cbLayout(); break; }
       case "move": cbLayout(); sfx("step"); await wait(200); break;
       case "lastbreath": { const v = V(e.u); if (v) glowAt(v, "#ffd070", 2); popText(e.u, "Dernier souffle !", "#ffd070", true); sfx("ult"); CB.shake = .5; await wait(700); break; }
       case "summon": { cbLayout(); sfx("dark"); const v = V(e.u); if (v) { v.a = 1; v.born = SC.t; glowAt(v, "#9a3aff", 1.4); } popText(e.u, "Renfort !", "#c89aff", true); await wait(500); break; }
@@ -5561,6 +5715,21 @@ function drawCombat(x, t, dt) {
 function drawIcon(x, name, cx, cy, s, col, lw = 2) {
   const im = artImg("ui_" + name); if (im) { const d = 26 * s; x.drawImage(im, cx - d / 2, cy - d / 2, d, d); return; } // icône peinte
  const p = new Path2D(IC[name] || IC.star); x.save(); x.translate(cx - 12 * s, cy - 12 * s); x.scale(s, s); x.strokeStyle = col; x.lineWidth = lw / s * s; x.lineCap = "round"; x.lineJoin = "round"; x.stroke(p); x.restore(); }
+// estimation d'une attaque d'un héros sur une cible (sans le hasard) : fourchette, moyenne, chance de tuer
+function dmgPreview(B, u, x, sk) {
+  try {
+    const t = sk.t || "e", rk = 1 + .1 * ((sk.rank || 1) - 1), hits = sk.hits || 1;
+    const mul = sk.m * rk * (t === "ae" ? 1 + (u.hooks.aoeDmg || 0) + (B.relicH.aoe || 0) : 1) * strikeMul(B, u, x, sk, null) * (1 - effProt(x));
+    const lo = Math.max(1, Math.round(u.dmgLo * mul)), hi = Math.max(1, Math.round(u.dmgHi * mul));
+    let acc = u.acc + (sk.acc || 0) + stSum(u, "accUp") - stSum(u, "accDn") - effDodge(x) - (B.mods.fog || 0) - (B.terrain === "brume" && rankOf(B, x) >= 3 ? 12 : 0); if (B.morale <= 20) acc -= 10;
+    const ph = clamp(acc, 8, 97) / 100, pc = clamp((u.crit + (sk.cr || 0) + stSum(u, "critUp")) / 100, 0, 1), cm = 1.5 + (u.hooks.critDmg || 0);
+    const sh = stSum(x, "shield"), need = x.hp + sh;
+    const frac = (a, b) => b <= a ? (a >= need ? 1 : 0) : clamp((b - need) / (b - a), 0, 1);
+    const L = lo * hits, H = hi * hits, pk = Math.pow(ph, hits) * ((1 - pc) * frac(L, H, need) + pc * frac(L * cm, H * cm, need));
+    let aff = 1; for (const g of sk.tags || []) aff *= affinity(x, g);
+    return { lo: L, hi: H, avg: (L + H) / 2 * ph * (1 + pc * (cm - 1)), kill: pk, aff };
+  } catch (e) { return null; }
+}
 function drawUnitUI(x, u, v, t) {
   const B = CB.B, us = u.side === "h" && CB.port && CB.hScale ? CB.hScale : CB.scale, s = Math.max(.7, Math.min(1.25, us * 1.6)), w = Math.min(64 * s, CB.port && u.side === "h" ? SC.w / 5.4 : 1e9) * (u.sz > 1 ? 1.5 : 1), bx = v.x - w / 2, by = v.y + 8 * s;
   // barre de PV
@@ -5569,6 +5738,10 @@ function drawUnitUI(x, u, v, t) {
   x.fillStyle = "#5a1410"; x.fillRect(bx, by, w * v.hp, 8 * s);
   x.fillStyle = u.side === "h" ? lgrad(x, 0, by, 0, by + 8 * s, [[0, "#e04a3a"], [1, "#8a1a10"]]) : lgrad(x, 0, by, 0, by + 8 * s, [[0, "#c03a3a"], [1, "#6a1010"]]); x.fillRect(bx, by, w * hpk, 8 * s);
   const sh = stSum(u, "shield"); if (sh > 0) { x.fillStyle = "rgba(140,190,255,.7)"; x.fillRect(bx, by, w * clamp(sh / u.hpMax, 0, 1), 3 * s); }
+  // aperçu des dégâts : la part de PV que la compétence choisie devrait retirer (et la chance de tuer)
+  if (CB.sel && CB.sel.sk && CB.actor && u.side === "e" && CB.sel.tg.includes(u) && CB.sel.sk.m > 0 && !u.agony) { const P = dmgPreview(B, CB.actor, u, CB.sel.sk); if (P) {
+    const a = clamp((u.hp - P.avg) / u.hpMax, 0, 1); x.fillStyle = `rgba(255,230,180,${.45 + Math.sin(t * 6) * .25})`; x.fillRect(bx + w * a, by, w * (hpk - a), 8 * s);
+    const lab = P.kill >= .05 ? `☠ ${Math.round(P.kill * 100)} %` : `−${P.lo === P.hi ? P.lo : P.lo + "–" + P.hi}`; x.font = `700 ${Math.round(10 * s)}px Alegreya, serif`; x.lineWidth = 3; x.strokeStyle = "#000"; x.strokeText(lab, v.x, by - 3 * s); x.fillStyle = P.kill >= .05 ? "#ffd27a" : P.aff > 1.01 ? "#8ae07a" : P.aff < .99 ? "#c0a090" : "#f0e0c8"; x.fillText(lab, v.x, by - 3 * s); } }
   x.font = `700 ${Math.round(9.5 * s)}px Alegreya, serif`; x.textAlign = "center"; x.fillStyle = "#fff"; x.lineWidth = 3; x.strokeStyle = "#000"; const ht = u.agony ? "AGONIE" : Math.ceil(u.hp) + "/" + u.hpMax; x.strokeText(ht, v.x, by + 7.5 * s); x.fillStyle = u.agony ? "#ff6a5a" : "#f0e8e0"; x.fillText(ht, v.x, by + 7.5 * s);
   if (u.corrupt) glow(x, v.x, v.y - 60 * CB.scale, 80 * CB.scale, "#9a3aff", .14 + Math.sin(t * 3) * .04); // créature corrompue
   if (u.agony) { const pk = .5 + Math.sin(t * 5) * .5; glow(x, v.x, v.y - 60 * CB.scale, 60 * CB.scale, "#ff2a1a", .2 + pk * .2); }
@@ -5630,7 +5803,7 @@ SCREENS.codex = {
     if (tab === "classes") body = `<div class="grid" style="--min:280px">${CLASS_IDS.map(k => { const C = CLASSES[k], un = classUnlocked(k); return `<div class="card ${un ? "" : "lock"}" style="cursor:default"><div class="row" style="flex-wrap:nowrap;gap:8px">${canvasSlot("cl:" + k, 90, 112)}<div style="flex:1"><h3 style="margin:0">${C.n} ${un ? "" : ico("lock", "#9a8c7a", 13)}</h3>${roleTag(C.role)}<p class="tiny lore" style="margin:4px 0">${C.lore}</p><div class="tiny">Voies : ${Object.values(C.evos).map(e => `<b class="gold">${e.n}</b>`).join(" ou ")}</div>${un ? "" : `<div class="tiny dim">Débloquée au chapitre ${C.unlock}</div>`}</div></div></div>`; }).join("")}</div>`;
     if (tab === "synergies") body = `<p class="small dim">Certaines classes se complètent. Quand elles partent ensemble en expédition, tout le groupe en profite.</p><div class="grid" style="--min:260px">${Object.keys(SYNERGIES).map(k => { const Y = SYNERGIES[k]; return `<div class="card" style="cursor:default"><h3 style="margin:0">${ico("link", "#e8c878", 15)} ${Y.n}</h3><div class="tiny gold" style="margin:3px 0">${synergyNeedText(Y)}</div><p class="small" style="margin:0">${gl(Y.d)}</p></div>`; }).join("")}</div>`;
     if (tab === "bestiaire") body = bestiaryHTML();
-    if (tab === "atlas") body = atlasHTML();
+    if (tab === "atlas") body = atlasHTML() + (typeof secretBossesHTML === "function" ? questsHTML() + secretBossesHTML() : "");
     if (tab === "histoire") body = `<div class="panel" style="padding:14px"><h3>Prologue</h3>${STORY.intro.map(l => `<p class="lore">${l}</p>`).join("")}${REGIONS.map(r => S.prog[r.id] && S.prog[r.id].clears ? `<div class="sep"></div><h3>${r.sub} — ${r.n}</h3><p class="lore">${STORY[r.id]}</p>` : `<div class="sep"></div><h3 class="dim">${r.sub} — ???</h3>`).join("")}</div>`;
     if (tab === "succes") body = `<p class="small dim">${Object.keys(S.ach).length}/${ACHIEVEMENTS.length} succès.</p><div class="grid" style="--min:240px">${ACHIEVEMENTS.map(a => { const done = S.ach[a.id], p = Math.min(a.v, S.stats[a.k] || 0); return `<div class="card ${done ? "sel" : ""}" style="cursor:default"><div class="row" style="flex-wrap:nowrap">${ico("trophy", done ? "#e8c878" : "#5a4a3a", 28)}<div style="flex:1"><b>${a.n}</b><div class="tiny">${a.d}</div>${done ? '<div class="tiny good">Accompli</div>' : `<div class="bar xp" style="margin-top:3px"><i style="width:${100 * p / a.v}%"></i></div>`}<div class="tiny dim">${a.gold ? a.gold + " or" : ""}${a.shards ? a.shards + " éclats" : ""}</div></div></div></div>`; }).join("")}</div>`;
     if (tab === "records") { const s = S.stats; body = `<div class="panel" style="padding:14px"><div class="statgrid"><div>Expéditions <b>${s.runs}</b></div><div>Victoires en combat <b>${s.wins}</b></div><div>Ennemis tués <b>${fmt(s.kills)}</b></div><div>Gardiens vaincus <b>${REGIONS.reduce((a, r) => a + (s["boss_" + r.id] || 0), 0)}</b></div><div>Record de l'Abîme <b>${S.abyss.best}</b></div><div>Évolutions <b>${s.evos}</b></div><div>Objets forgés <b>${s.crafts}</b></div><div>Expéditions du jour <b>${s.daily}</b></div><div>Mode <b>${S.opts.hardcore ? "Hardi" : "Normal"}</b></div></div>${S.graves && S.graves.length ? `<div class="sep"></div><h3>${ico("skull", "#c8b8a0", 16)} Le cimetière</h3>${S.graves.slice(-20).reverse().map(g => `<div class="small">${esc(g.name)} — ${CLASSES[g.cls].n}, niveau ${g.lvl}</div>`).join("")}` : ""}</div>`; }
@@ -5653,6 +5826,7 @@ SCREENS.options = {
     <div class="small" style="margin-top:6px"><b>Combat : panneaux affichés</b></div>${[["ord", "Ordre de passage"], ["log", "Mini-journal"], ["mor", "Résolution et tour"]].map(([k, n]) => `<label class="row sp"><span>${n}</span><input type="checkbox" data-a="hudOpt" data-v="${k}" ${hud(k) ? "checked" : ""}></label>`).join("")}
     <label class="row sp"><span>${ico("speed")} Animations rapides <span class="tiny dim">— enchaîne les actions plus vite</span></span><input type="checkbox" data-opt="quick" ${S.opts.quick ? "checked" : ""}></label>
     <label class="row sp"><span>${ico("run")} Partie rapide <span class="tiny dim">— combats en vitesse ×3 et animations rapides (idéal sur téléphone)</span></span><input type="checkbox" data-opt="fast" ${S.opts.fast ? "checked" : ""}></label>
+    <label class="row sp"><span>${ico("bolt")} Vibrations <span class="tiny dim">— sur téléphone : coups critiques, chutes, gardien abattu, ultime prêt</span></span><input type="checkbox" data-opt="haptic" ${S.opts.haptic !== 0 ? "checked" : ""}></label>
     <label class="row sp"><span>${ico("scroll")} Descriptions de compétences compactes <span class="tiny dim">— en combat, une ou deux lignes seulement pour garder les ennemis et les PV visibles (touchez la description pour tout lire)</span></span><input type="checkbox" data-opt="skMini" ${S.opts.skMini ? "checked" : ""}></label>
     <label class="row sp"><span>${ico("star")} Mode auto économe <span class="tiny dim">— en automatique, garde les ultimes pour les élites, les gardiens et les coups durs</span></span><input type="checkbox" data-opt="smartUlt" ${S.opts.smartUlt !== 0 ? "checked" : ""}></label>
     <label class="row sp"><span>${ico("info")} Astuces <span class="tiny dim">— explique une mécanique la première fois qu'elle apparaît</span></span><input type="checkbox" data-opt="hintsOn" ${!S.opts.noHints ? "checked" : ""}></label>
@@ -5666,8 +5840,33 @@ SCREENS.options = {
 ACT.optSpeed = v => { S.opts.speed = +v; save(); refresh(); };
 ACT.toTitle = () => { save(); go("title"); };
 ACT.wipeSave = () => confirmBox("Effacer définitivement votre partie ?", () => { try { localStorage.removeItem(SAVE_KEY); } catch (e) { } S = null; go("title"); }, { yes: "Effacer" });
-ACT.exportSave = () => { const s = btoa(unescape(encodeURIComponent(JSON.stringify(S)))); modal(`<h2>Sauvegarde</h2><p class="small">Copiez ce texte pour le garder ou le transférer sur un autre appareil.</p><textarea style="width:100%;height:140px;background:#000;color:#c8b8a0;border:1px solid #3a2a22" readonly onclick="this.select()">${s}</textarea>`); };
-ACT.importSave = () => { modal(`<h2>Importer</h2><textarea id="imp" style="width:100%;height:140px;background:#000;color:#c8b8a0;border:1px solid #3a2a22"></textarea><div class="row" style="justify-content:flex-end;margin-top:8px"><button class="btn main" id="impgo">Charger</button></div>`, { mount: m => m.querySelector("#impgo").onclick = () => { try { const s = JSON.parse(decodeURIComponent(escape(atob(m.querySelector("#imp").value.trim())))); S = migrate(s); save(); closeModal(); go("bastion"); toast("Sauvegarde chargée.", "good"); } catch (e) { toast("Texte invalide.", "bad"); } } }); };
+// sauvegarde en code compressé (CC1:…) : bien plus court que le texte brut, à copier ou partager vers son autre appareil
+async function packSave(obj) {
+  const raw = new TextEncoder().encode(JSON.stringify(obj));
+  if (typeof CompressionStream === "undefined") return btoa(unescape(encodeURIComponent(JSON.stringify(obj))));
+  const buf = await new Response(new Blob([raw]).stream().pipeThrough(new CompressionStream("deflate-raw"))).arrayBuffer();
+  let bin = ""; const u8 = new Uint8Array(buf); for (let i = 0; i < u8.length; i += 8192) bin += String.fromCharCode.apply(null, u8.subarray(i, i + 8192));
+  return "CC1:" + btoa(bin).replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "");
+}
+async function unpackSave(txt) {
+  txt = txt.replace(/\s+/g, "");
+  if (!txt.startsWith("CC1:")) return JSON.parse(decodeURIComponent(escape(atob(txt))));
+  let b = txt.slice(4).replace(/-/g, "+").replace(/_/g, "/"); while (b.length % 4) b += "=";
+  const bin = atob(b), u8 = new Uint8Array(bin.length); for (let i = 0; i < bin.length; i++) u8[i] = bin.charCodeAt(i);
+  const out = await new Response(new Blob([u8]).stream().pipeThrough(new DecompressionStream("deflate-raw"))).text();
+  return JSON.parse(out);
+}
+ACT.exportSave = async () => {
+  const code = await packSave(S), old = btoa(unescape(encodeURIComponent(JSON.stringify(S)))).length;
+  modal(`<h2>Sauvegarde</h2><p class="small">Votre partie tient dans ce code (${fmt(code.length)} caractères, ${Math.max(1, Math.round(old / code.length))}× plus court qu'avant). Copiez-le ou partagez-le vers votre autre appareil (message à vous-même, note…), puis « Importer » là-bas.</p>
+    <textarea id="expc" style="width:100%;height:110px;background:#000;color:#c8b8a0;border:1px solid #3a2a22;font-size:11px" readonly onclick="this.select()">${code}</textarea>
+    <div class="row" style="justify-content:flex-end;gap:6px;margin-top:8px">${navigator.share ? `<button class="btn" id="expsh">Partager</button>` : ""}<button class="btn main" id="expcp">Copier</button></div>
+    <p class="tiny dim">Le jeu n'a pas de serveur : rien n'est envoyé nulle part, le code reste chez vous.</p>`, { mount: m => {
+      m.querySelector("#expcp").onclick = () => { const t = m.querySelector("#expc"); t.select(); (navigator.clipboard ? navigator.clipboard.writeText(code) : Promise.reject()).then(() => toast("Code copié.", "good")).catch(() => { try { document.execCommand("copy"); toast("Code copié.", "good"); } catch (e) { toast("Sélectionnez le texte et copiez-le.", ""); } }); };
+      const sh = m.querySelector("#expsh"); if (sh) sh.onclick = () => navigator.share({ title: "Couronne de Cendres — sauvegarde", text: code }).catch(() => { });
+    } });
+};
+ACT.importSave = () => { modal(`<h2>Importer</h2><p class="small">Collez le code de sauvegarde (commençant par CC1:, ou l'ancien format).</p><textarea id="imp" style="width:100%;height:120px;background:#000;color:#c8b8a0;border:1px solid #3a2a22"></textarea><div class="row" style="justify-content:flex-end;margin-top:8px"><button class="btn main" id="impgo">Charger</button></div>`, { mount: m => m.querySelector("#impgo").onclick = async () => { try { const s = await unpackSave(m.querySelector("#imp").value.trim()); S = migrate(s); save(); closeModal(); go("bastion"); toast("Sauvegarde chargée.", "good"); } catch (e) { toast("Code invalide.", "bad"); } } }); };
 /* ═══════════════════════ Interface des extensions ═══════════════════════
    Coffres piégés, ordre au compagnon, répliques des héros, quêtes et marques, saison, boss rush, codex des reliques. */
 
@@ -5705,7 +5904,7 @@ ACT.cbPet = async () => {
   checkEnd(B); if (B.over) { const r = CB.resolve; CB.resolve = null; if (r) r({ pass: 1 }); return; }
   cbBar(u); const first = u.ultV >= 100 ? u.ult : u.skills.find(sk => canUse(B, u, sk)); if (first) selectSkill(first);
 };
-function petBurstBtn() { const B = CB.B; if (!B || !B.pet) return ""; return `<button class="sk ${B.petBurst ? "no" : "pet"}" data-a="cbPet" title="Une fois par combat, sans perdre son tour">${ico("paw", "#c8f0a0")}<span>${B.petBurst ? "Compagnon ✓" : "Ordre au compagnon"}</span></button>`; }
+function petBurstBtn() { const B = CB.B; if (!B || !B.pet) return ""; return `<button class="sk sec ${B.petBurst ? "no" : "pet"}" data-a="cbPet" title="Une fois par combat, sans perdre son tour">${ico("paw", "#c8f0a0")}<span>${B.petBurst ? "Compagnon ✓" : "Ordre au compagnon"}</span></button>`; }
 
 // ── Répliques des héros ──
 const BARKS = {
@@ -5794,6 +5993,7 @@ function cbInfo(u, what, px, py) {
   if (what === "intent") h += intentHTML(u);
   if (what === "bond") h += `<div class="small" style="margin-top:4px">${u.bond === "ami" ? `${ico("heart", "#8ad06a", 13)} <b>Amitié</b> avec son voisin : +6 % de protection et +4 esquive.` : u.bond === "rival" ? `${ico("swords", "#e05050", 13)} <b>Rivalité</b> avec son voisin : +7 % de critique et +6 % de dégâts, mais du stress après le combat.` : ""}${u.duo ? `<div>${ico("paw", "#e8c878", 13)} <b>Duo</b> avec le compagnon : bonus de duo actif.</div>` : ""}</div>`;
   if (what !== "intent" && what !== "bond") h += sts.length ? `<div class="cbi-list">${sts.map(stLine).join("")}</div>` : `<div class="tiny dim" style="margin-top:4px">Aucune altération.</div>`;
+  if (u.side === "e" && what !== "bond") h += affinityHTML(u.tags);
   if (what === "unit" && u.side === "e") h += intentHTML(u);
   let el = $("#cbinfo"); if (!el) { el = document.createElement("div"); el.id = "cbinfo"; document.body.appendChild(el); el.onclick = () => el.remove(); }
   el.innerHTML = h + `<div class="tiny dim" style="text-align:right;margin-top:4px">Touchez pour fermer</div>`;
@@ -5887,12 +6087,13 @@ function cbLog(e) {
 ACT.cbLogShow = () => modal(`<h2>${ico("scroll", "#e8c878")} Journal du combat</h2><div class="small" style="max-height:60vh;overflow:auto;line-height:1.45" id="cblogbox">${(CB.log || []).slice(-150).join("<br>") || '<span class="dim">Rien pour l\'instant.</span>'}</div><button class="btn sm ghost" style="margin-top:8px" data-a="bugReport">${ico("info")}Signaler un bogue</button>`, { mount: m => { const b = m.querySelector("#cblogbox"); if (b) b.scrollTop = b.scrollHeight; } });
 
 // ── Bestiaire : fiche détaillée d'une créature rencontrée ──
+function affinityHTML(tags) { const A = affinityOf(tags); if (!A.W.length && !A.R.length) return ""; return `<div class="tiny" style="margin-top:4px">${A.W.length ? `<span class="good">${ico("bolt", "#8ad06a", 11)} Faiblesses : ${A.W.join(", ")}</span>` : ""}${A.W.length && A.R.length ? "<br>" : ""}${A.R.length ? `<span class="bad">${ico("shield", "#e07060", 11)} Résistances : ${A.R.join(", ")}</span>` : ""}</div>`; }
 ACT.monSheet = k => { const M = MONSTERS[k]; if (!M) return;
   const tags = M.tags.map(t => t === "impie" ? "impie" : t === "bete" ? "bête" : "humain").join(", "), kills = (S.stats.monKills || {})[k] || 0;
   let skt = ""; try { skt = M.sk.map(sk => `<div class="skl" style="cursor:default">${ico(sk.heal ? "heal" : sk.m ? "sword" : "curse", "#e8b8a0")}<div style="flex:1;min-width:0"><b>${sk.n}</b>${sk.every ? ` <span class="tiny dim">(tous les ${sk.every} tours)</span>` : ""}<div class="tiny">${sk.summon ? "Appelle des renforts · " : ""}${skillText(sk, null)}</div></div></div>`).join(""); } catch (e) { skt = M.sk.map(sk => `<div class="small">${sk.n}</div>`).join(""); }
   modal(`<div class="row" style="gap:12px;flex-wrap:wrap;align-items:flex-start"><div style="margin:0 auto">${canvasSlot("mon", 280, 300)}</div><div style="flex:1;min-width:220px"><h2 style="margin:0">${M.n}</h2><div class="tiny dim">${M.boss ? "Gardien" : M.elite ? "Élite" : "Créature"} · ${tags}</div>${LORE[k] ? `<p class="lore" style="margin:8px 0;font-size:15px;line-height:1.5">« ${LORE[k]} »</p>` : ""}
     <div class="statgrid" style="margin-top:8px"><div>PV de base <b>${M.hp}</b></div><div>Dégâts <b>${M.dmg[0]}–${M.dmg[1]}</b></div><div>Protection <b>${Math.round((M.prot || 0) * 100)} %</b></div><div>Vitesse <b>${M.spd}</b></div><div>Esquive <b>${M.dodge || 0}</b></div><div>Résistance <b>${M.res || 0}</b></div></div>
-    <p class="tiny dim" style="margin-top:6px">Rangs : ${(M.rk || []).join(", ")} · rencontré ${S.seen.monsters[k] || 0} fois${kills ? ` · ${kills} vaincus` : ""}${M.tags.includes("impie") ? " · sensible aux armes saintes" : ""}</p></div></div>
+    <p class="tiny dim" style="margin-top:6px">Rangs : ${(M.rk || []).join(", ")} · rencontré ${S.seen.monsters[k] || 0} fois${kills ? ` · ${kills} vaincus` : ""}</p>${affinityHTML(M.tags)}</div></div>
     <h3 style="margin-top:10px">Compétences</h3><div class="col">${skt}</div>`, { wide: 1, onClose: null, mount: m => fillCanvases(m, c => paintMon(c, k)) });
 };
 
@@ -6400,6 +6601,62 @@ ACT.bugReport = () => {
     <div class="row" style="gap:8px;margin-top:6px"><button class="btn sm gold" data-a="bugCopy">${ico("scroll")}Copier le rapport</button><span class="tiny dim">${BUG_ERRS.length ? BUG_ERRS.length + " erreur(s) technique(s) enregistrée(s)." : "Aucune erreur technique enregistrée."}</span></div>`);
 };
 ACT.bugCopy = () => { const t = $("#bugtxt"); if (!t) return; t.select(); let ok = false; try { ok = document.execCommand("copy"); } catch (e) { } try { navigator.clipboard && navigator.clipboard.writeText(t.value).then(() => toast("Rapport copié.", "good")).catch(() => { if (ok) toast("Rapport copié.", "good"); else toast("Sélectionnez le texte et copiez-le à la main.", "bad"); }); } catch (e) { } };
+// ── Interface : enchantement, panoplies, ascension, compagnons (collier, trait) ──
+function allGear() { const out = []; for (const it of S.inv) out.push({ it, h: null }); for (const h of S.heroes) for (const k of ["wpn", "arm"]) if (h.gear[k]) out.push({ it: h.gear[k], h }); return out; }
+function enchantBarHTML() {
+  const n = allGear().filter(g => g.it.rar >= 3).length;
+  return `<div class="row sp card" style="cursor:default;margin-bottom:8px;border-color:#9ad0ff55"><span class="small">${ico("gem", "#9ad0ff", 16)} <b>Enchantement</b> <span class="tiny dim">— changez l'effet unique (✦) d'une arme ou armure Épique ou mieux : trois effets proposés, vous choisissez.</span></span><button class="btn sm" data-a="enchantList" ${n ? "" : "disabled"}>Enchanter (${n})</button></div>`;
+}
+ACT.enchantList = () => {
+  const L = allGear().filter(g => g.it.rar >= 3).sort((a, b) => b.it.rar - a.it.rar || b.it.tier - a.it.tier);
+  modal(`<h2>${ico("gem", "#9ad0ff")} Enchantement</h2><p class="tiny dim">Éclats : <b>${S.shards || 0}</b> · Or : <b>${fmt(S.gold)}</b></p><div class="col">${L.map(({ it, h }) => { const c = enchantCost(it); return `<div class="row card" style="cursor:default;gap:10px">${slotHTML(it, "itemInfo", it.id)}<div style="flex:1;min-width:150px"><b class="rar${it.rar}">${gearName(it)}</b> <span class="tiny dim">${h ? "porté par " + esc(h.name) : "inventaire"}</span><div class="tiny">${it.mod && ITEM_MODS[it.mod] ? `✦ ${ITEM_MODS[it.mod].n} — ${ITEM_MODS[it.mod].d}` : "Aucun effet unique"}</div></div><button class="btn sm" data-a="enchant" data-v="${it.id}">${fmt(c.gold)} or · ${c.shards} ${ico("gem", "#9ad0ff", 12)}</button></div>`; }).join("") || '<div class="empty">Aucun objet Épique ou mieux.</div>'}</div>`, { wide: 1, onClose: () => openBuilding("forge") });
+};
+ACT.enchant = id => {
+  const it = findItem(id) || allGear().map(g => g.it).find(x => x.id === id); if (!it || it.rar < 3 || it.kind === "tr") return;
+  const c = enchantCost(it); if (S.gold < c.gold || (S.shards || 0) < c.shards) return toast(`Il faut ${fmt(c.gold)} or et ${c.shards} éclats.`, "bad");
+  S.gold -= c.gold; S.shards -= c.shards; UI.ench = { id, ch: enchantChoices(it) }; save(); renderHud(); sfx("forge");
+  modal(`<h2>${ico("gem", "#9ad0ff")} ${gearName(it)}</h2><p class="small">Les runes s'éveillent. Choisissez l'effet qui restera gravé${it.mod ? " — ou gardez l'actuel" : ""}.</p><div class="col">${UI.ench.ch.map(k => `<button class="choice" data-a="enchantDo" data-v="${k}"><b style="color:#ffb848">✦ ${ITEM_MODS[k].n}</b><div class="tiny">${ITEM_MODS[k].d}</div></button>`).join("")}${it.mod && ITEM_MODS[it.mod] ? `<button class="choice" data-a="enchantDo" data-v="keep"><b>Garder ✦ ${ITEM_MODS[it.mod].n}</b><div class="tiny dim">${ITEM_MODS[it.mod].d}</div></button>` : ""}</div>`, { onClose: () => { UI.ench = null; } });
+};
+ACT.enchantDo = k => {
+  const E = UI.ench; if (!E) return; const it = findItem(E.id) || allGear().map(g => g.it).find(x => x.id === E.id); if (!it) return;
+  if (k !== "keep" && E.ch.includes(k)) it.mod = k; UI.ench = null; save(); closeModal(); toast(`${ico("gem", "#9ad0ff", 14)} ${gearName(it)} : ✦ ${ITEM_MODS[it.mod] ? ITEM_MODS[it.mod].n : "—"}`, "good"); openBuilding("forge");
+};
+// fiche du héros : panoplies actives et ascension
+function heroProgressHTML(h) {
+  let out = ""; const n = setCount(h);
+  for (const k in n) { const T = SETS[k]; out += `<div class="tiny" style="margin:2px 0"><b style="color:${T.c}">❖ ${T.n}</b> ${n[k]}/3 — <span class="${n[k] >= 2 ? "good" : "dim"}">2 : ${T.b2.d}</span> · <span class="${n[k] >= 3 ? "good" : "dim"}">3 : ${T.b3.d}</span></div>`; }
+  if (h.asc) out += `<div class="tiny" style="color:${ASC_AURA[(h.asc - 1) % ASC_AURA.length]}">✦ Ascension ${roman(h.asc)} : +${6 * h.asc} % de dégâts et de PV, +${4 * h.asc} résistance.</div>`;
+  if (S.heroes.includes(h)) out += canAscend(h) ? `<button class="btn sm gold" style="margin:4px 0" data-a="ascend" data-v="${h.id}">✦ Ascension : renaître au niveau ${ASC_BACK}</button>` : h.lvl >= 20 ? `<div class="tiny dim">✦ Ascension possible au niveau ${ASC_LVL} pour un héros évolué.</div>` : "";
+  return out;
+}
+ACT.ascend = id => {
+  const h = heroById(id); if (!canAscend(h)) return;
+  confirmBox(`<b>${esc(h.name)}</b> renaît au niveau ${ASC_BACK}. Il garde sa voie, ses compétences et son équipement (s'il a encore le niveau requis pour en changer), et gagne pour toujours +6 % de dégâts et de PV, +4 résistance et une aura nouvelle.`, () => { ascend(h); save(); sfx("holy"); toast(`✦ ${esc(h.name)} atteint l'Ascension ${roman(h.asc)} !`, "good"); heroSheet(h); }, { yes: "Renaître" });
+};
+// fiche du compagnon : trait et collier
+function petProgressHTML(id) {
+  const owned = S.pets.owned.includes(id), t = owned ? petTrait(id) : null, c = petCollar(id), cost = collarCost(id);
+  return `<div class="row sp card" style="cursor:default;margin-top:8px;gap:8px">${t ? `<div class="tiny">${ico("paw", "#e8c878", 12)} Trait : <b>${PET_TRAITS[t].n}</b> — ${PET_TRAITS[t].d}</div>` : `<div class="tiny dim">Trait tiré au hasard à son arrivée.</div>`}
+    <div class="tiny">${ico("ring", "#e8c878", 12)} Collier : <b>${c}/${COLLAR_MAX}</b> <span class="dim">(+${8 * c} % dégâts, +${6 * c} % soins et bonus)</span></div>
+    ${owned && c < COLLAR_MAX ? `<button class="btn sm" data-a="collarUp" data-v="${id}">Renforcer · ${fmt(cost.gold)} or${cost.shards ? " · " + cost.shards + " éclats" : ""}</button>` : ""}</div>`;
+}
+ACT.collarUp = id => {
+  if (!S.pets.owned.includes(id) || petCollar(id) >= COLLAR_MAX) return; const c = collarCost(id);
+  if (S.gold < c.gold || (S.shards || 0) < c.shards) return toast(`Il faut ${fmt(c.gold)} or${c.shards ? " et " + c.shards + " éclats" : ""}.`, "bad");
+  S.gold -= c.gold; S.shards -= c.shards; S.petCollar = S.petCollar || {}; S.petCollar[id] = petCollar(id) + 1; save(); renderHud(); sfx("forge"); toast(`${petName(id)} : collier ${S.petCollar[id]}/${COLLAR_MAX}`, "good"); petSheet(id);
+};
+// Archives (Atlas) : gardiens secrets, avec un indice tant qu'ils n'ont pas été vaincus
+function secretBossesHTML() {
+  return `<h3 style="margin-top:14px">${ico("skull", "#c08aff", 15)} Gardiens secrets</h3><p class="tiny dim">Certains gardiens ne se montrent que si l'on remplit d'étranges conditions. Ils laissent un objet unique.</p><div class="col">${Object.keys(SECRET_BOSSES).map(k => { const D = SECRET_BOSSES[k], won = (S.beaten || {})[k], seen = S.seen.monsters[k] != null;
+    return `<div class="row card" style="cursor:${seen ? "pointer" : "default"};gap:10px" ${seen ? `data-a="monSheet" data-v="${k}"` : ""}>${ico(won ? "trophy" : seen ? "eye" : "lock", won ? "#e8c878" : "#8a7a6a", 20)}<div style="flex:1"><b style="color:${seen ? D.hue : "#8a7a6a"}">${seen ? esc(D.n) : "???"}</b>${won ? ' <span class="tag gold">vaincu</span>' : ""}<div class="tiny dim">${esc(D.hint)}</div>${won ? `<div class="tiny">${ico("star", "#ffb848", 11)} ${esc(SECRET_INFO[k][2])}</div>` : ""}</div></div>`; }).join("")}</div>`;
+}
+// Archives (Atlas) : avancement des quêtes de région
+const QUEST_REG = [["bourg", "La cloche fêlée"], ["foret", "La corde coupée"], ["catacombes", "Le psautier inachevé"], ["marais", "La barque vide"], ["citadelle", "Le blason effacé"]];
+function questsHTML() {
+  const sf = S.flags || [];
+  return `<h3 style="margin-top:14px">${ico("quest", "#e8c878", 15)} Quêtes de région</h3><p class="tiny dim">Trois rencontres, sur plusieurs expéditions, mènent au point faible d'un gardien — ou à son trésor caché.</p><div class="col">${QUEST_REG.map(([r, n]) => { const k = r === "catacombes" ? "cata" : r === "citadelle" ? "cit" : r, st = sf.includes("q_" + k + "2") ? 2 : sf.includes("q_" + k + "1") ? 1 : 0, R = regionById(r);
+    return `<div class="row sp card" style="cursor:default"><span><b>${esc(n)}</b> <span class="tiny dim">${R ? esc(R.n) : ""}</span></span><span class="tiny ${st ? "gold" : "dim"}">${st ? `Étape ${st + 1}/3 — à poursuivre là-bas` : "Étape 1/3 — rencontre à trouver"}</span></div>`; }).join("")}</div>`;
+}
 /* ═══════════════════════ Démarrage ═══════════════════════ */
 if (HASWIN) {
   const boot = () => {

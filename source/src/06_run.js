@@ -121,7 +121,7 @@ function monNorm(key, ref) {
   return { hp: R.hp / M.hp * .92, dmg: avg(R) / avg(M) * .95, prot: (R.prot || 0) - (M.prot || 0) };
 }
 // gardiens déjà vaincus (anciennes sauvegardes : ceux des chapitres terminés)
-function beatenBosses() { const b = S.beaten = S.beaten || {}; for (const r of REGIONS) if (S.prog[r.id] && S.prog[r.id].clears) b[r.boss] = 1; return Object.keys(b).filter(k => MONSTERS[k] && MONSTERS[k].boss); }
+function beatenBosses() { const b = S.beaten = S.beaten || {}; for (const r of REGIONS) if (S.prog[r.id] && S.prog[r.id].clears) b[r.boss] = 1; return Object.keys(b).filter(k => MONSTERS[k] && MONSTERS[k].boss && !MONSTERS[k].secret); }
 // la rencontre est tirée une seule fois par salle : quitter puis reprendre redonne les mêmes ennemis (et le même gardien)
 function genEncounter(run, node, rng = RNG) {
   if (node.enc) return node.enc.map(e => Object.assign({}, e));
@@ -141,7 +141,8 @@ function genEncounter0(run, node, rng = RNG) {
     const tb = run.threat >= 1 && run.region !== "abime" && THREAT_BOSS[run.threat], tbNew = tb && !(S.beaten || {})[tb];
     const bk = firstTime ? R.boss : tbNew ? tb : run.region === "abime" && run.floor % 5 === 0 && S.season && S.season.boss ? S.season.boss : rng.pick(pool); S.lastBoss[R.id] = bk; // l'Abîme : gardien de la saison tous les 5 étages
     out.push({ key: pickFor(1), lvl });
-    out.push({ key: bk, lvl: lvl + 1, f: monNorm(bk, ref) });
+    const sb = !firstTime && typeof secretBossFor === "function" ? secretBossFor(run, rng) : null; // gardien secret
+    out.push({ key: sb || bk, lvl: lvl + 1, f: monNorm(sb ? SECRET_BOSSES[sb].base : bk, ref) });
     if (run.region === "abime" || R.lvl >= 9) out.push({ key: pickFor(4), lvl });
     return out;
   }
@@ -166,7 +167,7 @@ function genEncounter0(run, node, rng = RNG) {
 // ── récompenses ──
 function rewardFor(run, node, rng = RNG) {
   const lvl = runLevel(run, node), rh = relicHooks(run), luck0 = (run.light < 30 ? .05 : 0) + (run.night ? .08 : 0) + (run.weather === "lune" ? .06 : 0); let luck = luck0;
-  const goldM = 1 + (rh.gold || 0) + run.party.map(heroById).filter(Boolean).reduce((a, h) => a + heroPassives(h).filter(p => p.k === "gold").reduce((b, p) => b + p.v, 0), 0) + (run.pet && PETS[run.pet].gold ? PETS[run.pet].gold : 0) + (run.daily ? .25 : 0) + run.oaths.length * .15 + run.threat * .3;
+  const goldM = 1 + (rh.gold || 0) + run.party.map(heroById).filter(Boolean).reduce((a, h) => a + heroPassives(h).filter(p => p.k === "gold").reduce((b, p) => b + p.v, 0), 0) + (run.pet && PETS[run.pet].gold ? PETS[run.pet].gold : 0) + (run.pet && typeof petMul === "function" ? petMul(run.pet).gold : 0) + (run.daily ? .25 : 0) + run.oaths.length * .15 + run.threat * .3;
   const R = { gold: 0, xp: 0, loot: [], relic: null, mats: { fer: 0, essence: 0, cendre: 0 }, shards: 0, petXp: 0 };
   const t = node.type;
   const corr = node.enc ? node.enc.filter(e => e.corrupt).length : 0; if (corr) luck += .04 * corr;
@@ -178,6 +179,7 @@ function rewardFor(run, node, rng = RNG) {
     const first = run.region !== "abime" && !(S.prog[run.region] && S.prog[run.region].clears);
     R.gold = (120 + lvl * 22) * (first ? 1.5 : 1); R.xp = 120 + lvl * 22; R.mats.fer = 3; R.mats.essence = 2 + Math.floor(lvl / 8); R.mats.cendre = lvl >= 13 ? 1 : 0;
     R.loot.push(lootGear(lvl + 3, .25, null, 2)); if (rng.chance(.5)) R.loot.push(lootGear(lvl + 2, .2, null, 2)); // gardien : rare au minimum
+    if (run.bossRage) { R.loot.push(lootGear(lvl + 3, .4, null, 4)); R.gold *= 1.5; } // quête : gardien enragé, trésor plus riche
     { const be = node && node.enc && node.enc.find(e => MONSTERS[e.key] && MONSTERS[e.key].boss); if (be && typeof uniqueDrop === "function") { const u = uniqueDrop(be.key, lvl, !(S.uniqs && S.uniqs[be.key]) && !((S.stats.monKills || {})[be.key] > 1)); if (u) { R.loot.push(u); R.uniq = u; } } }
     R.shards = first ? 3 : 1 + (run.region === "abime" && run.floor % 3 === 0 ? 1 : 0) + Math.floor(run.oaths.length / 3); R.relic = randRelic(run, rng, 2);
   }

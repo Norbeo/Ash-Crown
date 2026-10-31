@@ -35,7 +35,7 @@ ACT.cbPet = async () => {
   checkEnd(B); if (B.over) { const r = CB.resolve; CB.resolve = null; if (r) r({ pass: 1 }); return; }
   cbBar(u); const first = u.ultV >= 100 ? u.ult : u.skills.find(sk => canUse(B, u, sk)); if (first) selectSkill(first);
 };
-function petBurstBtn() { const B = CB.B; if (!B || !B.pet) return ""; return `<button class="sk ${B.petBurst ? "no" : "pet"}" data-a="cbPet" title="Une fois par combat, sans perdre son tour">${ico("paw", "#c8f0a0")}<span>${B.petBurst ? "Compagnon ✓" : "Ordre au compagnon"}</span></button>`; }
+function petBurstBtn() { const B = CB.B; if (!B || !B.pet) return ""; return `<button class="sk sec ${B.petBurst ? "no" : "pet"}" data-a="cbPet" title="Une fois par combat, sans perdre son tour">${ico("paw", "#c8f0a0")}<span>${B.petBurst ? "Compagnon ✓" : "Ordre au compagnon"}</span></button>`; }
 
 // ── Répliques des héros ──
 const BARKS = {
@@ -124,6 +124,7 @@ function cbInfo(u, what, px, py) {
   if (what === "intent") h += intentHTML(u);
   if (what === "bond") h += `<div class="small" style="margin-top:4px">${u.bond === "ami" ? `${ico("heart", "#8ad06a", 13)} <b>Amitié</b> avec son voisin : +6 % de protection et +4 esquive.` : u.bond === "rival" ? `${ico("swords", "#e05050", 13)} <b>Rivalité</b> avec son voisin : +7 % de critique et +6 % de dégâts, mais du stress après le combat.` : ""}${u.duo ? `<div>${ico("paw", "#e8c878", 13)} <b>Duo</b> avec le compagnon : bonus de duo actif.</div>` : ""}</div>`;
   if (what !== "intent" && what !== "bond") h += sts.length ? `<div class="cbi-list">${sts.map(stLine).join("")}</div>` : `<div class="tiny dim" style="margin-top:4px">Aucune altération.</div>`;
+  if (u.side === "e" && what !== "bond") h += affinityHTML(u.tags);
   if (what === "unit" && u.side === "e") h += intentHTML(u);
   let el = $("#cbinfo"); if (!el) { el = document.createElement("div"); el.id = "cbinfo"; document.body.appendChild(el); el.onclick = () => el.remove(); }
   el.innerHTML = h + `<div class="tiny dim" style="text-align:right;margin-top:4px">Touchez pour fermer</div>`;
@@ -217,12 +218,13 @@ function cbLog(e) {
 ACT.cbLogShow = () => modal(`<h2>${ico("scroll", "#e8c878")} Journal du combat</h2><div class="small" style="max-height:60vh;overflow:auto;line-height:1.45" id="cblogbox">${(CB.log || []).slice(-150).join("<br>") || '<span class="dim">Rien pour l\'instant.</span>'}</div><button class="btn sm ghost" style="margin-top:8px" data-a="bugReport">${ico("info")}Signaler un bogue</button>`, { mount: m => { const b = m.querySelector("#cblogbox"); if (b) b.scrollTop = b.scrollHeight; } });
 
 // ── Bestiaire : fiche détaillée d'une créature rencontrée ──
+function affinityHTML(tags) { const A = affinityOf(tags); if (!A.W.length && !A.R.length) return ""; return `<div class="tiny" style="margin-top:4px">${A.W.length ? `<span class="good">${ico("bolt", "#8ad06a", 11)} Faiblesses : ${A.W.join(", ")}</span>` : ""}${A.W.length && A.R.length ? "<br>" : ""}${A.R.length ? `<span class="bad">${ico("shield", "#e07060", 11)} Résistances : ${A.R.join(", ")}</span>` : ""}</div>`; }
 ACT.monSheet = k => { const M = MONSTERS[k]; if (!M) return;
   const tags = M.tags.map(t => t === "impie" ? "impie" : t === "bete" ? "bête" : "humain").join(", "), kills = (S.stats.monKills || {})[k] || 0;
   let skt = ""; try { skt = M.sk.map(sk => `<div class="skl" style="cursor:default">${ico(sk.heal ? "heal" : sk.m ? "sword" : "curse", "#e8b8a0")}<div style="flex:1;min-width:0"><b>${sk.n}</b>${sk.every ? ` <span class="tiny dim">(tous les ${sk.every} tours)</span>` : ""}<div class="tiny">${sk.summon ? "Appelle des renforts · " : ""}${skillText(sk, null)}</div></div></div>`).join(""); } catch (e) { skt = M.sk.map(sk => `<div class="small">${sk.n}</div>`).join(""); }
   modal(`<div class="row" style="gap:12px;flex-wrap:wrap;align-items:flex-start"><div style="margin:0 auto">${canvasSlot("mon", 280, 300)}</div><div style="flex:1;min-width:220px"><h2 style="margin:0">${M.n}</h2><div class="tiny dim">${M.boss ? "Gardien" : M.elite ? "Élite" : "Créature"} · ${tags}</div>${LORE[k] ? `<p class="lore" style="margin:8px 0;font-size:15px;line-height:1.5">« ${LORE[k]} »</p>` : ""}
     <div class="statgrid" style="margin-top:8px"><div>PV de base <b>${M.hp}</b></div><div>Dégâts <b>${M.dmg[0]}–${M.dmg[1]}</b></div><div>Protection <b>${Math.round((M.prot || 0) * 100)} %</b></div><div>Vitesse <b>${M.spd}</b></div><div>Esquive <b>${M.dodge || 0}</b></div><div>Résistance <b>${M.res || 0}</b></div></div>
-    <p class="tiny dim" style="margin-top:6px">Rangs : ${(M.rk || []).join(", ")} · rencontré ${S.seen.monsters[k] || 0} fois${kills ? ` · ${kills} vaincus` : ""}${M.tags.includes("impie") ? " · sensible aux armes saintes" : ""}</p></div></div>
+    <p class="tiny dim" style="margin-top:6px">Rangs : ${(M.rk || []).join(", ")} · rencontré ${S.seen.monsters[k] || 0} fois${kills ? ` · ${kills} vaincus` : ""}</p>${affinityHTML(M.tags)}</div></div>
     <h3 style="margin-top:10px">Compétences</h3><div class="col">${skt}</div>`, { wide: 1, onClose: null, mount: m => fillCanvases(m, c => paintMon(c, k)) });
 };
 

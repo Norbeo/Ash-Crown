@@ -11,7 +11,7 @@ function enterNode(run, node) {
 function pickEvent(run) {
   run.seenEv = run.seenEv || [];
   const fl = run.flags || [], sf = (S && S.flags) || [];
-  const ok = e => (!e.reg || e.reg.includes(run.region)) && (!e.need || fl.includes(e.need)) && (!e.sneed || sf.includes(e.sneed));
+  const ok = e => (!e.reg || e.reg.includes(run.region)) && (!e.need || fl.includes(e.need)) && (!e.sneed || sf.includes(e.sneed)) && (!e.snot || ![].concat(e.snot).some(f => sf.includes(f))) && (!e.pet || (run.pet && !((S && S.petHurt) || {})[run.pet]));
   const here = EVENTS.filter(ok), pool = here.filter(e => !run.seenEv.includes(e.id));
   const chains = pool.filter(e => e.chain); // une suite attendue a de bonnes chances d'arriver
   const e = chains.length && chance(.6) ? pick(chains) : pick(pool.filter(e => !e.chain).length ? pool.filter(e => !e.chain) : here.filter(e => !e.chain));
@@ -74,7 +74,8 @@ function resolveEvent(run, evId, ci) {
     if (f.potion) { run.potions++; out.text.push("+1 potion"); }
     if (f.potionCost) { if (run.potions > 0) { run.potions--; out.text.push("-1 potion"); } else out.text.push("Vous n'aviez plus de potion… il vous remercie quand même."); }
     if (f.cleanse) out.text.push("Les esprits s'apaisent.");
-    if (f.petHurt && run.pet) { S.petHurt = S.petHurt || {}; S.petHurt[run.pet] = f.petHurt; out.text.push(`${petName(run.pet)} est blessé : il ne combattra plus pendant ${f.petHurt} expéditions (repos à la Ménagerie).`); }
+    if (f.petHurt && run.pet && typeof petMul === "function" && petMul(run.pet).robust) out.text.push(`${petName(run.pet)}, robuste, s'en sort sans une égratignure.`);
+    else if (f.petHurt && run.pet) { S.petHurt = S.petHurt || {}; S.petHurt[run.pet] = f.petHurt; out.text.push(`${petName(run.pet)} est blessé : il ne combattra plus pendant ${f.petHurt} expéditions (repos à la Ménagerie).`); }
     if (f.heroCurse) { const hs = runParty().filter(h => !run.fallen.includes(h.id)); if (hs.length) { const h = hs[Math.floor(rnd() * hs.length)]; h.cursed = f.heroCurse; out.text.push(`${h.name} porte la larme de l'idole : −12 % de dégâts pendant ${f.heroCurse} expéditions (la Chapelle peut l'en laver).`); } }
     if (f.lootLose) { if (run.loot.length) { const it = run.loot.splice(Math.floor(rnd() * run.loot.length), 1)[0]; out.text.push(`Vous cédez ${gearName(it)}.`); } else { run.gold = Math.max(0, run.gold - 80); out.text.push("Faute d'objet, il prend 80 or."); } }
     if (f.curse) { run.curse = (run.curse || 0) + 1; out.text.push("Une malédiction pèse sur vous : les ennemis frappent plus fort."); }
@@ -82,6 +83,8 @@ function resolveEvent(run, evId, ci) {
     if (f.buff) { run.buff = (run.buff || 0) + 1; out.text.push("Une chaleur étrange : +20 % de dégâts au prochain combat."); }
     if (f.upgrade) { const its = party.flatMap(h => [h.gear.wpn, h.gear.arm]).filter(it => it && it.up < 10); if (its.length) { const it = pick(its); it.up++; out.text.push(gearName(it) + " est amélioré."); } }
     if (f.fight) { out.fight = true; out.text.push("Une embuscade !"); }
+    if (f.bossWeak) { run.bossWeak = f.bossWeak; out.text.push(`Le gardien de ce chapitre vous attendra affaibli (−${Math.round(f.bossWeak * 100)} % de PV).`); }
+    if (f.bossRage) { run.bossRage = f.bossRage; out.text.push(`Le gardien vous attendra enragé (+${Math.round(f.bossRage * 100)} % de PV), mais son trésor sera plus riche.`); }
     if (f.flag) { run.flags = (run.flags || []).concat(f.flag); out.text.push("<i>Ce geste aura peut-être une suite…</i>"); }
     if (f.sflag) { S.flags = (S.flags || []).filter(x => x !== f.sflag).concat(f.sflag); out.text.push("<i>Quelqu'un se souviendra de vous…</i>"); }
   };
@@ -134,6 +137,7 @@ function battleFor(run, node, enc) {
   const D = diffOf(), mods = { hp: D.hp, dmg: D.dmg * (1 + (run.curse || 0) * .1), prot: 0, spd: 0 };
   if (run.night) { mods.hp *= 1.15; mods.dmg *= 1.15; } // expédition de nuit
   if (typeof cycleFoe === "function") { const c = cycleFoe(); mods.hp *= c; mods.dmg *= c; } // nouveau cycle
+  if (node && node.type === "boss" && (run.bossWeak || run.bossRage)) mods.bossHp = (mods.bossHp || 0) + (run.bossRage || 0) - (run.bossWeak || 0); // quête de région
   if (run.hardBoss && node && node.type === "boss") { mods.bossHp = (mods.bossHp || 0) + HARD_BOSS.hp - 1; mods.hardBoss = 1; } // mode Hardi
   const W = run.weather && WEATHERS[run.weather]; if (W) { if (W.mods.fog) mods.fog = W.mods.fog; if (W.mods.rain) mods.rain = 1; if (W.mods.edmgM) mods.dmg *= 1 + W.mods.edmgM; if (W.mods.espd) mods.spd += W.mods.espd; } // météo
   if (run.region === "abime") { mods.hp *= 1 + run.floor * .04; mods.dmg *= 1 + run.floor * .025; }
@@ -143,6 +147,10 @@ function battleFor(run, node, enc) {
   if (run.buff) { rh.dmg = (rh.dmg || 0) + .2; }
   const B = newBattle(party, enc, { relicH: rh, pet: run.pet, light: run.light, mods, morale: (run.morale || 0) + S.bld.chapelle * 2, onLight: v => { run.light = clamp(run.light + v, 0, 100); B.light = run.light; } });
   B.node = node;
+  // terrain : une salle de combat sur quatre (jamais le gardien), tiré une fois et mémorisé dans la salle
+  if (node && (node.type === "combat" || node.type === "elite")) { if (node.terrain === undefined) node.terrain = chance(.25) ? pick(Object.keys(TERRAINS)) : null; B.terrain = node.terrain; }
+  if (B.terrain === "sacre") for (const e of B.enemies) if (e.tags.includes("impie")) e.prot -= .1;
+  if (B.terrain === "tenebres") { run.light = clamp(run.light - 20, 0, 100); B.light = run.light; }
   if (typeof eliteBonuses === "function") eliteBonuses(B);
   if (mods.hardBoss) for (const e of B.enemies) if (e.boss) { e.st.push({ k: "dmgUp", v: HARD_BOSS.dmg - 1, t: 99 }); e.hard = 1; } // gardien enragé dès le départ
   return B;

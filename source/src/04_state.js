@@ -58,6 +58,7 @@ function heroPassives(h) {
   if (h.mark && typeof GUARD_MARKS !== "undefined" && GUARD_MARKS[h.mark]) out.push(...GUARD_MARKS[h.mark].pas); // marque d'un gardien vaincu
   if (h.affl && typeof AFFLICTIONS !== "undefined" && AFFLICTIONS[h.affl]) out.push(...AFFLICTIONS[h.affl].pas); // stress : affliction ou vertu
   if (h.talents && typeof talentPas === "function") out.push(...talentPas(h));
+  if (typeof setPassives === "function") out.push(...setPassives(h), ...ascPassives(h)); // panoplies et ascension
   if (h.vet && typeof VET_TITLES !== "undefined" && VET_TITLES[h.vet]) out.push(...VET_TITLES[h.vet].pas); // titre de vétéran // arbre de talents (après le niveau 15)
   return out;
 }
@@ -97,6 +98,7 @@ function makeGear(kind, cls, tier, rar, key, evo) {
   for (let i = 0; i < nAff; i++) { const A = AFFIXES[keys[i]], sc = 1 + (it.tier - 1) * .25; let v = lerp(A.v[0], A.v[1], rnd()) * sc; v = A.fmt === "pct" ? Math.round(v * 100) / 100 : Math.round(v); it.aff.push({ k: keys[i], v }); }
   // effet unique (Épique 25 %, Légendaire 60 %, Mythique et Divin toujours) : change la façon de combattre
   if (kind !== "tr" && it.rar >= 3 && chance([0, 0, 0, .25, .6, 1, 1][it.rar])) { const pool = Object.keys(ITEM_MODS).filter(k => ITEM_MODS[k].kind === kind); it.mod = pick(pool); }
+  if (typeof rollSet === "function") rollSet(it); // panoplie (Légendaire et plus)
   return it;
 }
 // effets uniques d'équipement (crochets de combat existants)
@@ -140,7 +142,7 @@ function petLvl(id) { return (S && S.pets.lvl[id]) || 1; }
 const petXpNeed = l => Math.round(60 + 40 * Math.pow(l - 1, 1.35));
 function petEvolved(id) { return !!(S && S.pets.evo[id]); }
 function petName(id) { return petEvolved(id) ? PETS[id].evo.n : PETS[id].n; }
-function petPower(id) { const l = petLvl(id), r = (PETS[id] && PETS[id].rank) || 1; return { dmg: (3.2 + l * .95) * r, heal: 1 + l * .03 }; }
+function petPower(id) { const l = petLvl(id), r = (PETS[id] && PETS[id].rank) || 1, m = typeof petMul === "function" ? petMul(id) : { dmg: 1 }; return { dmg: (3.2 + l * .95) * r * m.dmg, heal: 1 + l * .03 }; }
 
 // ── Sauvegarde ──
 function save() {

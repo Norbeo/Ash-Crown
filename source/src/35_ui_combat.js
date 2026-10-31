@@ -147,6 +147,8 @@ function coachShow() {
 }
 ACT.coachNext = () => { UI.coach++; coachShow(); };
 ACT.coachSkip = () => { UI.coach = COACH.length; coachShow(); };
+// vibrations du téléphone (coups critiques, chutes, gardien abattu, ultime prêt) — désactivables dans les Options
+function buzz(p) { try { if (S.opts.haptic !== 0 && !S.opts.calm && navigator.vibrate) navigator.vibrate(p); } catch (e) { } }
 function choose(a) { if (CB.busy) return; const r = CB.resolve; CB.resolve = null; CB.sel = null; if (r) r(a); }
 function skMini() { return !!S.opts.skMini; }
 // toucher la description compacte l'ouvre en entier (et inversement), sans changer l'option
@@ -182,20 +184,22 @@ function cbBar(u) {
   const B = CB.B, r = rankOf(B, u), n = B.heroes.length;
   const btn = (sk) => { const ok = canUse(B, u, sk); const cd = u.cds[sk.id] > 0 ? u.cds[sk.id] : 0; return `<button class="sk ${ok ? "" : "no"} ${sk.isUlt ? "ult" + (u.ultV >= 100 ? " ready" : "") : ""}" data-a="cbSk" data-v="${sk.id}">${ico(sk.ic, sk.isUlt ? "#ff9a4a" : ok ? "#e8d8b8" : "#6a5a4a")}<span>${sk.n}</span>${sk.rank > 1 ? `<span class="rk">${roman(sk.rank)}</span>` : ""}${cd ? `<span class="cd">${cd}</span>` : ""}${sk.isUlt && u.ultV < 100 ? `<span class="cd" style="font-size:13px">${Math.floor(u.ultV)} %</span>` : ""}</button>`; };
   box.innerHTML = u.skills.map(btn).join("") + btn(u.ult) +
-    `<button class="sk ${S.run.potions ? "" : "no"}" data-a="cbPotion" data-v="potion">${ico("potion", "#e86a5a")}<span>Potion ×${S.run.potions}</span></button>` +
-    `<button class="sk ${r >= n ? "no" : ""}" data-a="cbMove" data-v="1" title="Reculer">${ico("back", "#c8b8a0")}<span>Reculer</span></button>` +
-    `<button class="sk ${r <= 1 ? "no" : ""}" data-a="cbMove" data-v="-1" title="Avancer">${ico("charge", "#c8b8a0")}<span>Avancer</span></button>` +
-    `<button class="sk ${u.delayR === B.round ? "no" : ""}" data-a="cbDelay" title="Retarder : rejouer en fin de tour (+10 % de protection)">${ico("hourglass", "#c8b8a0")}<span>Retarder</span></button>` +
-    `<button class="sk" data-a="cbPass" title="Passer">${ico("skip", "#9a8c7a")}<span>Passer</span></button>` + petBurstBtn();
+    `<button class="sk sec ${S.run.potions ? "" : "no"}" data-a="cbPotion" data-v="potion">${ico("potion", "#e86a5a")}<span>Potion ×${S.run.potions}</span></button>` +
+    `<button class="sk sec ${r >= n ? "no" : ""}" data-a="cbMove" data-v="1" title="Reculer">${ico("back", "#c8b8a0")}<span>Reculer</span></button>` +
+    `<button class="sk sec ${r <= 1 ? "no" : ""}" data-a="cbMove" data-v="-1" title="Avancer">${ico("charge", "#c8b8a0")}<span>Avancer</span></button>` +
+    `<button class="sk sec ${u.delayR === B.round ? "no" : ""}" data-a="cbDelay" title="Retarder : rejouer en fin de tour (+10 % de protection)">${ico("hourglass", "#c8b8a0")}<span>Retarder</span></button>` +
+    `<button class="sk sec" data-a="cbPass" title="Passer">${ico("skip", "#9a8c7a")}<span>Passer</span></button>` + petBurstBtn();
   d.innerHTML = `<b>${esc(u.name)}</b> <span class="dim small">${CLASSES[u.cls].n} · rang ${r}</span>`;
+  if (u.ultV >= 100 && !u._ultBuzz) { u._ultBuzz = 1; buzz([15, 40, 15]); } else if (u.ultV < 100) u._ultBuzz = 0;
   void n;
   CB.barH = $("#cbar").offsetHeight + 6; cbLayout();
 }
 function cbTopLeft() {
   const B = CB.B, el = $("#cb-tl"); if (!el || !B) return; const ord = $("#cb-ord"); if (ord) ord.innerHTML = turnOrderHTML(); miniLogRefresh();
+  if (B.terrain && !B._terrShown && TERRAINS[B.terrain]) { B._terrShown = 1; toast(`${ico(TERRAINS[B.terrain].ic, "#e8c878", 14)} <b>${TERRAINS[B.terrain].n}</b> — ${TERRAINS[B.terrain].d}`, "", 5000); }
   if (!hud("mor")) { el.innerHTML = ""; return; }
   const mc = B.morale >= 80 ? "#ffd27a" : B.morale <= 20 ? "#ff5a4a" : "#c8b8a0";
-  el.innerHTML = `<div class="panel" style="padding:5px 8px;font-size:12px"><div class="row" style="gap:6px;flex-wrap:nowrap"><span data-tip="resolution" style="display:contents">${ico("banner", mc, 16)}</span><div class="bar" style="width:70px"><i style="width:${B.morale}%;background:linear-gradient(${mc},#6a4a2a)"></i></div><span class="gl" data-tip="resolution" style="color:${mc}">${B.morale >= 80 ? "Exaltés" : B.morale <= 20 ? "Ébranlés" : "Résolus"}</span></div><div class="row" style="gap:6px;margin-top:3px;flex-wrap:nowrap"><span class="row" data-tip="lueur" style="gap:4px;flex-wrap:nowrap">${ico("torch", B.light < 30 ? "#ff5a3a" : "#ffb050", 16)}<span class="tiny">${Math.round(B.light)}</span></span><span class="tiny dim">Tour ${B.round}</span></div></div>`;
+  el.innerHTML = `<div class="panel" style="padding:5px 8px;font-size:12px"><div class="row" style="gap:6px;flex-wrap:nowrap"><span data-tip="resolution" style="display:contents">${ico("banner", mc, 16)}</span><div class="bar" style="width:70px"><i style="width:${B.morale}%;background:linear-gradient(${mc},#6a4a2a)"></i></div><span class="gl" data-tip="resolution" style="color:${mc}">${B.morale >= 80 ? "Exaltés" : B.morale <= 20 ? "Ébranlés" : "Résolus"}</span></div><div class="row" style="gap:6px;margin-top:3px;flex-wrap:nowrap"><span class="row" data-tip="lueur" style="gap:4px;flex-wrap:nowrap">${ico("torch", B.light < 30 ? "#ff5a3a" : "#ffb050", 16)}<span class="tiny">${Math.round(B.light)}</span></span><span class="tiny dim">Tour ${B.round}</span>${B.terrain && TERRAINS[B.terrain] ? `<span class="tiny gold gl" ${tipAttr(TERRAINS[B.terrain].n, TERRAINS[B.terrain].d)}>${ico(TERRAINS[B.terrain].ic, "#e8c878", 12)} ${TERRAINS[B.terrain].n}</span>` : ""}</div></div>`;
 }
 // ── saisie sur la scène ──
 function unitAt(px, py) {
@@ -264,6 +268,7 @@ async function playEvents(ev) {
         const v = V(e.u), u = U(e.u); if (!v) break;
         if (e.self) { popText(e.u, "-" + e.dmg, "#ff8a7a"); break; }
         v.pose = "hurt"; v.pt = .35; v.flash = 1; v.kick = (u && u.side === "h" ? -1 : 1) * (e.crit ? 26 : 16);
+        if (e.crit) buzz(u && u.side === "h" ? [40, 30, 40] : 25); else if (u && u.side === "h" && e.dmg >= u.hpMax * .25) buzz(30);
         if (!e.dot) CB.fx.push({ slash: 1, x: v.x, y: v.y - 105 * CB.scale, r: (e.crit ? 64 : 48) * CB.scale, a: (u && u.side === "h" ? Math.PI : 0) + (Math.random() - .5) * .8, col: e.crit ? "#ffd04a" : "#ffb08a", t: 0, life: e.crit ? .45 : .32 });
         if (e.crit) CB.flash = Math.max(CB.flash || 0, .25);
         burst(v.x, v.y - 100 * CB.scale, srcCol === "#e8e0c8" ? "#d02a2a" : srcCol, e.crit ? 26 : 12, { sp: e.crit ? 260 : 170 });
@@ -279,6 +284,7 @@ async function playEvents(ev) {
       case "heal": if (e.v > 0) { popText(e.u, "+" + e.v, "#8fe07a"); const v = V(e.u); if (v) burst(v.x, v.y - 80 * CB.scale, "#8fe07a", e.regen ? 5 : 10, { up: 90, g: -60, sp: 60 }); } await wait(e.regen ? 200 : 90); break;
       case "st": { const u = U(e.u); if (!u) break; const neg = NEG.has(e.st); popText(e.u, ST_INFO[e.st].n, ST_INFO[e.st].c); if (e.st === "stun") sfx("stun"); else if (neg && e.st !== "mark") sfx("debuff"); await wait(70); break; }
       case "resist": popText(e.u, "Résiste", "#d8d0c0"); await wait(60); break;
+      case "combo": popText(e.u, "Combo +" + Math.round(e.v * 100) + " %", "#ffd27a"); break;
       case "stunned": popText(e.u, "Étourdi", "#ffd84a"); await wait(320); break;
       case "cleanse": popText(e.u, "Purifié", "#e8f0ff"); break;
       case "guard": popText(e.u, "Protège !", "#c0d0e0"); await wait(120); break;
@@ -289,9 +295,9 @@ async function playEvents(ev) {
       case "saved": popText(e.u, "Sauvé !", "#8fe07a"); bark(e.u, "saved"); break;
       case "resist_death": popText(e.u, "Tient bon !", "#ffd27a", true); await wait(380); break;
       case "cheat": popText(e.u, "Défie la mort !", "#ffd27a", true); await wait(380); break;
-      case "fall": { popText(e.u, "TOMBÉ", "#ff3a2a", true); sfx("fall"); const v = V(e.u); if (v) v.dying = 1; CB.shake = .3; { const o = CB.B.heroes.filter(h => alive(h) && h.uid !== e.u); if (o.length) bark(pick(o).uid, "ally"); } await wait(700); cbLayout(); break; }
+      case "fall": { buzz([80, 50, 120]); popText(e.u, "TOMBÉ", "#ff3a2a", true); sfx("fall"); const v = V(e.u); if (v) v.dying = 1; CB.shake = .3; { const o = CB.B.heroes.filter(h => alive(h) && h.uid !== e.u); if (o.length) bark(pick(o).uid, "ally"); } await wait(700); cbLayout(); break; }
       case "revive": { popText(e.u, "Se relève !", "#ffe08a", true); sfx("holy"); cbLayout(); const v = V(e.u); if (v) { v.dying = 0; v.a = 1; glowAt(v, "#ffe08a", 1.5); } await wait(400); break; }
-      case "die": { const v = V(e.u); if (cur && U(cur.u) && U(cur.u).side === "h" && alive(U(cur.u))) bark(cur.u, "kill"); if (v) { v.dying = 1; burst(v.x, v.y - 80 * CB.scale, "#2a1a1a", 20, { add: false, g: 200 }); burst(v.x, v.y - 80 * CB.scale, "#ffb070", 10, { up: 140, g: -30 }); } sfx("die"); await wait(e.boss ? 900 : 380); cbLayout(); break; }
+      case "die": { if (e.boss) buzz([60, 40, 60, 40, 200]); const v = V(e.u); if (cur && U(cur.u) && U(cur.u).side === "h" && alive(U(cur.u))) bark(cur.u, "kill"); if (v) { v.dying = 1; burst(v.x, v.y - 80 * CB.scale, "#2a1a1a", 20, { add: false, g: 200 }); burst(v.x, v.y - 80 * CB.scale, "#ffb070", 10, { up: 140, g: -30 }); } sfx("die"); await wait(e.boss ? 900 : 380); cbLayout(); break; }
       case "move": cbLayout(); sfx("step"); await wait(200); break;
       case "lastbreath": { const v = V(e.u); if (v) glowAt(v, "#ffd070", 2); popText(e.u, "Dernier souffle !", "#ffd070", true); sfx("ult"); CB.shake = .5; await wait(700); break; }
       case "summon": { cbLayout(); sfx("dark"); const v = V(e.u); if (v) { v.a = 1; v.born = SC.t; glowAt(v, "#9a3aff", 1.4); } popText(e.u, "Renfort !", "#c89aff", true); await wait(500); break; }
@@ -453,6 +459,21 @@ function drawCombat(x, t, dt) {
 function drawIcon(x, name, cx, cy, s, col, lw = 2) {
   const im = artImg("ui_" + name); if (im) { const d = 26 * s; x.drawImage(im, cx - d / 2, cy - d / 2, d, d); return; } // icône peinte
  const p = new Path2D(IC[name] || IC.star); x.save(); x.translate(cx - 12 * s, cy - 12 * s); x.scale(s, s); x.strokeStyle = col; x.lineWidth = lw / s * s; x.lineCap = "round"; x.lineJoin = "round"; x.stroke(p); x.restore(); }
+// estimation d'une attaque d'un héros sur une cible (sans le hasard) : fourchette, moyenne, chance de tuer
+function dmgPreview(B, u, x, sk) {
+  try {
+    const t = sk.t || "e", rk = 1 + .1 * ((sk.rank || 1) - 1), hits = sk.hits || 1;
+    const mul = sk.m * rk * (t === "ae" ? 1 + (u.hooks.aoeDmg || 0) + (B.relicH.aoe || 0) : 1) * strikeMul(B, u, x, sk, null) * (1 - effProt(x));
+    const lo = Math.max(1, Math.round(u.dmgLo * mul)), hi = Math.max(1, Math.round(u.dmgHi * mul));
+    let acc = u.acc + (sk.acc || 0) + stSum(u, "accUp") - stSum(u, "accDn") - effDodge(x) - (B.mods.fog || 0) - (B.terrain === "brume" && rankOf(B, x) >= 3 ? 12 : 0); if (B.morale <= 20) acc -= 10;
+    const ph = clamp(acc, 8, 97) / 100, pc = clamp((u.crit + (sk.cr || 0) + stSum(u, "critUp")) / 100, 0, 1), cm = 1.5 + (u.hooks.critDmg || 0);
+    const sh = stSum(x, "shield"), need = x.hp + sh;
+    const frac = (a, b) => b <= a ? (a >= need ? 1 : 0) : clamp((b - need) / (b - a), 0, 1);
+    const L = lo * hits, H = hi * hits, pk = Math.pow(ph, hits) * ((1 - pc) * frac(L, H, need) + pc * frac(L * cm, H * cm, need));
+    let aff = 1; for (const g of sk.tags || []) aff *= affinity(x, g);
+    return { lo: L, hi: H, avg: (L + H) / 2 * ph * (1 + pc * (cm - 1)), kill: pk, aff };
+  } catch (e) { return null; }
+}
 function drawUnitUI(x, u, v, t) {
   const B = CB.B, us = u.side === "h" && CB.port && CB.hScale ? CB.hScale : CB.scale, s = Math.max(.7, Math.min(1.25, us * 1.6)), w = Math.min(64 * s, CB.port && u.side === "h" ? SC.w / 5.4 : 1e9) * (u.sz > 1 ? 1.5 : 1), bx = v.x - w / 2, by = v.y + 8 * s;
   // barre de PV
@@ -461,6 +482,10 @@ function drawUnitUI(x, u, v, t) {
   x.fillStyle = "#5a1410"; x.fillRect(bx, by, w * v.hp, 8 * s);
   x.fillStyle = u.side === "h" ? lgrad(x, 0, by, 0, by + 8 * s, [[0, "#e04a3a"], [1, "#8a1a10"]]) : lgrad(x, 0, by, 0, by + 8 * s, [[0, "#c03a3a"], [1, "#6a1010"]]); x.fillRect(bx, by, w * hpk, 8 * s);
   const sh = stSum(u, "shield"); if (sh > 0) { x.fillStyle = "rgba(140,190,255,.7)"; x.fillRect(bx, by, w * clamp(sh / u.hpMax, 0, 1), 3 * s); }
+  // aperçu des dégâts : la part de PV que la compétence choisie devrait retirer (et la chance de tuer)
+  if (CB.sel && CB.sel.sk && CB.actor && u.side === "e" && CB.sel.tg.includes(u) && CB.sel.sk.m > 0 && !u.agony) { const P = dmgPreview(B, CB.actor, u, CB.sel.sk); if (P) {
+    const a = clamp((u.hp - P.avg) / u.hpMax, 0, 1); x.fillStyle = `rgba(255,230,180,${.45 + Math.sin(t * 6) * .25})`; x.fillRect(bx + w * a, by, w * (hpk - a), 8 * s);
+    const lab = P.kill >= .05 ? `☠ ${Math.round(P.kill * 100)} %` : `−${P.lo === P.hi ? P.lo : P.lo + "–" + P.hi}`; x.font = `700 ${Math.round(10 * s)}px Alegreya, serif`; x.lineWidth = 3; x.strokeStyle = "#000"; x.strokeText(lab, v.x, by - 3 * s); x.fillStyle = P.kill >= .05 ? "#ffd27a" : P.aff > 1.01 ? "#8ae07a" : P.aff < .99 ? "#c0a090" : "#f0e0c8"; x.fillText(lab, v.x, by - 3 * s); } }
   x.font = `700 ${Math.round(9.5 * s)}px Alegreya, serif`; x.textAlign = "center"; x.fillStyle = "#fff"; x.lineWidth = 3; x.strokeStyle = "#000"; const ht = u.agony ? "AGONIE" : Math.ceil(u.hp) + "/" + u.hpMax; x.strokeText(ht, v.x, by + 7.5 * s); x.fillStyle = u.agony ? "#ff6a5a" : "#f0e8e0"; x.fillText(ht, v.x, by + 7.5 * s);
   if (u.corrupt) glow(x, v.x, v.y - 60 * CB.scale, 80 * CB.scale, "#9a3aff", .14 + Math.sin(t * 3) * .04); // créature corrompue
   if (u.agony) { const pk = .5 + Math.sin(t * 5) * .5; glow(x, v.x, v.y - 60 * CB.scale, 60 * CB.scale, "#ff2a1a", .2 + pk * .2); }

@@ -102,6 +102,11 @@ Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
 
 - 31 oct. (v106) : descriptions de compétences compactes en combat (`S.opts.skMini`, défaut sur écran tactile, toucher = `ACT.cbDesc` / `CB.descOpen`) ; `petSkillText(s, id)` détaille tout (coups multiples, exécution, cible, rangs, groupe/allié blessé, résolution, jauge, dégâts chiffrés via `petPower`).
 - 31 oct. (v107–108) : légendes — 16 (`LEGENDS`, une par classe), don tiré au sort (`TRAITS.lg_*`, `legendRoll` → `S.legendRoll`), qualité Légendaire/Mythique aléatoire, légende errante hebdomadaire d'une classe au hasard (`wanderLegend`, `legendById`) ; intention ennemie jamais sous les panneaux du haut (`hudFloor`) ; compagnon marqué « fin » dans la frise.
+- 1er nov. (v109) — « toutes » les améliorations proposées :
+  - Combat : aperçu des dégâts sur la barre de PV (`dmgPreview`, fourchette ou ☠ chance de tuer) ; faiblesses/résistances par nature (`AFFINITY`, `affinity`, `affinityOf`, `affinityHTML` dans la bulle et le bestiaire) ; terrains (`TERRAINS`, `node.terrain` 25 % des combats/élites, `terrainRound`, brume dans rollHit) ; combos (`comboBonus` : cible étourdie +25 %, déjà frappée par un autre héros ce tour +10 %, popup « Combo ») ; multiplicateurs de frappe regroupés dans `strikeMul`.
+  - Progression (`08t_progress.js` + `37z_progress_ui.js`) : panoplies (`SETS`, `it.set` 20 %/35 % sur Légendaire/Mythique+, bonus 2 et 3 pièces) ; enchantement à la Forge (`ACT.enchantList/enchant/enchantDo`, 3 effets au choix) ; ascension (`ASC_LVL` 30 → niveau 15, `h.asc`, +6 % dégâts/PV par rang, aura `ASC_AURA`) ; compagnons : collier 0–5 (`S.petCollar`, `collarCost`) et trait aléatoire (`PET_TRAITS`, `S.petTraits`, `petMul`).
+  - Contenu : gardiens secrets (`SECRET_BOSSES`, `secretBossFor` dans genEncounter0, `MONSTERS[k].secret`/`hue`, objets uniques via `SECRET_INFO`) ; quêtes de région 5×3 étapes (`03zz_quests.js`, `snot`, `bossWeak`/`bossRage`) ; 6 événements de compagnon (`e.pet`) ; Atlas : `questsHTML` + `secretBossesHTML`.
+  - Confort : vibrations (`buzz`, `S.opts.haptic`) ; combat portrait en 2 rangées (`.sk.sec`) ; sauvegarde compressée `CC1:` (`packSave`/`unpackSave`, partager/copier).
 
 ## Reste à faire (prochaine séance)
 1. (Armures V : fait.) Gardiens de menace II–V : déjà présents (`THREAT_BOSS`) — à confirmer avec l'utilisateur s'il en veut d'autres.

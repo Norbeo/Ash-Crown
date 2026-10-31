@@ -120,14 +120,14 @@ function heroImgSprite(L, pose, sc, o = {}) {
   const im = heroArt(L); if (!im) return null;
   const hurt = pose.lean < -.25 && pose.hx < 0, agony = pose.hy > 15;
   const nm = heroArtName(L), evoArt = nm.indexOf("_t") < 0 || !/_t\d$/.test(nm);
-  return imgSprite(im, { sc, cx: ART_CX[nm], h: 182, maxW: 260, top: ART_META[nm] || ART_META["hero_" + L.cls + "_t3"] || 0, flip: ART_FLIP.has(nm), aura: evoArt && !L.apex ? null : evoAura(L), auraA: L.apex ? .45 : .28,
+  return imgSprite(im, { sc, cx: ART_CX[nm], h: 182, maxW: 260, top: ART_META[nm] || ART_META["hero_" + L.cls + "_t3"] || 0, flip: ART_FLIP.has(nm), aura: L.asc ? ASC_AURA[(L.asc - 1) % ASC_AURA.length] : evoArt && !L.apex ? null : evoAura(L), auraA: L.asc ? .5 : L.apex ? .45 : .28,
     pose: Object.assign({}, pose, { agony, cast: pose.free || pose.aBs > 1.5 }), tint: o.tint || (agony ? "rgba(70,8,8,.38)" : hurt ? "rgba(160,20,20,.16)" : null), hue: L.tint || null });
 }
 function monImgSprite(key, pose, sc) {
   const M = MONSTERS[key] || {}, n = "mon_" + (M.art || key), im = artImg(n); if (!im) return null;
   const big = (M.sz || 1) > 1, f = pose.fig || {};
   return imgSprite(im, { sc, cx: ART_CX[n], h: MON_H[M.art || key] || (M.boss ? 335 : M.elite ? 240 : 190), maxW: big ? 320 : (M.elite ? 200 : 140), flip: !ART_FLIP.has(n),
-    pose: { atk: pose.atk, lean: f.lean, hx: f.hx }, tint: f.lean < 0 ? "rgba(170,20,20,.16)" : null });
+    pose: { atk: pose.atk, lean: f.lean, hx: f.hx }, tint: f.lean < 0 ? "rgba(170,20,20,.16)" : null, hue: M.hue || null });
 }
 function petImgSprite(id, o, sc) {
   const n = "pet_" + id + (o.evo ? "_evo" : ""), im = artImg(n) || artImg("pet_" + id); if (!im) return null;

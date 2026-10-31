@@ -368,6 +368,15 @@ function swapHero(B, u, dir) { const ev = [{ k: "act", u: u.uid, sk: dir < 0 ? "
 function changeMorale(B, v, ev) { const o = B.morale; B.morale = clamp(B.morale + v, 0, 100); if (Math.round(B.morale) !== Math.round(o)) ev.push({ k: "morale", v: B.morale, d: v }); }
 
 // ── compagnon ──
+// toutes les valeurs d'une compétence de compagnon (soins, boucliers, altérations, résolution, jauge, lueur) augmentent avec son rang
+function petSkScaled(sk, r) {
+  if (!r || r <= 1) return sk; const o = Object.assign({}, sk), k = r, chk = c => Math.min(1, c * (1 + (r - 1) * .5));
+  for (const f of ["heal", "regen", "shield", "leechLow"]) if (o[f]) o[f] = o[f] * k;
+  for (const f of ["morale", "ult", "light"]) if (o[f]) o[f] = Math.round(o[f] * k);
+  const fx = L => L && L.map(e => Object.assign({}, e, e.v != null && e.k !== "stun" ? { v: typeof e.v === "number" && e.v >= 1 ? Math.round(e.v * k) : e.v * k } : {}, e.ch != null ? { ch: chk(e.ch) } : {}));
+  o.fx = fx(o.fx); o.afx = fx(o.afx); o.lowfx = fx(o.lowfx); if (!o.fx) delete o.fx; if (!o.afx) delete o.afx; if (!o.lowfx) delete o.lowfx;
+  return o;
+}
 function petAct(B, ev, extra) {
   const P = B.pet; if (!P || B.over) return;
   const D = PETS[P.id]; P.n++;
@@ -375,6 +384,7 @@ function petAct(B, ev, extra) {
   if (!extra && D.sk[1] && P.n % (D.sk[1].every || 3) === 0) sk = D.sk[1];
   if (P.evo && !extra && P.n % 2 === 0) sk = D.evo.sk;
   if (extra) sk = D.sk.find(s => s.m) || D.evo.sk;
+  sk = petSkScaled(sk, D.rank || 1); // puissance du compagnon selon son rang de déblocage
   const fake = { uid: "PET", side: "h", name: petName(P.id), dmgLo: P.pw.dmg * .8, dmgHi: P.pw.dmg * 1.2, crit: 8, acc: 98, hooks: {}, st: [], healPow: P.pw.heal, sz: 1, leech: 0, tags: ["bete"] };
   const boost = 1 + (B.heroes.reduce((a, h) => a + (h.hooks.petDmg || 0), 0)) + (B.relicH.pet || 0);
   fake.dmgLo *= boost; fake.dmgHi *= boost;

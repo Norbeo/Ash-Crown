@@ -140,7 +140,7 @@ function petLvl(id) { return (S && S.pets.lvl[id]) || 1; }
 const petXpNeed = l => Math.round(60 + 40 * Math.pow(l - 1, 1.35));
 function petEvolved(id) { return !!(S && S.pets.evo[id]); }
 function petName(id) { return petEvolved(id) ? PETS[id].evo.n : PETS[id].n; }
-function petPower(id) { const l = petLvl(id), r = (PETS[id] && PETS[id].rank) || 1; return { dmg: (3.2 + l * .95) * r, heal: (1 + l * .03) * (1 + (r - 1) * .6) }; }
+function petPower(id) { const l = petLvl(id), r = (PETS[id] && PETS[id].rank) || 1; return { dmg: (3.2 + l * .95) * r, heal: 1 + l * .03 }; }
 
 // ── Sauvegarde ──
 function save() {

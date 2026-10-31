@@ -37,6 +37,15 @@ const PET_MORE = [
   ["mammouth", "Mammouthon", "tank", 6, "Un petit mammouth laineux venu du grand froid.", "#6a5040", "protUp", "Mammouth de guerre", "Une montagne qui charge."],
   ["phenix", "Phénix de cendre", "soin", 6, "Il meurt et renaît dans la cendre, encore et encore.", "#ff7a3a", "regen", "Phénix royal", "Ses flammes soignent ceux qu'il aime."],
   ["basilic", "Basilic", "dps", 6, "Un regard, et l'ennemi se fige.", "#5a6a2a", "stun", "Roi-basilic", "Il pétrifie d'un battement de paupières."],
+  // ── compagnons de départ « de prestige » (31 oct.) : proposés au hasard en nouvelle partie ──
+  ["panthere", "Panthère de cendre", "dps", 0, "Une panthère noire dont la fourrure craquelée laisse voir des braises. Elle chasse sans un bruit.", "#2a1a14", "burn", "Panthère du brasier", "Ses pas laissent des empreintes de feu."],
+  ["faucon", "Faucon de sang", "dps", 0, "Un faucon de guerre aux serres ferrées, dressé par les chevaliers de la Couronne.", "#7a1a14", "bleed", "Faucon royal", "Il porte encore l'anneau d'or du dernier roi."],
+  ["cerbere", "Cerbère juvénile", "tank", 0, "Trois têtes, trois caractères, une seule loyauté.", "#3a2a26", "protUp", "Cerbère des portes", "Aucune âme ne passe sans son accord."],
+  ["destrier", "Destrier noir", "tank", 0, "Un cheval de guerre caparaçonné de fer noir, qui a survécu à son cavalier.", "#1a1a1e", "shield", "Destrier de l'Apocalypse", "Ses sabots font trembler les remparts."],
+  ["grue", "Grue d'argent", "soin", 0, "Une grue aux plumes d'argent, oiseau sacré des anciens monastères.", "#c8ccd4", "heal", "Grue céleste", "On dit qu'elle porte les âmes jusqu'au ciel."],
+  ["renarde", "Renarde aux lanternes", "soin", 0, "Ses queues portent de petites flammes bleues qui réchauffent les blessés.", "#c87a3a", "regen", "Renarde aux neuf feux", "Neuf lanternes, neuf vies sauvées."],
+  ["vautour", "Vautour des gibets", "soutien", 0, "Il tourne au-dessus des batailles et sait toujours qui va tomber.", "#4a3a30", "weak", "Vautour-prophète", "Son ombre annonce la mort de l'ennemi."],
+  ["raie", "Raie des brumes", "soutien", 0, "Une raie qui nage dans le brouillard comme dans l'eau. L'ennemi ne voit plus rien.", "#5a6a7a", "accDn", "Raie-fantôme", "Une marée de brume la suit partout."],
   ["licorne", "Licorne des ruines", "soin", 6, "Une licorne grise née dans une chapelle effondrée. Sa corne referme les plaies et chasse les malédictions.", "#a8a8b0", "heal", "Licorne d'argent", "Sa corne brille comme une étoile au-dessus des tombes."],
   ["ombre_chat", "Chat d'ombre", "soutien", 6, "Un chat fait de nuit pure. Il désigne les proies.", "#14121a", "mark", "Panthère d'ombre", "La nuit entière marche à vos côtés."],
 ];
@@ -88,6 +97,14 @@ const PET_KITS = {
   mante: [{ n: "Prière", t: "e", m: .3, at: PK_ALL, fx: [PKF("protDn", .15, 2)] }, { n: "Sentence", t: "e", m: 1.1, cr: 30, at: [1, 2], every: 3 }, { n: "Prêtresse", t: "ae", m: .3, at: PK_ALL, fx: [PKF("protDn", .15, 2)] }],
   chimere: [{ n: "Trois souffles", t: "e", m: .4, at: PK_ALL, fx: [PKF("burn", .3, 2, .6), PKF("poison", .3, 2, .6)] }, { n: "Triple rugissement", t: "aa", afx: [{ k: "dmgUp", v: .1, t: 2 }], every: 3 }, { n: "Chimère adulte", t: "ae", m: .3, at: PK_ALL, fx: [PKF("vuln", .12, 2)] }],
   sphinx: [{ n: "Énigme", t: "e", at: PK_ALL, fx: [PKF("stun", 0, 1, .45)] }, { n: "Sagesse", t: "aa", afx: [{ k: "dmgUp", v: .12, t: 2 }], every: 3 }, { n: "Dernière énigme", t: "ae", at: PK_ALL, fx: [PKF("stun", 0, 1, .3)] }],
+  panthere: [{ n: "Griffes de braise", t: "e", m: .55, hits: 2, at: [1, 2, 3], fx: [PKF("burn", .35, 3, .8)] }, { n: "Bond des cendres", t: "e", m: 1.2, cr: 25, at: [3, 4], fx: [PKF("burn", .4, 3)], every: 3 }, { n: "Brasier vivant", t: "ae", m: .55, at: PK_ALL, fx: [PKF("burn", .5, 3, .9)] }],
+  faucon: [{ n: "Serres ferrées", t: "e", m: .75, at: PK_ALL, fx: [PKF("bleed", .4, 3, .85)] }, { n: "Piqué royal", t: "e", m: 1.4, cr: 30, at: [3, 4], tgt: "high", every: 3 }, { n: "Anneau du roi", t: "e", m: .5, hits: 3, at: PK_ALL, fx: [PKF("bleed", .35, 3, .8)] }],
+  cerbere: [{ n: "Triple morsure", t: "e", m: .35, hits: 3, at: [1, 2] }, { n: "Garde des portes", t: "aa", shield: .1, afx: [{ k: "protUp", v: .08, t: 2 }], every: 3 }, { n: "Hurlement des enfers", t: "ae", m: .4, at: PK_ALL, fx: [PKF("stun", 0, 1, .3), PKF("weak", .15, 2)] }],
+  destrier: [{ n: "Caparaçon", t: "low", shield: .22 }, { n: "Ruade", t: "ae", m: .5, at: [1, 2], fx: [PKF("stun", 0, 1, .3)], every: 3 }, { n: "Charge de l'Apocalypse", t: "ae", m: .7, at: PK_ALL, fx: [PKF("stun", 0, 1, .3)] }],
+  grue: [{ n: "Plume d'argent", t: "low", heal: .15, cleanse1: true }, { n: "Danse sacrée", t: "aa", heal: .07, every: 3 }, { n: "Envol céleste", t: "aa", heal: .14, cleanse1: true }],
+  renarde: [{ n: "Lanterne bleue", t: "low", heal: .1, regen: .05 }, { n: "Feux follets", t: "aa", afx: [{ k: "regen", v: .03, t: 2 }], light: 8, every: 3 }, { n: "Neuf feux", t: "aa", heal: .09, afx: [{ k: "regen", v: .05, t: 2 }], light: 10 }],
+  vautour: [{ n: "Ombre funeste", t: "e", at: PK_ALL, fx: [PKF("weak", .2, 2), PKF("mark", 0, 2)] }, { n: "Festin annoncé", t: "aa", ult: 8, morale: 4, every: 3 }, { n: "Prophétie de mort", t: "ae", at: PK_ALL, fx: [PKF("weak", .18, 2), PKF("vuln", .1, 2)] }],
+  raie: [{ n: "Voile de brume", t: "ae", at: PK_ALL, fx: [PKF("accDn", 10, 2)] }, { n: "Nage fantôme", t: "aa", afx: [{ k: "dodgeUp", v: 10, t: 2 }], every: 3 }, { n: "Marée de brume", t: "ae", at: PK_ALL, fx: [PKF("accDn", 14, 2)], afx: [{ k: "dodgeUp", v: 8, t: 2 }] }],
   licorne: [{ n: "Corne apaisante", t: "low", heal: .13, cleanse1: true }, { n: "Galop sacré", t: "aa", heal: .05, afx: [{ k: "protUp", v: .08, t: 2 }], every: 3 }, { n: "Corne d'argent", t: "aa", heal: .12, cleanse1: true, morale: 5 }],
   ombre_chat: [{ n: "Désigner la proie", t: "e", at: PK_ALL, fx: [PKF("mark", 0, 3)] }, { n: "Pas feutrés", t: "aa", afx: [{ k: "dodgeUp", v: 12, t: 2 }], every: 3 }, { n: "Nuit marchante", t: "ae", at: PK_ALL, fx: [PKF("mark", 0, 2)], afx: [{ k: "dodgeUp", v: 8, t: 2 }] }],
 };
@@ -102,13 +119,13 @@ if (typeof window !== "undefined" && window.ART_LIST) { const L = new Set(window
 PET_IDS.push(...PET_MORE.map(p => p[0]).filter(id => PETS[id] && !PET_IDS.includes(id)));
 
 // ── Déblocage progressif : 5 compagnons au départ (un par rôle + un), puis exactement un par chapitre vaincu et par menace vaincue (10 chapitres × 5 menaces = 50) ──
-const PET_START = ["loup", "vipere", "molosse", "chouette", "corbeau"];
+const PET_START = ["loup", "vipere", "molosse", "chouette", "corbeau", "panthere", "faucon", "cerbere", "destrier", "grue", "renarde", "vautour", "raie"];
 const PET_ORDER = ["renard", "ours", "cerf", "belette", "hibou_gris", "chevre", "lievre", "rat_geant", "pie", "luciole",
   "crapaud", "chat_noir", "blaireau", "serpent_eau", "cygne_noir", "chien_berger", "corneille", "salamandre", "sanglier", "mouton_noir", "sangsue", "frelon", "tortue",
   "feu_follet", "chauve_souris", "scarabee", "lynx", "phalene", "araignee", "chacal", "elan", "paon", "griffon", "gargouille", "kirin", "mante", "anguille", "bouc_sacre", "ange_dechu",
   "chimere", "scorpion", "golem_os", "drake", "phenix", "sphinx", "wyverne", "mammouth", "basilic", "ombre_chat", "licorne"];
 for (const id in PETS) if (PETS[id].starter && !PET_START.includes(id)) PETS[id].starter = 0; // seuls les 5 du départ sont proposés en nouvelle partie
-for (const id of PET_START) if (PETS[id]) PETS[id].pool0 = 1;
+for (const id of PET_START) if (PETS[id]) { PETS[id].pool0 = 1; PETS[id].starter = 1; }
 PET_ORDER.forEach((id, i) => { if (PETS[id]) { PETS[id].unl = [Math.floor(i / 5), (i % 5) + 1]; PETS[id].cost = 500 + i * 90; } });
 for (const id of PET_START) if (PETS[id] && !PETS[id].starter) PETS[id].cost = 450; // [chapitre (0 = Bourg), menace vaincue (1 = I … 5 = V)]
 function petUnlockText(id) { const u = PETS[id].unl; if (!u) return ""; const R = REGIONS[u[0]]; return R ? `${R.n} : vaincre le gardien${u[1] > 1 ? " en menace " + ["I", "II", "III", "IV", "V"][u[1] - 1] : ""}` : "Plus tard"; }

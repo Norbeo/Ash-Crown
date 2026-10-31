@@ -381,10 +381,15 @@ function petAct(B, ev, extra) {
   ev.push({ k: "pet", sk: sk.n, t: sk.t });
   const allies = B.heroes.filter(alive);
   const low = allies.slice().sort((a, b) => a.hp / a.hpMax - b.hp / b.hpMax)[0];
+  // effets communs à toutes les cibles : résolution, jauge d'ultime, altération sur l'allié le plus blessé
+  if (sk.morale) changeMorale(B, sk.morale, ev);
+  if (sk.ult) for (const a of allies) gainUlt(a, sk.ult);
+  if (sk.lowfx && low) applyFx(B, fake, low, sk.lowfx.map(f => Object.assign({ ch: 1 }, f)), ev);
   if (sk.t === "low" && low) {
     if (sk.heal) healUnit(B, fake, low, low.hpMax * sk.heal, ev);
     if (sk.regen) addSt(B, fake, low, { k: "regen", v: sk.regen, t: 2 }, ev);
     if (sk.shield) addSt(B, fake, low, { k: "shield", v: sk.shield, t: 2 }, ev);
+    if (sk.cleanse1) cleanse(low, ev);
     if (sk.light && B.opt.onLight) B.opt.onLight(sk.light);
     return;
   }
@@ -395,11 +400,13 @@ function petAct(B, ev, extra) {
     if (sk.light && B.opt.onLight) B.opt.onLight(sk.light);
     return;
   }
+  if (sk.afx) for (const a of allies) applyFx(B, fake, a, sk.afx.map(f => Object.assign({ ch: 1 }, f)), ev); // soutien qui frappe et galvanise
   const foes = B.enemies.filter(e => alive(e) && occupies(B, e, sk.at || [1, 2, 3, 4]));
   if (!foes.length) return;
-  const tg = sk.t === "ae" ? foes : [foes.sort((a, b) => a.hp - b.hp)[0]];
-  for (const x of tg) {
-    if (sk.m) { const ok = strike(B, fake, x, { m: sk.m, cr: sk.cr, t: sk.t }, sk.m, ev); if (ok && sk.leechLow && low) { healUnit(B, null, low, avgDmg(fake) * sk.m * sk.leechLow, ev); } if (ok) applyFx(B, fake, x, sk.fx, ev); }
+  const tg = sk.t === "ae" ? foes : [sk.tgt === "high" ? foes.sort((a, b) => b.hp - a.hp)[0] : foes.sort((a, b) => a.hp - b.hp)[0]];
+  for (const x of tg) for (let hn = 0; hn < (sk.hits || 1) && alive(x); hn++) {
+    const mm = sk.m * (sk.exec && x.hp / x.hpMax < .35 ? 2 : 1);
+    if (sk.m) { const ok = strike(B, fake, x, { m: mm, cr: sk.cr, t: sk.t }, mm, ev); if (ok && sk.leechLow && low) { healUnit(B, null, low, avgDmg(fake) * sk.m * sk.leechLow, ev); } if (ok) applyFx(B, fake, x, sk.fx, ev); }
     else applyFx(B, fake, x, sk.fx, ev);
   }
   checkEnd(B);

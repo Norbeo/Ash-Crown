@@ -9,7 +9,8 @@ const THREAT_N = ["I", "II", "III", "IV", "V"];
 function threatMax(id) { const p = S.prog[id]; return p && p.clears ? Math.min(4, (p.threat || 0) + 1) : 0; }
 function regionsCleared() { return REGIONS.filter(r => S.prog[r.id] && S.prog[r.id].clears > 0).length; }
 function classUnlocked(c) { return CLASSES[c].unlock <= regionsCleared() || !!(S.seen && S.seen.classes[c]); }
-function petUnlocked(id) { return PETS[id].starter || (PETS[id].unlock || 0) <= regionsCleared(); }
+function petUnlocked(id) { const P = PETS[id]; if (!P) return false; if (P.starter || P.pool0 || (typeof S !== "undefined" && S && S.pets && S.pets.owned.includes(id))) return true;
+  if (!P.unl) return (P.unlock || 0) <= regionsCleared(); const R = REGIONS[P.unl[0]], p = R && S.prog[R.id]; return !!(p && p.clears && (p.threat || 0) >= P.unl[1] - 1); }
 function regionUnlocked(id) { if (id === "abime") return regionsCleared() >= 1; const i = REGIONS.findIndex(r => r.id === id); return i === 0 || (S.prog[REGIONS[i - 1].id] && S.prog[REGIONS[i - 1].id].clears > 0); }
 
 // ── génération de la carte ──
@@ -243,7 +244,7 @@ function endRun(outcome) {
     best: L.best, foes: L.foes, crits: L.crits, kills: run.kills, combats: run.combats, rooms: run.map.flat().filter(n => n.visited).length, relics: run.relics.slice(), light: Math.round(run.light), mins: Math.max(1, Math.round((Date.now() - run.startedAt) / 60000)) };
   if (outcome === "wipe") { res.gold = Math.round(run.gold * .5); res.loot = []; res.shards = 0;
     for (const w of (run.swaps || []).slice().reverse()) { const h = heroById(w.hid); if (!h || !h.gear[w.slot] || h.gear[w.slot].id !== w.nu) continue; h.gear[w.slot] = w.old ? run.loot.find(x => x.id === w.old) || h.gear[w.slot] : null; } }
-  const before = regionsCleared();
+  const before = regionsCleared(), petsBefore = new Set(PET_IDS.filter(petUnlocked));
   if (outcome === "victory" && run.region !== "abime" && !run.rush) {
     const p = S.prog[run.region] = S.prog[run.region] || { clears: 0, best: 0 };
     if (!p.clears) res.story = STORY[run.region];
@@ -257,9 +258,10 @@ function endRun(outcome) {
   if (run.region === "abime" && run.gouffre) { const d = run.floor - (outcome === "victory" ? 0 : 1); S.gouffre = S.gouffre || {}; S.gouffre[run.gouffre] = Math.max(S.gouffre[run.gouffre] || 0, d); res.gouffre = d; }
   if (run.region === "abime") { const depth = run.floor - (outcome === "victory" ? 0 : 1); S.abyss.best = Math.max(S.abyss.best, depth); S.stats.abyss = Math.max(S.stats.abyss, S.abyss.best); if (outcome === "victory" || outcome === "retreat") S.stats.oath = Math.max(S.stats.oath, run.oaths.length); }
   const after = regionsCleared();
+  for (const p of PET_IDS) if (!petsBefore.has(p) && petUnlocked(p)) res.unlocks.push({ k: "pet", id: p }); // compagnon débloqué (chapitre ou menace)
   if (after > before) {
     for (const c of CLASS_IDS) if (CLASSES[c].unlock === after) res.unlocks.push({ k: "class", id: c });
-    for (const p of PET_IDS) if (PETS[p].unlock === after) res.unlocks.push({ k: "pet", id: p });
+    // compagnons : ceux débloqués par cette victoire (chapitre et menace)
     const nx = REGIONS[after]; if (nx) res.unlocks.push({ k: "region", id: nx.id }); if (after === 1) res.unlocks.push({ k: "region", id: "abime" });
   }
   S.gold += res.gold; for (const m in res.mats) S.mats[m] += res.mats[m]; S.shards += res.shards;

@@ -126,7 +126,7 @@ function heroImgSprite(L, pose, sc, o = {}) {
 function monImgSprite(key, pose, sc) {
   const M = MONSTERS[key] || {}, n = "mon_" + (M.art || key), im = artImg(n); if (!im) return null;
   const big = (M.sz || 1) > 1, f = pose.fig || {};
-  return imgSprite(im, { sc, cx: ART_CX[n], h: MON_H[M.art || key] || (M.elite ? 225 : 190), maxW: big ? 300 : (M.elite ? 175 : 140), flip: !ART_FLIP.has(n),
+  return imgSprite(im, { sc, cx: ART_CX[n], h: MON_H[M.art || key] || (M.boss ? 335 : M.elite ? 240 : 190), maxW: big ? 320 : (M.elite ? 200 : 140), flip: !ART_FLIP.has(n),
     pose: { atk: pose.atk, lean: f.lean, hx: f.hx }, tint: f.lean < 0 ? "rgba(170,20,20,.16)" : null });
 }
 function petImgSprite(id, o, sc) {

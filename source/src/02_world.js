@@ -51,7 +51,7 @@ const PETS = {
     sk: [{ n: "Crochets", m: .55, t: "e", at: [1, 2, 3, 4], fx: [{ k: "poison", v: .55, t: 3, ch: 1 }] }, { n: "Sifflement", t: "ae", at: [1, 2], fx: [{ k: "spdDn", v: 2, t: 2, ch: .8 }], every: 3 }],
     evo: { n: "Basilic", d: "Son regard fige le sang dans les veines.", sk: { n: "Regard pétrifiant", m: .5, t: "ae", at: [1, 2, 3, 4], fx: [{ k: "poison", v: .5, t: 3, ch: 1 }, { k: "stun", t: 1, ch: .25 }] } } },
   araignee: { n: "Tisseuse", role: "soutien", unlock: 3, cost: 1600, d: "Une araignée grosse comme un chat. Ses toiles collent même aux ombres.", col: "#2a2420",
-    sk: [{ n: "Toile", t: "e", at: [1, 2, 3, 4], fx: [{ k: "spdDn", v: 3, t: 2, ch: 1 }, { k: "dodgeDn", v: 10, t: 2, ch: 1 }] }, { n: "Morsure", m: .6, t: "e", at: [1, 2], fx: [{ k: "poison", v: .4, t: 3, ch: 1 }], every: 2 }],
+    sk: [{ n: "Toile", t: "e", at: [1, 2, 3, 4], fx: [{ k: "spdDn", v: 3, t: 2, ch: 1 }, { k: "dodgeDn", v: 10, t: 2, ch: 1 }] }, { n: "Crochets venimeux", m: .6, t: "e", at: [1, 2], fx: [{ k: "poison", v: .4, t: 3, ch: 1 }], every: 2 }],
     evo: { n: "Reine-tisseuse", d: "Le marais entier est sa toile.", sk: { n: "Cocon", m: .3, t: "ae", at: [1, 2, 3, 4], fx: [{ k: "stun", t: 1, ch: .3 }, { k: "spdDn", v: 3, t: 2, ch: 1 }] } } },
   gargouille: { n: "Gargouillon", role: "tank", unlock: 4, cost: 2400, d: "Tombé d'une cathédrale en ruine. La pierre arrête les coups qui vous sont destinés.", col: "#6a6a68",
     sk: [{ n: "Peau de pierre", t: "low", shield: .2 }, { n: "Griffes de granit", m: .9, t: "e", at: [1, 2], fx: [{ k: "protDn", v: .1, t: 2, ch: 1 }], every: 2 }],

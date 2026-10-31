@@ -45,12 +45,66 @@ const PET_ROLE_SK = {
   soin: (fx, nm) => ({ sk: [{ n: "Soin", t: "low", heal: .14, regen: fx === "regen" ? .04 : 0 }, { n: "Bénédiction", t: "aa", heal: .06, cleanse1: true, every: 3 }], evo: { n: "Grâce " + nm, t: "aa", heal: .14, cleanse1: true } }),
   soutien: (fx, nm) => ({ sk: [{ n: "Présage", t: "e", at: [1, 2, 3, 4], fx: [{ k: fx, v: fx === "accDn" ? 10 : fx === "protDn" ? .12 : .2, t: 2, ch: 1 }] }, { n: "Cri", t: "aa", afx: [{ k: "dmgUp", v: .1, t: 2 }], every: 3 }], evo: { n: "Augure " + nm, m: .4, t: "ae", at: [1, 2, 3, 4], fx: [{ k: fx, v: fx === "accDn" ? 12 : fx === "protDn" ? .15 : .25, t: 2, ch: 1 }] } }),
 };
+// compétences propres à chaque compagnon : [compétence de base, compétence périodique, compétence d'évolution]
+const PK_ALL = [1, 2, 3, 4], PKF = (k, v, t, ch) => ({ k, v, t: t || 2, ch: ch == null ? 1 : ch });
+const PET_KITS = {
+  // ── dégâts ──
+  belette: [{ n: "Dents de tombe", t: "e", m: .5, hits: 2, at: [1, 2, 3], fx: [PKF("bleed", .3, 3, .8)] }, { n: "Sous les côtes", t: "e", m: 1.1, cr: 25, at: [1, 2], every: 3 }, { n: "Linceul rouge", t: "ae", m: .55, at: [1, 2, 3], fx: [PKF("bleed", .5, 3, .9)] }],
+  rat_geant: [{ n: "Morsure infecte", t: "e", m: .7, at: [1, 2], fx: [PKF("poison", .5, 3, .9)] }, { n: "La horde", t: "ae", m: .3, at: PK_ALL, fx: [PKF("poison", .25, 2, .7)], every: 3 }, { n: "Armée des égouts", t: "ae", m: .5, at: PK_ALL, fx: [PKF("poison", .45, 3, .9)] }],
+  serpent_eau: [{ n: "Morsure aux chevilles", t: "e", m: .6, at: PK_ALL, fx: [PKF("spdDn", 3, 2), PKF("poison", .3, 2, .7)] }, { n: "Étreinte des douves", t: "e", m: .5, at: [1, 2], fx: [PKF("stun", 0, 1, .5)], every: 3 }, { n: "Trois têtes", t: "e", m: .45, hits: 3, at: PK_ALL, fx: [PKF("poison", .3, 3, .8)] }],
+  frelon: [{ n: "Dard", t: "e", m: .8, at: [2, 3, 4], fx: [PKF("poison", .55, 3, .9)] }, { n: "Bourdonnement", t: "ae", m: .25, at: PK_ALL, fx: [PKF("weak", .15, 2, .7)], every: 3 }, { n: "Reine de l'essaim", t: "ae", m: .5, at: PK_ALL, fx: [PKF("poison", .4, 3, 1)] }],
+  lynx: [{ n: "Bond silencieux", t: "e", m: 1, cr: 20, at: [3, 4] }, { n: "Lacération", t: "e", m: .5, hits: 2, at: [1, 2], fx: [PKF("bleed", .35, 3, .8)], every: 3 }, { n: "Frappe spectrale", t: "e", m: 1.6, cr: 35, at: PK_ALL, tgt: "high" }],
+  chacal: [{ n: "Curée", t: "e", m: .7, exec: 1, at: PK_ALL }, { n: "Ricanement", t: "aa", morale: 6, afx: [{ k: "critUp", v: 10, t: 2 }], every: 3 }, { n: "Jugement des morts", t: "ae", m: .55, exec: 1, at: PK_ALL }],
+  anguille: [{ n: "Décharge", t: "e", m: .6, at: [1, 2, 3], fx: [PKF("stun", 0, 1, .35)] }, { n: "Arc électrique", t: "ae", m: .35, at: PK_ALL, fx: [PKF("spdDn", 3, 2, .8)], every: 3 }, { n: "Tonnerre", t: "ae", m: .6, at: PK_ALL, fx: [PKF("stun", 0, 1, .3)] }],
+  scorpion: [{ n: "Dard brûlant", t: "e", m: .75, at: [1, 2, 3], fx: [PKF("burn", .5, 3, .9)] }, { n: "Queue de lave", t: "e", m: .5, at: [1, 2], fx: [PKF("protDn", .15, 2), PKF("burn", .3, 2, .8)], every: 3 }, { n: "Cendres impériales", t: "ae", m: .5, at: PK_ALL, fx: [PKF("burn", .5, 3, .9)] }],
+  wyverne: [{ n: "Crachat acide", t: "e", m: .55, at: PK_ALL, fx: [PKF("protDn", .15, 2), PKF("poison", .35, 3, .8)] }, { n: "Plongeon venimeux", t: "e", m: 1.2, at: [3, 4], every: 3 }, { n: "Venin des marais", t: "ae", m: .45, at: PK_ALL, fx: [PKF("poison", .55, 3, 1)] }],
+  basilic: [{ n: "Regard figé", t: "e", m: .3, at: PK_ALL, fx: [PKF("stun", 0, 1, .5)] }, { n: "Croc pétrifiant", t: "e", m: .9, at: [1, 2], fx: [PKF("spdDn", 4, 2)], every: 3 }, { n: "Regard du roi", t: "ae", m: .3, at: PK_ALL, fx: [PKF("stun", 0, 1, .35)] }],
+  // ── tanks ──
+  chevre: [{ n: "Coup de cornes", t: "e", m: .6, at: [1], fx: [PKF("stun", 0, 1, .3)] }, { n: "Têtue", t: "aa", afx: [{ k: "protUp", v: .12, t: 2 }], every: 3 }, { n: "Cornes du sabbat", t: "e", m: 1, at: [1, 2], fx: [PKF("stun", 0, 1, .5), PKF("protDn", .15, 2)] }],
+  blaireau: [{ n: "Carapace de fer", t: "low", shield: .2 }, { n: "Morsure de fer", t: "e", m: .6, at: [1, 2], fx: [PKF("protDn", .15, 2)], every: 2 }, { n: "Cuirasse", t: "aa", shield: .12 }],
+  chien_berger: [{ n: "Garde du troupeau", t: "aa", shield: .07 }, { n: "Aboiements", t: "aa", morale: 8, every: 3 }, { n: "Rien ne passe", t: "aa", shield: .12, afx: [{ k: "protUp", v: .08, t: 2 }] }],
+  tortue: [{ n: "Abri", t: "low", shield: .26 }, { n: "Repli", t: "aa", afx: [{ k: "protUp", v: .1, t: 2 }], every: 3 }, { n: "Forteresse", t: "aa", shield: .16 }],
+  scarabee: [{ n: "Carapace renvoyée", t: "low", lowfx: [{ k: "thorns", v: .3, t: 2 }], shield: .1 }, { n: "Mandibules", t: "e", m: .5, at: [1, 2], fx: [PKF("stun", 0, 1, .3)], every: 3 }, { n: "Soleil noir", t: "aa", afx: [{ k: "thorns", v: .25, t: 2 }] }],
+  elan: [{ n: "Bois en garde", t: "low", shield: .15, lowfx: [{ k: "protUp", v: .1, t: 2 }] }, { n: "Charge des tourbières", t: "ae", m: .4, at: [1, 2], every: 3 }, { n: "Couronne de bois", t: "aa", shield: .1, afx: [{ k: "protUp", v: .08, t: 2 }] }],
+  bouc_sacre: [{ n: "Pied sûr", t: "aa", afx: [{ k: "dodgeUp", v: 10, t: 2 }] }, { n: "Bélier", t: "e", m: .8, at: [1], fx: [PKF("stun", 0, 1, .4)], every: 3 }, { n: "Cornes de tempête", t: "ae", m: .45, at: [1, 2], fx: [PKF("stun", 0, 1, .25)] }],
+  golem_os: [{ n: "Mur d'os", t: "low", shield: .22, cleanse1: true }, { n: "Écrasement", t: "e", m: .9, at: [1, 2], every: 3 }, { n: "Rempart de crânes", t: "aa", shield: .14 }],
+  mammouth: [{ n: "Charge laineuse", t: "ae", m: .45, at: [1, 2], fx: [PKF("stun", 0, 1, .2)] }, { n: "Toison épaisse", t: "low", shield: .2, every: 2 }, { n: "Avalanche", t: "ae", m: .6, at: [1, 2, 3], fx: [PKF("stun", 0, 1, .3)] }],
+  // ── soins ──
+  lievre: [{ n: "Patte porte-bonheur", t: "low", heal: .12, lowfx: [{ k: "critUp", v: 10, t: 2 }] }, { n: "Bond lunaire", t: "aa", ult: 10, every: 3 }, { n: "Lune pleine", t: "aa", heal: .1, ult: 8 }],
+  luciole: [{ n: "Lueurs", t: "low", regen: .06 }, { n: "Ciel doux", t: "aa", heal: .04, light: 10, every: 3 }, { n: "Constellation", t: "aa", heal: .1, light: 12 }],
+  cygne_noir: [{ n: "Chant tiède", t: "low", heal: .17 }, { n: "Chant des mourants", t: "low", heal: .32, every: 4 }, { n: "Chant de deuil", t: "aa", heal: .13 }],
+  mouton_noir: [{ n: "Laine apaisante", t: "aa", afx: [{ k: "regen", v: .035, t: 2 }] }, { n: "Câlin", t: "low", heal: .14, every: 2 }, { n: "Toison de cendre", t: "aa", heal: .08, afx: [{ k: "regen", v: .04, t: 2 }] }],
+  phalene: [{ n: "Poussière d'argent", t: "aa", heal: .065 }, { n: "Ailes pures", t: "low", heal: .06, cleanse1: true, every: 3 }, { n: "Poussière lunaire", t: "aa", heal: .12, cleanse1: true }],
+  kirin: [{ n: "Souffle de brume", t: "low", heal: .11, lowfx: [{ k: "spdUp", v: 2, t: 2 }] }, { n: "Voile", t: "aa", afx: [{ k: "dodgeUp", v: 8, t: 2 }], every: 3 }, { n: "Galop de nuages", t: "aa", heal: .1, afx: [{ k: "spdUp", v: 2, t: 2 }] }],
+  ange_dechu: [{ n: "Ailes brûlées", t: "low", heal: .15, lowfx: [{ k: "protUp", v: .1, t: 2 }] }, { n: "Prière perdue", t: "aa", heal: .05, morale: 5, every: 3 }, { n: "Six ailes", t: "aa", heal: .12, morale: 6 }],
+  phenix: [{ n: "Braises tièdes", t: "aa", afx: [{ k: "regen", v: .04, t: 2 }] }, { n: "Renaissance", t: "low", heal: .35, every: 5 }, { n: "Flammes royales", t: "aa", heal: .1, afx: [{ k: "regen", v: .05, t: 2 }] }],
+  // ── soutien ──
+  hibou_gris: [{ n: "Œil des clochers", t: "e", at: PK_ALL, fx: [PKF("mark", 0, 3)] }, { n: "Hululement", t: "aa", afx: [{ k: "accUp", v: 10, t: 2 }], every: 3 }, { n: "Glas", t: "ae", at: PK_ALL, fx: [PKF("mark", 0, 2), PKF("vuln", .1, 2)] }],
+  pie: [{ n: "Larcin", t: "e", m: .3, at: PK_ALL, fx: [PKF("weak", .2, 2)] }, { n: "Trésor volé", t: "aa", ult: 8, every: 3 }, { n: "Pie des gibets", t: "ae", at: PK_ALL, fx: [PKF("weak", .2, 2)] }],
+  corneille: [{ n: "Mauvais présage", t: "e", at: PK_ALL, fx: [PKF("vuln", .2, 2)] }, { n: "Vision", t: "aa", afx: [{ k: "critUp", v: 12, t: 2 }], every: 3 }, { n: "Destin scellé", t: "ae", at: PK_ALL, fx: [PKF("vuln", .15, 2)] }],
+  sangsue: [{ n: "Saignée", t: "e", m: .4, leechLow: 1, at: [1, 2], fx: [PKF("weak", .15, 2)] }, { n: "Festin", t: "e", m: .6, leechLow: 1.2, at: [1, 2], every: 3 }, { n: "Mère-sangsue", t: "ae", m: .35, leechLow: .8, at: [1, 2, 3] }],
+  paon: [{ n: "Cent yeux", t: "ae", at: PK_ALL, fx: [PKF("accDn", 10, 2)] }, { n: "Roue funèbre", t: "aa", morale: 8, every: 3 }, { n: "Cent regards", t: "ae", at: PK_ALL, fx: [PKF("accDn", 12, 2), PKF("weak", .1, 2)] }],
+  mante: [{ n: "Prière", t: "e", m: .3, at: PK_ALL, fx: [PKF("protDn", .15, 2)] }, { n: "Sentence", t: "e", m: 1.1, cr: 30, at: [1, 2], every: 3 }, { n: "Prêtresse", t: "ae", m: .3, at: PK_ALL, fx: [PKF("protDn", .15, 2)] }],
+  chimere: [{ n: "Trois souffles", t: "e", m: .4, at: PK_ALL, fx: [PKF("burn", .3, 2, .6), PKF("poison", .3, 2, .6)] }, { n: "Triple rugissement", t: "aa", afx: [{ k: "dmgUp", v: .1, t: 2 }], every: 3 }, { n: "Chimère adulte", t: "ae", m: .3, at: PK_ALL, fx: [PKF("vuln", .12, 2)] }],
+  sphinx: [{ n: "Énigme", t: "e", at: PK_ALL, fx: [PKF("stun", 0, 1, .45)] }, { n: "Sagesse", t: "aa", afx: [{ k: "dmgUp", v: .12, t: 2 }], every: 3 }, { n: "Dernière énigme", t: "ae", at: PK_ALL, fx: [PKF("stun", 0, 1, .3)] }],
+  ombre_chat: [{ n: "Désigner la proie", t: "e", at: PK_ALL, fx: [PKF("mark", 0, 3)] }, { n: "Pas feutrés", t: "aa", afx: [{ k: "dodgeUp", v: 12, t: 2 }], every: 3 }, { n: "Nuit marchante", t: "ae", at: PK_ALL, fx: [PKF("mark", 0, 2)], afx: [{ k: "dodgeUp", v: 8, t: 2 }] }],
+};
 for (const [id, n, role, unlock, d, col, fx, en, ed] of PET_MORE) {
-  const T = PET_ROLE_SK[role](fx, ""), cost = [500, 800, 1200, 1700, 2400, 3000, 3600][unlock] || 3600;
+  const K = PET_KITS[id], T = K ? { sk: [K[0], K[1]], evo: K[2] } : PET_ROLE_SK[role](fx, ""), cost = [500, 800, 1200, 1700, 2400, 3000, 3600][unlock] || 3600;
   for (const s of T.sk) if (!s.regen) delete s.regen;
-  PETS[id] = { n, role, unlock, cost, d, col, sk: T.sk, evo: { n: en, d: ed, sk: Object.assign(T.evo, { n: en.split(" ")[0] === en ? en : T.evo.n.trim() + en.split(" ").slice(0, 1).join("") }) }, art: "pet_" + id, more: 1 };
-  PETS[id].evo.sk.n = { dps: "Furie", tank: "Rempart", soin: "Grâce", soutien: "Augure" }[role] + " de " + en.toLowerCase().replace(/^(le |la |l')/, "");
+  PETS[id] = { n, role, unlock, cost, d, col, sk: T.sk, evo: { n: en, d: ed, sk: Object.assign({}, T.evo) }, art: "pet_" + id, more: 1 };
+  if (!K) PETS[id].evo.sk.n = { dps: "Furie", tank: "Rempart", soin: "Grâce", soutien: "Augure" }[role] + " de " + en.toLowerCase().replace(/^(le |la |l')/, "");
 }
 // compagnons pas encore peints : masqués dans le jeu (la simulation, sans illustrations, les garde tous)
 if (typeof window !== "undefined" && window.ART_LIST) { const L = new Set(window.ART_LIST); for (const p of PET_MORE) if (!L.has("pet_" + p[0])) delete PETS[p[0]]; }
 PET_IDS.push(...PET_MORE.map(p => p[0]).filter(id => PETS[id] && !PET_IDS.includes(id)));
+
+// ── Déblocage progressif : 15 compagnons au départ (3–4 par rôle), puis un par chapitre vaincu et par niveau de menace vaincu ──
+const PET_START = ["loup", "vipere", "belette", "rat_geant", "corbeau", "renard", "hibou_gris", "pie", "chouette", "cerf", "lievre", "luciole", "molosse", "ours", "chevre"];
+const PET_ORDER = ["crapaud", "chat_noir", "blaireau", "serpent_eau", "cygne_noir", "chien_berger", "corneille", "salamandre", "sanglier", "mouton_noir", "sangsue", "frelon", "tortue",
+  "feu_follet", "chauve_souris", "scarabee", "lynx", "phalene", "araignee", "chacal", "elan", "paon", "griffon", "gargouille", "kirin", "mante", "anguille", "bouc_sacre", "ange_dechu",
+  "chimere", "scorpion", "golem_os", "drake", "phenix", "sphinx", "wyverne", "mammouth", "basilic", "ombre_chat"];
+for (const id of PET_START) if (PETS[id]) PETS[id].pool0 = 1;
+PET_ORDER.forEach((id, i) => { if (PETS[id]) { PETS[id].unl = [Math.floor(i / 5), (i % 5) + 1]; PETS[id].cost = 500 + i * 90; } });
+for (const id of PET_START) if (PETS[id] && !PETS[id].starter) PETS[id].cost = 450; // [chapitre (0 = Bourg), menace vaincue (1 = I … 5 = V)]
+function petUnlockText(id) { const u = PETS[id].unl; if (!u) return ""; const R = REGIONS[u[0]]; return R ? `${R.n} : vaincre le gardien${u[1] > 1 ? " en menace " + ["I", "II", "III", "IV", "V"][u[1] - 1] : ""}` : "Plus tard"; }

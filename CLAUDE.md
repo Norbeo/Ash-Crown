@@ -101,6 +101,7 @@ Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
 - Art terminé le 31 oct. (v105) : bâtiments évolutifs, armures V, et les 63 compagnons peints (dont mythiques P9 et prestige P10–P11). Sujets sombres troués : `T=3 IT=5 cutlum.py` ; sujets dans la brume : `cut.py` (ISNet) ; puis supprimer l'asset et relancer mkassets/meta/cx/face.
 
 - 31 oct. (v106) : descriptions de compétences compactes en combat (`S.opts.skMini`, défaut sur écran tactile, toucher = `ACT.cbDesc` / `CB.descOpen`) ; `petSkillText(s, id)` détaille tout (coups multiples, exécution, cible, rangs, groupe/allié blessé, résolution, jauge, dégâts chiffrés via `petPower`).
+- 31 oct. (v107–108) : légendes — 16 (`LEGENDS`, une par classe), don tiré au sort (`TRAITS.lg_*`, `legendRoll` → `S.legendRoll`), qualité Légendaire/Mythique aléatoire, légende errante hebdomadaire d'une classe au hasard (`wanderLegend`, `legendById`) ; intention ennemie jamais sous les panneaux du haut (`hudFloor`) ; compagnon marqué « fin » dans la frise.
 
 ## Reste à faire (prochaine séance)
 1. (Armures V : fait.) Gardiens de menace II–V : déjà présents (`THREAT_BOSS`) — à confirmer avec l'utilisateur s'il en veut d'autres.

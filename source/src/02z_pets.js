@@ -37,6 +37,7 @@ const PET_MORE = [
   ["mammouth", "Mammouthon", "tank", 6, "Un petit mammouth laineux venu du grand froid.", "#6a5040", "protUp", "Mammouth de guerre", "Une montagne qui charge."],
   ["phenix", "Phénix de cendre", "soin", 6, "Il meurt et renaît dans la cendre, encore et encore.", "#ff7a3a", "regen", "Phénix royal", "Ses flammes soignent ceux qu'il aime."],
   ["basilic", "Basilic", "dps", 6, "Un regard, et l'ennemi se fige.", "#5a6a2a", "stun", "Roi-basilic", "Il pétrifie d'un battement de paupières."],
+  ["licorne", "Licorne des ruines", "soin", 6, "Une licorne grise née dans une chapelle effondrée. Sa corne referme les plaies et chasse les malédictions.", "#a8a8b0", "heal", "Licorne d'argent", "Sa corne brille comme une étoile au-dessus des tombes."],
   ["ombre_chat", "Chat d'ombre", "soutien", 6, "Un chat fait de nuit pure. Il désigne les proies.", "#14121a", "mark", "Panthère d'ombre", "La nuit entière marche à vos côtés."],
 ];
 const PET_ROLE_SK = {
@@ -87,6 +88,7 @@ const PET_KITS = {
   mante: [{ n: "Prière", t: "e", m: .3, at: PK_ALL, fx: [PKF("protDn", .15, 2)] }, { n: "Sentence", t: "e", m: 1.1, cr: 30, at: [1, 2], every: 3 }, { n: "Prêtresse", t: "ae", m: .3, at: PK_ALL, fx: [PKF("protDn", .15, 2)] }],
   chimere: [{ n: "Trois souffles", t: "e", m: .4, at: PK_ALL, fx: [PKF("burn", .3, 2, .6), PKF("poison", .3, 2, .6)] }, { n: "Triple rugissement", t: "aa", afx: [{ k: "dmgUp", v: .1, t: 2 }], every: 3 }, { n: "Chimère adulte", t: "ae", m: .3, at: PK_ALL, fx: [PKF("vuln", .12, 2)] }],
   sphinx: [{ n: "Énigme", t: "e", at: PK_ALL, fx: [PKF("stun", 0, 1, .45)] }, { n: "Sagesse", t: "aa", afx: [{ k: "dmgUp", v: .12, t: 2 }], every: 3 }, { n: "Dernière énigme", t: "ae", at: PK_ALL, fx: [PKF("stun", 0, 1, .3)] }],
+  licorne: [{ n: "Corne apaisante", t: "low", heal: .13, cleanse1: true }, { n: "Galop sacré", t: "aa", heal: .05, afx: [{ k: "protUp", v: .08, t: 2 }], every: 3 }, { n: "Corne d'argent", t: "aa", heal: .12, cleanse1: true, morale: 5 }],
   ombre_chat: [{ n: "Désigner la proie", t: "e", at: PK_ALL, fx: [PKF("mark", 0, 3)] }, { n: "Pas feutrés", t: "aa", afx: [{ k: "dodgeUp", v: 12, t: 2 }], every: 3 }, { n: "Nuit marchante", t: "ae", at: PK_ALL, fx: [PKF("mark", 0, 2)], afx: [{ k: "dodgeUp", v: 8, t: 2 }] }],
 };
 for (const [id, n, role, unlock, d, col, fx, en, ed] of PET_MORE) {
@@ -103,7 +105,7 @@ PET_IDS.push(...PET_MORE.map(p => p[0]).filter(id => PETS[id] && !PET_IDS.includ
 const PET_START = ["loup", "vipere", "belette", "rat_geant", "corbeau", "renard", "hibou_gris", "pie", "chouette", "cerf", "lievre", "luciole", "molosse", "ours", "chevre"];
 const PET_ORDER = ["crapaud", "chat_noir", "blaireau", "serpent_eau", "cygne_noir", "chien_berger", "corneille", "salamandre", "sanglier", "mouton_noir", "sangsue", "frelon", "tortue",
   "feu_follet", "chauve_souris", "scarabee", "lynx", "phalene", "araignee", "chacal", "elan", "paon", "griffon", "gargouille", "kirin", "mante", "anguille", "bouc_sacre", "ange_dechu",
-  "chimere", "scorpion", "golem_os", "drake", "phenix", "sphinx", "wyverne", "mammouth", "basilic", "ombre_chat"];
+  "chimere", "scorpion", "golem_os", "drake", "phenix", "sphinx", "wyverne", "mammouth", "basilic", "ombre_chat", "licorne"];
 for (const id of PET_START) if (PETS[id]) PETS[id].pool0 = 1;
 PET_ORDER.forEach((id, i) => { if (PETS[id]) { PETS[id].unl = [Math.floor(i / 5), (i % 5) + 1]; PETS[id].cost = 500 + i * 90; } });
 for (const id of PET_START) if (PETS[id] && !PETS[id].starter) PETS[id].cost = 450; // [chapitre (0 = Bourg), menace vaincue (1 = I … 5 = V)]

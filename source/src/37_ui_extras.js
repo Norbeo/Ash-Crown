@@ -631,32 +631,68 @@ function atlasHTML() {
 }
 
 // ── Héros légendaires : rares, avec une histoire, ils se présentent à la Taverne après certains exploits ──
+const clearsOf = r => ((S.prog[r] || {}).clears || 0);
 const LEGENDS = [
-  { id: "aldric", cls: "templier", name: "Aldric le Briseur de Peste", cond: () => ((S.prog.bourg || {}).clears || 0) >= 3, how: "Vaincre trois fois le Bourg pestiféré.", story: "Il a tenu seul la porte de l'hospice pendant que la peste brûlait la ville. Ses mains tremblent encore, son bouclier jamais." },
-  { id: "morwenna", cls: "sorciere", name: "Morwenna des Ronces", cond: () => ((S.prog.foret || {}).clears || 0) >= 3, how: "Vaincre trois fois la Forêt des Pendus.", story: "Les pendus de la forêt lui murmurent des recettes. Elle les écoute, et elle répond." },
-  { id: "osric", cls: "exorciste", name: "Frère Osric de Saint-Morne", cond: () => ((S.prog.catacombes || {}).clears || 0) >= 2, how: "Vaincre deux fois les Catacombes.", story: "Seul survivant de l'abbaye. Il a chassé l'Abbé de sa propre crypte, un psaume à la bouche et un pieu à la main." },
-  { id: "isaure", cls: "arbaletriere", name: "Isaure la Noyée", cond: () => ((S.prog.marais || {}).clears || 0) >= 2, how: "Vaincre deux fois le Marais des Noyés.", story: "Elle s'est noyée une fois. Le marais l'a recrachée avec une arbalète et une très mauvaise humeur." },
-  { id: "gaspard", cls: "chasseur_sorcieres", name: "Gaspard Cendrelame", cond: () => ((S.prog.citadelle || {}).clears || 0) >= 1, how: "Vaincre le Roi de Cendres.", story: "Il traquait le Roi bien avant vous. Il ne vous pardonnera jamais de l'avoir eu en premier — mais il vous suivra." },
+  { id: "aldric", cls: "templier", name: "Aldric le Briseur de Peste", cond: () => clearsOf("bourg") >= 3, how: "Vaincre trois fois le Bourg pestiféré.", story: "Il a tenu seul la porte de l'hospice pendant que la peste brûlait la ville. Ses mains tremblent encore, son bouclier jamais." },
+  { id: "morwenna", cls: "sorciere", name: "Morwenna des Ronces", cond: () => clearsOf("foret") >= 3, how: "Vaincre trois fois la Forêt des Pendus.", story: "Les pendus de la forêt lui murmurent des recettes. Elle les écoute, et elle répond." },
+  { id: "osric", cls: "exorciste", name: "Frère Osric de Saint-Morne", cond: () => clearsOf("catacombes") >= 2, how: "Vaincre deux fois les Catacombes.", story: "Seul survivant de l'abbaye. Il a chassé l'Abbé de sa propre crypte, un psaume à la bouche et un pieu à la main." },
+  { id: "isaure", cls: "arbaletriere", name: "Isaure la Noyée", cond: () => clearsOf("marais") >= 2, how: "Vaincre deux fois le Marais des Noyés.", story: "Elle s'est noyée une fois. Le marais l'a recrachée avec une arbalète et une très mauvaise humeur." },
+  { id: "gaspard", cls: "chasseur_sorcieres", name: "Gaspard Cendrelame", cond: () => clearsOf("citadelle") >= 1, how: "Vaincre le Roi de Cendres.", story: "Il traquait le Roi bien avant vous. Il ne vous pardonnera jamais de l'avoir eu en premier — mais il vous suivra." },
   { id: "bran", cls: "hallebardier", name: "Bran, dernier de la Garde", cond: () => (S.abyss.best || 0) >= 10, how: "Atteindre la profondeur 10 de l'Abîme.", story: "Dernier hallebardier de la garde royale. Il est descendu dans l'Abîme chercher son roi, et n'en est jamais vraiment remonté." },
+  { id: "hugues", cls: "revenant", name: "Ser Hugues l'Inhumé", cond: () => clearsOf("catacombes") >= 4, how: "Vaincre quatre fois les Catacombes.", story: "On l'a enterré trois fois. La troisième, il a gardé la pelle." },
+  { id: "ysolde", cls: "pretresse", name: "Mère Ysolde de l'Aube", cond: () => REGIONS.reduce((a, r) => a + clearsOf(r.id), 0) >= 8, how: "Remporter huit chapitres au total.", story: "Elle a béni chaque tombe du Bastion, une à une. Elle dit que les morts l'ont remerciée." },
+  { id: "lucien", cls: "menestrel", name: "Lucien aux Cordes Noires", cond: () => clearsOf("terres") >= 1, how: "Vaincre les Terres Brûlées.", story: "Son luth a été taillé dans le gibet d'un roi. Chaque note rappelle un nom que l'on voulait oublier." },
+  { id: "ulfgar", cls: "berserker", name: "Ulfgar Mange-Cendres", cond: () => Object.values(S.stats.monKills || {}).reduce((a, b) => a + b, 0) >= 400, how: "Abattre 400 monstres.", story: "Il a avalé les braises d'un bûcher pour prouver qu'il ne craignait rien. Depuis, il fume quand il se met en colère." },
+  { id: "selene", cls: "ombre", name: "Sélène Sans-Reflet", cond: () => clearsOf("cite") >= 1, how: "Vaincre la Cité Engloutie.", story: "Aucun miroir ne la montre. Les gardes de la Cité ne l'ont jamais vue venir — ni partir." },
+  { id: "ignace", cls: "pyromancien", name: "Maître Ignace le Calciné", cond: () => clearsOf("terres") >= 2, how: "Vaincre deux fois les Terres Brûlées.", story: "Il a mis le feu à son ordre, à sa tour et à sa barbe. Il ne regrette que la barbe." },
+  { id: "vorlath", cls: "necromancien", name: "Vorlath le Fossoyeur", cond: () => (S.graves || []).length >= 3, how: "Graver trois noms au Mémorial.", story: "Il connaît le nom de chacun de vos morts. Il prétend qu'ils lui parlent de vous." },
+  { id: "thorgrim", cls: "gardien_runes", name: "Thorgrim Grave-Pierre", cond: () => clearsOf("cimes") >= 1, how: "Vaincre les Cimes Gelées.", story: "Il a gravé ses runes sur le flanc de la montagne entière. La montagne a fini par l'écouter." },
+  { id: "corvin", cls: "medecin_peste", name: "Docteur Corvin au Bec d'Argent", cond: () => clearsOf("marais") >= 3, how: "Vaincre trois fois le Marais des Noyés.", story: "Il a soigné le Docteur Peste lui-même, avant de comprendre ce qu'il avait sauvé. Il répare son erreur, un patient à la fois." },
+  { id: "garance", cls: "templier", name: "Garance du Trône Brisé", cond: () => clearsOf("trone") >= 1, how: "Vaincre le Trône Vide.", story: "Elle a porté la couronne une nuit, le temps de la briser sur son genou." },
 ];
-const legendCost = () => { const lv = Math.max(1, ...S.heroes.map(h => h.lvl)); return { gold: 900 + lv * 60, shards: 3 }; };
+// Don, qualité et équipement de chaque légende tirés au hasard la première fois qu'elle se présente
+const LEGEND_BOONS = Object.keys(TRAITS).filter(k => k.startsWith("lg_"));
+function legendRoll(id) {
+  S.legendRoll = S.legendRoll || {};
+  if (!S.legendRoll[id]) { const r = Math.random(); S.legendRoll[id] = { boon: pick(LEGEND_BOONS), rar: r < .12 ? 5 : 4, lvlB: rint(-2, 1) }; }
+  return S.legendRoll[id];
+}
+// Légende errante : chaque semaine, un héros d'une classe au hasard passe par la Taverne (une seule fois)
+const LG_EPI = ["le Maudit", "Sans-Nom", "aux Mille Cicatrices", "Pleure-Sang", "le Dernier Debout", "Main-de-Fer", "des Gibets", "l'Écorché", "Cœur-de-Cendre", "le Parjure", "aux Yeux Pâles", "Porte-Deuil"];
+const LG_TALE = ["Il dit venir d'un royaume qui n'existe plus.", "On raconte qu'il a vaincu un gardien seul, et qu'il en garde un os en pendentif.", "Sa tête est mise à prix dans trois provinces. Dans la quatrième, on lui a élevé une statue.", "Il ne dort jamais deux nuits sous le même toit.", "Il paie toujours en pièces d'un autre âge.", "Les chiens refusent d'aboyer sur son passage.", "Il porte au cou les clés d'une prison qu'il a vidée.", "Personne ne l'a vu manger ni rire. Tout le monde l'a vu se battre."];
+function wanderLegend() {
+  if (REGIONS.reduce((a, r) => a + clearsOf(r.id), 0) < 1) return null;
+  const wk = Math.floor(Date.now() / 6048e5), id = "errant_" + wk, R = mkRng(wk * 7919 + 13);
+  const cls = R.pick(Object.keys(CLASSES)), fem = CLASS_FEMALE.has(cls);
+  let nm = R.pick(fem ? NAMES_F : NAMES_M) + " " + R.pick(LG_EPI);
+  if (fem) nm = nm.replace("le Maudit", "la Maudite").replace("le Dernier Debout", "la Dernière Debout").replace("le Parjure", "la Parjure").replace("l'Écorché", "l'Écorchée");
+  return { id, cls, name: nm, wander: 1, cond: () => true, how: "", story: R.pick(LG_TALE).replace(/^Il /, fem ? "Elle " : "Il ").replace(/ il /g, fem ? " elle " : " il ") + " (Légende errante : partie à la fin de la semaine.)" };
+}
+const legendById = id => LEGENDS.find(l => l.id === id) || ((w => w && w.id === id ? w : null)(wanderLegend()));
+const legendCost = l => { const lv = Math.max(1, ...S.heroes.map(h => h.lvl)); return { gold: Math.round((900 + lv * 60) * (l && l.wander ? 1.3 : 1)), shards: l && l.wander ? 4 : 3 }; };
 function legendsHTML() {
-  S.legends = S.legends || {}; const L = LEGENDS.filter(l => !S.legends[l.id] && CLASSES[l.cls]);
+  S.legends = S.legends || {}; const w = wanderLegend();
+  const L = LEGENDS.filter(l => !S.legends[l.id] && CLASSES[l.cls]).concat(w && !S.legends[w.id] ? [w] : []);
   if (!L.length) return "";
-  const c = legendCost();
-  return `<h3 style="margin-top:6px">${ico("crown", "#ffb848", 15)} Légendes</h3><p class="tiny dim">Des héros dont on chante déjà le nom. Ils ne rejoignent que ceux qui ont prouvé leur valeur — et une seule fois.</p>
-    <div class="col">${L.filter(l => l.cond()).map(l => `<div class="row card" style="cursor:default;gap:10px;border-color:#ffb84877">${canvasSlot("lg:" + l.id, 70, 84)}<div style="flex:1;min-width:0">
-      <b class="rar4">${esc(l.name)}</b> <span class="tiny dim">${CLASSES[l.cls].n}</span><div class="tiny lore">${esc(l.story)}</div><div class="tiny">${ico("star", "#ffb848", 11)} Trait unique : <b>Légende vivante</b> — ${TRAITS.legende.d}</div></div>
-      <button class="btn sm gold" data-a="legendHire" data-v="${l.id}">${fmt(c.gold)} or · ${c.shards} éclats</button></div>`).join("")}</div>
-    ${L.some(l => !l.cond()) ? `<div class="tiny dim" style="margin:4px 0 8px">${ico("lock", "#7a6a5a", 11)} À venir : ${L.filter(l => !l.cond()).map(l => `<span title="${esc(l.how)}">${CLASSES[l.cls].n} (${l.how.replace(/\.$/, "")})</span>`).join(" · ")}</div>` : ""}`;
+  const ready = L.filter(l => l.cond()), locked = L.filter(l => !l.cond());
+  const card = l => { const c = legendCost(l), R = legendRoll(l.id), T = TRAITS[R.boon];
+    return `<div class="row card" style="cursor:default;gap:10px;border-color:${l.wander ? "#9ad0ff77" : "#ffb84877"}">${canvasSlot("lg:" + l.id, 70, 84)}<div style="flex:1;min-width:0">
+      <b class="rar${R.rar}">${esc(l.name)}</b> <span class="tiny dim">${CLASSES[l.cls].n}${l.wander ? " · errant" : ""}</span><div class="tiny lore">${esc(l.story)}</div>
+      <div class="tiny">${ico("star", "#ffb848", 11)} <b>Légende vivante</b> — ${TRAITS.legende.d}</div>
+      <div class="tiny">${ico("gem", "#9ad0ff", 11)} Don : <b>${T.n}</b> — ${T.d}</div>
+      <div class="tiny dim">Arme et armure ${RARITY[R.rar] ? RARITY[R.rar].n : ""}</div></div>
+      <button class="btn sm gold" data-a="legendHire" data-v="${l.id}">${fmt(c.gold)} or · ${c.shards} éclats</button></div>`; };
+  return `<h3 style="margin-top:6px">${ico("crown", "#ffb848", 15)} Légendes <span class="tiny dim">${LEGENDS.filter(l => S.legends[l.id]).length}/${LEGENDS.length}</span></h3><p class="tiny dim">Des héros dont on chante déjà le nom. Chacun porte un don tiré au sort à sa venue. Ils ne rejoignent que ceux qui ont prouvé leur valeur — et une seule fois. Une légende errante, d'une classe au hasard, passe aussi chaque semaine.</p>
+    <div class="col">${ready.map(card).join("")}</div>
+    ${locked.length ? `<div class="tiny dim" style="margin:4px 0 8px">${ico("lock", "#7a6a5a", 11)} À venir : ${locked.slice(0, 4).map(l => `<span title="${esc(l.how)}">${CLASSES[l.cls].n} (${l.how.replace(/\.$/, "")})</span>`).join(" · ")}${locked.length > 4 ? ` · et ${locked.length - 4} autres…` : ""}</div>` : ""}`;
 }
 ACT.legendHire = id => {
-  const l = LEGENDS.find(x => x.id === id); if (!l || !l.cond() || (S.legends || {})[id]) return;
+  const l = legendById(id); if (!l || !l.cond() || (S.legends || {})[id]) return;
   if (S.heroes.length >= rosterMax()) return toast("La caserne est pleine.", "bad");
-  const c = legendCost(); if (S.gold < c.gold || (S.shards || 0) < c.shards) return toast("Il vous faut " + fmt(c.gold) + " or et " + c.shards + " éclats.", "bad");
-  S.gold -= c.gold; S.shards -= c.shards;
-  const lv = Math.max(1, Math.max(...S.heroes.map(h => h.lvl)) - 2), h = makeHero(l.cls, { name: l.name, lvl: lv, traits: ["legende"] });
-  const tier = Math.max(1, TIER_LVL.filter(x => x <= lv).length - 1); h.gear.wpn = makeGear("wpn", l.cls, Math.min(5, tier), 4); h.gear.arm = makeGear("arm", l.cls, Math.min(5, tier), 4);
+  const c = legendCost(l); if (S.gold < c.gold || (S.shards || 0) < c.shards) return toast("Il vous faut " + fmt(c.gold) + " or et " + c.shards + " éclats.", "bad");
+  S.gold -= c.gold; S.shards -= c.shards; const R = legendRoll(id);
+  const lv = Math.max(1, Math.max(...S.heroes.map(h => h.lvl)) - 2 + R.lvlB), h = makeHero(l.cls, { name: l.name, lvl: lv, traits: ["legende", R.boon] });
+  const tier = Math.max(1, TIER_LVL.filter(x => x <= lv).length - 1); h.gear.wpn = makeGear("wpn", l.cls, Math.min(5, tier), R.rar); h.gear.arm = makeGear("arm", l.cls, Math.min(5, tier), R.rar);
   h.legend = id; addHero(h); S.legends[id] = 1; save(); sfx("holy"); renderHud(); toast(`${ico("crown", "#ffb848", 14)} ${esc(l.name)} rejoint le Bastion !`, "good"); openBuilding("taverne");
 };
 

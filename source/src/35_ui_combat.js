@@ -343,6 +343,11 @@ async function combatEnd(over) {
 function rewardHTML(R) { return `${R.uniq ? `<div class="reward" style="color:var(--gold2)">${ico("crown", "#ffd27a", 22)}<b>Objet unique de gardien : <span class="rar4">${gearName(R.uniq)}</span> !</b></div>` : ""}${R.gold ? `<div class="reward">${ico("coin", "#e8c060", 22)}<b>+${R.gold} or</b></div>` : ""}${(R.loot || []).map(i => `<div class="reward" style="align-items:flex-start">${slotHTML(i, "itemInfo", i.id)}<div style="flex:1;min-width:0"><b class="rar${i.rar}">${gearName(i)}</b><div class="tiny dim">${i.cls ? CLASSES[i.cls].n + " — " : ""}${itemLine(i)}</div>${runEquipBtns(i)}</div></div>`).join("")}${R.relic ? `<div class="reward">${ico("gem", "#c87aff", 22)}<b>${RELICS[R.relic].n}</b> <span class="tiny">${gl(RELICS[R.relic].d)}</span></div>` : ""}${R.shards ? `<div class="reward">${ico("shard", "#c090ff", 22)}<b>+${R.shards} éclats</b></div>` : ""}`; }
 ACT.abyssUp = () => { closeModal(); finishRun("victory"); };
 ACT.abyssDown = () => { const run = S.run; run.floor++; run.map = genMap(run.gouffre ? mkRng(run.seed + run.floor * 977) : RNG, 6, { elite: run.oaths.includes("elite") }); run.pos = null; run.light = clamp(run.light + 30, 0, 100); S.abyss.best = Math.max(S.abyss.best, run.floor - 1); save(); closeModal(); go("map"); toast(`Profondeur ${run.floor}…`, "epic"); };
+// bas des panneaux HTML du haut (barre du gardien, boutons, HUD) au-dessus d'une abscisse : l'intention ne s'y cache pas
+function hudFloor(cx, half) {
+  const now = performance.now(); if (!CB.hudR || now - CB.hudRT > 400) { CB.hudRT = now; CB.hudR = ["#cb-boss", "#cb-tr", "#cb-tl", "#cb-hud"].map(q => { const e = $(q); if (!e || !e.firstChild) return null; const r = e.getBoundingClientRect(); return r.width && r.height ? r : null; }).filter(Boolean); }
+  let y = 0; for (const r of CB.hudR) if (cx + half > r.left && cx - half < r.right) y = Math.max(y, r.bottom); return y;
+}
 // ── dessin ──
 function drawCombat(x, t, dt) {
   const B = CB.B, run = S.run;
@@ -474,7 +479,7 @@ function drawUnitUI(x, u, v, t) {
   if (u.side === "e" && u.intent && u.intent.sk && !B.over) {
     const sk = u.intent.sk, tt = sk.t || "e";
     const kind = sk.heal || tt === "allies" ? ["heart", "#8fe07a"] : tt === "self" ? ["shield", "#a0c8ff"] : !sk.m ? ["curse", "#c090ff"] : tt === "ae" ? ["flames", "#ff8a4a"] : ["swords", "#ff5a4a"];
-    const iy = Math.max(14 * s, (v.top != null ? v.top - 16 * s : v.y - 200 * CB.scale * (u.sz > 1 ? 1.5 : 1) - 8)) + Math.sin(t * 3) * 2; // au-dessus de la tête, jamais sur le corps
+    const iy = Math.max(14 * s, hudFloor(v.x, 16 * s) + 13 * s, (v.top != null ? v.top - 16 * s : v.y - 200 * CB.scale * (u.sz > 1 ? 1.5 : 1) - 8)) + Math.sin(t * 3) * 2; // au-dessus de la tête, jamais sur le corps ni sous les panneaux du haut
     x.fillStyle = "rgba(0,0,0,.75)"; x.beginPath(); x.arc(v.x, iy, 11 * s, 0, 7); x.fill(); x.strokeStyle = rgba(kind[1], .8); x.lineWidth = 1.5; x.stroke();
     drawIcon(x, kind[0], v.x, iy, .62 * s, kind[1], 2);
     (CB.zones = CB.zones || []).push({ x0: v.x - 16 * s, x1: v.x + 16 * s, y0: iy - 16 * s, y1: iy + 16 * s, u, k: "intent" });

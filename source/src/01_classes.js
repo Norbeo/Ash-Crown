@@ -412,6 +412,19 @@ const APEX = {
 // traits aléatoires des recrues : ce qui rend chaque héros unique
 const TRAITS = {
   legende: { n: "Légende vivante", good: 1, unique: 1, d: "+10 % de dégâts et de PV, +10 résistance, le groupe garde courage (+5 résolution par victime).", pas: [{ k: "stat", s: "dmg", v: .1 }, { k: "stat", s: "hp", v: .1 }, { k: "stat", s: "res", v: 10 }, { k: "killMorale", v: 5 }] },
+  // dons des légendes : un tiré au hasard à l'apparition de chaque légende
+  lg_brasier: { n: "Cœur de brasier", good: 1, unique: 1, d: "+25 % de dégâts critiques, +5 % de critique.", pas: [{ k: "critDmg", v: .25 }, { k: "stat", s: "crit", v: 5 }] },
+  lg_rempart: { n: "Rempart vivant", good: 1, unique: 1, d: "+8 % de protection, +15 % de PV.", pas: [{ k: "stat", s: "prot", v: .08 }, { k: "stat", s: "hp", v: .15 }] },
+  lg_venin: { n: "Sang de venin", good: 1, unique: 1, d: "+35 % de dégâts des poisons, saignements et brûlures.", pas: [{ k: "dotPow", v: .35 }] },
+  lg_tempete: { n: "Œil de la tempête", good: 1, unique: 1, d: "+3 de vitesse, +6 d'esquive.", pas: [{ k: "stat", s: "spd", v: 3 }, { k: "stat", s: "dodge", v: 6 }] },
+  lg_aube: { n: "Bénédiction de l'aube", good: 1, unique: 1, d: "+25 % de soins prodigués et reçus.", pas: [{ k: "stat", s: "healPow", v: .25 }, { k: "healTaken", v: .25 }] },
+  lg_ultime: { n: "Destin écrit", good: 1, unique: 1, d: "La jauge d'ultime monte 40 % plus vite.", pas: [{ k: "ultGain", v: .4 }] },
+  lg_desespoir: { n: "Rage du désespoir", good: 1, unique: 1, d: "+40 % de dégâts sous la moitié des PV.", pas: [{ k: "lowHpDmg", v: .4 }] },
+  lg_meute: { n: "Ami des bêtes", good: 1, unique: 1, d: "Le compagnon frappe 40 % plus fort, +5 % de dégâts.", pas: [{ k: "petDmg", v: .4 }, { k: "stat", s: "dmg", v: .05 }] },
+  lg_chef: { n: "Chef de guerre", good: 1, unique: 1, d: "+30 % aux bonus donnés au groupe, +30 % de résolution gagnée.", pas: [{ k: "buffPow", v: .3 }, { k: "moralePow", v: .3 }] },
+  lg_moisson: { n: "Moissonneur", good: 1, unique: 1, d: "+20 % de dégâts de zone, +10 résolution par victime.", pas: [{ k: "aoeDmg", v: .2 }, { k: "killMorale", v: 10 }] },
+  lg_marque: { n: "Chasseur de têtes", good: 1, unique: 1, d: "+30 % de dégâts contre les cibles marquées, +6 % de critique.", pas: [{ k: "markDmg", v: .3 }, { k: "stat", s: "crit", v: 6 }] },
+  lg_fortune: { n: "Né sous une bonne étoile", good: 1, unique: 1, d: "+20 % d'or et d'expérience, +10 résistance.", pas: [{ k: "gold", v: .2 }, { k: "xp", v: .2 }, { k: "stat", s: "res", v: 10 }] },
   pieux: { n: "Pieux", good: 1, d: "+20 % de soins reçus.", pas: [{ k: "healTaken", v: .2 }] },
   colosse: { n: "Colosse", good: 1, d: "+12 % de PV.", pas: [{ k: "stat", s: "hp", v: .12 }] },
   vif: { n: "Vif", good: 1, d: "+2 de vitesse.", pas: [{ k: "stat", s: "spd", v: 2 }] },

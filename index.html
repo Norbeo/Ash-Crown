@@ -219,6 +219,7 @@ p{margin:6px 0;line-height:1.45}
 .bi-wrap{display:flex;align-items:center;gap:24px;max-width:94vw;flex-wrap:wrap;justify-content:center}.bi-wrap canvas{width:min(46vw,340px);height:auto;animation:bizoom 3.6s ease-out forwards;filter:drop-shadow(0 0 30px #ff3a1a55)}@keyframes bizoom{from{transform:scale(.88) translateX(-20px);opacity:0}25%{opacity:1}to{transform:scale(1.04)}}
 .bi-txt{max-width:420px;animation:fadeup 1s ease .3s both}.bi-sub{letter-spacing:.35em;text-transform:uppercase;font-size:12px;color:#ff6a4a}.bi-name{font-family:'Cinzel',serif;font-size:clamp(26px,5vw,46px);color:#ffd8b0;text-shadow:0 0 20px #ff3a1a88,0 2px 4px #000;line-height:1.05;margin:4px 0}.bi-title{font-style:italic;color:#c8b8a0;font-size:15px}.bi-q{margin-top:14px;font-size:clamp(15px,2.2vw,19px);color:#f0e0c8;animation:fadeup 1s ease 1s both}
 #cb-boss{position:fixed;left:50%;transform:translateX(-50%);top:calc(env(safe-area-inset-top) + 8px);z-index:6;width:min(420px,46vw);pointer-events:none}#cb-boss:empty{display:none}.bb-name{text-align:center;font-family:'Cinzel',serif;font-size:13px;color:#ffd0b0;text-shadow:0 1px 3px #000}.bb-bar{position:relative;height:12px;background:#1a0808;border:1px solid #ff6a4a66;border-radius:3px;overflow:hidden;margin-top:2px}.bb-bar i{position:absolute;left:0;top:0;bottom:0;background:linear-gradient(#e0402a,#7a1008);transition:width .4s}.bb-bar b{position:absolute;top:-2px;bottom:-2px;width:2px;background:#ffd27a;box-shadow:0 0 6px #ffd27a}.bb-bar span{position:absolute;inset:0;text-align:center;font-size:9px;line-height:12px;color:#fff;text-shadow:0 1px 2px #000}
+@media (max-height:500px) and (orientation:landscape){#cb-boss{width:min(300px,34vw)}}
 @media (max-width:560px){#cb-boss{top:calc(env(safe-area-inset-top) + 50px);width:calc(100vw - 180px);left:auto;right:8px;transform:none}}
 #cine{position:fixed;inset:0;z-index:90;background:#000;overflow:hidden;cursor:pointer;animation:cinein .7s ease}#cine.out{animation:cineout .6s ease forwards}@keyframes cinein{from{opacity:0}}@keyframes cineout{to{opacity:0}}
 .cinebg{position:absolute;inset:-4%;background-size:cover;background-position:center;animation:kenburns 26s ease-in-out infinite alternate}@keyframes kenburns{0%{transform:scale(1.12) translate(-1.5%,1%)}100%{transform:scale(1.0) translate(1.5%,-1%)}}
@@ -703,6 +704,19 @@ const APEX = {
 // traits aléatoires des recrues : ce qui rend chaque héros unique
 const TRAITS = {
   legende: { n: "Légende vivante", good: 1, unique: 1, d: "+10 % de dégâts et de PV, +10 résistance, le groupe garde courage (+5 résolution par victime).", pas: [{ k: "stat", s: "dmg", v: .1 }, { k: "stat", s: "hp", v: .1 }, { k: "stat", s: "res", v: 10 }, { k: "killMorale", v: 5 }] },
+  // dons des légendes : un tiré au hasard à l'apparition de chaque légende
+  lg_brasier: { n: "Cœur de brasier", good: 1, unique: 1, d: "+25 % de dégâts critiques, +5 % de critique.", pas: [{ k: "critDmg", v: .25 }, { k: "stat", s: "crit", v: 5 }] },
+  lg_rempart: { n: "Rempart vivant", good: 1, unique: 1, d: "+8 % de protection, +15 % de PV.", pas: [{ k: "stat", s: "prot", v: .08 }, { k: "stat", s: "hp", v: .15 }] },
+  lg_venin: { n: "Sang de venin", good: 1, unique: 1, d: "+35 % de dégâts des poisons, saignements et brûlures.", pas: [{ k: "dotPow", v: .35 }] },
+  lg_tempete: { n: "Œil de la tempête", good: 1, unique: 1, d: "+3 de vitesse, +6 d'esquive.", pas: [{ k: "stat", s: "spd", v: 3 }, { k: "stat", s: "dodge", v: 6 }] },
+  lg_aube: { n: "Bénédiction de l'aube", good: 1, unique: 1, d: "+25 % de soins prodigués et reçus.", pas: [{ k: "stat", s: "healPow", v: .25 }, { k: "healTaken", v: .25 }] },
+  lg_ultime: { n: "Destin écrit", good: 1, unique: 1, d: "La jauge d'ultime monte 40 % plus vite.", pas: [{ k: "ultGain", v: .4 }] },
+  lg_desespoir: { n: "Rage du désespoir", good: 1, unique: 1, d: "+40 % de dégâts sous la moitié des PV.", pas: [{ k: "lowHpDmg", v: .4 }] },
+  lg_meute: { n: "Ami des bêtes", good: 1, unique: 1, d: "Le compagnon frappe 40 % plus fort, +5 % de dégâts.", pas: [{ k: "petDmg", v: .4 }, { k: "stat", s: "dmg", v: .05 }] },
+  lg_chef: { n: "Chef de guerre", good: 1, unique: 1, d: "+30 % aux bonus donnés au groupe, +30 % de résolution gagnée.", pas: [{ k: "buffPow", v: .3 }, { k: "moralePow", v: .3 }] },
+  lg_moisson: { n: "Moissonneur", good: 1, unique: 1, d: "+20 % de dégâts de zone, +10 résolution par victime.", pas: [{ k: "aoeDmg", v: .2 }, { k: "killMorale", v: 10 }] },
+  lg_marque: { n: "Chasseur de têtes", good: 1, unique: 1, d: "+30 % de dégâts contre les cibles marquées, +6 % de critique.", pas: [{ k: "markDmg", v: .3 }, { k: "stat", s: "crit", v: 6 }] },
+  lg_fortune: { n: "Né sous une bonne étoile", good: 1, unique: 1, d: "+20 % d'or et d'expérience, +10 résistance.", pas: [{ k: "gold", v: .2 }, { k: "xp", v: .2 }, { k: "stat", s: "res", v: 10 }] },
   pieux: { n: "Pieux", good: 1, d: "+20 % de soins reçus.", pas: [{ k: "healTaken", v: .2 }] },
   colosse: { n: "Colosse", good: 1, d: "+12 % de PV.", pas: [{ k: "stat", s: "hp", v: .12 }] },
   vif: { n: "Vif", good: 1, d: "+2 de vitesse.", pas: [{ k: "stat", s: "spd", v: 2 }] },
@@ -4522,7 +4536,7 @@ function openBuilding(k, tab) {
     const b = idleBank();
     body = `<p class="lore">Les âmes des morts brûlent ici, et leur chaleur se change en or. Elle travaille même quand vous dormez.</p><div class="row sp card" style="cursor:default"><div><div class="small dim">Réserve</div><div style="font-size:28px;font-family:var(--f-head)" class="gold">${fmt(b)} or</div><div class="small dim">${fonderieRate()} or par heure · réserve pleine en ${fonderieCap()} h</div></div><button class="btn main ${b > 0 ? "glow" : "off"}" data-a="collect">${ico("coin")}Récolter</button></div>`;
   }
-  modal(`<h2>${ico(B.ic, "#e8c878")} ${B.n}</h2>${body}${bldFooter(k)}`, { wide: 1, mount: m => fillCanvases(m, (c, id) => { const p = id.split(":"); if (p[0] === "r") paintHero(c, S.recruits[+p[1]], true); if (p[0] === "lg") { const L = LEGENDS.find(l => l.id === p[1]); if (L) paintHero(c, { cls: L.cls, lvl: 20, gear: { wpn: { tier: 5, rar: 4 }, arm: { tier: 5, rar: 4 } }, look: { skin: SKINS[1], hair: 1, hairCol: HAIRCOL[1], beard: 0 }, traits: [], name: L.name }, true); } if (p[0] === "h") paintHero(c, heroById(p[1])); if (p[0] === "p") paintPet(c, p[1], p[2] === "1"); if (p[0] === "tier") { const x = c.getContext("2d"); const sp = heroSprite({ cls: p[1], tier: +p[2], wtier: +p[2], evo: p[3] || null, skin: SKINS[1], hair: 1, hairCol: HAIRCOL[1], beard: 0 }, {}, 0, c.width / 230 * 1.2); x.drawImage(sp, c.width / 2 - sp.ax, c.height - 4 - sp.ay); } if (p[0] === "it") paintItem(c, findItem(p[1])); }) });
+  modal(`<h2>${ico(B.ic, "#e8c878")} ${B.n}</h2>${body}${bldFooter(k)}`, { wide: 1, mount: m => fillCanvases(m, (c, id) => { const p = id.split(":"); if (p[0] === "r") paintHero(c, S.recruits[+p[1]], true); if (p[0] === "lg") { const L = legendById(p[1]); if (L) paintHero(c, { cls: L.cls, lvl: 20, gear: { wpn: { tier: 5, rar: legendRoll(L.id).rar }, arm: { tier: 5, rar: legendRoll(L.id).rar } }, look: { skin: SKINS[1], hair: 1, hairCol: HAIRCOL[1], beard: 0 }, traits: [], name: L.name }, true); } if (p[0] === "h") paintHero(c, heroById(p[1])); if (p[0] === "p") paintPet(c, p[1], p[2] === "1"); if (p[0] === "tier") { const x = c.getContext("2d"); const sp = heroSprite({ cls: p[1], tier: +p[2], wtier: +p[2], evo: p[3] || null, skin: SKINS[1], hair: 1, hairCol: HAIRCOL[1], beard: 0 }, {}, 0, c.width / 230 * 1.2); x.drawImage(sp, c.width / 2 - sp.ax, c.height - 4 - sp.ay); } if (p[0] === "it") paintItem(c, findItem(p[1])); }) });
   UI.bldOpen = k;
 }
 ACT.bldTab = v => { const [k, t] = v.split(":"); UI.bldTab = t; openBuilding(k, t); };
@@ -5437,6 +5451,11 @@ async function combatEnd(over) {
 function rewardHTML(R) { return `${R.uniq ? `<div class="reward" style="color:var(--gold2)">${ico("crown", "#ffd27a", 22)}<b>Objet unique de gardien : <span class="rar4">${gearName(R.uniq)}</span> !</b></div>` : ""}${R.gold ? `<div class="reward">${ico("coin", "#e8c060", 22)}<b>+${R.gold} or</b></div>` : ""}${(R.loot || []).map(i => `<div class="reward" style="align-items:flex-start">${slotHTML(i, "itemInfo", i.id)}<div style="flex:1;min-width:0"><b class="rar${i.rar}">${gearName(i)}</b><div class="tiny dim">${i.cls ? CLASSES[i.cls].n + " — " : ""}${itemLine(i)}</div>${runEquipBtns(i)}</div></div>`).join("")}${R.relic ? `<div class="reward">${ico("gem", "#c87aff", 22)}<b>${RELICS[R.relic].n}</b> <span class="tiny">${gl(RELICS[R.relic].d)}</span></div>` : ""}${R.shards ? `<div class="reward">${ico("shard", "#c090ff", 22)}<b>+${R.shards} éclats</b></div>` : ""}`; }
 ACT.abyssUp = () => { closeModal(); finishRun("victory"); };
 ACT.abyssDown = () => { const run = S.run; run.floor++; run.map = genMap(run.gouffre ? mkRng(run.seed + run.floor * 977) : RNG, 6, { elite: run.oaths.includes("elite") }); run.pos = null; run.light = clamp(run.light + 30, 0, 100); S.abyss.best = Math.max(S.abyss.best, run.floor - 1); save(); closeModal(); go("map"); toast(`Profondeur ${run.floor}…`, "epic"); };
+// bas des panneaux HTML du haut (barre du gardien, boutons, HUD) au-dessus d'une abscisse : l'intention ne s'y cache pas
+function hudFloor(cx, half) {
+  const now = performance.now(); if (!CB.hudR || now - CB.hudRT > 400) { CB.hudRT = now; CB.hudR = ["#cb-boss", "#cb-tr", "#cb-tl", "#cb-hud"].map(q => { const e = $(q); if (!e || !e.firstChild) return null; const r = e.getBoundingClientRect(); return r.width && r.height ? r : null; }).filter(Boolean); }
+  let y = 0; for (const r of CB.hudR) if (cx + half > r.left && cx - half < r.right) y = Math.max(y, r.bottom); return y;
+}
 // ── dessin ──
 function drawCombat(x, t, dt) {
   const B = CB.B, run = S.run;
@@ -5568,7 +5587,7 @@ function drawUnitUI(x, u, v, t) {
   if (u.side === "e" && u.intent && u.intent.sk && !B.over) {
     const sk = u.intent.sk, tt = sk.t || "e";
     const kind = sk.heal || tt === "allies" ? ["heart", "#8fe07a"] : tt === "self" ? ["shield", "#a0c8ff"] : !sk.m ? ["curse", "#c090ff"] : tt === "ae" ? ["flames", "#ff8a4a"] : ["swords", "#ff5a4a"];
-    const iy = Math.max(14 * s, (v.top != null ? v.top - 16 * s : v.y - 200 * CB.scale * (u.sz > 1 ? 1.5 : 1) - 8)) + Math.sin(t * 3) * 2; // au-dessus de la tête, jamais sur le corps
+    const iy = Math.max(14 * s, hudFloor(v.x, 16 * s) + 13 * s, (v.top != null ? v.top - 16 * s : v.y - 200 * CB.scale * (u.sz > 1 ? 1.5 : 1) - 8)) + Math.sin(t * 3) * 2; // au-dessus de la tête, jamais sur le corps ni sous les panneaux du haut
     x.fillStyle = "rgba(0,0,0,.75)"; x.beginPath(); x.arc(v.x, iy, 11 * s, 0, 7); x.fill(); x.strokeStyle = rgba(kind[1], .8); x.lineWidth = 1.5; x.stroke();
     drawIcon(x, kind[0], v.x, iy, .62 * s, kind[1], 2);
     (CB.zones = CB.zones || []).push({ x0: v.x - 16 * s, x1: v.x + 16 * s, y0: iy - 16 * s, y1: iy + 16 * s, u, k: "intent" });
@@ -6282,32 +6301,68 @@ function atlasHTML() {
 }
 
 // ── Héros légendaires : rares, avec une histoire, ils se présentent à la Taverne après certains exploits ──
+const clearsOf = r => ((S.prog[r] || {}).clears || 0);
 const LEGENDS = [
-  { id: "aldric", cls: "templier", name: "Aldric le Briseur de Peste", cond: () => ((S.prog.bourg || {}).clears || 0) >= 3, how: "Vaincre trois fois le Bourg pestiféré.", story: "Il a tenu seul la porte de l'hospice pendant que la peste brûlait la ville. Ses mains tremblent encore, son bouclier jamais." },
-  { id: "morwenna", cls: "sorciere", name: "Morwenna des Ronces", cond: () => ((S.prog.foret || {}).clears || 0) >= 3, how: "Vaincre trois fois la Forêt des Pendus.", story: "Les pendus de la forêt lui murmurent des recettes. Elle les écoute, et elle répond." },
-  { id: "osric", cls: "exorciste", name: "Frère Osric de Saint-Morne", cond: () => ((S.prog.catacombes || {}).clears || 0) >= 2, how: "Vaincre deux fois les Catacombes.", story: "Seul survivant de l'abbaye. Il a chassé l'Abbé de sa propre crypte, un psaume à la bouche et un pieu à la main." },
-  { id: "isaure", cls: "arbaletriere", name: "Isaure la Noyée", cond: () => ((S.prog.marais || {}).clears || 0) >= 2, how: "Vaincre deux fois le Marais des Noyés.", story: "Elle s'est noyée une fois. Le marais l'a recrachée avec une arbalète et une très mauvaise humeur." },
-  { id: "gaspard", cls: "chasseur_sorcieres", name: "Gaspard Cendrelame", cond: () => ((S.prog.citadelle || {}).clears || 0) >= 1, how: "Vaincre le Roi de Cendres.", story: "Il traquait le Roi bien avant vous. Il ne vous pardonnera jamais de l'avoir eu en premier — mais il vous suivra." },
+  { id: "aldric", cls: "templier", name: "Aldric le Briseur de Peste", cond: () => clearsOf("bourg") >= 3, how: "Vaincre trois fois le Bourg pestiféré.", story: "Il a tenu seul la porte de l'hospice pendant que la peste brûlait la ville. Ses mains tremblent encore, son bouclier jamais." },
+  { id: "morwenna", cls: "sorciere", name: "Morwenna des Ronces", cond: () => clearsOf("foret") >= 3, how: "Vaincre trois fois la Forêt des Pendus.", story: "Les pendus de la forêt lui murmurent des recettes. Elle les écoute, et elle répond." },
+  { id: "osric", cls: "exorciste", name: "Frère Osric de Saint-Morne", cond: () => clearsOf("catacombes") >= 2, how: "Vaincre deux fois les Catacombes.", story: "Seul survivant de l'abbaye. Il a chassé l'Abbé de sa propre crypte, un psaume à la bouche et un pieu à la main." },
+  { id: "isaure", cls: "arbaletriere", name: "Isaure la Noyée", cond: () => clearsOf("marais") >= 2, how: "Vaincre deux fois le Marais des Noyés.", story: "Elle s'est noyée une fois. Le marais l'a recrachée avec une arbalète et une très mauvaise humeur." },
+  { id: "gaspard", cls: "chasseur_sorcieres", name: "Gaspard Cendrelame", cond: () => clearsOf("citadelle") >= 1, how: "Vaincre le Roi de Cendres.", story: "Il traquait le Roi bien avant vous. Il ne vous pardonnera jamais de l'avoir eu en premier — mais il vous suivra." },
   { id: "bran", cls: "hallebardier", name: "Bran, dernier de la Garde", cond: () => (S.abyss.best || 0) >= 10, how: "Atteindre la profondeur 10 de l'Abîme.", story: "Dernier hallebardier de la garde royale. Il est descendu dans l'Abîme chercher son roi, et n'en est jamais vraiment remonté." },
+  { id: "hugues", cls: "revenant", name: "Ser Hugues l'Inhumé", cond: () => clearsOf("catacombes") >= 4, how: "Vaincre quatre fois les Catacombes.", story: "On l'a enterré trois fois. La troisième, il a gardé la pelle." },
+  { id: "ysolde", cls: "pretresse", name: "Mère Ysolde de l'Aube", cond: () => REGIONS.reduce((a, r) => a + clearsOf(r.id), 0) >= 8, how: "Remporter huit chapitres au total.", story: "Elle a béni chaque tombe du Bastion, une à une. Elle dit que les morts l'ont remerciée." },
+  { id: "lucien", cls: "menestrel", name: "Lucien aux Cordes Noires", cond: () => clearsOf("terres") >= 1, how: "Vaincre les Terres Brûlées.", story: "Son luth a été taillé dans le gibet d'un roi. Chaque note rappelle un nom que l'on voulait oublier." },
+  { id: "ulfgar", cls: "berserker", name: "Ulfgar Mange-Cendres", cond: () => Object.values(S.stats.monKills || {}).reduce((a, b) => a + b, 0) >= 400, how: "Abattre 400 monstres.", story: "Il a avalé les braises d'un bûcher pour prouver qu'il ne craignait rien. Depuis, il fume quand il se met en colère." },
+  { id: "selene", cls: "ombre", name: "Sélène Sans-Reflet", cond: () => clearsOf("cite") >= 1, how: "Vaincre la Cité Engloutie.", story: "Aucun miroir ne la montre. Les gardes de la Cité ne l'ont jamais vue venir — ni partir." },
+  { id: "ignace", cls: "pyromancien", name: "Maître Ignace le Calciné", cond: () => clearsOf("terres") >= 2, how: "Vaincre deux fois les Terres Brûlées.", story: "Il a mis le feu à son ordre, à sa tour et à sa barbe. Il ne regrette que la barbe." },
+  { id: "vorlath", cls: "necromancien", name: "Vorlath le Fossoyeur", cond: () => (S.graves || []).length >= 3, how: "Graver trois noms au Mémorial.", story: "Il connaît le nom de chacun de vos morts. Il prétend qu'ils lui parlent de vous." },
+  { id: "thorgrim", cls: "gardien_runes", name: "Thorgrim Grave-Pierre", cond: () => clearsOf("cimes") >= 1, how: "Vaincre les Cimes Gelées.", story: "Il a gravé ses runes sur le flanc de la montagne entière. La montagne a fini par l'écouter." },
+  { id: "corvin", cls: "medecin_peste", name: "Docteur Corvin au Bec d'Argent", cond: () => clearsOf("marais") >= 3, how: "Vaincre trois fois le Marais des Noyés.", story: "Il a soigné le Docteur Peste lui-même, avant de comprendre ce qu'il avait sauvé. Il répare son erreur, un patient à la fois." },
+  { id: "garance", cls: "templier", name: "Garance du Trône Brisé", cond: () => clearsOf("trone") >= 1, how: "Vaincre le Trône Vide.", story: "Elle a porté la couronne une nuit, le temps de la briser sur son genou." },
 ];
-const legendCost = () => { const lv = Math.max(1, ...S.heroes.map(h => h.lvl)); return { gold: 900 + lv * 60, shards: 3 }; };
+// Don, qualité et équipement de chaque légende tirés au hasard la première fois qu'elle se présente
+const LEGEND_BOONS = Object.keys(TRAITS).filter(k => k.startsWith("lg_"));
+function legendRoll(id) {
+  S.legendRoll = S.legendRoll || {};
+  if (!S.legendRoll[id]) { const r = Math.random(); S.legendRoll[id] = { boon: pick(LEGEND_BOONS), rar: r < .12 ? 5 : 4, lvlB: rint(-2, 1) }; }
+  return S.legendRoll[id];
+}
+// Légende errante : chaque semaine, un héros d'une classe au hasard passe par la Taverne (une seule fois)
+const LG_EPI = ["le Maudit", "Sans-Nom", "aux Mille Cicatrices", "Pleure-Sang", "le Dernier Debout", "Main-de-Fer", "des Gibets", "l'Écorché", "Cœur-de-Cendre", "le Parjure", "aux Yeux Pâles", "Porte-Deuil"];
+const LG_TALE = ["Il dit venir d'un royaume qui n'existe plus.", "On raconte qu'il a vaincu un gardien seul, et qu'il en garde un os en pendentif.", "Sa tête est mise à prix dans trois provinces. Dans la quatrième, on lui a élevé une statue.", "Il ne dort jamais deux nuits sous le même toit.", "Il paie toujours en pièces d'un autre âge.", "Les chiens refusent d'aboyer sur son passage.", "Il porte au cou les clés d'une prison qu'il a vidée.", "Personne ne l'a vu manger ni rire. Tout le monde l'a vu se battre."];
+function wanderLegend() {
+  if (REGIONS.reduce((a, r) => a + clearsOf(r.id), 0) < 1) return null;
+  const wk = Math.floor(Date.now() / 6048e5), id = "errant_" + wk, R = mkRng(wk * 7919 + 13);
+  const cls = R.pick(Object.keys(CLASSES)), fem = CLASS_FEMALE.has(cls);
+  let nm = R.pick(fem ? NAMES_F : NAMES_M) + " " + R.pick(LG_EPI);
+  if (fem) nm = nm.replace("le Maudit", "la Maudite").replace("le Dernier Debout", "la Dernière Debout").replace("le Parjure", "la Parjure").replace("l'Écorché", "l'Écorchée");
+  return { id, cls, name: nm, wander: 1, cond: () => true, how: "", story: R.pick(LG_TALE).replace(/^Il /, fem ? "Elle " : "Il ").replace(/ il /g, fem ? " elle " : " il ") + " (Légende errante : partie à la fin de la semaine.)" };
+}
+const legendById = id => LEGENDS.find(l => l.id === id) || ((w => w && w.id === id ? w : null)(wanderLegend()));
+const legendCost = l => { const lv = Math.max(1, ...S.heroes.map(h => h.lvl)); return { gold: Math.round((900 + lv * 60) * (l && l.wander ? 1.3 : 1)), shards: l && l.wander ? 4 : 3 }; };
 function legendsHTML() {
-  S.legends = S.legends || {}; const L = LEGENDS.filter(l => !S.legends[l.id] && CLASSES[l.cls]);
+  S.legends = S.legends || {}; const w = wanderLegend();
+  const L = LEGENDS.filter(l => !S.legends[l.id] && CLASSES[l.cls]).concat(w && !S.legends[w.id] ? [w] : []);
   if (!L.length) return "";
-  const c = legendCost();
-  return `<h3 style="margin-top:6px">${ico("crown", "#ffb848", 15)} Légendes</h3><p class="tiny dim">Des héros dont on chante déjà le nom. Ils ne rejoignent que ceux qui ont prouvé leur valeur — et une seule fois.</p>
-    <div class="col">${L.filter(l => l.cond()).map(l => `<div class="row card" style="cursor:default;gap:10px;border-color:#ffb84877">${canvasSlot("lg:" + l.id, 70, 84)}<div style="flex:1;min-width:0">
-      <b class="rar4">${esc(l.name)}</b> <span class="tiny dim">${CLASSES[l.cls].n}</span><div class="tiny lore">${esc(l.story)}</div><div class="tiny">${ico("star", "#ffb848", 11)} Trait unique : <b>Légende vivante</b> — ${TRAITS.legende.d}</div></div>
-      <button class="btn sm gold" data-a="legendHire" data-v="${l.id}">${fmt(c.gold)} or · ${c.shards} éclats</button></div>`).join("")}</div>
-    ${L.some(l => !l.cond()) ? `<div class="tiny dim" style="margin:4px 0 8px">${ico("lock", "#7a6a5a", 11)} À venir : ${L.filter(l => !l.cond()).map(l => `<span title="${esc(l.how)}">${CLASSES[l.cls].n} (${l.how.replace(/\.$/, "")})</span>`).join(" · ")}</div>` : ""}`;
+  const ready = L.filter(l => l.cond()), locked = L.filter(l => !l.cond());
+  const card = l => { const c = legendCost(l), R = legendRoll(l.id), T = TRAITS[R.boon];
+    return `<div class="row card" style="cursor:default;gap:10px;border-color:${l.wander ? "#9ad0ff77" : "#ffb84877"}">${canvasSlot("lg:" + l.id, 70, 84)}<div style="flex:1;min-width:0">
+      <b class="rar${R.rar}">${esc(l.name)}</b> <span class="tiny dim">${CLASSES[l.cls].n}${l.wander ? " · errant" : ""}</span><div class="tiny lore">${esc(l.story)}</div>
+      <div class="tiny">${ico("star", "#ffb848", 11)} <b>Légende vivante</b> — ${TRAITS.legende.d}</div>
+      <div class="tiny">${ico("gem", "#9ad0ff", 11)} Don : <b>${T.n}</b> — ${T.d}</div>
+      <div class="tiny dim">Arme et armure ${RARITY[R.rar] ? RARITY[R.rar].n : ""}</div></div>
+      <button class="btn sm gold" data-a="legendHire" data-v="${l.id}">${fmt(c.gold)} or · ${c.shards} éclats</button></div>`; };
+  return `<h3 style="margin-top:6px">${ico("crown", "#ffb848", 15)} Légendes <span class="tiny dim">${LEGENDS.filter(l => S.legends[l.id]).length}/${LEGENDS.length}</span></h3><p class="tiny dim">Des héros dont on chante déjà le nom. Chacun porte un don tiré au sort à sa venue. Ils ne rejoignent que ceux qui ont prouvé leur valeur — et une seule fois. Une légende errante, d'une classe au hasard, passe aussi chaque semaine.</p>
+    <div class="col">${ready.map(card).join("")}</div>
+    ${locked.length ? `<div class="tiny dim" style="margin:4px 0 8px">${ico("lock", "#7a6a5a", 11)} À venir : ${locked.slice(0, 4).map(l => `<span title="${esc(l.how)}">${CLASSES[l.cls].n} (${l.how.replace(/\.$/, "")})</span>`).join(" · ")}${locked.length > 4 ? ` · et ${locked.length - 4} autres…` : ""}</div>` : ""}`;
 }
 ACT.legendHire = id => {
-  const l = LEGENDS.find(x => x.id === id); if (!l || !l.cond() || (S.legends || {})[id]) return;
+  const l = legendById(id); if (!l || !l.cond() || (S.legends || {})[id]) return;
   if (S.heroes.length >= rosterMax()) return toast("La caserne est pleine.", "bad");
-  const c = legendCost(); if (S.gold < c.gold || (S.shards || 0) < c.shards) return toast("Il vous faut " + fmt(c.gold) + " or et " + c.shards + " éclats.", "bad");
-  S.gold -= c.gold; S.shards -= c.shards;
-  const lv = Math.max(1, Math.max(...S.heroes.map(h => h.lvl)) - 2), h = makeHero(l.cls, { name: l.name, lvl: lv, traits: ["legende"] });
-  const tier = Math.max(1, TIER_LVL.filter(x => x <= lv).length - 1); h.gear.wpn = makeGear("wpn", l.cls, Math.min(5, tier), 4); h.gear.arm = makeGear("arm", l.cls, Math.min(5, tier), 4);
+  const c = legendCost(l); if (S.gold < c.gold || (S.shards || 0) < c.shards) return toast("Il vous faut " + fmt(c.gold) + " or et " + c.shards + " éclats.", "bad");
+  S.gold -= c.gold; S.shards -= c.shards; const R = legendRoll(id);
+  const lv = Math.max(1, Math.max(...S.heroes.map(h => h.lvl)) - 2 + R.lvlB), h = makeHero(l.cls, { name: l.name, lvl: lv, traits: ["legende", R.boon] });
+  const tier = Math.max(1, TIER_LVL.filter(x => x <= lv).length - 1); h.gear.wpn = makeGear("wpn", l.cls, Math.min(5, tier), R.rar); h.gear.arm = makeGear("arm", l.cls, Math.min(5, tier), R.rar);
   h.legend = id; addHero(h); S.legends[id] = 1; save(); sfx("holy"); renderHud(); toast(`${ico("crown", "#ffb848", 14)} ${esc(l.name)} rejoint le Bastion !`, "good"); openBuilding("taverne");
 };
 

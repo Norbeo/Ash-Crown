@@ -78,7 +78,10 @@ function navBadges() {
 }
 function toast(msg, kind = "") { const t = document.createElement("div"); t.className = "toast " + kind; t.innerHTML = msg; $("#toasts").appendChild(t); setTimeout(() => t.remove(), 3400); }
 function modal(html, o = {}) {
-  const m = $("#modal"); m.hidden = false;
+  const m = $("#modal");
+  // on quitte la fenêtre d'un bâtiment pour une fiche : on retient où l'on en était dans la liste
+  if (UI.inBld && !m.hidden) { const b0 = m.querySelector(".box"); UI.bldScroll = { k: UI.bldOpen, top: b0 ? b0.scrollTop : 0, at: Date.now() }; }
+  UI.inBld = false; m.hidden = false;
   m.innerHTML = `<div class="box panel frame ${o.wide ? "wide" : ""}"><span class="corner c1"></span><span class="corner c2"></span><span class="corner c3"></span><span class="corner c4"></span>${o.close === false ? "" : `<button class="btn ghost sm" data-a="closeModal" style="position:absolute;top:8px;right:8px;z-index:2">${ico("close")}</button>`}${html}</div>`;
   if (o.mount) o.mount(m);
   UI.modalClose = o.onClose || null; UI.modalOut = o.close === false ? o.outside || null : closeModal; // un clic à côté de la fenêtre la ferme

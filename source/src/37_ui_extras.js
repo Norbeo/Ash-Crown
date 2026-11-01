@@ -280,7 +280,7 @@ function artFace(n, bg) {
   if (FACE_URL[n]) return FACE_URL[n];
   try {
     const W = im.naturalWidth || im.width, H = im.naturalHeight || im.height, s = F[2] * H, c = document.createElement("canvas"); c.width = c.height = 48;
-    const x = c.getContext("2d"); x.fillStyle = bg; x.fillRect(0, 0, 48, 48); x.drawImage(im, F[0] * W - s / 2, F[1] * H - s / 2, s, s, 0, 0, 48, 48);
+    const x = c.getContext("2d"); x.fillStyle = bg; x.fillRect(0, 0, 48, 48); if (/^(pet|hero)_/.test(n) && typeof ART_FLIP !== "undefined" && ART_FLIP.has(n)) { x.translate(48, 0); x.scale(-1, 1); } x.drawImage(im, F[0] * W - s / 2, F[1] * H - s / 2, s, s, 0, 0, 48, 48);
     return FACE_URL[n] = c.toDataURL();
   } catch (e) { return null; }
 }

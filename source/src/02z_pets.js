@@ -129,6 +129,8 @@ const PET_ORDER = [
   "faucon", "destrier", "wyverne", "sphinx", "mammouth", "basilic", "ombre_chat", "phenix", "drake", "licorne"];
 for (const id in PETS) if (PETS[id].starter && !PET_START.includes(id)) PETS[id].starter = 0;
 for (const id of PET_START) if (PETS[id]) { PETS[id].pool0 = 1; PETS[id].starter = 1; }
-PET_ORDER.forEach((id, i) => { if (PETS[id]) { PETS[id].unl = [Math.floor(i / 5), (i % 5) + 1]; PETS[id].cost = 500 + i * 90; PETS[id].rank = 1 + i * .012; } }); // jusqu'à +60 % de puissance pour les derniers
+// prix strictement croissants selon l'ordre de puissance : départ 300 → 540, puis 600 → ~15 000 pour les mythiques
+PET_START.forEach((id, j) => { if (PETS[id]) PETS[id].cost = 300 + j * 20; });
+PET_ORDER.forEach((id, i) => { if (PETS[id]) { PETS[id].unl = [Math.floor(i / 5), (i % 5) + 1]; PETS[id].cost = Math.round((600 + i * 100 + i * i * 4) / 10) * 10; PETS[id].rank = 1 + i * .012; } }); // jusqu'à +60 % de puissance pour les derniers
 for (const id of PET_START) if (PETS[id] && !PETS[id].starter) PETS[id].cost = 450; // [chapitre (0 = Bourg), menace vaincue (1 = I … 5 = V)]
 function petUnlockText(id) { const u = PETS[id].unl; if (!u) return ""; const R = REGIONS[u[0]]; return R ? `${R.n} : vaincre le gardien${u[1] > 1 ? " en menace " + ["I", "II", "III", "IV", "V"][u[1] - 1] : ""}` : "Plus tard"; }

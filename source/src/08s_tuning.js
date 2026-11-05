@@ -1,6 +1,6 @@
 // ── Réglages de fin de partie (5 nov.) : présages d'expédition, 2e phase des gardiens en menace IV–V, soins réduits au fond de l'Abîme ──
 const OMENS = {
-  sang: { n: "Présage de sang", ic: "drop", d: "Ennemis +10 % de dégâts ; or +20 %.", edmg: .1, gold: .2 },
+  sang: { n: "Présage de sang", ic: "blood", d: "Ennemis +10 % de dégâts ; or +20 %.", edmg: .1, gold: .2 },
   fer: { n: "Présage de fer", ic: "shield", d: "Ennemis +12 % de PV ; expérience +20 %.", ehp: .12, xp: .2 },
   corbeau: { n: "Présage du corbeau", ic: "eye", d: "Lueur −15 au départ ; meilleur butin.", light: -15, luck: .05 },
   cendre: { n: "Présage de cendre", ic: "fire", d: "Ennemis +1 vitesse ; or +12 %, expérience +12 %.", espd: 1, gold: .12, xp: .12 },

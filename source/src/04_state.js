@@ -125,13 +125,20 @@ function gearName(it) {
 // tirage de qualité : poids RARITY[q].p ; la chance (0 à ~0,4) renforce les qualités hautes de façon progressive, le plancher retire les basses
 const rollRarity = (luck = 0, floor = 0) => { const w = RARITY.map((R, q) => q < floor ? 0 : R.p * Math.pow(1 + Math.max(0, luck) * 6, q / 2)); let r = rnd() * w.reduce((a, b) => a + b, 0); for (let q = 0; q < w.length; q++) { r -= w[q]; if (r < 0) return q; } return floor; };
 function lootGear(lvl, luck = 0, cls, floor = 0) {
-  const base = TIER_LVL.filter(l => l <= lvl).length - 1; // palier que le niveau permet de porter
-  const tier = clamp(base + (chance(.25) ? 1 : 0), 1, typeof lootTierCap === "function" ? lootTierCap() : 5);
+  // le butin suit le niveau des héros de l'expédition s'il dépasse celui du chapitre : tous les paliers (I à X) et toutes les qualités peuvent tomber
+  const party = S && S.run && S.run.party ? S.run.party.map(id => S.heroes.find(h => h.id === id)).filter(Boolean) : [];
+  const hl = party.length ? Math.max(...party.map(h => h.lvl)) : 0, L = Math.max(lvl, hl);
+  const base = Math.max(1, TIER_LVL.filter(l => l <= L).length - 1); // palier que le niveau permet de porter
+  let tier = base + (chance(.25) ? 1 : 0) + (chance(.05) ? 1 : 0);
+  if (chance(.03)) tier = base + 1 + Math.floor(rnd() * Math.max(1, TIER_MAX - base)); // relique d'un autre âge : n'importe quel palier supérieur
+  tier = clamp(tier, 1, typeof lootTierCap === "function" ? lootTierCap() : TIER_MAX);
   const r = rnd(), rar = rollRarity(luck, floor);
   if (r < .3) return makeGear("tr", null, 1, rar);
   const owned = S ? [...new Set(S.heroes.map(h => h.cls))] : [];
   const c = cls || (owned.length && chance(.85) ? pick(owned) : pick(CLASS_IDS));
-  return makeGear(r < .65 ? "wpn" : "arm", c, tier, rar);
+  const kind = r < .65 ? "wpn" : "arm";
+  let evo = null; if (kind === "arm" && tier >= 6 && CLASSES[c].evos) { const mine = S ? S.heroes.filter(h => h.cls === c && h.evo).map(h => h.evo) : []; evo = mine.length && chance(.8) ? pick(mine) : pick(Object.keys(CLASSES[c].evos)); } // armure VI+ : propre à une voie
+  return makeGear(kind, c, tier, rar, null, evo);
 }
 const upCost = it => ({ gold: Math.round(60 * it.tier * (1 + it.up * .7)), fer: 1 + Math.floor(it.up / 2) + (it.tier >= 3 ? 1 : 0), essence: it.up >= 3 ? 1 + (it.up >= 5 ? 1 : 0) : 0 });
 const craftCost = tier => ({ gold: [0, 80, 220, 520, 1100, 2200, 4500, 9000, 16000, 28000, 45000][tier], fer: [0, 3, 5, 8, 12, 16, 22, 30, 40, 52, 66][tier], essence: [0, 0, 1, 3, 5, 8, 12, 18, 26, 36, 48][tier], cendre: [0, 0, 0, 0, 1, 3, 6, 10, 15, 22, 30][tier] });

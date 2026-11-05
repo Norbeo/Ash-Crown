@@ -105,7 +105,7 @@ function runLevel(run, node) {
   return l;
 }
 // butin plafonné au palier du chapitre : chapitre I → palier II (niveau 5) max, chapitre II → palier III, etc.
-function lootTierCap(run = S && S.run) { if (!run) return TIER_MAX; if (run.region === "abime") return Math.min(TIER_MAX, 5 + Math.floor((run.floor || 1) / 10)); const i = REGIONS.findIndex(r => r.id === run.region); return i < 0 ? 5 : Math.min(i < 6 ? 5 : TIER_MAX, i + 2); }
+function lootTierCap() { return TIER_MAX; } // plus de plafond : tous les paliers peuvent tomber (voir lootGear)
 function availableNodes(run = S.run) {
   if (!run.pos) return run.map[0].map(n => n);
   const cur = run.map[run.pos.c][run.pos.i];

@@ -89,7 +89,7 @@ const WANDER_INFO = {
 (function () {
   const L = typeof window !== "undefined" && window.ART_LIST ? new Set(window.ART_LIST) : null; // sous node : tout est actif
   for (const k in WANDER_BOSSES) {
-    const B = WANDER_BOSSES[k]; B.art = B.art || k; if (L && !L.has("mon_" + B.art)) continue;
+    const B = WANDER_BOSSES[k]; B.art = B.art || k; if (L && !L.has("mon_" + B.art)) continue; if (MONSTERS[k]) { console.warn("clé de gardien errant déjà prise", k); continue; }
     MONSTERS[k] = Object.assign({ boss: 1, sz: 2, rk: [2] }, B);
   }
 })();

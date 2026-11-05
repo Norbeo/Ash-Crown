@@ -170,6 +170,10 @@ function fixHeroName(h) {
   h.name = newFirst + (newSur ? " " + newSur : "");
 }
 function migrate(s) {
+  // le gardien secret « Boucher Affamé » avait la clé de l'élite Le Boucher : on sépare les deux
+  if (!s.fixBoucher) { s.fixBoucher = 1; if (s.beaten && s.beaten.boucher) { s.beaten.boucher_affame = 1; delete s.beaten.boucher; } if (s.trophies && s.trophies.boucher) { s.trophies.boucher_affame = s.trophies.boucher; delete s.trophies.boucher; }
+    if (s.bossDeck) s.bossDeck = s.bossDeck.filter(k => k !== "boucher"); if (s.lastBoss) for (const r in s.lastBoss) if (s.lastBoss[r] === "boucher") delete s.lastBoss[r]; if (s.lastBossAny === "boucher") delete s.lastBossAny;
+    const fix = it => { if (it && it.uniq === "boucher") it.uniq = "boucher_affame"; }; (s.inv || []).forEach(fix); (s.heroes || []).forEach(h => h.gear && Object.values(h.gear).forEach(fix)); }
   const base = newState();
   for (const h of s.heroes || []) if (h.hp != null && !Number.isFinite(h.hp)) h.hp = null;
   if (s.opts && s.opts.skMini == null && typeof matchMedia !== "undefined" && matchMedia("(pointer:coarse)").matches) s.opts.skMini = 1; // téléphone : descriptions compactes par défaut

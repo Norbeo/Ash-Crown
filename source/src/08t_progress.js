@@ -43,7 +43,7 @@ function petMul(id) { const c = petCollar(id), t = typeof S !== "undefined" && S
 const SECRET_BOSSES = {
   juge_immacule: { base: "cardinal", n: "Le Juge Immaculé", hue: "#f0e2a0", f: 1.3, hint: "Atteindre un gardien sans avoir perdu un seul héros, en menace II ou plus.", cond: run => run.flawless && run.threat >= 1 },
   mere_ombres: { base: "reine_sabbat", n: "La Mère des Ombres", hue: "#7a3aff", f: 1.25, hint: "Affronter un gardien au cœur d'une expédition de nuit.", cond: run => !!run.night },
-  boucher: { base: "docteur_peste", n: "Le Boucher Affamé", hue: "#ff2a2a", f: 1.25, hint: "Atteindre un gardien sans aucun soigneur dans le groupe.", cond: run => run.party.map(id => heroById(id)).filter(Boolean).every(h => CLASSES[h.cls].role !== "soin") },
+  boucher_affame: { base: "docteur_peste", n: "Le Boucher Affamé", hue: "#ff2a2a", f: 1.25, hint: "Atteindre un gardien sans aucun soigneur dans le groupe.", cond: run => run.party.map(id => heroById(id)).filter(Boolean).every(h => CLASSES[h.cls].role !== "soin") },
   moissonneuse: { base: "matrone_os", n: "La Moissonneuse", hue: "#d8d0a0", f: 1.3, hint: "Atteindre un gardien avec quatre héros de dégâts.", cond: run => run.party.map(id => heroById(id)).filter(Boolean).every(h => CLASSES[h.cls].role === "dps") },
   enfant_cendre: { base: "archonte_cendres", n: "L'Enfant de Cendre", hue: "#ff4a1a", f: 1.3, hint: "Affronter un gardien sous la lune rouge.", cond: run => run.weather === "lune" },
   gardien_pactes: { base: "roi_vide", n: "Le Gardien des Pactes", hue: "#40ff9a", f: 1.35, hint: "Atteindre un gardien en portant au moins deux malédictions.", cond: run => (run.curse || 0) >= 2 },
@@ -53,14 +53,14 @@ const SECRET_BOSSES = {
 const SECRET_INFO = {
   juge_immacule: ["Celui qui pèse les âmes sans tache", "« Aucune faute ? Alors je jugerai votre orgueil. »", "Balance du Juge", "wpn"],
   mere_ombres: ["Elle n'apparaît qu'à la nuit tombée", "« Chut… mes enfants dorment dans vos ombres. »", "Voile de la Mère", "arm"],
-  boucher: ["Il sent les groupes sans guérisseur", "« Personne pour recoudre ? Tant mieux. »", "Couperet du Boucher", "wpn"],
+  boucher_affame: ["Il sent les groupes sans guérisseur", "« Personne pour recoudre ? Tant mieux. »", "Couperet du Boucher", "wpn"],
   moissonneuse: ["Elle fauche ceux qui ne savent que frapper", "« Quatre lames ? Je n'ai qu'une faux. Elle suffira. »", "Faux de la Moissonneuse", "wpn"],
   enfant_cendre: ["Né sous la lune rouge", "« Maman disait que la lune saignait pour moi. »", "Braise de l'Enfant", "tr"],
   gardien_pactes: ["Il garde chaque serment rompu", "« Deux malédictions… Signez la troisième, juste là. »", "Sceau des Pactes", "arm"],
   dame_blanche: ["Elle n'apparaît qu'aux âmes sans faute, la nuit", "« Si pure… si froide… restez avec moi. »", "Voile de la Dame Blanche", "arm"],
   roi_oublie: ["Le roi que la Couronne a effacé", "« Trois serments… Vous me rappelez quelqu'un. Moi. »", "Couronne oubliée", "tr"],
 };
-for (const k in SECRET_BOSSES) { const D = SECRET_BOSSES[k], M = MONSTERS[D.base]; if (!M) continue; MONSTERS[k] = Object.assign({}, M, { n: D.n, art: M.art || D.base, hue: D.hue, secret: 1, hp: Math.round(M.hp * D.f), dmg: M.dmg.map(v => Math.round(v * (1 + (D.f - 1) * .6))), res: (M.res || 0) + 10 }); }
+for (const k in SECRET_BOSSES) { const D = SECRET_BOSSES[k], M = MONSTERS[D.base]; if (!M || (MONSTERS[k] && !MONSTERS[k].secret)) { if (MONSTERS[k]) console.warn("clé de gardien secret déjà prise", k); continue; } MONSTERS[k] = Object.assign({}, M, { n: D.n, art: M.art || D.base, hue: D.hue, secret: 1, hp: Math.round(M.hp * D.f), dmg: M.dmg.map(v => Math.round(v * (1 + (D.f - 1) * .6))), res: (M.res || 0) + 10 }); }
 // gardien secret à la place du gardien prévu : toujours la première fois que la condition est remplie, puis une fois sur trois
 function secretBossFor(run, rng = RNG) {
   for (const k in SECRET_BOSSES) { const D = SECRET_BOSSES[k]; if (!MONSTERS[k]) continue; let ok = false; try { ok = D.cond(run); } catch (e) { ok = false; } if (!ok) continue; const won = typeof S !== "undefined" && S && S.beaten && S.beaten[k]; if (!won || rng.chance(.33)) return k; }

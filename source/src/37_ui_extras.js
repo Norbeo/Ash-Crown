@@ -355,7 +355,7 @@ function duoHTML(E) {
 // ── Bastion : marchand ambulant ──
 ACT.merchant = () => {
   const M = merchantStock();
-  modal(`<h2>${ico("coin", "#e8c060")} Le marchand ambulant</h2><p class="lore">« Je ne reste qu'un jour. Demain, je serai loin… ou mort. »</p><p class="small">Or : <b class="gold">${fmt(S.gold)}</b> · nouvelle marchandise chaque jour, dont un objet légendaire ou mieux.</p>
+  modal(`${artHas("por_marchand") ? `<img src="assets/por_marchand.webp" alt="" style="float:right;width:min(160px,32vw);margin:0 0 6px 10px;border-radius:4px">` : ""}<h2>${ico("coin", "#e8c060")} Le marchand ambulant</h2><p class="lore">« Je ne reste qu'un jour. Demain, je serai loin… ou mort. »</p><p class="small">Or : <b class="gold">${fmt(S.gold)}</b> · nouvelle marchandise chaque jour, dont un objet légendaire ou mieux.</p>
     <div class="col">${M.items.map((o, i) => `<div class="row card" style="cursor:default;${o.sold ? "opacity:.45" : ""}">${slotHTML(o.it, "itemInfo", o.it.id)}<div style="flex:1;min-width:0"><b class="rar${o.it.rar}">${gearName(o.it)}</b> <span class="tiny dim">${RARITY[o.it.rar].n}</span><div class="tiny dim">${itemLine(o.it)}</div></div><button class="btn sm ${o.sold || S.gold < o.cost ? "off" : "gold"}" data-a="merchantBuy" data-v="${i}">${o.sold ? "Vendu" : o.cost + " or"}</button></div>`).join("")}</div>${merchantSellHTML()}`);
 };
 // le marchand rachète aussi l'inventaire (prix plein, filtre par qualité)

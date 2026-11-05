@@ -123,7 +123,9 @@ function monNorm(key, ref) {
 // gardiens déjà vaincus (anciennes sauvegardes : ceux des chapitres terminés)
 function beatenBosses() { const b = S.beaten = S.beaten || {}; for (const r of REGIONS) if (S.prog[r.id] && S.prog[r.id].clears) b[r.boss] = 1; return Object.keys(b).filter(k => MONSTERS[k] && MONSTERS[k].boss && !MONSTERS[k].secret); }
 // roulement des gardiens : paquet mélangé (gardiens déjà vaincus + toutes leurs variantes + gardiens d'autres chapitres vaincus), tiré dans l'ordre, rebrassé quand il est vide
-function bossPoolEligible() { const won = new Set(beatenBosses().map(bossBase)); return ALL_BOSSES.filter(k => !MONSTERS[k].secret && won.has(bossBase(k))); }
+// gardien errant (02zy_wander.js) : éligible dès que le gardien de l'histoire de son chapitre est vaincu ; ses variantes une fois lui-même vaincu
+function wanderOpen(k) { const M = MONSTERS[k]; if (!M || !M.wander || M.variantOf) return false; const r = regionById(M.wander); return !!(r && S.beaten && S.beaten[r.boss]); }
+function bossPoolEligible() { const won = new Set(beatenBosses().map(bossBase)); return ALL_BOSSES.filter(k => !MONSTERS[k].secret && (won.has(bossBase(k)) || wanderOpen(k))); }
 function nextBossKey(rng, avoid) {
   const ok = bossPoolEligible(); if (!ok.length) return null;
   S.bossDeck = (S.bossDeck || []).filter(k => ok.includes(k));

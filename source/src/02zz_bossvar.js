@@ -17,7 +17,7 @@ for (const base of Object.keys(MONSTERS).filter(k => MONSTERS[k].boss && !MONSTE
   for (const v in BOSS_VARIANTS) {
     const V = BOSS_VARIANTS[v], B = MONSTERS[base], k = base + "_" + v; if (MONSTERS[k]) continue;
     const M = JSON.parse(JSON.stringify(B)); // copie profonde : compétences modifiables
-    M.n = B.n + " " + (BOSS_FEM.has(base) ? V.f : V.m); M.art = B.art || base; M.hue = V.hue; M.variantOf = base; M.vkind = v; delete M.threatBoss;
+    M.n = B.n + " " + (BOSS_FEM.has(base) || B.fem ? V.f : V.m); M.art = B.art || base; M.hue = V.hue; M.variantOf = base; M.vkind = v; delete M.threatBoss;
     V.tune(M, k); MONSTERS[k] = M;
     BOSS_VAR_INFO[k] = [V.d, null, null, null]; // titre, réplique et objet unique complétés depuis le gardien d'origine (08zy_bosses.js)
   }

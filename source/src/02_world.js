@@ -109,7 +109,7 @@ const MONSTERS = {
     sk: [{ n: "Serres de pierre", m: 1, at: [1, 2, 3] }, { n: "Peau de pierre", t: "self", sfx: [{ k: "protUp", v: .3, t: 2 }], w: .4 }, { n: "Piqué", m: 1.2, at: [3, 4] }] },
   chevalier_os: { n: "Chevalier d'os", art: "chevalier_os", tags: ["impie"], elite: 1, hp: 70, dmg: [8, 13], prot: .3, spd: 3, dodge: 2, rk: [1],
     sk: [{ n: "Taille", m: 1.2, t: "ae", at: [1, 2] }, { n: "Défi", t: "self", sfx: [{ k: "protUp", v: .25, t: 2 }, { k: "riposte", v: .8, t: 2 }], w: .5 }, { n: "Lance d'os", m: 1, at: [2, 3, 4], fx: [{ k: "bleed", v: .5, t: 2, ch: 1 }] }] },
-  liche: { n: "La Liche couronnée", art: "liche", tags: ["impie"], boss: 1, sz: 2, hp: 470, dmg: [9, 15], prot: .15, spd: 5, dodge: 8, res: 35, rk: [2],
+  liche: { n: "La Liche couronnée", art: "liche", tags: ["impie"], boss: 1, sz: 2, hp: 420, dmg: [9, 15], prot: .15, spd: 5, dodge: 8, res: 35, rk: [2],
     sk: [{ n: "Rayon de nécrose", m: 1.3, at: [1, 2, 3, 4], fx: [{ k: "vuln", t: 2, ch: 1 }] }, { n: "Tempête d'âmes", m: .6, t: "ae", at: [1, 2, 3, 4], fx: [{ k: "weak", t: 2, ch: .7 }] }, { n: "Phylactère", t: "self", heal: .1, sfx: [{ k: "shield", v: .1, t: 2 }], w: .5 }, { n: "Gel de la tombe", m: .5, t: "ae", at: [1, 2, 3, 4], fx: [{ k: "stun", t: 1, ch: .3 }] }],
     phase: { at: .5, n: "La couronne de la Liche s'embrase de vert !", sfx: [{ k: "dmgUp", v: .35, t: 99 }, { k: "spdUp", v: 2, t: 99 }] } },
   moine_flagellant: { n: "Moine flagellant", art: "moine_flagellant", tags: ["humain"], hp: 30, dmg: [6, 10], prot: .05, spd: 5, dodge: 6, rk: [1, 2],

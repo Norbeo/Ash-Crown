@@ -74,6 +74,7 @@ function startRun(regionId, partyIds, petId, opt = {}) {
     light: 100, relics: (opt.relics || []).slice(), potions: potionMax() - (oaths.includes("jeune") ? 1 : 0), gold: 0, loot: [], mats: { fer: 0, essence: 0, cendre: 0 }, shards: 0,
     kills: 0, fallen: [], oaths, week: opt.week ? S.week.rule : null, daily: !!opt.daily, threat: opt.threat || 0, startedAt: Date.now(), xpGain: {}, flawless: true, combats: 0, log: [] };
   if (typeof rollWeather === "function" && !opt.rush) run.weather = rollWeather(run); // météo de l'expédition
+  if (typeof rollOmen === "function" && !opt.rush) { run.omen = rollOmen(run); const O = omenOf(run); if (O && O.light) run.light = clamp(run.light + O.light, 0, 100); } // présage d'expédition
   if (opt.hardBoss) run.hardBoss = 1; // chapitre en mode Hardi : gardien renforcé
   if (opt.night) { run.night = 1; run.light = 60; run.flags = (run.flags || []).concat(["nuit"]); } // expédition de nuit : moins de lueur, ennemis plus forts, meilleur butin
   S.run = run;
@@ -177,7 +178,7 @@ function genEncounter0(run, node, rng = RNG) {
 
 // ── récompenses ──
 function rewardFor(run, node, rng = RNG) {
-  const lvl = runLevel(run, node), rh = relicHooks(run), luck0 = (run.light < 30 ? .05 : 0) + (run.night ? .08 : 0) + (run.weather === "lune" ? .06 : 0); let luck = luck0;
+  const lvl = runLevel(run, node), rh = relicHooks(run), luck0 = (run.light < 30 ? .05 : 0) + (run.night ? .08 : 0) + (run.weather === "lune" ? .06 : 0) + (run.omen && OMENS[run.omen] && OMENS[run.omen].luck || 0); let luck = luck0;
   const goldM = 1 + (rh.gold || 0) + run.party.map(heroById).filter(Boolean).reduce((a, h) => a + heroPassives(h).filter(p => p.k === "gold").reduce((b, p) => b + p.v, 0), 0) + (run.pet && PETS[run.pet].gold ? PETS[run.pet].gold : 0) + (run.pet && typeof petMul === "function" ? petMul(run.pet).gold : 0) + (run.daily ? .25 : 0) + run.oaths.length * .15 + run.threat * .3;
   const R = { gold: 0, xp: 0, loot: [], relic: null, mats: { fer: 0, essence: 0, cendre: 0 }, shards: 0, petXp: 0 };
   const t = node.type;
@@ -194,7 +195,7 @@ function rewardFor(run, node, rng = RNG) {
     { const be = node && node.enc && node.enc.find(e => MONSTERS[e.key] && MONSTERS[e.key].boss); if (be && typeof uniqueDrop === "function") { const u = uniqueDrop(be.key, lvl, !(S.uniqs && S.uniqs[be.key]) && !((S.stats.monKills || {})[be.key] > 1)); if (u) { R.loot.push(u); R.uniq = u; } } }
     R.shards = first ? 3 : 1 + (run.region === "abime" && run.floor % 3 === 0 ? 1 : 0) + Math.floor(run.oaths.length / 3); R.relic = randRelic(run, rng, 2);
   }
-  R.gold = Math.round(R.gold * goldM * diffOf().gold * (run.night ? 1.35 : 1)); R.xp = Math.round(R.xp * (1 + run.threat * .2) * diffOf().xp); R.petXp = Math.round(R.xp * .8);
+  const OM = typeof omenOf === "function" ? omenOf(run) : null; R.gold = Math.round(R.gold * goldM * diffOf().gold * (run.night ? 1.35 : 1) * (1 + (OM && OM.gold || 0))); R.xp = Math.round(R.xp * (1 + run.threat * .2) * diffOf().xp * (1 + (OM && OM.xp || 0))); R.petXp = Math.round(R.xp * .8);
   if (run.favDrop) { R.loot.push(run.favDrop); R.fav = run.favDrop; run.favDrop = null; } // butin favori d'une élite
   if (node && node.nestOn) { R.gold = Math.round(R.gold * 1.8); R.xp = Math.round(R.xp * 1.5); R.loot.push(lootGear(lvl + 2, .35, null, 3)); R.shards = (R.shards || 0) + 1; } // nid d'élites : gros butin
   R.tome = t === "boss" ? 1 : t === "elite" ? (rng.chance(.22) ? 1 : 0) : t === "treasure" ? (rng.chance(.14) ? 1 : 0) : 0; // tome d'expérience

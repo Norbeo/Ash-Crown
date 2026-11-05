@@ -30,7 +30,7 @@ function monUnit(key, lvl, mods = {}) {
   const u = { uid: uid("E"), side: "e", key, name: M.name || M.n, art: M.art, tags: M.tags, sz: M.sz || 1, boss: !!M.boss, elite: !!M.elite, lvl,
     hpMax: Math.round(M.hp * hpM), dmgLo: Math.max(1, Math.round(M.dmg[0] * dM)), dmgHi: Math.max(2, Math.round(M.dmg[1] * dM)), prot: clamp(M.prot + (mods.prot || 0), 0, .7),
     spd: M.spd + Math.floor(L / 5) + (mods.spd || 0), crit: 4 + L * .3, dodge: M.dodge + L * .4, acc: 90 + L * .7, res: (M.res || 15) + L * 1.4, healPow: 1, leech: 0, hooks: {},
-    skills: M.sk.map((s, i) => Object.assign({ id: "m" + i }, s)), cds: {}, st: [], ultV: 0, phase: M.phase, phaseDone: false };
+    skills: M.sk.map((s, i) => Object.assign({ id: "m" + i }, s)), cds: {}, st: [], ultV: 0, phase: M.phase, phaseDone: false, phase2: M.boss && mods.phase2 && typeof PHASE2 !== "undefined" ? PHASE2 : null };
   u.hp = u.hpMax;
   return u;
 }
@@ -319,6 +319,8 @@ function applyDamage(B, src, x, d, ev, o = {}) {
     }
   } else if (x.phase && !x.phaseDone && x.hp / x.hpMax < x.phase.at) {
     x.phaseDone = true; ev.push({ k: "phase", u: x.uid, text: x.phase.n }); for (const f of x.phase.sfx) x.st.push(Object.assign({}, f));
+  } else if (x.phase2 && !x.phase2Done && x.hp / x.hpMax < x.phase2.at) { // menace IV–V : dernier sursaut du gardien
+    x.phase2Done = true; ev.push({ k: "phase", u: x.uid, text: x.phase2.n }); for (const f of x.phase2.sfx) x.st.push(Object.assign({}, f, f.k === "shield" ? { v: Math.round(x.hpMax * f.v) } : {}));
   }
   return Math.min(d, before);
 }
@@ -341,7 +343,8 @@ function reviveFallen(B, frac, ev) {
 function healUnit(B, src, x, v, ev, o = {}) {
   if (!alive(x) || x.uid === "PET" || !Number.isFinite(v) || !Number.isFinite(x.hp)) return;
   let h = v * (src && !o.leech ? src.healPow : 1) * (1 + (x.hooks.healTaken || 0));
-  if (x.side !== "h" && B.round > 14) h *= .5; // la rage consume aussi les forces de l'ennemi
+  if (x.side !== "h" && B.round > 14) h *= .5;
+  if (x.side === "h" && B.mods && B.mods.healCut) h *= 1 - B.mods.healCut; // fond de l'Abîme // la rage consume aussi les forces de l'ennemi
   h = Math.max(1, Math.round(h));
   const room = x.hpMax - x.hp, real = Math.min(room, h);
   x.hp += real;

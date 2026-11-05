@@ -204,7 +204,7 @@ const CLASSES = {
   pyromancien: {
     n: "Pyromancien", role: "dps", armor: "robe", wpn: "grimoire", rk: [3, 4], unlock: 1,
     lore: "Il a brûlé sa tour, sa guilde et son maître. Les flammes lui obéissent encore.",
-    base: { hp: 22, dmg: [6, 10], prot: 0, spd: 4, crit: 5, dodge: 5 },
+    base: { hp: 25, dmg: [7, 11], prot: 0, spd: 4, crit: 6, dodge: 6 },
     pal: { cloth: "#5a1a10", trim: "#e08a30", metal: "#6a5a50" },
     skills: {
       trait_feu: { n: "Trait de feu", ic: "fire", use: [2, 3, 4], t: "e", at: [1, 2, 3, 4], m: 1, fx: [{ k: "burn", v: .3, t: 2, ch: .6 }], tags: ["feu"] },

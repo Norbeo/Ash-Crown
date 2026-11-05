@@ -118,6 +118,8 @@ Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
   - Art : trous du Roi sans Couronne et de la Panthère d'ombre bouchés (`/tmp/claude-0/canva/fillholes.py N noms`).
   - `test/sim.js` charge désormais automatiquement tous les fichiers 00–08.
 
+- 5 nov. (soir) : 20 gardiens errants (`02zy_wander.js`, `WANDER_BOSSES`/`WANDER_INFO`, `wander` = chapitre dont le gardien d'histoire ouvre leur roulement, `wanderOpen` dans bossPoolEligible ; visibles seulement si `mon_<k>` est peint ; ×4 variantes auto, `fem` pour l'accord) ; réglages (`08s_tuning.js`) : présages d'expédition (`OMENS`, `run.omen`, 40 %), 2e phase des gardiens en menace IV–V (`PHASE2` à 25 %), soins des héros −2,5 %/étage dès l'Abîme 20 (`abyssHealCut`, max −50 %), pyromancien renforcé, Liche 420 PV. File d'art : /tmp/claude-0/canva/ART6.md puis ART5.md, relance auto toutes les 30 min si quota Canva.
+
 ## Reste à faire (prochaine séance)
 1. (Armures V : fait.) Gardiens de menace II–V : déjà présents (`THREAT_BOSS`) — à confirmer avec l'utilisateur s'il en veut d'autres.
 2. Liste du 26 oct. ci-dessus (contenu ×2, 6e chapitre, compagnons ×3, sons sombres, accueil, idées validées).

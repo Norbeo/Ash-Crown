@@ -41,7 +41,7 @@ function merchantStock() {
   d.merchant = { key: d.key, items: items.map(it => ({ it, cost: Math.round((90 + it.tier * 60 + it.rar * it.rar * 70) * 1.2), sold: 0 })) };
   return d.merchant;
 }
-function merchantBuy(i) { const M = merchantStock(), o = M.items[i]; if (!o || o.sold) return { err: "Déjà vendu." }; if (S.gold < o.cost) return { err: "Pas assez d'or." }; S.gold -= o.cost; o.sold = 1; S.inv.push(o.it); return { ok: o.it }; }
+function merchantBuy(i) { const M = merchantStock(), o = M.items[i]; if (!o || o.sold) return { err: "Déjà vendu." }; if (S.gold < o.cost) return { err: "Pas assez d'or." }; S.gold -= o.cost; o.sold = 1; const it = JSON.parse(JSON.stringify(o.it)); it.id = uid("i"); S.inv.push(it); return { ok: it }; } // copie : l'objet acheté n'est plus lié à l'étal du jour
 
 // ── Tenues alternatives : une teinte d'armure, débloquée par les défis de classe ──
 const OUTFITS = [{ k: "", n: "Tenue d'origine", need: 0 }, { k: "deuil", n: "Tenue de deuil", need: 3, tint: "rgba(40,45,80,.35)" }, { k: "sang", n: "Tenue écarlate", need: 10, tint: "rgba(150,20,20,.26)" }, { k: "cendre", n: "Tenue de cendre", need: 25, tint: "rgba(140,135,128,.5)" }];
@@ -79,6 +79,7 @@ function hiddenEndRun(run, outcome, res) {
   }
   if (outcome !== "wipe" && run.night) got.push(hiddenAch("nuit_noire"));
   if (outcome !== "wipe" && run.relics.filter(k => RELICS[k] && RELICS[k].cursed).length >= 3) got.push(hiddenAch("maudit"));
+  if (typeof legendExtraAch === "function") got.push(...legendExtraAch());
   res.hidden = got.filter(Boolean);
   // vétérans
   res.vets = party.map(h => vetCheck(h, run) ? { name: h.name, t: vetTitle(h), d: VET_TITLES[h.vet].d } : null).filter(Boolean);

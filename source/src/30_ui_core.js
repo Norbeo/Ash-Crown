@@ -81,14 +81,17 @@ function modal(html, o = {}) {
   const m = $("#modal");
   // on quitte la fenêtre d'un bâtiment pour une fiche : on retient où l'on en était dans la liste
   if (UI.inBld && !m.hidden) { const b0 = m.querySelector(".box"); UI.bldScroll = { k: UI.bldOpen, top: b0 ? b0.scrollTop : 0, at: Date.now() }; }
+  // même fenêtre redessinée (vente au colporteur, forge…) : on garde la position de défilement
+  let keep = null; if (!m.hidden) { const b0 = m.querySelector(".box"), h0 = m.querySelector("h2"), t0 = h0 ? h0.textContent : null, t1 = (html.match(/<h2[^>]*>([\s\S]*?)<\/h2>/) || [])[1]; if (b0 && t0 && t1 && t0.trim() === t1.replace(/<[^>]+>/g, "").trim()) keep = b0.scrollTop; }
   UI.inBld = false; m.hidden = false;
   m.innerHTML = `<div class="box panel frame ${o.wide ? "wide" : ""}"><span class="corner c1"></span><span class="corner c2"></span><span class="corner c3"></span><span class="corner c4"></span>${o.close === false ? "" : `<button class="btn ghost sm" data-a="closeModal" style="position:absolute;top:8px;right:8px;z-index:2">${ico("close")}</button>`}${html}</div>`;
   if (o.mount) o.mount(m);
+  if (keep) { const b1 = m.querySelector(".box"); if (b1) { b1.scrollTop = keep; requestAnimationFrame(() => { b1.scrollTop = keep; }); } }
   UI.modalClose = o.onClose || null; UI.modalOut = o.close === false ? o.outside || null : closeModal; // un clic à côté de la fenêtre la ferme
 }
 // fenêtre ouverte depuis un bâtiment (inventaire de la forge, fiche à la taverne…) : en la fermant, on revient au bâtiment
 function bldBack() { const m = $("#modal"); if (!m || m.hidden || !UI.bldOpen) return null; const k = UI.bldOpen, t = UI.bldTab; return () => setTimeout(() => { if ($("#modal").hidden && UI.screen === "bastion") openBuilding(k, t); }, 0); }
-function closeModal() { const m = $("#modal"); m.hidden = true; m.innerHTML = ""; const f = UI.modalClose; UI.modalClose = null; if (f) f(); }
+function closeModal() { const m = $("#modal"); m.hidden = true; m.innerHTML = ""; const f = UI.modalClose; UI.modalClose = null; if (f) f(); if (UI.screen === "map" && typeof mapAutoTick === "function") setTimeout(mapAutoTick, 50); }
 ACT.closeModal = closeModal;
 function confirmBox(text, yes, o = {}) {
   modal(`<h2>${o.title || "Confirmer"}</h2><p>${text}</p><div class="row" style="justify-content:flex-end;margin-top:12px"><button class="btn ghost" data-a="closeModal">Annuler</button><button class="btn main" id="cf-yes">${o.yes || "Oui"}</button></div>`, { mount: m => m.querySelector("#cf-yes").onclick = () => { closeModal(); yes(); } });
@@ -98,7 +101,9 @@ function uiEvents() {
   document.addEventListener("click", e => {
     audioInit();
     if (e.target.id === "modal" && UI.modalOut) { UI.modalOut(); return; }
-    const g = e.target.closest("[data-go]"); if (g) { sfx("click"); const k = g.dataset.go; if (k === "expe" && S && S.run) go("map"); else go(k, g.dataset.arg); return; }
+    const g0 = e.target.closest("[data-go]"), a0 = e.target.closest("[data-a]");
+    if (a0 && g0 && g0.contains(a0) && g0 !== a0) { const f = ACT[a0.dataset.a]; if (f) { sfx("click"); f(a0.dataset.v, a0, e); } return; } // bouton dans une carte cliquable
+    const g = g0; if (g) { sfx("click"); const k = g.dataset.go; if (k === "expe" && S && S.run) go("map"); else go(k, g.dataset.arg); return; }
     const a = e.target.closest("[data-a]"); if (a) { const f = ACT[a.dataset.a]; if (f) { sfx("click"); f(a.dataset.v, a, e); } }
   });
   document.addEventListener("pointerover", e => { const a = e.target.closest(".btn,.card,.sk"); if (a && a !== UI.lastHover) { UI.lastHover = a; sfx("hover"); } });
@@ -121,6 +126,7 @@ function heroCanvas(h, size = 96, full = false) {
   const out = document.createElement("canvas"); out.width = src.width; out.height = src.height; out.className = "port"; out.getContext("2d").drawImage(src, 0, 0);
   return out;
 }
+const capTxt = n => n === Infinity ? "∞" : n;
 function canvasSlot(id, w, h) { return `<canvas data-cv="${id}" width="${w}" height="${h}" class="port"></canvas>`; }
 // les canvas sont remplis après insertion dans le DOM
 function fillCanvases(root, fn) { const r = ART_REPAINT.find(e => e[0] === root); if (r) r[1] = fn; else ART_REPAINT.push([root, fn]); root.querySelectorAll("canvas[data-cv]").forEach(c => { try { fn(c, c.dataset.cv); } catch (e) { console.error(e); } }); }
@@ -142,7 +148,7 @@ function paintMon(c, key) { const big = (MONSTERS[key].sz || 1) > 1; const sp = 
 function roleTag(role) { const R = ROLES[role]; return `<span class="tag" style="color:${R.c}">${ico(R.ic, R.c)}${R.n}</span>`; }
 function rankPips(use, at) { let s = '<span class="pips" title="Rangs">'; for (let r = 4; r >= 1; r--) s += `<i class="${use && use.includes(r) ? "y" : ""}"></i>`; s += "</span>"; if (at) { s += ' <span class="pips" title="Cibles">'; for (let r = 1; r <= 4; r++) s += `<i class="${at.includes(r) ? "t" : ""}"></i>`; s += "</span>"; } return s; }
 // synergies : actives (dorées) et à portée de main (une classe manque et elle est dans la caserne)
-function synergyNeedText(Y) { if (Y.tanks) return Y.tanks + " tanks"; if (Y.roles) return Y.roles.map(r => ROLES[r].n).join(" + "); return Y.need.map(g => g.map(c => CLASSES[c].n).join(" ou ")).join(" + "); }
+function synergyNeedText(Y) { if (Y.tanks) return Y.tanks + " tanks"; if (Y.roles) return Y.roles.map(r => ROLES[r].n).join(" + "); if (Y.count) return Object.entries(Y.count).map(([r, n]) => n + " " + ROLES[r].n.toLowerCase()).join(" + "); if (Y.none) return "aucun " + Y.none.map(r => ROLES[r].n.toLowerCase()).join(", "); return (Y.need || []).map(g => g.map(c => CLASSES[c] ? CLASSES[c].n : c).join(" ou ")).join(" + "); }
 function synergyHTML(classes, roster) {
   const act = activeSynergies(classes);
   const near = roster ? Object.keys(SYNERGIES).filter(k => !act.includes(k) && SYNERGIES[k].need && SYNERGIES[k].need.filter(g => !g.some(c => classes.includes(c))).length === 1 && SYNERGIES[k].need.some(g => !g.some(c => classes.includes(c)) && g.some(c => roster.includes(c)))).slice(0, 3) : [];
@@ -164,6 +170,7 @@ function skillNums(sk, u) {
 }
 function skillText(sk, u) {
   const out = [], t = sk.t || "e", N = skillNums(sk, u);
+  const RK = u && u.side !== "e" ? 1 + .1 * ((sk.rank || (u.skr && sk.id && u.skr[sk.id]) || 1) - 1) : 1; // rang : renforce aussi bonus et malus
   const who = { e: "un ennemi", ae: "les ennemis visés", a: "un allié", aa: "tout le groupe", s: "soi-même" }[t] || "";
   if (sk.m) out.push(`Dégâts ${Math.round(sk.m * 100)} %${N ? ` (<b class="num">${N.lo}–${N.hi}</b>)` : ""}${sk.hits > 1 ? " × " + sk.hits : ""} sur ${who}`);
   if (sk.heal && !sk.healAllies) out.push(`Soigne ${Math.round(sk.heal * 100)} % des PV${N && N.heal ? ` (<b class="num heal">≈ ${N.heal} PV</b>)` : ""} ${t === "aa" ? "de tout le groupe" : t === "s" ? "de soi" : "d'un allié"}`);
@@ -171,7 +178,7 @@ function skillText(sk, u) {
   if (sk.healSelf) out.push(`Se soigne de ${Math.round(sk.healSelf * 100)} %${N && N.self ? ` (<b class="num heal">${N.self} PV</b>)` : ""}`);
   if (sk.leech) out.push(`Vol de vie ${Math.round(sk.leech * 100)} %`);
   if (sk.selfDmg) out.push(`Coûte ${Math.round(sk.selfDmg * 100)} % de ses PV`);
-  const fx = (arr, pre) => { if (!arr) return; for (const f of arr) { const n = ST_INFO[f.k] ? ST_INFO[f.k].n : f.k; let s = n; if (f.v != null && ["dmgUp", "protUp", "protDn", "shield", "regen"].includes(f.k)) s += ` ${f.v > 0 ? "+" : ""}${Math.round(f.v * 100)} %`; else if (f.v != null && ["spdUp", "spdDn", "dodgeUp", "dodgeDn", "accDn", "accUp", "critUp"].includes(f.k)) s += ` ${f.v}`; if (f.t) s += ` (${f.t} t.)`; if (f.ch != null && f.ch < 1) s += ` ${Math.round(f.ch * 100)} %`; out.push(pre + s); } };
+  const fx = (arr, pre) => { if (!arr) return; for (const f0 of arr) { const f = f0.v != null && typeof f0.v === "number" && RK !== 1 && f0.k !== "stun" ? Object.assign({}, f0, { v: f0.v * RK }) : f0; const n = ST_INFO[f.k] ? ST_INFO[f.k].n : f.k; let s = n; if (f.v != null && ["dmgUp", "protUp", "protDn", "shield", "regen"].includes(f.k)) s += ` ${f.v > 0 ? "+" : ""}${Math.round(f.v * 100)} %`; else if (f.v != null && ["spdUp", "spdDn", "dodgeUp", "dodgeDn", "accDn", "accUp", "critUp"].includes(f.k)) s += ` ${f.v}`; if (f.t) s += ` (${f.t} t.)`; if (f.ch != null && f.ch < 1) s += ` ${Math.round(f.ch * 100)} %`; out.push(pre + s); } };
   fx(sk.fx, ""); fx(sk.sfx, "Sur soi : "); fx(sk.afx, "Groupe : "); fx(sk.efx, "Ennemis : ");
   if (sk.cleanse) out.push("Purge les altérations"); if (sk.revive) out.push(`Relève les tombés (${Math.round(sk.revive * 100)} %)`);
   if (sk.guard) out.push(`Protège l'allié ${sk.guard} tours`); if (sk.prov) out.push(`Provoque ${sk.prov} tours`);

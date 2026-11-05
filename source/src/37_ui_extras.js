@@ -238,10 +238,12 @@ function stressHTML(h) {
 function talentsHTML(h) {
   const P = talentPoints(h); if (!P) return `<div class="panel" style="padding:10px;margin-top:10px"><b>${ico("star", "#9a8c7a", 14)} Talents</b> <span class="tiny dim">— un point par niveau à partir du niveau 15.</span></div>`;
   const left = P - talentSpent(h), T = h.talents || {};
-  return `<div class="panel" style="padding:10px;margin-top:10px"><div class="row sp"><b>${ico("star", "#e8c878", 14)} Talents</b><span class="small ${left ? "gold" : "dim"}">${left} point${left > 1 ? "s" : ""} à placer</span></div>
-    <div class="grid" style="--min:180px;margin-top:6px">${Object.entries(TALENTS).map(([k, X]) => `<div class="card" style="cursor:default"><div class="row sp"><b>${ico(X.ic, "#e8c878", 14)} ${X.n} <span class="gold">${T[k] || 0}</span></b><button class="btn sm ${left ? "gold" : "off"}" data-a="talentAdd" data-v="${h.id}:${k}">+1</button></div><div class="tiny dim">${X.d}</div></div>`).join("")}</div></div>`;
+  return `<div class="panel" style="padding:10px;margin-top:10px"><div class="row sp"><b>${ico("star", "#e8c878", 14)} Talents</b><span class="small ${left ? "gold" : "dim"}">${left} point${left > 1 ? "s" : ""} à placer ${talentSpent(h) ? `<button class="btn sm ghost" data-a="talentReset" data-v="${h.id}" title="Rendre tous les points (${fmt(talentResetCost(h))} or)">Réinitialiser</button>` : ""}</span></div><div class="tiny dim">Sans limite : un point par niveau après le 14e, un bonus tous les 5 niveaux et 3 par ascension.</div>
+    <div class="grid" style="--min:180px;margin-top:6px">${Object.entries(TALENTS).map(([k, X]) => `<div class="card" style="cursor:default"><div class="row sp"><b>${ico(X.ic, "#e8c878", 14)} ${X.n} <span class="gold">${T[k] || 0}</span></b><span class="row" style="gap:3px"><button class="btn sm ${left ? "gold" : "off"}" data-a="talentAdd" data-v="${h.id}:${k}:1">+1</button>${left >= 5 ? `<button class="btn sm gold" data-a="talentAdd" data-v="${h.id}:${k}:5">+5</button>` : ""}${left >= 2 ? `<button class="btn sm" data-a="talentAdd" data-v="${h.id}:${k}:${left}" title="Tout placer ici">+${left}</button>` : ""}</span></div><div class="tiny dim">${X.d}</div></div>`).join("")}</div></div>`;
 }
-ACT.talentAdd = v => { const [id, k] = v.split(":"), h = heroById(id); if (!h || !talentAdd(h, k)) return toast("Aucun point disponible.", "bad"); sfx("level"); save(); refresh(); };
+ACT.talentAdd = v => { const [id, k, n] = v.split(":"), h = heroById(id); if (!h || !talentAdd(h, k, +n || 1)) return toast("Aucun point disponible.", "bad"); sfx("level"); save(); const M = $("#modal"); if (M && !M.hidden && M.querySelector("[data-a=talentAdd]")) heroSheet(h); else refresh(); };
+const talentResetCost = h => 200 + talentSpent(h) * 40;
+ACT.talentReset = id => { const h = heroById(id); if (!h) return; const c = talentResetCost(h); if (S.gold < c) return toast(`Il faut ${fmt(c)} or.`, "bad"); S.gold -= c; talentReset(h); save(); renderHud(); toast("Talents réinitialisés.", "good"); const M = $("#modal"); if (M && !M.hidden) heroSheet(h); else refresh(); };
 function tavernCalmHTML() {
   const hs = S.heroes.filter(h => (h.stress || 0) >= 20 || (h.affl && AFFLICTIONS[h.affl].bad));
   return `<h3 style="margin-top:12px">${ico("skull", "#c87a7a", 14)} Se changer les idées</h3><p class="tiny dim">Une nuit à la taverne efface le stress et les afflictions (les vertus restent).</p>${hs.length ? hs.map(h => `<div class="row sp card" style="cursor:default"><div style="flex:1;min-width:0"><b>${esc(h.name)}</b> <span class="small dim">· stress ${Math.round(h.stress || 0)}${h.affl ? " · " + AFFLICTIONS[h.affl].n : ""}</span></div><button class="btn sm" data-a="calmHero" data-v="${h.id}">${calmCost(h)} or</button></div>`).join("") : '<div class="empty">Personne n\'a besoin de boire pour oublier.</div>'}`;
@@ -354,8 +356,19 @@ function duoHTML(E) {
 ACT.merchant = () => {
   const M = merchantStock();
   modal(`<h2>${ico("coin", "#e8c060")} Le marchand ambulant</h2><p class="lore">« Je ne reste qu'un jour. Demain, je serai loin… ou mort. »</p><p class="small">Or : <b class="gold">${fmt(S.gold)}</b> · nouvelle marchandise chaque jour, dont un objet légendaire ou mieux.</p>
-    <div class="col">${M.items.map((o, i) => `<div class="row card" style="cursor:default;${o.sold ? "opacity:.45" : ""}">${slotHTML(o.it, "itemInfo", o.it.id)}<div style="flex:1;min-width:0"><b class="rar${o.it.rar}">${gearName(o.it)}</b> <span class="tiny dim">${RARITY[o.it.rar].n}</span><div class="tiny dim">${itemLine(o.it)}</div></div><button class="btn sm ${o.sold || S.gold < o.cost ? "off" : "gold"}" data-a="merchantBuy" data-v="${i}">${o.sold ? "Vendu" : o.cost + " or"}</button></div>`).join("")}</div>`);
+    <div class="col">${M.items.map((o, i) => `<div class="row card" style="cursor:default;${o.sold ? "opacity:.45" : ""}">${slotHTML(o.it, "itemInfo", o.it.id)}<div style="flex:1;min-width:0"><b class="rar${o.it.rar}">${gearName(o.it)}</b> <span class="tiny dim">${RARITY[o.it.rar].n}</span><div class="tiny dim">${itemLine(o.it)}</div></div><button class="btn sm ${o.sold || S.gold < o.cost ? "off" : "gold"}" data-a="merchantBuy" data-v="${i}">${o.sold ? "Vendu" : o.cost + " or"}</button></div>`).join("")}</div>${merchantSellHTML()}`);
 };
+// le marchand rachète aussi l'inventaire (prix plein, filtre par qualité)
+function merchantSellHTML() {
+  const q = UI.mSellQ == null ? -1 : UI.mSellQ, L = S.inv.filter(it => !it.uniq && (q < 0 || it.rar === q)).sort((a, b) => b.rar - a.rar || b.tier - a.tier);
+  const qs = [...new Set(S.inv.map(it => it.rar))].sort((a, b) => a - b);
+  return `<h3 style="margin-top:14px">${ico("coin", "#e8c060", 14)} Il rachète aussi <span class="tiny dim">(${S.inv.length} objets dans l'inventaire ; les objets uniques de gardien ne se vendent pas)</span></h3>
+    <div class="row" style="gap:4px;flex-wrap:wrap;margin-bottom:6px"><button class="btn sm ${q < 0 ? "gold" : "ghost"}" data-a="mSellQ" data-v="-1">Tout</button>${qs.map(r => `<button class="btn sm ${q === r ? "gold" : "ghost"}" data-a="mSellQ" data-v="${r}"><span class="rar${r}">${RARITY[r].n}</span></button>`).join("")}${q >= 0 && L.length ? `<button class="btn sm" data-a="mSellAll" data-v="${q}">Tout vendre (${L.length}) · ${fmt(L.reduce((a, it) => a + sellPrice(it), 0))} or</button>` : ""}</div>
+    <div class="col">${L.slice(0, 60).map(it => `<div class="row card" style="cursor:default">${slotHTML(it, "itemInfo", it.id)}<div style="flex:1;min-width:0"><b class="rar${it.rar}">${gearName(it)}</b> <span class="tiny dim">${RARITY[it.rar].n}</span><div class="tiny dim">${itemLine(it)}</div></div><button class="btn sm" data-a="mSell" data-v="${it.id}">Vendre · ${sellPrice(it)} or</button></div>`).join("") || '<div class="empty">Rien à vendre.</div>'}${L.length > 60 ? `<div class="tiny dim">… et ${L.length - 60} autres (filtrez par qualité).</div>` : ""}</div>`;
+}
+ACT.mSellQ = v => { UI.mSellQ = +v; ACT.merchant(); };
+ACT.mSell = id => { const i = S.inv.findIndex(x => x.id === id); if (i < 0) return; const it = S.inv[i]; S.inv.splice(i, 1); S.gold += sellPrice(it); sfx("coin"); save(); renderHud(); ACT.merchant(); };
+ACT.mSellAll = q => { const L = S.inv.filter(it => !it.uniq && it.rar === +q); confirmBox(`Vendre ${L.length} objet${L.length > 1 ? "s" : ""} ${RARITY[+q].n.toLowerCase()}${L.length > 1 ? "s" : ""} pour ${fmt(L.reduce((a, it) => a + sellPrice(it), 0))} or ?`, () => { let g = 0; for (const it of L) { const i = S.inv.indexOf(it); if (i >= 0) { S.inv.splice(i, 1); g += sellPrice(it); } } S.gold += g; sfx("coin"); save(); renderHud(); ACT.merchant(); }, { yes: "Vendre" }); };
 ACT.merchantBuy = i => { const r = merchantBuy(+i); if (r.err) return toast(r.err, "bad"); sfx("coin"); save(); renderHud(); toast(`Acheté : <span class="rar${r.ok.rar}">${gearName(r.ok)}</span> — dans l'inventaire de la forge.`, "good"); ACT.merchant(); };
 // ── Archives : mémorial ──
 function memorialHTML() {
@@ -447,10 +460,10 @@ function bastionLife(x, L, t, dt) {
   // braises de la forge et lueur des fenêtres : plus le bâtiment est développé, plus il vit
   const fl = (k, ox, oy, col, r) => { const b = B[k]; if (!b) return; const lvl = S.bld[k] || 1; glow(x, b.x + ox * b.s, b.y - oy * b.s, b.s * r * (.6 + lvl * .12), col, (.08 + lvl * .04) * (.75 + .25 * Math.sin(t * (5 + ox * 3) + b.x))); };
   fl("forge", 0, .25, "#ff7a2a", .5); fl("taverne", -.15, .45, "#ffb050", .55); fl("taverne", .2, .5, "#ffb050", .4); fl("chapelle", 0, .9, "#ffd890", .45); fl("fonderie", 0, .35, "#6aff9a", .45); fl("menagerie", 0, .3, "#ffa040", .35);
-  // héros qui se promènent (jusqu'à 3, hors expédition)
-  const idle = S.heroes.filter(h => !isInjured(h)).slice(0, 3), sig = idle.map(h => h.id).join(",") + "|" + Math.round(SC.w) + "x" + Math.round(SC.h);
+  // héros qui se promènent : ceux choisis dans la Compagnie (œil), jusqu'à HUB_SHOW_MAX ; sinon les 6 premiers
+  const idle = (S.hubShow && S.hubShow.length ? S.hubShow.map(heroById).filter(Boolean) : S.heroes.filter(h => !isInjured(h)).slice(0, 6)).slice(0, HUB_SHOW_MAX), sig = idle.map(h => h.id).join(",") + "|" + Math.round(SC.w) + "x" + Math.round(SC.h);
   if (BLIFE.sig !== sig) { BLIFE.sig = sig; const ys = L.map(b => b.y), y0 = Math.min(...ys), y1 = Math.max(...ys);
-    BLIFE.walk = idle.map((h, i) => { const y = Math.min(SC.h * .93, y1 + SC.h * (.025 + i * .028)); void y0; /* devant les bâtiments, sur le pavé */ return { id: h.id, x: SC.w * (.2 + Math.random() * .6), y, tx: SC.w * (.15 + Math.random() * .7), wait: Math.random() * 3, v: 26 + Math.random() * 14 }; }); }
+    BLIFE.walk = idle.map((h, i) => { const y = Math.min(SC.h * .95, y1 + SC.h * (.02 + (i % 5) * .02)); void y0; /* devant les bâtiments, sur le pavé */ return { id: h.id, x: SC.w * (.2 + Math.random() * .6), y, tx: SC.w * (.15 + Math.random() * .7), wait: Math.random() * 3, v: 26 + Math.random() * 14 }; }); }
   const sc = Math.min(SC.w, SC.h) / 900 * .55;
   for (const w of (BLIFE.walk || []).sort((a, b) => a.y - b.y)) {
     const h = heroById(w.id); if (!h) continue;
@@ -670,8 +683,8 @@ function wanderLegend() {
   if (fem) nm = nm.replace("le Maudit", "la Maudite").replace("le Dernier Debout", "la Dernière Debout").replace("le Parjure", "la Parjure").replace("l'Écorché", "l'Écorchée");
   return { id, cls, name: nm, wander: 1, cond: () => true, how: "", story: R.pick(LG_TALE).replace(/^Il /, fem ? "Elle " : "Il ").replace(/ il /g, fem ? " elle " : " il ") + " (Légende errante : partie à la fin de la semaine.)" };
 }
-const legendById = id => LEGENDS.find(l => l.id === id) || ((w => w && w.id === id ? w : null)(wanderLegend()));
-const legendCost = l => { const lv = Math.max(1, ...S.heroes.map(h => h.lvl)); return { gold: Math.round((900 + lv * 60) * (l && l.wander ? 1.3 : 1)), shards: l && l.wander ? 4 : 3 }; };
+let legendById = id => LEGENDS.find(l => l.id === id) || ((w => w && w.id === id ? w : null)(wanderLegend()));
+let legendCost = l => { const lv = Math.max(1, ...S.heroes.map(h => h.lvl)); return { gold: Math.round((900 + lv * 60) * (l && l.wander ? 1.3 : 1)), shards: l && l.wander ? 4 : 3 }; };
 function legendsHTML() {
   S.legends = S.legends || {}; const w = wanderLegend();
   const L = LEGENDS.filter(l => !S.legends[l.id] && CLASSES[l.cls]).concat(w && !S.legends[w.id] ? [w] : []);

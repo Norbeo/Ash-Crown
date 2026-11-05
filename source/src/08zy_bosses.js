@@ -19,6 +19,7 @@ const BOSS_INFO = {
   roi_vide: ["Ce que la Couronne laisse des rois", "« Asseyez-vous. Le trône vous attendait. »", "Couronne vide", "arm"],
 };
 if (typeof SECRET_INFO !== "undefined") Object.assign(BOSS_INFO, SECRET_INFO); // gardiens secrets
+if (typeof BOSS_VAR_INFO !== "undefined") for (const k in BOSS_VAR_INFO) { const b = BOSS_INFO[bossBase(k)]; if (!b) continue; const M = MONSTERS[k]; BOSS_INFO[k] = [b[0] + " — " + BOSS_VAR_INFO[k][0], b[1], b[2] + " " + M.n.split(" ").pop().toLowerCase(), b[3]]; } // variantes
 const UNIQ = Object.fromEntries(Object.entries(BOSS_INFO).map(([k, v]) => [k, { n: v[2], kind: v[3], boss: k }]));
 // butin unique : 30 % à la première victoire contre ce gardien, 12 % ensuite ; qualité Mythique, +1 propriété
 function uniqueDrop(bk, lvl, first) {

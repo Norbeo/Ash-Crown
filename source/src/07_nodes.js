@@ -165,9 +165,9 @@ function afterBattle(run, B) {
   if (rh.postHeal && B.over === "win") healParty(run, rh.postHeal);
   run.kills += B.kills; run.combats++;
   // bilan : cumul par héros, plus beau coup, ennemis notables vaincus
-  const L = run.sum || (run.sum = { dmg: {}, heal: {}, taken: {}, kills: {}, best: null, foes: [], crits: 0 });
-  const T = B.tally || { dmg: {}, heal: {}, taken: {} };
-  for (const k of ["dmg", "heal", "taken"]) for (const id in T[k]) L[k][id] = (L[k][id] || 0) + T[k][id];
+  const L = run.sum || (run.sum = { dmg: {}, heal: {}, taken: {}, kills: {}, best: null, foes: [], crits: 0 }); L.shield = L.shield || {};
+  const T = B.tally || { dmg: {}, heal: {}, taken: {} }; T.shield = T.shield || {};
+  for (const k of ["dmg", "heal", "taken", "shield"]) for (const id in T[k]) L[k][id] = (L[k][id] || 0) + T[k][id];
   for (const u of [...B.heroes, ...B.fallen]) if (u.kills) L.kills[u.hid] = (L.kills[u.hid] || 0) + u.kills;
   if (T.best && (!L.best || T.best.v > L.best.v)) L.best = T.best;
   L.crits += B.crits || 0;

@@ -50,10 +50,10 @@ const GLOSS = {
   trait: { n: "Traits", ic: "star", d: "Particularités de naissance d'un héros (vert : qualités, rouge : défauts). Ce sont des bonus passifs, toujours actifs." },
   relique: { n: "Reliques", ic: "gem", d: "Trouvées pendant l'expédition : bonus passifs pour tout le groupe, jusqu'à la fin de l'expédition." },
   synergie: { n: "Synergies", ic: "link", d: "Certaines classes se complètent : quand elles partent ensemble, tout le groupe reçoit un bonus passif pendant l'expédition." },
-  evolution: { n: "Évolution", ic: "crown", d: "Au niveau 15, chaque héros choisit l'une de ses deux voies : nouvelles compétences et une aura. Son aspect final se révèle quand il porte une armure de palier VI." },
+  evolution: { n: "Évolution", ic: "crown", d: "Au niveau 15, chaque héros choisit l'une de ses deux voies : nouvelles compétences. Son aspect final se révèle quand il porte une armure de palier VI." },
   apogee: { n: "Apogée", ic: "crown", d: "Au niveau 18, un héros évolué atteint l'apogée de sa voie : un bonus passif puissant." },
-  palier: { n: "Palier", ic: "armor", d: "Qualité de l'équipement, de I à VI. Un palier plus élevé donne plus de dégâts (arme) ou de PV et de protection (armure). La Forge débloque les paliers. Le palier VI (ascendant) ne se porte qu'après l'évolution : l'armure ascendante révèle l'aspect final du héros dans sa voie." },
-  rarete: { n: "Rareté", ic: "gem", d: "Commun (≈ 50 % des objets trouvés), peu commun (≈ 30 %), rare (≈ 12 %), épique (≈ 5 %), légendaire (≈ 2 %), mythique (≈ 0,6 %), divin (≈ 0,2 %). Plus l'objet est rare, plus il porte de bonus supplémentaires. Les élites ne donnent jamais de commun et favorisent les hautes qualités ; les gardiens donnent au moins du rare. La lueur basse et la Forge améliorent aussi les tirages." },
+  palier: { n: "Palier", ic: "armor", d: "Qualité de l'équipement, de I à X. Un palier plus élevé donne plus de dégâts (arme) ou de PV et de protection (armure). La Forge débloque les paliers. Le palier VI (ascendant) ne se porte qu'après l'évolution : l'armure ascendante révèle l'aspect final du héros dans sa voie." },
+  rarete: { n: "Rareté", ic: "gem", d: "Commun (≈ 50 % des objets trouvés), peu commun (≈ 30 %), rare (≈ 12 %), épique (≈ 5 %), légendaire (≈ 2 %), mythique (≈ 0,6 %), divin (≈ 0,2 %), céleste (≈ 0,06 %), primordial (≈ 0,02 %). Plus l'objet est rare, plus il porte de bonus supplémentaires. Les élites ne donnent jamais de commun et favorisent les hautes qualités ; les gardiens donnent au moins du rare. La lueur basse et la Forge améliorent aussi les tirages." },
   serment: { n: "Serments", ic: "seal", d: "Dans l'Abîme, des contraintes volontaires qui rendent l'expédition plus dure en échange de meilleures récompenses." },
   compagnon: { n: "Compagnon", ic: "paw", d: "L'animal qui suit le groupe : il frappe ou soutient à chaque tour et évolue au niveau 10." },
   // ── ressources ──
@@ -104,7 +104,9 @@ function tipEvents() {
   // toucher / clic : ouvre la bulle (un élément d'action garde son action, la bulle vient en plus seulement s'il n'en a pas)
   document.addEventListener("click", e => {
     const s = e.target.closest("[data-tip],[data-tipn]");
-    if (s && !e.target.closest("[data-a],[data-go]")) { e.stopPropagation(); tipShow(s); return; }
+    const a = e.target.closest("[data-a],[data-go]");
+    // un terme du glossaire souligné dans un bouton (compétence à équiper, description…) ouvre sa bulle au lieu de l'action
+    if (s && (!a || (s !== a && a.contains(s) && s.classList.contains("gl")))) { e.stopPropagation(); e.preventDefault(); tipShow(s); return; }
     if (!e.target.closest("#tip")) tipHide();
   }, true);
   // souris : survol

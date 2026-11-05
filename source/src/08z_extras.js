@@ -130,14 +130,20 @@ function calmHero(h) { const c = calmCost(h); if (S.gold < c) return { err: "Pas
 // ── Arbre de talents : un point par niveau au-delà du 14e, trois voies sans limite ──
 const TALENTS = {
   off: { n: "Lame", d: "+3 % de dégâts et +0,5 % de critique par point.", ic: "sword" },
-  def: { n: "Bouclier", d: "+3 % de PV et +1 % de protection par point (max +20 %).", ic: "shield" },
+  def: { n: "Bouclier", d: "+3 % de PV par point, protection croissante sans plafond (rendements décroissants).", ic: "shield" },
   mas: { n: "Maîtrise", d: "+3 % de soins prodigués, +4 de résistance et +1 de vitesse tous les 4 points.", ic: "book" },
+  omb: { n: "Ombre", d: "+1 d'esquive et +1 de précision par point, +1 de vitesse tous les 5 points.", ic: "cloak" },
+  fle: { n: "Fléau", d: "+4 % de dégâts des altérations et +2 % de chance de les infliger par point.", ic: "blood" },
+  vol: { n: "Volonté", d: "+3 % de jauge d'ultime et +2 % de résolution gagnée par point ; +1 % de critique sur ultime tous les 2 points.", ic: "crown" },
 };
-const talentPoints = h => Math.max(0, h.lvl - 14);
-const talentSpent = h => h.talents ? (h.talents.off || 0) + (h.talents.def || 0) + (h.talents.mas || 0) : 0;
-function talentPas(h) { const T = h.talents || {}, o = T.off || 0, d = T.def || 0, m = T.mas || 0;
-  return [{ k: "stat", s: "dmg", v: .03 * o }, { k: "stat", s: "crit", v: .5 * o }, { k: "stat", s: "hp", v: .03 * d }, { k: "stat", s: "prot", v: Math.min(.2, .01 * d) }, { k: "stat", s: "healPow", v: .03 * m }, { k: "stat", s: "res", v: 4 * m }, { k: "stat", s: "spd", v: Math.floor(m / 4) }].filter(p => p.v); }
-function talentAdd(h, k) { if (!TALENTS[k] || talentSpent(h) >= talentPoints(h)) return false; h.talents = h.talents || {}; h.talents[k] = (h.talents[k] || 0) + 1; return true; }
+// un point par niveau au-delà du 14e, plus un point bonus tous les 5 niveaux, plus 3 par ascension : sans limite
+const talentPoints = h => Math.max(0, h.lvl - 14) + Math.floor(Math.max(0, h.lvl - 14) / 5) + 3 * (h.asc || 0) + (h.talentBank || 0);
+const talentSpent = h => h.talents ? Object.keys(TALENTS).reduce((a, k) => a + (h.talents[k] || 0), 0) : 0;
+function talentPas(h) { const T = h.talents || {}, o = T.off || 0, d = T.def || 0, m = T.mas || 0, w = T.omb || 0, f = T.fle || 0, v = T.vol || 0;
+  return [{ k: "stat", s: "dmg", v: .03 * o }, { k: "stat", s: "crit", v: .5 * o }, { k: "stat", s: "hp", v: .03 * d }, { k: "stat", s: "prot", v: .35 * (1 - Math.pow(.97, d)) }, { k: "stat", s: "healPow", v: .03 * m }, { k: "stat", s: "res", v: 4 * m }, { k: "stat", s: "spd", v: Math.floor(m / 4) + Math.floor(w / 5) },
+    { k: "stat", s: "dodge", v: w }, { k: "stat", s: "acc", v: w }, { k: "dotPow", v: .04 * f }, { k: "debuffPow", v: .02 * f }, { k: "ultGain", v: .03 * v }, { k: "moralePow", v: .02 * v }].filter(p => p.v); }
+function talentAdd(h, k, n = 1) { if (!TALENTS[k]) return false; n = Math.max(1, Math.min(n, talentPoints(h) - talentSpent(h))); if (talentSpent(h) >= talentPoints(h)) return false; h.talents = h.talents || {}; h.talents[k] = (h.talents[k] || 0) + n; return true; }
+function talentReset(h) { h.talents = {}; }
 
 // ── Défis de classe : gagner des gardiens avec chaque classe ──
 const CLASS_GOALS = [3, 10, 25];

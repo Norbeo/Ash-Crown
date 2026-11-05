@@ -3,7 +3,7 @@ let S = null;
 
 function newState(opts = {}) {
   return {
-    v: 1, created: Date.now(), gold: 150, shards: 0, mats: { fer: 6, essence: 2, cendre: 0 },
+    v: 1, rarV: 2, created: Date.now(), gold: 150, shards: 0, mats: { fer: 6, essence: 2, cendre: 0 },
     heroes: [], recruits: [], recruitSeed: 1,
     pets: { owned: [], lvl: {}, xp: {}, evo: {} }, pet: null,
     bld: { taverne: 1, forge: 1, chapelle: 1, academie: 1, menagerie: 1, fonderie: 1 },
@@ -52,7 +52,7 @@ function heroPassives(h) {
   const C = CLASSES[h.cls], out = [];
   for (const t of h.traits) out.push(...TRAITS[t].pas);
   if (h.evo) { out.push(...C.evos[h.evo].pas); if (h.lvl >= APEX_LVL) out.push(...APEX[h.evo].pas); }
-  for (const s of ["tr1", "tr2"]) { const it = h.gear[s]; if (it && TRINKETS[it.key]) out.push(...TRINKETS[it.key].pas); }
+  for (const s of ["tr1", "tr2"]) { const it = h.gear[s]; if (it && TRINKETS[it.key]) { const m = 1 + .2 * Math.max(0, (it.rar || 0) - TRINKETS[it.key].r); out.push(...TRINKETS[it.key].pas.map(p => m === 1 || typeof p.v !== "number" ? p : Object.assign({}, p, { v: p.v * m }))); } } // bibelot au-dessus de sa qualité de base : +20 % par cran
   if (h.cursed > 0) out.push({ k: "stat", s: "dmg", v: -.12 }); // larme de l'idole (événement)
   for (const s of ["wpn", "arm"]) { const it = h.gear[s]; if (it && it.mod && ITEM_MODS[it.mod]) out.push(...ITEM_MODS[it.mod].pas); } // effet unique d'équipement
   if (h.mark && typeof GUARD_MARKS !== "undefined" && GUARD_MARKS[h.mark]) out.push(...GUARD_MARKS[h.mark].pas); // marque d'un gardien vaincu
@@ -87,17 +87,17 @@ const heroPower = h => { const s = heroStats(h); return Math.round(s.hp * .6 + (
 
 // ── Équipement ──
 function makeGear(kind, cls, tier, rar, key, evo) {
-  const it = { id: uid("i"), kind, tier: clamp(tier, 1, 6), rar: clamp(rar, 0, 6), up: 0, aff: [] };
+  const it = { id: uid("i"), kind, tier: clamp(tier, 1, TIER_MAX), rar: clamp(rar, 0, RARITY.length - 1), up: 0, aff: [] };
   if (kind === "arm" && it.tier >= 6 && evo) it.evo = evo; // armure Ascendante : propre à une voie d'évolution
   if (kind === "tr") {
     let pool = []; for (let q = rar; q >= 0 && !pool.length; q--) pool = Object.keys(TRINKETS).filter(k => TRINKETS[k].r === q); // qualité sans bibelot : la plus proche en dessous
-    it.key = key || pick(pool.length ? pool : Object.keys(TRINKETS)); it.rar = TRINKETS[it.key].r; it.tier = 1;
+    it.key = key || pick(pool.length ? pool : Object.keys(TRINKETS)); it.rar = Math.max(clamp(rar, 0, RARITY.length - 1), TRINKETS[it.key].r); it.rarT = it.rar; it.tier = 1; // la qualité tirée est conservée
   } else it.cls = cls;
   const nAff = kind === "tr" ? 0 : RARITY[it.rar].aff;
   const keys = Object.keys(AFFIXES).filter(k => !(kind === "wpn" && k === "prot")); RNG.shuffle(keys);
   for (let i = 0; i < nAff; i++) { const A = AFFIXES[keys[i]], sc = 1 + (it.tier - 1) * .25; let v = lerp(A.v[0], A.v[1], rnd()) * sc; v = A.fmt === "pct" ? Math.round(v * 100) / 100 : Math.round(v); it.aff.push({ k: keys[i], v }); }
   // effet unique (Épique 25 %, Légendaire 60 %, Mythique et Divin toujours) : change la façon de combattre
-  if (kind !== "tr" && it.rar >= 3 && chance([0, 0, 0, .25, .6, 1, 1][it.rar])) { const pool = Object.keys(ITEM_MODS).filter(k => ITEM_MODS[k].kind === kind); it.mod = pick(pool); }
+  if (kind !== "tr" && it.rar >= 3 && chance([0, 0, 0, .25, .6, 1, 1, 1, 1][it.rar] || 1)) { const pool = Object.keys(ITEM_MODS).filter(k => ITEM_MODS[k].kind === kind); it.mod = pick(pool); }
   if (typeof rollSet === "function") rollSet(it); // panoplie (Légendaire et plus)
   return it;
 }
@@ -119,7 +119,7 @@ function gearName(it) {
   if (it.uniq && typeof UNIQ !== "undefined" && UNIQ[it.uniq]) return UNIQ[it.uniq].n; // objet unique de gardien
   if (it.fav && typeof ELITE_INFO !== "undefined" && ELITE_INFO[it.fav]) return ELITE_INFO[it.fav][2]; // butin favori d'élite
   if (it.kind === "tr") return TRINKETS[it.key].n;
-  const L = GEAR_NAMES[it.cls][it.kind === "wpn" ? "wpn" : "arm"], n = it.tier >= 6 ? (it.evo && CLASSES[it.cls].evos[it.evo] ? "Armure ascendante : " + CLASSES[it.cls].evos[it.evo].n : "Ascendant : " + L[4]) : L[it.tier - 1];
+  const L = GEAR_NAMES[it.cls][it.kind === "wpn" ? "wpn" : "arm"], n = it.tier >= 6 ? (it.evo && CLASSES[it.cls].evos[it.evo] ? (it.tier > 6 ? "Armure " + TIER_PRE[it.tier].toLowerCase() + "e" : "Armure ascendante") + " : " + CLASSES[it.cls].evos[it.evo].n : (TIER_PRE[it.tier] || "Ascendant") + " : " + L[4]) : L[it.tier - 1];
   return n + (it.up ? " +" + it.up : "");
 }
 // tirage de qualité : poids RARITY[q].p ; la chance (0 à ~0,4) renforce les qualités hautes de façon progressive, le plancher retire les basses
@@ -134,7 +134,7 @@ function lootGear(lvl, luck = 0, cls, floor = 0) {
   return makeGear(r < .65 ? "wpn" : "arm", c, tier, rar);
 }
 const upCost = it => ({ gold: Math.round(60 * it.tier * (1 + it.up * .7)), fer: 1 + Math.floor(it.up / 2) + (it.tier >= 3 ? 1 : 0), essence: it.up >= 3 ? 1 + (it.up >= 5 ? 1 : 0) : 0 });
-const craftCost = tier => ({ gold: [0, 80, 220, 520, 1100, 2200, 4500][tier], fer: [0, 3, 5, 8, 12, 16, 22][tier], essence: [0, 0, 1, 3, 5, 8, 12][tier], cendre: [0, 0, 0, 0, 1, 3, 6][tier] });
+const craftCost = tier => ({ gold: [0, 80, 220, 520, 1100, 2200, 4500, 9000, 16000, 28000, 45000][tier], fer: [0, 3, 5, 8, 12, 16, 22, 30, 40, 52, 66][tier], essence: [0, 0, 1, 3, 5, 8, 12, 18, 26, 36, 48][tier], cendre: [0, 0, 0, 0, 1, 3, 6, 10, 15, 22, 30][tier] });
 const salvage = it => ({ fer: it.kind === "tr" ? 1 : 1 + it.tier + it.up, essence: it.rar >= 1 ? it.rar : 0, cendre: it.rar >= 4 ? 1 : 0, gold: 10 * it.tier * (1 + it.rar) });
 
 // ── Compagnons ──
@@ -175,7 +175,25 @@ function migrate(s) {
   for (const h of (s.heroes || []).concat(s.recruits || [])) fixHeroName(h);
   // qualité « Peu commun » insérée en 2e position : décale les anciennes qualités
   if (!s.rarV) { const items = [...(s.inv || []), ...(s.run ? s.run.loot || [] : [])]; for (const h of s.heroes || []) for (const k in h.gear || {}) if (h.gear[k]) items.push(h.gear[k]); for (const it of new Set(items)) if (it.rar >= 1) it.rar++; s.rarV = 2; }
+  sanitizeItems(s);
   return s;
+}
+// objets abîmés (qualité hors bornes, bibelot ou classe disparus) : réparés au chargement
+function sanitizeItems(s) {
+  const all = [...(s.inv || []), ...(s.run ? s.run.loot || [] : [])];
+  for (const h of s.heroes || []) for (const k in h.gear || {}) if (h.gear[k]) all.push(h.gear[k]);
+  if (s.daily && s.daily.merchant) for (const o of s.daily.merchant.items || []) if (o && o.it) all.push(o.it);
+  for (const it of all) {
+    if (!it || typeof it !== "object") continue;
+    if (!Number.isFinite(it.rar)) it.rar = 0; it.rar = clamp(Math.round(it.rar), 0, RARITY.length - 1);
+    if (!Number.isFinite(it.tier)) it.tier = 1;
+    if (!it.id) it.id = uid("i");
+    if (!Array.isArray(it.aff)) it.aff = [];
+    if (it.kind === "tr") { if (!TRINKETS[it.key]) it.key = pick(Object.keys(TRINKETS).filter(k => TRINKETS[k].r <= it.rar)) || Object.keys(TRINKETS)[0]; if (it.rarT != null) it.rar = Math.max(it.rar, it.rarT); }
+    else if (!CLASSES[it.cls]) it.cls = CLASS_IDS[0];
+    if (it.mod && !ITEM_MODS[it.mod]) delete it.mod;
+    if (it.set && typeof SETS !== "undefined" && !SETS[it.set]) delete it.set;
+  }
 }
 // difficulté : ennemis (PV, dégâts) et récompenses (or, expérience)
 const DIFFS = {
@@ -185,7 +203,8 @@ const DIFFS = {
 };
 const diffOf = () => DIFFS[(S && S.opts && S.opts.diff) || "normal"] || DIFFS.normal;
 const potionMax = () => 2 + (S ? S.bld.chapelle : 1);
-const rosterMax = () => 4 + S.bld.taverne * 2;
+const ROSTER_CAP = [0, 8, 16, 28, 44, Infinity]; // illimité au niveau maximal de la Taverne : chaque classe et chaque voie
+const rosterMax = () => ROSTER_CAP[Math.min(5, S.bld.taverne)] ?? Infinity;
 const skillRankMax = h => S.bld.academie + (h ? Math.floor(h.lvl / 10) : 0); // la Salle des maîtres, puis le niveau du héros : sans limite
 const fonderieRate = () => [0, 18, 34, 58, 90, 135][S.bld.fonderie]; // or par heure
 const fonderieCap = () => [0, 6, 8, 10, 12, 16][S.bld.fonderie]; // heures

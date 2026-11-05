@@ -104,7 +104,7 @@ function runLevel(run, node) {
   return l;
 }
 // butin plafonné au palier du chapitre : chapitre I → palier II (niveau 5) max, chapitre II → palier III, etc.
-function lootTierCap(run = S && S.run) { if (!run) return 6; if (run.region === "abime") return 5; const i = REGIONS.findIndex(r => r.id === run.region); return i < 0 ? 5 : Math.min(5, i + 2); }
+function lootTierCap(run = S && S.run) { if (!run) return TIER_MAX; if (run.region === "abime") return Math.min(TIER_MAX, 5 + Math.floor((run.floor || 1) / 10)); const i = REGIONS.findIndex(r => r.id === run.region); return i < 0 ? 5 : Math.min(i < 6 ? 5 : TIER_MAX, i + 2); }
 function availableNodes(run = S.run) {
   if (!run.pos) return run.map[0].map(n => n);
   const cur = run.map[run.pos.c][run.pos.i];
@@ -122,6 +122,15 @@ function monNorm(key, ref) {
 }
 // gardiens déjà vaincus (anciennes sauvegardes : ceux des chapitres terminés)
 function beatenBosses() { const b = S.beaten = S.beaten || {}; for (const r of REGIONS) if (S.prog[r.id] && S.prog[r.id].clears) b[r.boss] = 1; return Object.keys(b).filter(k => MONSTERS[k] && MONSTERS[k].boss && !MONSTERS[k].secret); }
+// roulement des gardiens : paquet mélangé (gardiens déjà vaincus + toutes leurs variantes + gardiens d'autres chapitres vaincus), tiré dans l'ordre, rebrassé quand il est vide
+function bossPoolEligible() { const won = new Set(beatenBosses().map(bossBase)); return ALL_BOSSES.filter(k => !MONSTERS[k].secret && won.has(bossBase(k))); }
+function nextBossKey(rng, avoid) {
+  const ok = bossPoolEligible(); if (!ok.length) return null;
+  S.bossDeck = (S.bossDeck || []).filter(k => ok.includes(k));
+  if (!S.bossDeck.length) { S.bossDeck = rng.shuffle(ok.slice()); }
+  let i = S.bossDeck.findIndex(k => !avoid.includes(k) && !avoid.includes(bossBase(k))); if (i < 0) i = S.bossDeck.findIndex(k => !avoid.includes(k)); if (i < 0) i = 0;
+  return S.bossDeck.splice(i, 1)[0];
+}
 // la rencontre est tirée une seule fois par salle : quitter puis reprendre redonne les mêmes ennemis (et le même gardien)
 function genEncounter(run, node, rng = RNG) {
   if (node.enc) return node.enc.map(e => Object.assign({}, e));
@@ -139,10 +148,10 @@ function genEncounter0(run, node, rng = RNG) {
     const last = (S.lastBoss || (S.lastBoss = {}))[R.id], beaten = beatenBosses(), firstTime = run.region !== "abime" && !(S.prog[R.id] && S.prog[R.id].clears);
     const cand = beaten.filter(k => k !== last), pool = cand.length ? cand : beaten.length ? beaten : [ref];
     const tb = run.threat >= 1 && run.region !== "abime" && THREAT_BOSS[run.threat], tbNew = tb && !(S.beaten || {})[tb];
-    const bk = firstTime ? R.boss : tbNew ? tb : run.region === "abime" && run.floor % 5 === 0 && S.season && S.season.boss ? S.season.boss : rng.pick(pool); S.lastBoss[R.id] = bk; // l'Abîme : gardien de la saison tous les 5 étages
+    const bk = firstTime ? R.boss : tbNew ? tb : run.region === "abime" && run.floor % 5 === 0 && S.season && S.season.boss ? S.season.boss : (nextBossKey(rng, [last, S.lastBossAny].filter(Boolean)) || rng.pick(pool)); S.lastBoss[R.id] = bk; S.lastBossAny = bk; // l'Abîme : gardien de la saison tous les 5 étages
     out.push({ key: pickFor(1), lvl });
     const sb = !firstTime && typeof secretBossFor === "function" ? secretBossFor(run, rng) : null; // gardien secret
-    out.push({ key: sb || bk, lvl: lvl + 1, f: monNorm(sb ? SECRET_BOSSES[sb].base : bk, ref) });
+    out.push({ key: sb || bk, lvl: lvl + 1, f: monNorm(sb ? SECRET_BOSSES[sb].base : bossBase(bk), ref) }); // variante : la normalisation part du gardien d'origine, ses bonus restent
     if (run.region === "abime" || R.lvl >= 9) out.push({ key: pickFor(4), lvl });
     return out;
   }
@@ -191,6 +200,7 @@ function rewardFor(run, node, rng = RNG) {
   return R;
 }
 function randRelic(run, rng = RNG, minR = 0) {
+  if (run.region === "abime") { const cap = 4 + Math.floor((run.floor || 1) / 5); if (run.relics.length >= Math.min(8, cap) || !rng.chance(minR >= 2 ? (run.floor % 2 === 0 ? 1 : 0) : .35)) return null; } // Abîme : passifs rares et plafonnés
   const pool = Object.keys(RELICS).filter(k => !run.relics.includes(k) && RELICS[k].r >= Math.min(minR, 2) - (minR === 2 ? 1 : 0));
   return pool.length ? rng.pick(pool) : null;
 }
@@ -216,7 +226,7 @@ function giveXp(h, v) {
 function givePetXp(id, v) {
   if (!S.pets.lvl[id]) S.pets.lvl[id] = 1;
   S.pets.xp[id] = (S.pets.xp[id] || 0) + v;
-  let up = false; while (S.pets.lvl[id] < 20 && S.pets.xp[id] >= petXpNeed(S.pets.lvl[id])) { S.pets.xp[id] -= petXpNeed(S.pets.lvl[id]); S.pets.lvl[id]++; up = true; }
+  let up = false; while (S.pets.xp[id] >= petXpNeed(S.pets.lvl[id])) /* sans plafond de niveau */ { S.pets.xp[id] -= petXpNeed(S.pets.lvl[id]); S.pets.lvl[id]++; up = true; }
   return up;
 }
 
@@ -242,7 +252,7 @@ function endRun(outcome) {
   const res = { outcome, gold: run.gold, loot: run.loot.slice(), mats: Object.assign({}, run.mats), shards: run.shards, region: run.region, floor: run.floor, story: null, unlocks: [] };
   // bilan de l'expédition
   const L = run.sum || { dmg: {}, heal: {}, taken: {}, kills: {}, best: null, foes: [], crits: 0 };
-  res.sum = { heroes: run.party.map(id => { const h = heroById(id); return h && { id, name: h.name, cls: h.cls, lvl: h.lvl, fallen: run.fallen.includes(id), dmg: L.dmg[id] || 0, heal: L.heal[id] || 0, taken: L.taken[id] || 0, kills: L.kills[id] || 0, xp: (run.xpGain || {})[id] || 0 }; }).filter(Boolean),
+  res.sum = { heroes: run.party.map(id => { const h = heroById(id); return h && { id, name: h.name, cls: h.cls, lvl: h.lvl, fallen: run.fallen.includes(id), dmg: L.dmg[id] || 0, heal: L.heal[id] || 0, shield: (L.shield || {})[id] || 0, taken: L.taken[id] || 0, kills: L.kills[id] || 0, xp: (run.xpGain || {})[id] || 0 }; }).filter(Boolean),
     best: L.best, foes: L.foes, crits: L.crits, kills: run.kills, combats: run.combats, rooms: run.map.flat().filter(n => n.visited).length, relics: run.relics.slice(), light: Math.round(run.light), mins: Math.max(1, Math.round((Date.now() - run.startedAt) / 60000)) };
   if (outcome === "wipe") { res.gold = Math.round(run.gold * .5); res.loot = []; res.shards = 0;
     for (const w of (run.swaps || []).slice().reverse()) { const h = heroById(w.hid); if (!h || !h.gear[w.slot] || h.gear[w.slot].id !== w.nu) continue; h.gear[w.slot] = w.old ? run.loot.find(x => x.id === w.old) || h.gear[w.slot] : null; } }

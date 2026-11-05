@@ -18,7 +18,7 @@ function enchantChoices(it) { const pool = Object.keys(ITEM_MODS).filter(k => IT
 
 // Ascension : un héros de niveau 30+ renaît au niveau 15, garde sa voie et gagne un bonus permanent
 const ASC_LVL = 30, ASC_BACK = 15;
-const ASC_AURA = ["#ffffff", "#9af0ff", "#c08aff", "#ff7a9a", "#ffd27a"];
+const ASC_COL = ["#ffffff", "#9af0ff", "#c08aff", "#ff7a9a", "#ffd27a"];
 function canAscend(h) { return h && h.lvl >= ASC_LVL && !!h.evo; }
 function ascend(h) { if (!canAscend(h)) return false; h.asc = (h.asc || 0) + 1; h.lvl = ASC_BACK; h.xp = 0; return true; }
 function ascPassives(h) { const a = h.asc || 0; return a ? [{ k: "stat", s: "dmg", v: .06 * a }, { k: "stat", s: "hp", v: .06 * a }, { k: "stat", s: "res", v: 4 * a }] : []; }
@@ -37,19 +37,27 @@ function petTrait(id) { S.petTraits = S.petTraits || {}; if (!S.petTraits[id] &&
 function petCollar(id) { return (S && S.petCollar && S.petCollar[id]) || 0; }
 function collarCost(id) { const n = petCollar(id), r = (PETS[id] && PETS[id].rank) || 1; return { gold: Math.round(300 * (n + 1) * (n + 1) * r), shards: n >= 3 ? n - 2 : 0 }; }
 // multiplicateurs appliqués au compagnon en combat
-function petMul(id) { const c = petCollar(id), t = typeof S !== "undefined" && S && S.pets && S.pets.owned.includes(id) ? petTrait(id) : null; return { dmg: (1 + .08 * c) * (t === "feroce" ? 1.15 : 1), sup: (1 + .06 * c) * (t === "fidele" ? 1.15 : 1), every: t === "vif" ? -1 : 0, morale: t === "meneur" ? 4 : 0, gold: t === "flaireur" ? .06 : 0, robust: t === "robuste" }; }
+function petMul(id) { const c = petCollar(id), t = typeof S !== "undefined" && S && S.pets && S.pets.owned.includes(id) ? petTrait(id) : null; const lv = typeof petLvl === "function" ? petLvl(id) : 1; return { dmg: (1 + .08 * c) * (t === "feroce" ? 1.15 : 1), sup: (1 + .06 * c) * (t === "fidele" ? 1.15 : 1) * (1 + .015 * (lv - 1)), lvB: .015 * (lv - 1), every: t === "vif" ? -1 : 0, morale: t === "meneur" ? 4 : 0, gold: t === "flaireur" ? .06 : 0, robust: t === "robuste" }; }
 
 // ── Gardiens secrets : des conditions cachées remplacent le gardien d'un chapitre par une version inédite ──
 const SECRET_BOSSES = {
   juge_immacule: { base: "cardinal", n: "Le Juge Immaculé", hue: "#f0e2a0", f: 1.3, hint: "Atteindre un gardien sans avoir perdu un seul héros, en menace II ou plus.", cond: run => run.flawless && run.threat >= 1 },
   mere_ombres: { base: "reine_sabbat", n: "La Mère des Ombres", hue: "#7a3aff", f: 1.25, hint: "Affronter un gardien au cœur d'une expédition de nuit.", cond: run => !!run.night },
   boucher: { base: "docteur_peste", n: "Le Boucher Affamé", hue: "#ff2a2a", f: 1.25, hint: "Atteindre un gardien sans aucun soigneur dans le groupe.", cond: run => run.party.map(id => heroById(id)).filter(Boolean).every(h => CLASSES[h.cls].role !== "soin") },
+  moissonneuse: { base: "matrone_os", n: "La Moissonneuse", hue: "#d8d0a0", f: 1.3, hint: "Atteindre un gardien avec quatre héros de dégâts.", cond: run => run.party.map(id => heroById(id)).filter(Boolean).every(h => CLASSES[h.cls].role === "dps") },
+  enfant_cendre: { base: "archonte_cendres", n: "L'Enfant de Cendre", hue: "#ff4a1a", f: 1.3, hint: "Affronter un gardien sous la lune rouge.", cond: run => run.weather === "lune" },
+  gardien_pactes: { base: "roi_vide", n: "Le Gardien des Pactes", hue: "#40ff9a", f: 1.35, hint: "Atteindre un gardien en portant au moins deux malédictions.", cond: run => (run.curse || 0) >= 2 },
+  dame_blanche: { base: "reine_hiver", n: "La Dame Blanche", hue: "#f4f8ff", f: 1.3, hint: "Atteindre un gardien de nuit sans avoir perdu un seul héros.", cond: run => !!run.night && run.flawless },
   roi_oublie: { base: "roi_cendres", n: "Le Roi Oublié", hue: "#40c0ff", f: 1.35, hint: "Descendre dans l'Abîme en prêtant au moins trois serments.", cond: run => run.region === "abime" && (run.oaths || []).length >= 3 },
 };
 const SECRET_INFO = {
   juge_immacule: ["Celui qui pèse les âmes sans tache", "« Aucune faute ? Alors je jugerai votre orgueil. »", "Balance du Juge", "wpn"],
   mere_ombres: ["Elle n'apparaît qu'à la nuit tombée", "« Chut… mes enfants dorment dans vos ombres. »", "Voile de la Mère", "arm"],
   boucher: ["Il sent les groupes sans guérisseur", "« Personne pour recoudre ? Tant mieux. »", "Couperet du Boucher", "wpn"],
+  moissonneuse: ["Elle fauche ceux qui ne savent que frapper", "« Quatre lames ? Je n'ai qu'une faux. Elle suffira. »", "Faux de la Moissonneuse", "wpn"],
+  enfant_cendre: ["Né sous la lune rouge", "« Maman disait que la lune saignait pour moi. »", "Braise de l'Enfant", "tr"],
+  gardien_pactes: ["Il garde chaque serment rompu", "« Deux malédictions… Signez la troisième, juste là. »", "Sceau des Pactes", "arm"],
+  dame_blanche: ["Elle n'apparaît qu'aux âmes sans faute, la nuit", "« Si pure… si froide… restez avec moi. »", "Voile de la Dame Blanche", "arm"],
   roi_oublie: ["Le roi que la Couronne a effacé", "« Trois serments… Vous me rappelez quelqu'un. Moi. »", "Couronne oubliée", "tr"],
 };
 for (const k in SECRET_BOSSES) { const D = SECRET_BOSSES[k], M = MONSTERS[D.base]; if (!M) continue; MONSTERS[k] = Object.assign({}, M, { n: D.n, art: M.art || D.base, hue: D.hue, secret: 1, hp: Math.round(M.hp * D.f), dmg: M.dmg.map(v => Math.round(v * (1 + (D.f - 1) * .6))), res: (M.res || 0) + 10 }); }

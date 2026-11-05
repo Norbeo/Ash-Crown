@@ -375,9 +375,9 @@ function addSt0(B, u, x, f, ev, rk = 1) {
     if (u && u.side === "h") s.t += (f.k === "bleed" ? B.relicH.bleedT || 0 : f.k === "burn" ? B.relicH.burnT || 0 : B.relicH.poisonT || 0);
     if (f.k === "bleed" && x.hooks.bleedTaken) s.t += x.hooks.bleedTaken;
     if (x.st.filter(z => z.k === f.k).length >= 4) { const old = x.st.find(z => z.k === f.k); x.st.splice(x.st.indexOf(old), 1); }
-  } else if (f.k === "shield") s.v = x.hpMax * f.v * rk * (1 + (u ? u.hooks.shieldPow || 0 : 0));
+  } else if (f.k === "shield") { s.v = x.hpMax * f.v * rk * (1 + (u ? u.hooks.shieldPow || 0 : 0)); if (u && u.side === "h" && u.hid) { const T = B.tally || (B.tally = { dmg: {}, heal: {}, taken: {}, best: null }); T.shield = T.shield || {}; T.shield[u.hid] = (T.shield[u.hid] || 0) + Math.round(s.v); } }
   else if (f.k === "regen") s.v = f.v * rk;
-  else if (f.v != null) s.v = f.v * (neg ? 1 : (1 + (u && u !== x ? u.hooks.buffPow || 0 : 0)));
+  else if (f.v != null) s.v = f.v * rk * (neg ? 1 : (1 + (u && u !== x ? u.hooks.buffPow || 0 : 0))); // le rang de la compétence renforce aussi bonus et malus (force, protection, précision…)
   if (f.k === "stun" && hasSt(x, "stun")) return;
   const same = !DOTS.includes(f.k) && f.k !== "shield" && f.k !== "guarded" && x.st.find(z => z.k === f.k);
   if (same) { same.t = Math.max(same.t, s.t); if (s.v != null) same.v = Math.max(same.v || 0, s.v); }
@@ -516,10 +516,20 @@ function heroAuto(B, u, style = "bal") {
     }
     if (sk.fx) sc += sk.fx.length * 6 * (t === "ae" ? vt.length * .7 : 1);
     if (sk.afx) sc += sk.afx.length * 8 * (B.round <= 2 ? 1.5 : .8);
-    if (sk.sfx && !sk.m) sc += sk.sfx.every(f => hasSt(u, f.k)) ? -30 : 10;
+    if (sk.sfx && !sk.m) sc += sk.sfx.some(f => hasSt(u, f.k)) ? -35 : 10; // déjà sous l'effet : inutile de relancer
+    if (sk.afx && !sk.m && allies.every(a => sk.afx.every(f => hasSt(a, f.k)))) sc -= 35;
+    if (!sk.m && !sk.heal && !sk.healSelf && !sk.cleanse && u._lastAuto === sk.id) sc -= 40; // pas deux bonus d'affilée : on frappe ensuite
     if (sk.guard) sc += allies.some(a => a !== u && a.hp / a.hpMax < .5) ? 25 : -10;
     if (sk.selfDmg) sc -= u.hp / u.hpMax < .5 ? 40 : 5;
     if (sc > bs) { bs = sc; best = { sk, tgt }; }
   }
+  // aucune attaque possible depuis ce rang alors que le héros en a ailleurs : il se replace au lieu de se renforcer en boucle
+  const r = rankOf(B, u), atk = u.skills.filter(k => k.m > 0 && !k.isUlt);
+  if (atk.length && !usable.some(k => k.m > 0) && (!best || (!best.sk.heal && !best.sk.healSelf && !best.sk.guard))) {
+    const okAt = rr => atk.some(k => !k.use || k.use.includes(rr));
+    const dir = okAt(r - 1) && r > 1 ? -1 : okAt(r + 1) && r < B.heroes.length ? 1 : 0;
+    if (dir && (bs < 30 || u._lastAuto === (best && best.sk.id))) { u._lastAuto = "move"; return { move: dir }; }
+  }
+  if (best) u._lastAuto = best.sk.id;
   return best;
 }

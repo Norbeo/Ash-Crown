@@ -92,8 +92,6 @@ function imgSprite(im, o) {
   const iw = im.width * s, ih = im.height * s, pad = Math.ceil(Math.max(iw, ih) * .35 + 30 * sc);
   const W = Math.ceil(iw + pad * 2), H = Math.ceil(ih + pad + 24 * sc), cv = mkCanvas(W, H), x = cv.getContext("2d");
   const ax = W / 2, ay = H - 22 * sc, p = o.pose || {};
-  // aura d'évolution / d'apogée
-  if (o.aura) { const g = x.createRadialGradient(ax, ay - ih * .5, ih * .1, ax, ay - ih * .5, ih * .7); g.addColorStop(0, rgba(o.aura, o.auraA || .32)); g.addColorStop(1, rgba(o.aura, 0)); x.fillStyle = g; x.fillRect(0, 0, W, H); }
   let rot = (p.lean || 0) * .32, dx = (p.hx || 0) * sc, dy = (p.hy || 0) * sc, sy = 1, sx = 1;
   if (p.atk) { rot += .1; dx += 12 * sc; }
   if (p.agony) { rot = .22; dy = 10 * sc; sy = .82; }
@@ -105,22 +103,15 @@ function imgSprite(im, o) {
   if (o.tint) { x.save(); x.globalCompositeOperation = "source-atop"; x.fillStyle = o.tint; x.fillRect(0, 0, W, H); x.restore(); }
   cv.ax = ax; cv.ay = ay; cv.sc = sc; cv.art = 1; return cv;
 }
-// couleur d'aura d'une évolution : première voie = teinte de la classe, seconde = contraste froid
-function evoAura(L) {
-  if (!L.evo) return null;
-  const C = CLASSES[L.cls]; const keys = C && C.evos ? Object.keys(C.evos) : [];
-  const i = Math.max(0, keys.indexOf(L.evo));
-  return i === 0 ? (C.pal.trim || "#e8c060") : (["#8a7ae0", "#5ad0c0", "#e05a5a"][hashStr(L.cls) % 3]);
-}
 // illustration d'un héros : sa voie d'évolution si elle est peinte, sinon son palier d'armure
-// l'illustration de la voie n'apparaît qu'avec une armure de palier VI (ascendante) ; avant, palier d'armure + aura
+// l'illustration de la voie n'apparaît qu'avec une armure de palier VI (ascendante) ; avant, palier d'armure
 function heroArtName(L) { if (L.evo && (L.tier || 1) >= 6 && artHas("hero_" + L.cls + "_" + L.evo)) return "hero_" + L.cls + "_" + L.evo; const n = "hero_" + L.cls + "_t" + clamp(L.tier || 1, 1, 5); return artHas(n) ? n : "hero_" + L.cls + "_t3"; }
 function heroArt(L) { return artImg(heroArtName(L)) || (L.evo && L.tier >= 6 ? artImg("hero_" + L.cls + "_t" + clamp(L.tier || 1, 1, 5)) : null); }
 function heroImgSprite(L, pose, sc, o = {}) {
   const im = heroArt(L); if (!im) return null;
   const hurt = pose.lean < -.25 && pose.hx < 0, agony = pose.hy > 15;
-  const nm = heroArtName(L), evoArt = nm.indexOf("_t") < 0 || !/_t\d$/.test(nm);
-  return imgSprite(im, { sc, cx: ART_CX[nm], h: 182, maxW: 260, top: ART_META[nm] || ART_META["hero_" + L.cls + "_t3"] || 0, flip: ART_FLIP.has(nm), aura: L.asc ? ASC_AURA[(L.asc - 1) % ASC_AURA.length] : evoArt && !L.apex ? null : evoAura(L), auraA: L.asc ? .5 : L.apex ? .45 : .28,
+  const nm = heroArtName(L);
+  return imgSprite(im, { sc, cx: ART_CX[nm], h: 182, maxW: 260, top: ART_META[nm] || ART_META["hero_" + L.cls + "_t3"] || 0, flip: ART_FLIP.has(nm),
     pose: Object.assign({}, pose, { agony, cast: pose.free || pose.aBs > 1.5 }), tint: o.tint || (agony ? "rgba(70,8,8,.38)" : hurt ? "rgba(160,20,20,.16)" : null), hue: L.tint || null });
 }
 function monImgSprite(key, pose, sc) {
@@ -131,7 +122,7 @@ function monImgSprite(key, pose, sc) {
 }
 function petImgSprite(id, o, sc) {
   const n = "pet_" + id + (o.evo ? "_evo" : ""), im = artImg(n) || artImg("pet_" + id); if (!im) return null;
-  return imgSprite(im, { sc, cx: ART_CX[artHas(n) ? n : "pet_" + id], h: (PET_H[id] || 100) * (o.evo ? 1.25 : 1), maxW: o.evo ? 150 : 120, flip: ART_FLIP.has(n), pose: { atk: o.atk }, aura: o.evo ? "#e8c070" : null, auraA: .18 });
+  return imgSprite(im, { sc, cx: ART_CX[artHas(n) ? n : "pet_" + id], h: (PET_H[id] || 100) * (o.evo ? 1.25 : 1), maxW: o.evo ? 150 : 120, flip: ART_FLIP.has(n), pose: { atk: o.atk } });
 }
 // fond de région peint : recadré en 16/9 (la ligne de sol reste dans le tiers bas)
 function regionArt(id, w, h) {

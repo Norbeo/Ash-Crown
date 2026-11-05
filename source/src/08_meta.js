@@ -47,8 +47,11 @@ function setSkills(h, list) { const pool = heroSkillPool(h); const l = list.filt
 // bâtiments
 function bldCost(k) { const B = BUILDINGS[k], l = S.bld[k]; if (l >= B.max) return null; return { gold: B.cost[l], shards: B.shards[l] }; }
 function upgradeBld(k) { const c = bldCost(k); if (!c) return { err: "Niveau maximal." }; if (advLevel() < bldAdvReq(k)) return { err: `Niveau d'aventure ${bldAdvReq(k)} requis.` }; if (!pay(c)) return { err: "Ressources insuffisantes." }; if (k === "fonderie") bankTick(); S.bld[k]++; return { ok: 1 }; }
-// compagnons
-function adoptPet(id) { const P = PETS[id]; if (S.pets.owned.includes(id)) return { err: "Déjà adopté." }; if (!petUnlocked(id)) return { err: "Pas encore disponible." }; const c = P.cost || 0; if (S.pets.owned.length - 1 >= S.bld.menagerie + 1) return { err: "Agrandissez la Ménagerie." }; if (S.gold < c) return { err: "Pas assez d'or." }; S.gold -= c; S.pets.owned.push(id); S.pets.lvl[id] = Math.max(1, Math.round(petLvl(S.pet || id) * .6)); S.pets.xp[id] = 0; checkAchievements(); return { ok: 1 }; }
+// compagnons : 6 / 12 / 20 / 32 puis illimité au niveau maximal de la Ménagerie
+const PET_CAP = [0, 6, 12, 20, 32, Infinity];
+const petCap = () => PET_CAP[Math.min(5, S.bld.menagerie)] ?? Infinity;
+function releasePet(id) { if (!S.pets.owned.includes(id)) return { err: "Pas dans la Ménagerie." }; if (S.pet === id) return { err: "C'est le compagnon actif : emmenez-en un autre d'abord." }; if (S.pets.owned.length <= 1) return { err: "Gardez au moins un compagnon." }; S.pets.owned = S.pets.owned.filter(x => x !== id); const back = Math.round((PETS[id].cost || 0) * .25); S.gold += back; return { ok: 1, gold: back }; }
+function adoptPet(id) { const P = PETS[id]; if (S.pets.owned.includes(id)) return { err: "Déjà adopté." }; if (!petUnlocked(id)) return { err: "Pas encore disponible." }; const c = P.cost || 0; if (S.pets.owned.length >= petCap()) return { err: "Agrandissez la Ménagerie (ou renvoyez un compagnon)." }; if (S.gold < c) return { err: "Pas assez d'or." }; S.gold -= c; S.pets.owned.push(id); S.pets.lvl[id] = Math.max(1, Math.round(petLvl(S.pet || id) * .6)); S.pets.xp[id] = 0; checkAchievements(); return { ok: 1 }; }
 const PET_EVO_COST = { gold: 600, essence: 4, shards: 1 };
 function evolvePet(id) { if (petEvolved(id) || petLvl(id) < PET_EVO_LVL) return { err: "Niveau 10 requis." }; if (!pay(PET_EVO_COST)) return { err: "Il faut 600 or, 4 essences et 1 éclat." }; S.pets.evo[id] = 1; S.stats.petEvo++; checkAchievements(); return { ok: 1 }; }
 // nouvelle partie : 4 héros tirés au sort (un tank, un soigneur, deux autres) et un compagnon parmi trois proposés

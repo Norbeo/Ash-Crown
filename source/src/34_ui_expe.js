@@ -65,6 +65,7 @@ ACT.mvParty = (v, el, e) => { e.stopPropagation(); const [i, d] = v.split(":").m
 ACT.autoParty = () => { UI.expe.party = autoParty(); refresh(); };
 ACT.pickPet = id => { UI.expe.pet = id; S.pet = id; refresh(); };
 ACT.launch = () => {
+  if (S.run) { toast("Une expédition est déjà en cours (en pause) : reprenez-la ou rentrez d'abord.", "bad"); go("map"); return; }
   if (S.pet && S.petHurt && S.petHurt[S.pet] > 0) toast(`${ico("paw", "#c8a070", 13)} ${petName(S.pet)} est blessé et reste au repos (${S.petHurt[S.pet]} expédition${S.petHurt[S.pet] > 1 ? "s" : ""}). Choisissez un autre compagnon à la Ménagerie.`, "bad");
   const E = UI.expe; if (!E.party.length) return;
   const opt = { threat: E.region === "abime" ? 0 : E.threat, floor: E.region === "abime" ? E.floor : 1, night: E.region !== "abime" && !E.daily && E.night ? 1 : 0, hardBoss: E.hard && hardOk(E) ? 1 : 0 };
@@ -96,7 +97,7 @@ SCREENS.map = {
       <div class="panel" style="padding:8px 10px"><div class="row sp"><div class="row" style="gap:10px">
         <span class="tag" data-tip="lueur">${ico("torch", run.light < 30 ? "#ff5a3a" : "#ffb050")}<span style="width:70px" class="bar"><i style="width:${run.light}%;background:linear-gradient(#ffd08a,#c0601a)"></i></span>${Math.round(run.light)}</span>
         <span class="tag" data-tip="potion">${ico("potion", "#e86a5a")}${run.potions}</span><span class="tag" data-tip="or">${ico("coin", "#e8c060")}${fmt(run.gold)}</span><span class="tag" style="cursor:pointer" data-a="runBag" title="Butin : voir et équiper">${ico("chest", "#c8a070")}${run.loot.length}</span>
-      </div><button class="btn ghost sm" data-a="retreat">${ico("flee")}Rentrer</button></div>
+      </div><div class="row" style="gap:4px"><button class="btn sm ${run.autoMap ? "gold" : "ghost"}" data-a="mapAuto" title="Avancer automatiquement de salle en salle">${ico("auto")}${run.autoMap ? "Auto" : "Manuel"}</button><button class="btn ghost sm" data-a="runPause" title="Mettre l'expédition en pause et revenir au Bastion">${ico("hourglass")}Pause</button><button class="btn ghost sm" data-a="retreat">${ico("flee")}Rentrer</button></div></div>
       ${runSynergies(run).length ? `<div class="row" style="gap:4px;margin-top:6px">${runSynergies(run).map(k => `<span class="tag gold" style="cursor:pointer" ${tipAttr(SYNERGIES[k].n, SYNERGIES[k].d)}>${ico("link", "#e8c878")}${SYNERGIES[k].n}</span>`).join("")}</div>` : ""}
       ${run.weather ? `<div class="row" style="gap:4px;margin-top:6px">${weatherTag(run)}</div>` : ""}
       ${run.relics.length ? `<div class="row" style="gap:4px;margin-top:6px">${run.relics.map(k => `<span class="tag" style="cursor:pointer" ${tipAttr(RELICS[k].n, RELICS[k].d)}>${ico(RELICS[k].cursed ? "skull" : "gem", RELICS[k].cursed ? "#e05050" : ["#c8beaa", "#6ab0ff", "#c87aff"][RELICS[k].r])}${RELICS[k].n}${RELICS[k].cursed ? ' <span class="bad tiny">maudite</span>' : ""}</span>`).join("")}</div>` : ""}</div>
@@ -104,10 +105,28 @@ SCREENS.map = {
       <div class="row" style="justify-content:center;gap:6px;margin-top:6px;flex-wrap:nowrap">${party.map(h => { const mx = heroStats(h, relicHooks(run)).hp, hp = h.hp == null ? mx : h.hp, fallen = run.fallen.includes(h.id); return `<div class="panel" style="padding:4px;width:84px;text-align:center;${fallen ? "filter:grayscale(1) brightness(.5)" : ""}">${canvasSlot("mh:" + h.id, 64, 64)}<div class="tiny"><b>${esc(h.name.split(" ")[0])}</b></div><div class="bar" style="height:6px"><i style="width:${100 * hp / mx}%"></i></div><div class="tiny dim">${fallen ? "Tombé" : hp + "/" + mx}</div></div>`; }).join("")}</div>
       <p class="tiny dim" style="text-align:center">${run.region === "abime" ? "Chaque gardien vaincu ouvre un passage plus profond." : "Atteignez le gardien au bout du chemin."} Touchez une salle lumineuse pour avancer.</p></div>`;
   },
-  mount: () => { fillCanvases($("#view"), (c, id) => id === "mapbg" ? paintMapBg(c, S.run, UI.mapWH[0], UI.mapWH[1], UI.mapPos) : paintHero(c, heroById(id.split(":")[1]))); resumeNode(); tutoHint("map", "Choisissez votre chemin : <b>combats</b>, <b>mystères</b>, <b>trésors</b>, <b>feux de camp</b>… La lueur baisse à chaque salle."); },
+  mount: () => { fillCanvases($("#view"), (c, id) => id === "mapbg" ? paintMapBg(c, S.run, UI.mapWH[0], UI.mapWH[1], UI.mapPos) : paintHero(c, heroById(id.split(":")[1]))); resumeNode(); mapAutoTick(); tutoHint("map", "Choisissez votre chemin : <b>combats</b>, <b>mystères</b>, <b>trésors</b>, <b>feux de camp</b>… La lueur baisse à chaque salle."); },
   resize: () => refresh(),
 };
 ACT.relicInfo = k => toast(`<b>${RELICS[k].n}</b><br><span class="small">${gl(RELICS[k].d)}</span>`);
+ACT.runPause = () => { const run = S.run; if (!run) return; if (UI.resolving || !$("#modal").hidden || UI.screen !== "map") return toast("Terminez d'abord la salle en cours.", "bad"); clearTimeout(UI.mapAutoT); run.autoMap = 0; run.paused = 1; save(); go("bastion"); toast(`${ico("hourglass", "#e8c878", 14)} Expédition en pause. Passez par la Porte pour la reprendre ; aucune autre expédition ne peut partir d'ici là.`, ""); };
+ACT.runResume = () => { if (!S.run) return; S.run.paused = 0; save(); go("map"); };
+ACT.mapAuto = () => { const run = S.run; if (!run) return; run.autoMap = run.autoMap ? 0 : 1; save(); refresh(); if (run.autoMap) mapAutoTick(); };
+// carte automatique : choisit la prochaine salle (feu de camp si le groupe est mal en point, puis élite, trésor, mystère, colporteur, combat)
+function mapAutoPick(run) {
+  const av = availableNodes(run); if (!av.length) return null;
+  const party = runParty().filter(h => !run.fallen.includes(h.id)), hpr = party.length ? party.reduce((a, h) => { const mx = heroStats(h, relicHooks(run)).hp; return a + (h.hp == null ? 1 : h.hp / mx); }, 0) / party.length : 1;
+  const pr = { camp: hpr < .55 ? 100 : 20, boss: 90, elite: hpr > .7 ? 60 : 5, treasure: 55, event: 45, shop: run.gold > 150 ? 40 : 15, combat: 35 };
+  return av.slice().sort((a, b) => (pr[b.type] || 30) - (pr[a.type] || 30))[0];
+}
+function mapAutoTick() {
+  const run = S.run; if (!run || !run.autoMap) return;
+  clearTimeout(UI.mapAutoT); UI.mapAutoT = setTimeout(() => {
+    const r = S.run; if (!r || !r.autoMap || UI.screen !== "map" || !$("#modal").hidden || UI.resolving) return;
+    const n = mapAutoPick(r); if (!n) return; n.briefed = 1;
+    for (let c = 0; c < r.map.length; c++) { const i = r.map[c].indexOf(n); if (i >= 0) { ACT.node(c + ":" + i); return; } }
+  }, S.opts.fast ? 500 : 900);
+}
 ACT.retreat = () => confirmBox("Rentrer au Bastion ? Vous gardez l'or et le butin, mais le gardien n'est pas vaincu.", () => finishRun("retreat"), { yes: "Rentrer" });
 ACT.node = v => {
   const [c, i] = v.split(":").map(Number); const run = S.run, n = run.map[c][i];
@@ -253,10 +272,11 @@ function finishRun(outcome) {
 // bilan d'expédition : chaque héros, le plus beau coup, les ennemis notables, les chiffres clés
 function runSummaryHTML(res) {
   const M = res.sum, mx = Math.max(1, ...M.heroes.map(h => h.dmg)), bestH = M.best && M.heroes.find(h => h.id === M.best.hid);
-  const mvp = M.heroes.slice().sort((a, b) => (b.dmg + b.heal * 1.2) - (a.dmg + a.heal * 1.2))[0];
+  const mvp = M.heroes.slice().sort((a, b) => (b.dmg + b.heal * 1.2 + (b.shield || 0)) - (a.dmg + a.heal * 1.2 + (a.shield || 0)))[0];
+  const totH = M.heroes.reduce((a, h) => a + h.heal, 0), totS = M.heroes.reduce((a, h) => a + (h.shield || 0), 0), totD = M.heroes.reduce((a, h) => a + h.dmg, 0);
   const stat = (ic, c, v, n) => `<div class="sumstat">${ico(ic, c, 20)}<b>${v}</b><span class="tiny dim">${n}</span></div>`;
   return `<div class="sep"></div><h3 style="text-align:center">Bilan de l'expédition</h3>
-    <div class="sumstats">${stat("map", "#c8a070", M.rooms, "salles")}${stat("swords", "#ff7a5a", M.combats, "combats")}${stat("skull", "#d8ccb4", M.kills, "ennemis tués")}${stat("star", "#ffc04a", M.crits, "critiques")}${stat("torch", "#ffb050", M.light, "lueur finale")}${stat("hourglass", "#9ab8ff", M.mins + " min", "durée")}</div>
+    <div class="sumstats">${stat("map", "#c8a070", M.rooms, "salles")}${stat("swords", "#ff7a5a", M.combats, "combats")}${stat("skull", "#d8ccb4", M.kills, "ennemis tués")}${stat("sword", "#ff7a5a", fmt(totD), "dégâts")}${stat("heal", "#8fe07a", fmt(totH), "soins")}${stat("guard", "#8ab8ff", fmt(totS), "boucliers")}${stat("star", "#ffc04a", M.crits, "critiques")}${stat("torch", "#ffb050", M.light, "lueur finale")}${stat("hourglass", "#9ab8ff", M.mins + " min", "durée")}</div>
     ${M.best ? `<div class="reward">${ico("flare", "#ff9a4a", 22)}<div><b>Plus beau coup : ${M.best.v} dégâts${M.best.crit ? " (critique)" : ""}</b><div class="tiny dim">${bestH ? esc(bestH.name) : "?"} — ${esc(M.best.sk || "attaque")} sur ${esc(M.best.vs || "un ennemi")}</div></div></div>` : ""}
     ${M.foes.length ? `<div class="reward">${ico("crown", "#e8c878", 22)}<div><b>Ennemis redoutables vaincus</b><div class="tiny dim">${M.foes.map(f => esc(f.name) + (f.boss ? " (gardien)" : "")).join(" · ")}</div></div></div>` : ""}
     ${M.relics.length ? `<div class="reward">${ico("gem", "#c87aff", 22)}<div><b>Reliques portées</b><div class="tiny dim">${M.relics.map(k => RELICS[k].n).join(" · ")}</div></div></div>` : ""}
@@ -264,7 +284,7 @@ function runSummaryHTML(res) {
       <div class="row sp" style="flex-wrap:nowrap"><b class="small">${esc(h.name)}</b>${h.fallen ? '<span class="tag bad">Tombé</span>' : mvp && h.id === mvp.id ? '<span class="tag gold">Héros de l\'expédition</span>' : ""}</div>
       <div class="tiny dim">${CLASSES[h.cls].n} · niv ${h.lvl}${h.xp ? ` · +${h.xp} xp` : ""}</div>
       <div class="bar" style="margin:3px 0"><i style="width:${100 * h.dmg / mx}%"></i></div>
-      <div class="tiny">${ico("sword", "#ff7a5a", 12)} ${fmt(h.dmg)} dégâts · ${ico("heal", "#8fe07a", 12)} ${fmt(h.heal)} soins · ${ico("shield", "#9ab8ff", 12)} ${fmt(h.taken)} reçus · ${ico("skull", "#d8ccb4", 12)} ${h.kills}</div></div></div>`).join("")}</div>`;
+      <div class="tiny">${ico("sword", "#ff7a5a", 12)} ${fmt(h.dmg)} dégâts · ${ico("heal", "#8fe07a", 12)} ${fmt(h.heal)} soins · ${ico("guard", "#8ab8ff", 12)} ${fmt(h.shield || 0)} boucliers · ${ico("shield", "#9ab8ff", 12)} ${fmt(h.taken)} reçus · ${ico("skull", "#d8ccb4", 12)} ${h.kills}</div></div></div>`).join("")}</div>`;
 }
 SCREENS.results = {
   noNav: 1, title: "Retour au Bastion",

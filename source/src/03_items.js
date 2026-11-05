@@ -8,6 +8,8 @@ const RARITY = [
   { n: "Légendaire", c: "#ffb040", aff: 4, p: 2.2 },
   { n: "Mythique", c: "#ff4a6a", aff: 5, p: .6 },
   { n: "Divin", c: "#7af0ff", aff: 6, p: .2 },
+  { n: "Céleste", c: "#fff4c8", aff: 7, p: .06 },
+  { n: "Primordial", c: "#ff3df0", aff: 8, p: .02 },
 ];
 const TIER_N = ["", "Rustique", "Forgé", "Trempé", "Noble", "Royal", "Ascendant"];
 // nom de l'arme et de l'armure de chaque classe, par palier (1 à 5) : le palier change aussi l'apparence du héros
@@ -29,9 +31,11 @@ const GEAR_NAMES = {
   exorciste: { wpn: ["Croix de bois", "Croix de fer", "Croix d'argent", "Croix reliquaire", "Croix de l'Exorciste"], arm: ["Soutane usée", "Soutane noire", "Habit de chapelain", "Chasuble brodée", "Parure du Saint-Siège"] },
 };
 // bonus de base par palier
-const WPN_DMG = [0, .0, .18, .38, .62, .9, 1.25];
-const ARM_HP = [0, .0, .14, .3, .48, .7, .98];
-const ARM_PROT = [0, 0, .03, .06, .09, .12, .16];
+const WPN_DMG = [0, .0, .18, .38, .62, .9, 1.25, 1.65, 2.1, 2.6, 3.2];
+const ARM_HP = [0, .0, .14, .3, .48, .7, .98, 1.3, 1.65, 2.05, 2.5];
+const ARM_PROT = [0, 0, .03, .06, .09, .12, .16, .19, .22, .25, .28];
+const TIER_ROM = ["", "I", "II", "III", "IV", "V", "VI", "VII", "VIII", "IX", "X"], TIER_MAX = 10;
+const TIER_PRE = { 6: "Ascendant", 7: "Transcendant", 8: "Sublime", 9: "Éternel", 10: "Absolu" };
 // affixes aléatoires
 const AFFIXES = {
   dmg: { n: "dégâts", v: [.05, .12], fmt: "pct" }, hp: { n: "PV", v: [.05, .12], fmt: "pct" }, crit: { n: "critique", v: [3, 7], fmt: "flat" },
@@ -244,7 +248,7 @@ const EVENTS = [
 // bâtiments du Bastion
 const BUILDINGS = {
   taverne: { n: "Taverne du Pendu", ic: "tavern", d: "Recrutez des héros. Plus elle grandit, plus les recrues sont nombreuses et aguerries.", max: 5, cost: [0, 250, 700, 1600, 3200], shards: [0, 0, 1, 2, 4] },
-  forge: { n: "Forge noire", ic: "anvil", d: "Fabriquez et améliorez l'équipement. Chaque niveau débloque un palier d'armure ; le palier VI (ascendant) est réservé aux héros évolués et révèle leur apparence finale.", max: 6, cost: [0, 300, 800, 1800, 3600, 7500], shards: [0, 0, 1, 2, 4, 6] },
+  forge: { n: "Forge noire", ic: "anvil", d: "Fabriquez et améliorez l'équipement. Chaque niveau débloque un palier d'armure ; le palier VI (ascendant) est réservé aux héros évolués et révèle leur apparence finale ; les paliers VII à X le transcendent.", max: 10, cost: [0, 300, 800, 1800, 3600, 7500, 15000, 30000, 60000, 120000], shards: [0, 0, 1, 2, 4, 6, 10, 15, 22, 30] },
   chapelle: { n: "Chapelle en ruine", nl: [[5, "Cathédrale de l'Aube"], [3, "Chapelle restaurée"]], ic: "chapel", d: "Soignez les blessés. Chaque niveau ajoute une potion par expédition.", max: 5, cost: [0, 200, 600, 1400, 3000], shards: [0, 0, 1, 2, 3] },
   academie: { n: "Salle des maîtres", ic: "book", d: "Entraînez les compétences. Chaque niveau élève le rang maximal des compétences.", max: 5, cost: [0, 300, 800, 1800, 3600], shards: [0, 1, 1, 2, 4] },
   menagerie: { n: "Ménagerie", ic: "paw", d: "Adoptez et entraînez des compagnons.", max: 5, cost: [0, 250, 700, 1600, 3200], shards: [0, 0, 1, 2, 3] },

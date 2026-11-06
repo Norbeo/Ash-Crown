@@ -56,7 +56,7 @@ ACT.skUp = (v, el, e) => { e && e.stopPropagation(); const [id, k] = v.split(":"
 ACT.evolve = v => { const [id, k] = v.split(":"); const h = heroById(id); const E = CLASSES[h.cls].evos[k]; confirmBox(`${esc(h.name)} deviendra <b>${E.n}</b>. Ce choix est définitif.`, () => { const r = evolve(h, k); if (r.err) return toast(r.err, "bad"); sfx("ult"); toast(`${esc(h.name)} devient ${E.n} !`, "epic"); save(); renderHud(); refresh(); }, { yes: "Évoluer" }); };
 ACT.dismiss = id => { const h = heroById(id); confirmBox(`Renvoyer <b>${esc(h.name)}</b> ? Son équipement rejoindra l'inventaire.`, () => { if (dismiss(id)) { save(); go("heroes"); } }); };
 ACT.rename = id => { const h = heroById(id); const n = prompt("Nouveau nom", h.name); if (n && n.trim()) { h.name = n.trim().slice(0, 28); save(); refresh(); } };
-ACT.gearSlot = v => {
+ACT.gearSlot = v => { UI.gsV = v;
   const [id, slot] = v.split(":"); const h = heroById(id); const kind = slot.startsWith("tr") ? "tr" : slot;
   const items = S.inv.filter(it => it.kind === kind && canEquip(h, it)).sort((a, b) => b.rar - a.rar || b.tier - a.tier);
   const cur = h.gear[slot];

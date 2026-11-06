@@ -81,7 +81,7 @@ function resolveEvent(run, evId, ci) {
     if (f.curse) { run.curse = (run.curse || 0) + 1; out.text.push("Une malédiction pèse sur vous : les ennemis frappent plus fort."); }
     if (f.poison) { for (const h of party) { const mx = heroStats(h, relicHooks(run)).hp; h.hp = Math.max(1, Math.round((h.hp == null ? mx : h.hp) - mx * .08)); } out.text.push("Empoisonnés !"); }
     if (f.buff) { run.buff = (run.buff || 0) + 1; out.text.push("Une chaleur étrange : +20 % de dégâts au prochain combat."); }
-    if (f.upgrade) { const its = party.flatMap(h => [h.gear.wpn, h.gear.arm]).filter(it => it && it.up < 10); if (its.length) { const it = pick(its); it.up++; out.text.push(gearName(it) + " est amélioré."); } }
+    if (f.upgrade) { const its = party.flatMap(h => [h.gear.wpn, h.gear.arm]).filter(it => it && it.up < upCap()); if (its.length) { const it = pick(its); it.up++; out.text.push(gearName(it) + " est amélioré."); } }
     if (f.fight) { out.fight = true; out.text.push("Une embuscade !"); }
     if (f.bossWeak) { run.bossWeak = f.bossWeak; out.text.push(`Le gardien de ce chapitre vous attendra affaibli (−${Math.round(f.bossWeak * 100)} % de PV).`); }
     if (f.bossRage) { run.bossRage = f.bossRage; out.text.push(`Le gardien vous attendra enragé (+${Math.round(f.bossRage * 100)} % de PV), mais son trésor sera plus riche.`); }

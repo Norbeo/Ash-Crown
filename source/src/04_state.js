@@ -141,7 +141,7 @@ function lootGear(lvl, luck = 0, cls, floor = 0) {
   let evo = null; if (kind === "arm" && tier >= 6 && CLASSES[c].evos) { const mine = S ? S.heroes.filter(h => h.cls === c && h.evo).map(h => h.evo) : []; evo = mine.length && chance(.8) ? pick(mine) : pick(Object.keys(CLASSES[c].evos)); } // armure VI+ : propre à une voie
   return makeGear(kind, c, tier, rar, null, evo);
 }
-const upCost = it => ({ gold: Math.round(60 * it.tier * (1 + it.up * .7) * (1 - Math.min(.3, .01 * advA()))), fer: 1 + Math.floor(it.up / 2) + (it.tier >= 3 ? 1 : 0), essence: it.up >= 3 ? 1 + (it.up >= 5 ? 1 : 0) : 0 });
+const upCost = it => { const x = Math.max(0, it.up - 9); return { gold: Math.round(60 * it.tier * (1 + it.up * .7) * (1 + .15 * x * x) * (1 - Math.min(.3, .01 * advA()))), fer: 1 + Math.floor(it.up / 2) + (it.tier >= 3 ? 1 : 0), essence: it.up >= 3 ? 1 + (it.up >= 5 ? 1 : 0) + Math.floor(x / 2) : 0, cendre: x ? Math.ceil(x / 3) : 0 }; }; // au-delà de +10 : coût croissant (or ×(1 + 0,15·n²), essence et cendre)
 const craftCost = tier => ({ gold: [0, 80, 220, 520, 1100, 2200, 4500, 9000, 16000, 28000, 45000][tier], fer: [0, 3, 5, 8, 12, 16, 22, 30, 40, 52, 66][tier], essence: [0, 0, 1, 3, 5, 8, 12, 18, 26, 36, 48][tier], cendre: [0, 0, 0, 0, 1, 3, 6, 10, 15, 22, 30][tier] });
 const salvage = it => ({ fer: it.kind === "tr" ? 1 : 1 + it.tier + it.up, essence: it.rar >= 1 ? it.rar : 0, cendre: it.rar >= 4 ? 1 : 0, gold: 10 * it.tier * (1 + it.rar) });
 

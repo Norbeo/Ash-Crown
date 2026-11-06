@@ -27,7 +27,9 @@ function equip(h, it, slot) {
   return true;
 }
 function unequip(h, slot) { const it = h.gear[slot]; if (!it || slot === "wpn" || slot === "arm") return false; h.gear[slot] = null; S.inv.push(it); return true; }
-function upgradeItem(it) { if (!it || it.up >= 10) return false; if (it.up >= S.bld.forge * 2) return { err: `Forge niveau ${Math.ceil((it.up + 1) / 2)} requise pour passer à +${it.up + 1}.` }; const c = upCost(it); if (!pay(c)) return { err: "Ressources insuffisantes." }; it.up++; return { ok: 1 }; }
+// amélioration à l'or : +2 par niveau de Forge, puis sans limite une fois la Forge au niveau 10
+const upCap = () => S.bld.forge >= 10 ? Infinity : S.bld.forge * 2;
+function upgradeItem(it) { if (!it || it.kind === "tr") return false; if (it.up >= upCap()) return { err: `Forge niveau ${Math.ceil((it.up + 1) / 2)} requise pour passer à +${it.up + 1}.` }; const c = upCost(it); if (!pay(c)) return { err: "Ressources insuffisantes." }; it.up++; return { ok: 1 }; }
 function salvageItem(it) { const i = S.inv.indexOf(it); if (i < 0) return false; const r = salvage(it); S.inv.splice(i, 1); S.gold += r.gold; S.mats.fer += r.fer; S.mats.essence += r.essence; S.mats.cendre += r.cendre; return r; }
 function craft(cls, kind, tier, evo) {
   if (tier > S.bld.forge) return { err: "Améliorez la Forge pour ce palier." };

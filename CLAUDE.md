@@ -132,6 +132,6 @@ Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
 - 6 nov. (v131) : séries — plus d'arrêt « inventaire plein » (aucune limite d'inventaire dans le jeu) : au-delà de 150 objets, recyclage auto des inutiles Commun–Rare (`salvCandidates([0,1,2], true)`) ; série ∞ (999) ; série évolutive (`UI.seriesEvo` → `S.repeat.evo`, `evoDone`) : menace +1 dès qu'elle est débloquée, puis chapitre suivant en menace I après la V.
 
 ## Reste à faire (prochaine séance)
-0. Art en attente (quota Canva) : ART5.md T6 hallebardier, M1 portraits marchands ; puis illustration palier X par classe (VII–IX = VI). Republier ensuite (sw.js + assets).
+0. Art en attente (quota Canva) : ART7.md (armures de voie VI–IX, 29 voies restantes) ; puis illustration palier X par classe (VII–IX = VI). Republier ensuite (sw.js + assets).
 1. (Armures V : fait.) Gardiens de menace II–V : déjà présents (`THREAT_BOSS`) — à confirmer avec l'utilisateur s'il en veut d'autres.
 2. Liste du 26 oct. ci-dessus (contenu ×2, 6e chapitre, compagnons ×3, sons sombres, accueil, idées validées).

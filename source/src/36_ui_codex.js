@@ -12,7 +12,7 @@ SCREENS.codex = {
   scene: () => backdrop("catacombes", { dark: .6 }),
   html: () => {
     const tab = UI.codexTab || "classes";
-    const T = [["classes", "helm", "Classes"], ["bestiaire", "skull", "Bestiaire"], ["atlas", "map", "Atlas"], ["synergies", "link", "Synergies"], ["reliques", "gem", "Reliques"], ["defis", "trophy", "Défis de classe"], ["elites", "skull", "Élites"], ["errants", "crown", "Errants"], ["memorial", "skull", "Mémorial"], ["histoire", "scroll", "Chroniques"], ["succes", "trophy", "Succès"], ["records", "cup", "Registres"], ["glossaire", "book", "Glossaire"]];
+    const T = [["classes", "helm", "Classes"], ["bestiaire", "skull", "Bestiaire"], ["atlas", "map", "Atlas"], ["synergies", "link", "Synergies"], ["reliques", "gem", "Reliques"], ["defis", "trophy", "Défis de classe"], ["elites", "skull", "Élites"], ["errants", "crown", "Errants"], ["journal", "book", "Journal"], ["memorial", "skull", "Mémorial"], ["histoire", "scroll", "Chroniques"], ["succes", "trophy", "Succès"], ["records", "cup", "Registres"], ["glossaire", "book", "Glossaire"]];
     let body = "";
     if (tab === "glossaire") body = glossaryHTML();
     if (tab === "reliques") body = relicsCodexHTML();
@@ -20,6 +20,7 @@ SCREENS.codex = {
     if (tab === "memorial") body = memorialHTML();
     if (tab === "elites") body = eliteCodexHTML();
     if (tab === "errants") body = wanderCodexHTML();
+    if (tab === "journal") body = journalHTML();
     if (tab === "succes") body += hiddenAchHTML();
     if (tab === "classes") body = `<div class="grid" style="--min:280px">${CLASS_IDS.map(k => { const C = CLASSES[k], un = classUnlocked(k); return `<div class="card ${un ? "" : "lock"}" style="cursor:default"><div class="row" style="flex-wrap:nowrap;gap:8px">${canvasSlot("cl:" + k, 90, 112)}<div style="flex:1"><h3 style="margin:0">${C.n} ${un ? "" : ico("lock", "#9a8c7a", 13)}</h3>${roleTag(C.role)}<p class="tiny lore" style="margin:4px 0">${C.lore}</p><div class="tiny">Voies : ${Object.values(C.evos).map(e => `<b class="gold">${e.n}</b>`).join(" ou ")}</div>${un ? "" : `<div class="tiny dim">Débloquée au chapitre ${C.unlock}</div>`}</div></div></div>`; }).join("")}</div>`;
     if (tab === "synergies") body = `<p class="small dim">Certaines classes se complètent. Quand elles partent ensemble en expédition, tout le groupe en profite.</p><div class="grid" style="--min:260px">${Object.keys(SYNERGIES).map(k => { const Y = SYNERGIES[k]; return `<div class="card" style="cursor:default"><h3 style="margin:0">${ico("link", "#e8c878", 15)} ${Y.n}</h3><div class="tiny gold" style="margin:3px 0">${synergyNeedText(Y)}</div><p class="small" style="margin:0">${gl(Y.d)}</p></div>`; }).join("")}</div>`;

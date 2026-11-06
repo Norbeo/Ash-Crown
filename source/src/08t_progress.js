@@ -61,8 +61,10 @@ const SECRET_INFO = {
   roi_oublie: ["Le roi que la Couronne a effacé", "« Trois serments… Vous me rappelez quelqu'un. Moi. »", "Couronne oubliée", "tr"],
 };
 for (const k in SECRET_BOSSES) { const D = SECRET_BOSSES[k], M = MONSTERS[D.base]; if (!M || (MONSTERS[k] && !MONSTERS[k].secret)) { if (MONSTERS[k]) console.warn("clé de gardien secret déjà prise", k); continue; } MONSTERS[k] = Object.assign({}, M, { n: D.n, art: M.art || D.base, hue: D.hue, secret: 1, hp: Math.round(M.hp * D.f), dmg: M.dmg.map(v => Math.round(v * (1 + (D.f - 1) * .6))), res: (M.res || 0) + 10 }); }
-// gardien secret à la place du gardien prévu : toujours la première fois que la condition est remplie, puis une fois sur trois
+// gardien secret : jamais deux fois de suite, au moins 4 autres gardiens entre deux apparitions ; 50 % tant qu'il n'est pas vaincu, 6 % ensuite
+const bossHistRecent = b => (S.bossHist || []).slice(-3).includes(b);
 function secretBossFor(run, rng = RNG) {
-  for (const k in SECRET_BOSSES) { const D = SECRET_BOSSES[k]; if (!MONSTERS[k]) continue; let ok = false; try { ok = D.cond(run); } catch (e) { ok = false; } if (!ok) continue; const won = typeof S !== "undefined" && S && S.beaten && S.beaten[k]; if (!won || rng.chance(.33)) return k; }
+  if (typeof S === "undefined" || !S || (S.secretCD || 0) < 4 && S.lastSecret) return null;
+  for (const k of rng.shuffle(Object.keys(SECRET_BOSSES))) { const D = SECRET_BOSSES[k]; if (!MONSTERS[k]) continue; let ok = false; try { ok = D.cond(run); } catch (e) { ok = false; } if (!ok) continue; const won = typeof S !== "undefined" && S && S.beaten && S.beaten[k]; if (bossHistRecent(D.base)) continue; if (won ? rng.chance(.06) : rng.chance(.5)) return k; }
   return null;
 }

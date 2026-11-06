@@ -130,6 +130,7 @@ Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
 
 - 6 nov. (v130) : armures de voie VI–IX en cours (file /tmp/claude-0/canva/ART7.md) — silhouette étroite obligatoire (largeur ≤ 0,85 × hauteur), continuité avec le palier V (2e référence `canva.json hero <classe>_t5`) ; `heroImgSprite` maxW 165 (plafond de largeur en combat). Templier Bastion refait.
 - 6 nov. (v131) : séries — plus d'arrêt « inventaire plein » (aucune limite d'inventaire dans le jeu) : au-delà de 150 objets, recyclage auto des inutiles Commun–Rare (`salvCandidates([0,1,2], true)`) ; série ∞ (999) ; série évolutive (`UI.seriesEvo` → `S.repeat.evo`, `evoDone`) : menace +1 dès qu'elle est débloquée, puis chapitre suivant en menace I après la V.
+- 6 nov. (v133) : roulement des gardiens par gardien d'origine (`nextBossKey` : paquet de bases `S.bossDeck`, variante tirée ensuite 1 fois sur 2, historique `S.bossHist`/`bossHistPush` : les ~6 derniers gardiens tous chapitres confondus écartés) ; gardiens secrets bridés (`secretBossFor` : ordre mélangé, 50 % non vaincu / 6 % vaincu, au moins 4 gardiens entre deux secrets `S.secretCD`, base récente exclue).
 
 ## Reste à faire (prochaine séance)
 0. Art en attente (quota Canva) : ART7.md (armures de voie VI–IX, 29 voies restantes) ; puis illustration palier X par classe (VII–IX = VI). Republier ensuite (sw.js + assets).

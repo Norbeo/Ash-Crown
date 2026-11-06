@@ -127,13 +127,21 @@ function beatenBosses() { const b = S.beaten = S.beaten || {}; for (const r of R
 // gardien errant (02zy_wander.js) : éligible dès que le gardien de l'histoire de son chapitre est vaincu ; ses variantes une fois lui-même vaincu
 function wanderOpen(k) { const M = MONSTERS[k]; if (!M || !M.wander || M.variantOf) return false; const r = regionById(M.wander); return !!(r && S.beaten && S.beaten[r.boss]); }
 function bossPoolEligible() { const won = new Set(beatenBosses().map(bossBase)); return ALL_BOSSES.filter(k => !MONSTERS[k].secret && (won.has(bossBase(k)) || wanderOpen(k))); }
+// roulement par gardien d'origine (et non par variante) : chaque gardien revient aussi souvent que les autres, quelle que soit sa déclinaison ;
+// les derniers gardiens affrontés (tous chapitres confondus) sont écartés tant qu'il en reste d'autres
 function nextBossKey(rng, avoid) {
   const ok = bossPoolEligible(); if (!ok.length) return null;
-  S.bossDeck = (S.bossDeck || []).filter(k => ok.includes(k));
-  if (!S.bossDeck.length) { S.bossDeck = rng.shuffle(ok.slice()); }
-  let i = S.bossDeck.findIndex(k => !avoid.includes(k) && !avoid.includes(bossBase(k))); if (i < 0) i = S.bossDeck.findIndex(k => !avoid.includes(k)); if (i < 0) i = 0;
-  return S.bossDeck.splice(i, 1)[0];
+  const bases = [...new Set(ok.map(bossBase))], hist = (S.bossHist = S.bossHist || []), av = new Set(avoid.map(bossBase));
+  const keep = Math.min(6, Math.max(0, bases.length - 2)); for (const b of hist.slice(-keep)) av.add(b);
+  S.bossDeck = (S.bossDeck || []).map(bossBase).filter((b, i, a) => bases.includes(b) && a.indexOf(b) === i);
+  if (!S.bossDeck.some(b => !av.has(b))) S.bossDeck = S.bossDeck.concat(rng.shuffle(bases.filter(b => !S.bossDeck.includes(b))));
+  let i = S.bossDeck.findIndex(b => !av.has(b)); if (i < 0) i = S.bossDeck.findIndex(b => !avoid.includes(b)); if (i < 0) i = 0;
+  const base = S.bossDeck.splice(i, 1)[0], vs = ok.filter(k => bossBase(k) === base);
+  // la version d'origine une fois sur deux, sinon une de ses variantes au hasard
+  const k = vs.includes(base) && (vs.length === 1 || rng.chance(.5)) ? base : rng.pick(vs.filter(x => x !== base).length ? vs.filter(x => x !== base) : vs);
+  return k;
 }
+function bossHistPush(k) { S.bossHist = (S.bossHist || []).concat([bossBase(k)]).slice(-12); }
 // la rencontre est tirée une seule fois par salle : quitter puis reprendre redonne les mêmes ennemis (et le même gardien)
 function genEncounter(run, node, rng = RNG) {
   if (node.enc) return node.enc.map(e => Object.assign({}, e));
@@ -154,6 +162,7 @@ function genEncounter0(run, node, rng = RNG) {
     const bk = firstTime ? R.boss : tbNew ? tb : run.region === "abime" && run.floor % 5 === 0 && S.season && S.season.boss ? S.season.boss : (nextBossKey(rng, [last, S.lastBossAny].filter(Boolean)) || rng.pick(pool)); S.lastBoss[R.id] = bk; S.lastBossAny = bk; // l'Abîme : gardien de la saison tous les 5 étages
     out.push({ key: pickFor(1), lvl });
     const sb = !firstTime && typeof secretBossFor === "function" ? secretBossFor(run, rng) : null; // gardien secret
+    bossHistPush(sb ? SECRET_BOSSES[sb].base : bk); if (sb) { S.lastSecret = sb; S.secretCD = 0; } else S.secretCD = (S.secretCD || 0) + 1;
     out.push({ key: sb || bk, lvl: lvl + 1, f: monNorm(sb ? SECRET_BOSSES[sb].base : bossBase(bk), ref) }); // variante : la normalisation part du gardien d'origine, ses bonus restent
     if (run.region === "abime" || R.lvl >= 9) out.push({ key: pickFor(4), lvl });
     return out;

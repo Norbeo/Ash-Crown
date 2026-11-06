@@ -124,7 +124,8 @@ function gearName(it) {
   return n + (it.up ? " +" + it.up : "");
 }
 // tirage de qualité : poids RARITY[q].p ; la chance (0 à ~0,4) renforce les qualités hautes de façon progressive, le plancher retire les basses
-const rollRarity = (luck = 0, floor = 0) => { const w = RARITY.map((R, q) => q < floor ? 0 : R.p * Math.pow(1 + Math.max(0, luck) * 6, q / 2)); let r = rnd() * w.reduce((a, b) => a + b, 0); for (let q = 0; q < w.length; q++) { r -= w[q]; if (r < 0) return q; } return floor; };
+const cycleLuck = () => typeof cycleN === "function" ? Math.min(.5, cycleN() * .05) : 0; // nouveaux cycles : +5 % de chance de qualité par cycle (max +50 %)
+const rollRarity = (luck = 0, floor = 0) => { luck += cycleLuck(); const w = RARITY.map((R, q) => q < floor ? 0 : R.p * Math.pow(1 + Math.max(0, luck) * 6, q / 2)); let r = rnd() * w.reduce((a, b) => a + b, 0); for (let q = 0; q < w.length; q++) { r -= w[q]; if (r < 0) return q; } return floor; };
 function lootGear(lvl, luck = 0, cls, floor = 0) {
   // le butin suit le niveau des héros de l'expédition s'il dépasse celui du chapitre : tous les paliers (I à X) et toutes les qualités peuvent tomber
   const party = S && S.run && S.run.party ? S.run.party.map(id => S.heroes.find(h => h.id === id)).filter(Boolean) : [];

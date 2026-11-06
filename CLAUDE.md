@@ -146,6 +146,8 @@ Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
 
 - 6 nov. (v150) : aperçu d'évolution sur la fiche du héros = palier le plus haut peint pour la voie (`evoTopTier(cls, voie)` dans 17_art_images : X → VII, sinon VI), libellé « Aspect final avec une armure de palier … » dynamique.
 
+- 6 nov. (v151) : armures des héros (toutes, `cut_bak_h/` → `SRC=cut_bak_h python3 solid.py`) à l'intérieur opaque ; série évolutive : après la menace V du dernier chapitre, proposition d'un nouveau cycle (`askNewCycle`, `ACT.ngYes`/`ngNo`, `R.ngWait`) ; chance de qualité +5 %/cycle (`cycleLuck` dans `rollRarity`, max +50 %) ; journal de combat en direct (ajout ligne à ligne dans `#cblogbox` depuis `cbLog`) et non refermé par la carte auto (`autoModalStep` ignore les fenêtres ouvertes par le joueur en combat).
+
 ## Reste à faire (prochaine séance)
 0. Art en attente (quota Canva) : ART8.md (armures de voie VI–IX, refaites à partir du palier V ; V1 fait) ; puis illustration palier X par classe (VII–IX = VI). Republier ensuite (sw.js + assets).
 1. (Armures V : fait.) Gardiens de menace II–V : déjà présents (`THREAT_BOSS`) — à confirmer avec l'utilisateur s'il en veut d'autres.

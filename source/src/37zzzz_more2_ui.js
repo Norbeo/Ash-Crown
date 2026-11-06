@@ -34,7 +34,9 @@ function seriesTick() {
   if (S.inv.length > 150) { const L = salvCandidates([0, 1, 2], true); for (const it of L) salvageItem(it); if (L.length) toast(`Série : ${L.length} objet${L.length > 1 ? "s" : ""} inutile${L.length > 1 ? "s" : ""} recyclé${L.length > 1 ? "s" : ""}.`); }
   if (R.evo && !R.evoDone && !abyss) { R.evoDone = 1; const c = R.cfg, tm = threatMax(c.region);
     if (c.threat < tm) { c.threat++; toast(`Série évolutive : menace ${THREAT_N ? THREAT_N[c.threat] || c.threat + 1 : c.threat + 1} débloquée, on monte d'un cran.`, "good"); }
-    else if (c.threat >= 4) { const i = REGIONS.findIndex(r => r.id === c.region), nx = REGIONS[i + 1]; if (nx && nx.id !== "abime" && regionUnlocked(nx.id)) { c.region = nx.id; c.threat = 0; toast(`Série évolutive : chapitre suivant — ${esc(nx.n || nx.name || nx.id)}.`, "good"); } } }
+    else if (c.threat >= 4) { const i = REGIONS.findIndex(r => r.id === c.region), nx = REGIONS[i + 1]; if (nx && nx.id !== "abime" && regionUnlocked(nx.id)) { c.region = nx.id; c.threat = 0; toast(`Série évolutive : chapitre suivant — ${esc(nx.n || nx.name || nx.id)}.`, "good"); }
+      else if (!nx && c.region === lastChapter() && last.outcome === "victory" && !R.ngAsked) { R.ngAsked = 1; R.ngWait = 1; save(); return askNewCycle(); } } }
+  if (R.ngWait) return;
   UI.seriesT = setTimeout(() => { UI.seriesT = null; if (!S.repeat || UI.screen !== "results") return; S.repeat.left--; S.repeat.evoDone = 0; go("expe"); Object.assign(UI.expe, { region: R.cfg.region, party: R.cfg.party.slice(), pet: R.cfg.pet, threat: R.cfg.threat, night: R.cfg.night }); UI.seriesN = 0; ACT.launch(); closeModal(); toast(S.repeat && S.repeat.left > 900 ? "Série sans fin : expédition suivante." : `Série : encore ${S.repeat ? S.repeat.left : 0} expédition(s) après celle-ci.`); }, 3500);
 }
 
@@ -99,3 +101,11 @@ ACT.cbHub = () => { if (!S.run || UI.screen !== "combat") return;
     const run = S.run; if (!run) return go("bastion"); clearTimeout(UI.mapAutoT); clearInterval(UI.autoLoop); UI.autoLoop = 0;
     if (!ok && CB.node) CB.node.done = 0; run.autoMap = 0; run.paused = 1; if (S.repeat) { S.repeat = null; UI.seriesN = 0; }
     save(); go("bastion"); toast(`${ico("hourglass", "#e8c878", 14)} Expédition en pause. Reprenez-la depuis la Porte : le combat recommencera.`); }); };
+
+// ── Série évolutive : tous les chapitres finis → proposer un nouveau cycle (NG+) ──
+function askNewCycle() { const n = cycleN() + 1;
+  modal(`<h2>${ico("crown", "#ffd27a")} Tous les chapitres sont vaincus</h2><p class="lore">La Couronne se tait… pour un temps. Sous le Bastion, quelque chose se retourne dans son sommeil.</p>
+  <p class="small">Commencer le <b>cycle ${roman(n + 1)}</b> ? La progression des chapitres repart de zéro, les ennemis gagnent +30 % de PV et de dégâts, l'or et l'expérience +25 %, et la chance d'obtenir une qualité supérieure passe à <b>+${Math.round(Math.min(.5, n * .05) * 100)} %</b>. Héros, équipement et Bastion sont conservés ; la série continue au chapitre I.</p>
+  <div class="row" style="gap:8px;margin-top:10px"><button class="btn gold" style="flex:1" data-a="ngYes">${ico("up")}Nouveau cycle</button><button class="btn ghost" style="flex:1" data-a="ngNo">Arrêter la série</button></div>`, { close: false }); }
+ACT.ngYes = () => { const R = S.repeat; closeModal(); startNewCycle(); toast(`Cycle ${roman(cycleN() + 1)} : la Cendre se réveille.`, "good"); if (!R) { save(); return go("bastion"); } R.cfg.region = REGIONS[0].id; R.cfg.threat = 0; R.ngWait = 0; R.ngAsked = 0; save(); seriesTick(); };
+ACT.ngNo = () => { const R = S.repeat; closeModal(); if (!R) return; const rep = R.rep; S.repeat = null; UI.seriesN = 0; save(); seriesReport(rep, "Série terminée : tous les chapitres sont vaincus."); };

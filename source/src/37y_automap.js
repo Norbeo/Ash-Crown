@@ -63,6 +63,7 @@ function autoModalStep() {
   // cinématiques et présentations de gardien
   const cine = document.querySelector("#cine:not([hidden]) button, .bintro, .cineskip"); if (cine) { cine.click(); return true; }
   const m = $("#modal"); if (!m || m.hidden) return false;
+  if (UI.screen === "combat" && (m.querySelector("#cblogbox") || !m.querySelector(".btn.main, [data-a=\"retryFight\"], [data-a=\"bossGo\"], [data-a=\"abyssDown\"]"))) return false; // fenêtres ouvertes par le joueur en combat (journal, fiches…) : laissées ouvertes
   if (autoBtn('[data-a="evChoice"]') && UI.evNode) return autoClick(autoBtn(`[data-a="evChoice"][data-v="${autoEventChoice(run, UI.evNode)}"]`) || autoBtn('[data-a="evChoice"]:not([disabled])'));
   if (autoBtn('[data-a="camp"]')) return autoClick(autoBtn(`[data-a="camp"][data-v="${autoHurt(run) ? "rest" : "train"}"]`));
   if (autoBtn('[data-a="trChoice"]')) { const sly = runParty().some(h => !run.fallen.includes(h.id) && SLY.includes(h.cls)); return autoClick(autoBtn(`[data-a="trChoice"][data-v="${sly ? "disarm" : "force"}"]`)); }

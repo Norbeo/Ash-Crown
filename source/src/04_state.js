@@ -141,7 +141,7 @@ function lootGear(lvl, luck = 0, cls, floor = 0) {
   let evo = null; if (kind === "arm" && tier >= 6 && CLASSES[c].evos) { const mine = S ? S.heroes.filter(h => h.cls === c && h.evo).map(h => h.evo) : []; evo = mine.length && chance(.8) ? pick(mine) : pick(Object.keys(CLASSES[c].evos)); } // armure VI+ : propre à une voie
   return makeGear(kind, c, tier, rar, null, evo);
 }
-const upCost = it => ({ gold: Math.round(60 * it.tier * (1 + it.up * .7)), fer: 1 + Math.floor(it.up / 2) + (it.tier >= 3 ? 1 : 0), essence: it.up >= 3 ? 1 + (it.up >= 5 ? 1 : 0) : 0 });
+const upCost = it => ({ gold: Math.round(60 * it.tier * (1 + it.up * .7) * (1 - Math.min(.3, .01 * advA()))), fer: 1 + Math.floor(it.up / 2) + (it.tier >= 3 ? 1 : 0), essence: it.up >= 3 ? 1 + (it.up >= 5 ? 1 : 0) : 0 });
 const craftCost = tier => ({ gold: [0, 80, 220, 520, 1100, 2200, 4500, 9000, 16000, 28000, 45000][tier], fer: [0, 3, 5, 8, 12, 16, 22, 30, 40, 52, 66][tier], essence: [0, 0, 1, 3, 5, 8, 12, 18, 26, 36, 48][tier], cendre: [0, 0, 0, 0, 1, 3, 6, 10, 15, 22, 30][tier] });
 const salvage = it => ({ fer: it.kind === "tr" ? 1 : 1 + it.tier + it.up, essence: it.rar >= 1 ? it.rar : 0, cendre: it.rar >= 4 ? 1 : 0, gold: 10 * it.tier * (1 + it.rar) });
 
@@ -214,9 +214,10 @@ const DIFFS = {
   cauchemar: { n: "Cauchemar", d: "Ennemis redoutables (+30 % PV, +25 % dégâts) mais +35 % d'or et +20 % d'expérience.", hp: 1.3, dmg: 1.25, gold: 1.35, xp: 1.2, ic: "skull" },
 };
 const diffOf = () => DIFFS[(S && S.opts && S.opts.diff) || "normal"] || DIFFS.normal;
-const potionMax = () => 2 + (S ? S.bld.chapelle : 1);
+const advA = () => (typeof advLevel === "function" && typeof S !== "undefined" && S && S.stats ? advLevel() - 1 : 0); // niveau d'aventure au-delà du premier : renforce les bâtiments
+const potionMax = () => 2 + (S ? S.bld.chapelle : 1) + Math.floor(advA() / 12);
 const ROSTER_CAP = [0, 8, 16, 28, 44, Infinity]; // illimité au niveau maximal de la Taverne : chaque classe et chaque voie
 const rosterMax = () => ROSTER_CAP[Math.min(5, S.bld.taverne)] ?? Infinity;
-const skillRankMax = h => S.bld.academie + (h ? Math.floor(h.lvl / 10) : 0); // la Salle des maîtres, puis le niveau du héros : sans limite
-const fonderieRate = () => [0, 18, 34, 58, 90, 135][S.bld.fonderie]; // or par heure
-const fonderieCap = () => [0, 6, 8, 10, 12, 16][S.bld.fonderie]; // heures
+const skillRankMax = h => S.bld.academie + Math.floor(advA() / 15) + (h ? Math.floor(h.lvl / 10) : 0); // la Salle des maîtres, puis le niveau du héros : sans limite
+const fonderieRate = () => Math.round([0, 18, 34, 58, 90, 135][S.bld.fonderie] * (1 + .05 * advA())); // or par heure, +5 % par niveau d'aventure
+const fonderieCap = () => [0, 6, 8, 10, 12, 16][S.bld.fonderie] + Math.floor(advA() / 5); // heures, +1 h tous les 5 niveaux d'aventure

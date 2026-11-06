@@ -230,6 +230,7 @@ function giveXp(h, v) {
   return up;
 }
 function givePetXp(id, v) {
+  v = Math.round(v * (1 + .03 * advA())); // Ménagerie : +3 % d'expérience par niveau d'aventure
   if (!S.pets.lvl[id]) S.pets.lvl[id] = 1;
   S.pets.xp[id] = (S.pets.xp[id] || 0) + v;
   let up = false; while (S.pets.xp[id] >= petXpNeed(S.pets.lvl[id])) /* sans plafond de niveau */ { S.pets.xp[id] -= petXpNeed(S.pets.lvl[id]); S.pets.lvl[id]++; up = true; }
@@ -306,9 +307,9 @@ function endRun(outcome) {
 }
 
 // ── Bastion : recrues, fonderie, quotidien ──
-function recruitLevel() { const best = Math.max(1, ...REGIONS.filter(r => S.prog[r.id] && S.prog[r.id].clears).map(r => r.lvl + 3)); return Math.max(1, Math.round(best * (.35 + .12 * S.bld.taverne))); }
+function recruitLevel() { const best = Math.max(1, ...REGIONS.filter(r => S.prog[r.id] && S.prog[r.id].clears).map(r => r.lvl + 3)); return Math.max(1, Math.round(best * (.35 + .12 * S.bld.taverne)) + Math.floor(advA() / 3)); }
 function refreshRecruits(force) {
-  const n = 2 + S.bld.taverne, lvl = recruitLevel();
+  const n = 2 + S.bld.taverne + Math.floor(advA() / 10), lvl = recruitLevel();
   const cls = CLASS_IDS.filter(classUnlocked);
   S.recruits = [];
   for (let i = 0; i < n; i++) { const h = makeHero(pick(cls), { lvl: Math.max(1, lvl - rint(0, 2)) }); if (h.lvl >= 6 && chance(.25 + S.bld.taverne * .05)) { const ev = Object.keys(CLASSES[h.cls].evos); h.evo = pick(ev); h.skills = heroSkillPool(h).slice(0, 2).concat(Object.keys(CLASSES[h.cls].evos[h.evo].skills)); for (const k of heroSkillPool(h)) h.skr[k] = h.skr[k] || 1; } const t = clamp(Math.floor(h.lvl / 4.5) + 1, 1, 5); h.gear.wpn = makeGear("wpn", h.cls, t, 0); h.gear.arm = makeGear("arm", h.cls, t, 0); S.recruits.push(h); }

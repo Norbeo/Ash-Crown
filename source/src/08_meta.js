@@ -13,7 +13,7 @@ function recruitPrice(i) { const c = recruitCost(S.recruits[i]); if (S.heroes.le
 function rerollRecruits() { const c = 40 + S.bld.taverne * 20; if (S.gold < c) return false; S.gold -= c; refreshRecruits(); return true; }
 function dismiss(id) { const h = heroById(id); if (!h || S.heroes.length <= 1) return false; for (const s of ["wpn", "arm", "tr1", "tr2"]) { const it = h.gear[s]; if (it && (s.startsWith("tr") || it.tier > 1 || it.rar > 0 || it.up > 0)) S.inv.push(it); } S.heroes = S.heroes.filter(x => x !== h); return true; }
 function healCost(h) { return 30 + h.lvl * 15; }
-function healInjured(id) { const h = heroById(id); if (!h || !isInjured(h)) return false; const c = Math.round(healCost(h) * (1 - (S.bld.chapelle - 1) * .15)); if (S.gold < c) return false; S.gold -= c; h.injured = 0; return true; }
+function healInjured(id) { const h = heroById(id); if (!h || !isInjured(h)) return false; const c = Math.round(healCost(h) * (1 - (S.bld.chapelle - 1) * .15) * (1 - Math.min(.4, .01 * advA()))); if (S.gold < c) return false; S.gold -= c; h.injured = 0; return true; }
 // équipement
 function canEquip(h, it) { if (!it) return false; if (it.kind === "tr") return true; return it.cls === h.cls && h.lvl >= TIER_LVL[it.tier] && (it.tier < 6 || (!!h.evo && (!it.evo || it.evo === h.evo))); } // palier VI : héros évolués, armure propre à leur voie
 function equip(h, it, slot) {
@@ -34,7 +34,7 @@ function craft(cls, kind, tier, evo) {
   const c = craftCost(tier); if (!pay(c)) return { err: "Ressources insuffisantes." };
   if (kind === "arm" && tier >= 6 && !(evo && CLASSES[cls].evos[evo])) return { err: "Choisissez la voie de l'armure." };
   if (kind === "arm" && tier >= 6 && !S.heroes.some(h => h.cls === cls && h.evo === evo)) return { err: "Faites d'abord évoluer un héros dans cette voie." };
-  const it = makeGear(kind, cls, tier, rollRarity(.04 + S.bld.forge * .015), null, evo); S.inv.push(it); S.stats.crafts++;
+  const it = makeGear(kind, cls, tier, rollRarity(.04 + S.bld.forge * .015 + .002 * advA()), null, evo); S.inv.push(it); S.stats.crafts++;
   if (tier >= 5) S.stats.tier5 = 1; if (it.rar >= 4) S.stats.legend++;
   checkAchievements(); return { ok: it };
 }

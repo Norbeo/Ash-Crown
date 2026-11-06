@@ -27,8 +27,9 @@ function atlasCut(n, e) {
 // icônes d'objets (wpn_*, tr_*) regroupées dans la planche it_atlas : rectangles de tailles variables
 const ITA = typeof window !== "undefined" && window.IT_ATLAS ? window.IT_ATLAS : null;
 const itAtlasRect = n => ITA && ITA.n[n];
+const itAtlasFile = n => (ITA && ITA.f && ITA.f[n]) || "it_atlas";
 function itAtlasCut(n, e) {
-  const A = PIC.img.it_atlas; if (!A || !A.ok) return false; const [x, y, w, h] = ITA.n[n];
+  const A = PIC.img[itAtlasFile(n)]; if (!A || !A.ok) return false; const [x, y, w, h] = ITA.n[n];
   const c = document.createElement("canvas"); c.width = w; c.height = h; c.getContext("2d").drawImage(A.im, x, y, w, h, 0, 0, w, h);
   e.im = c; e.ok = 1; return true;
 }
@@ -41,10 +42,10 @@ function artPump() {
       const A = PIC.img.ui_atlas || (PIC.img.ui_atlas = { ok: 0 }); (A.wait = A.wait || []).push(n); if (!A.started) PIC.queue.unshift("ui_atlas"); e.started = 1; continue; }
     if (itAtlasRect(n)) { // icône d'objet de la planche
       if (itAtlasCut(n, e)) { e.started = 1; PIC.done++; artProgress(); continue; }
-      const A = PIC.img.it_atlas || (PIC.img.it_atlas = { ok: 0 }); (A.wait = A.wait || []).push(n); if (!A.started) PIC.queue.unshift("it_atlas"); e.started = 1; continue; }
+      const af = itAtlasFile(n), A = PIC.img[af] || (PIC.img[af] = { ok: 0 }); (A.wait = A.wait || []).push(n); if (!A.started) PIC.queue.unshift(af); e.started = 1; continue; }
     e.started = 1; PIC.busy++;
     const im = new Image(); im.decoding = "async";
-    im.onload = () => { e.im = im; e.ok = 1; PIC.busy--; PIC.done++; if (n === "ui_atlas" && e.wait) { for (const w of e.wait.splice(0)) { atlasCut(w, PIC.img[w]); PIC.done++; } } if (n === "it_atlas" && e.wait) { for (const w of e.wait.splice(0)) { itAtlasCut(w, PIC.img[w]); PIC.done++; } } artProgress(); artChanged(); artPump(); };
+    im.onload = () => { e.im = im; e.ok = 1; PIC.busy--; PIC.done++; if (n === "ui_atlas" && e.wait) { for (const w of e.wait.splice(0)) { atlasCut(w, PIC.img[w]); PIC.done++; } } if ((n === "it_atlas" || n.startsWith("hx_")) && e.wait) { for (const w of e.wait.splice(0)) { itAtlasCut(w, PIC.img[w]); PIC.done++; } } artProgress(); artChanged(); artPump(); };
     im.onerror = () => { e.fail = 1; PIC.busy--; PIC.done++; artProgress(); artPump(); };
     im.src = "assets/" + n + ".webp";
   }
@@ -116,7 +117,7 @@ function imgSprite(im, o) {
 }
 // illustration d'un héros : sa voie d'évolution si elle est peinte, sinon son palier d'armure
 // l'illustration de la voie n'apparaît qu'avec une armure de palier VI (ascendante) ; avant, palier d'armure
-function heroArtName(L) { if (L.evo && (L.tier || 1) >= 6 && artHas("hero_" + L.cls + "_" + L.evo)) return "hero_" + L.cls + "_" + L.evo; const n = "hero_" + L.cls + "_t" + clamp(L.tier || 1, 1, 5); return artHas(n) ? n : "hero_" + L.cls + "_t3"; }
+function heroArtName(L) { if (L.evo && (L.tier || 1) >= 6) { for (let t = Math.min(10, L.tier); t >= 7; t--) { const n = "hero_" + L.cls + "_" + L.evo + "_t" + t; if (artHas(n)) return n; } if (artHas("hero_" + L.cls + "_" + L.evo)) return "hero_" + L.cls + "_" + L.evo; } const n = "hero_" + L.cls + "_t" + clamp(L.tier || 1, 1, 5); return artHas(n) ? n : "hero_" + L.cls + "_t3"; }
 function heroArt(L) { return artImg(heroArtName(L)) || (L.evo && L.tier >= 6 ? artImg("hero_" + L.cls + "_t" + clamp(L.tier || 1, 1, 5)) : null); }
 function heroImgSprite(L, pose, sc, o = {}) {
   const im = heroArt(L); if (!im) return null;

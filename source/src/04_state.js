@@ -120,7 +120,7 @@ function gearName(it) {
   if (it.uniq && typeof UNIQ !== "undefined" && UNIQ[it.uniq]) return UNIQ[it.uniq].n; // objet unique de gardien
   if (it.fav && typeof ELITE_INFO !== "undefined" && ELITE_INFO[it.fav]) return ELITE_INFO[it.fav][2]; // butin favori d'élite
   if (it.kind === "tr") return TRINKETS[it.key].n;
-  const L = GEAR_NAMES[it.cls][it.kind === "wpn" ? "wpn" : "arm"], n = it.tier >= 6 ? (it.evo && CLASSES[it.cls].evos[it.evo] ? (it.tier > 6 ? "Armure " + TIER_PRE[it.tier].toLowerCase() + "e" : "Armure ascendante") + " : " + CLASSES[it.cls].evos[it.evo].n : (TIER_PRE[it.tier] || "Ascendant") + " : " + L[4]) : L[it.tier - 1];
+  const L = GEAR_NAMES[it.cls][it.kind === "wpn" ? "wpn" : "arm"], n = it.tier >= 6 ? (it.evo && CLASSES[it.cls].evos[it.evo] ? (it.tier > 6 ? "Armure " + TIER_PRE_F[it.tier] : "Armure ascendante") + " : " + CLASSES[it.cls].evos[it.evo].n : (TIER_PRE[it.tier] || "Ascendant") + " : " + L[4]) : L[it.tier - 1];
   return n + (it.up ? " +" + it.up : "");
 }
 // tirage de qualité : poids RARITY[q].p ; la chance (0 à ~0,4) renforce les qualités hautes de façon progressive, le plancher retire les basses

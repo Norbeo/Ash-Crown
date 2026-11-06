@@ -135,3 +135,9 @@ function visitorBuy(i) { const V = visitorToday(), D = VISITORS[V.k], O = D.offe
   const res = er0.apply(this, arguments); if (snap) { (S.journal = S.journal || []).unshift(snap); S.journal.length = Math.min(40, S.journal.length); } return res; }; }
 // 6 · morts : retenir l'héritage
 { const en0 = engrave; engrave = function (h) { const t = legacyTrait(h); if (t) (S.legacies = S.legacies || []).push({ name: h.name, cls: h.cls, trait: t }); return en0.apply(this, arguments); }; }
+
+// ── Jauge d'ultime conservée d'un combat à l'autre pendant l'expédition ──
+{ const ab1 = afterBattle; afterBattle = function (run, B) { if (run && B) { run.ult = run.ult || {}; for (const u of B.heroes) if (u.hid) run.ult[u.hid] = u.hp > 0 && !u.dead ? Math.round(u.ultV || 0) : 0; } return ab1.apply(this, arguments); }; }
+{ const bf2 = battleFor; battleFor = function (run, node, enc) { const B = bf2.apply(this, arguments); if (run && run.ult) for (const u of B.heroes) if (u.hid && run.ult[u.hid]) u.ultV = Math.min(100, Math.max(u.ultV || 0, run.ult[u.hid])); return B; }; }
+// ── Mode auto de la carte : le dernier choix (auto ou manuel) est repris à chaque nouvelle expédition ──
+{ const sr1 = startRun; startRun = function () { const run = sr1.apply(this, arguments); if (typeof S !== "undefined" && S && S.opts && S.opts.autoMap) run.autoMap = 1; return run; }; }

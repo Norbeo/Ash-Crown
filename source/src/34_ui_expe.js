@@ -111,7 +111,7 @@ SCREENS.map = {
 ACT.relicInfo = k => toast(`<b>${RELICS[k].n}</b><br><span class="small">${gl(RELICS[k].d)}</span>`);
 ACT.runPause = () => { const run = S.run; if (!run) return; if (UI.resolving || !$("#modal").hidden || UI.screen !== "map") return toast("Terminez d'abord la salle en cours.", "bad"); clearTimeout(UI.mapAutoT); run.autoMap = 0; run.paused = 1; save(); go("bastion"); toast(`${ico("hourglass", "#e8c878", 14)} Expédition en pause. Passez par la Porte pour la reprendre ; aucune autre expédition ne peut partir d'ici là.`, ""); };
 ACT.runResume = () => { if (!S.run) return; S.run.paused = 0; save(); go("map"); };
-ACT.mapAuto = () => { const run = S.run; if (!run) return; run.autoMap = run.autoMap ? 0 : 1; save(); refresh(); if (run.autoMap) { mapAutoTick(); if (typeof autoMapLoop === "function") autoMapLoop(); } };
+ACT.mapAuto = () => { const run = S.run; if (!run) return; run.autoMap = run.autoMap ? 0 : 1; S.opts.autoMap = run.autoMap; save(); refresh(); if (run.autoMap) { mapAutoTick(); if (typeof autoMapLoop === "function") autoMapLoop(); } };
 // carte automatique : choisit la prochaine salle (feu de camp si le groupe est mal en point, puis élite, trésor, mystère, colporteur, combat)
 function mapAutoPick(run) {
   const av = availableNodes(run); if (!av.length) return null;

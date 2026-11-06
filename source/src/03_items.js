@@ -11,7 +11,8 @@ const RARITY = [
   { n: "Céleste", c: "#fff4c8", aff: 7, p: .06 },
   { n: "Primordial", c: "#ff3df0", aff: 8, p: .02 },
 ];
-const TIER_N = ["", "Rustique", "Forgé", "Trempé", "Noble", "Royal", "Ascendant"];
+const TIER_PRE_F = { 6: "ascendante", 7: "transcendante", 8: "sublime", 9: "éternelle", 10: "absolue" }; // accord féminin (« Armure … »)
+const TIER_N = ["", "Rustique", "Forgé", "Trempé", "Noble", "Royal", "Ascendant", "Transcendant", "Sublime", "Éternel", "Absolu"];
 // nom de l'arme et de l'armure de chaque classe, par palier (1 à 5) : le palier change aussi l'apparence du héros
 const GEAR_NAMES = {
   templier: { wpn: ["Gourdin clouté", "Masse d'armes", "Masse bénie", "Étoile du matin", "Marteau de l'Aube"], arm: ["Gambison de pèlerin", "Haubert de croisé", "Plates du Temple", "Armure du Saint-Ordre", "Égide de l'Aube"] },

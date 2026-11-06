@@ -3,6 +3,8 @@
 cd "$(dirname "$0")"
 OUT=/tmp/claude-0/cc/all.js
 # liste des illustrations livrées et de celles à retourner (lues par 17_art_images.js)
+# planches d'illustrations (icônes d'objets, armures de voie) régénérées à chaque assemblage
+python3 art/mkatlas2.py >/dev/null 2>&1
 # bruitages en trop (variantes 3 et 4) : non livrés, pour rester sous la limite de fichiers de l'artefact
 SFX_SKIP="^fx_[a-z]+_[34]\.mp3$"
 ARTJS="window.ART_LIST=[$(ls assets 2>/dev/null | sed -n 's/\.webp$//p' | sed 's/.*/"&"/' | paste -sd,)];window.ART_META=$(cat art/meta.json 2>/dev/null | tr -d '\n' || echo {});window.ART_CX=$(cat art/cx.json 2>/dev/null || echo {});window.ART_FACE=$(cat art/faces.json 2>/dev/null || echo {});window.UI_ATLAS=$(cat art/ui_atlas.json 2>/dev/null || echo null);window.IT_ATLAS=$(cat art/it_atlas.json 2>/dev/null || echo null);window.SFX_LIST=[$(ls sfx 2>/dev/null | grep -Ev "$SFX_SKIP" | sed -n 's/\.mp3$//p' | sed 's/.*/"&"/' | paste -sd,)];window.ART_FLIP=[$(grep -v '^#' art/flip.txt 2>/dev/null | grep . | sed 's/.*/"&"/' | paste -sd,)];"

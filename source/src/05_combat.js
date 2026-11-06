@@ -30,7 +30,7 @@ function monUnit(key, lvl, mods = {}) {
   const u = { uid: uid("E"), side: "e", key, name: M.name || M.n, art: M.art, tags: M.tags, sz: M.sz || 1, boss: !!M.boss, elite: !!M.elite, lvl,
     hpMax: Math.round(M.hp * hpM), dmgLo: Math.max(1, Math.round(M.dmg[0] * dM)), dmgHi: Math.max(2, Math.round(M.dmg[1] * dM)), prot: clamp(M.prot + (mods.prot || 0), 0, .7),
     spd: M.spd + Math.floor(L / 5) + (mods.spd || 0), crit: 4 + L * .3, dodge: M.dodge + L * .4, acc: 90 + L * .7, res: (M.res || 15) + L * 1.4, healPow: 1, leech: 0, hooks: {},
-    skills: M.sk.map((s, i) => Object.assign({ id: "m" + i }, s)), cds: {}, st: [], ultV: 0, phase: M.phase, phaseDone: false, phase2: M.boss && mods.phase2 && typeof PHASE2 !== "undefined" ? PHASE2 : null };
+    skills: M.sk.map((s, i) => Object.assign({ id: "m" + i }, s)), cds: {}, st: [], ultV: 0, phase: M.phase, phaseDone: false, phase2: M.boss && mods.phase2 && typeof PHASE2 !== "undefined" ? PHASE2 : null, phaseS: M.boss && mods.season3 && typeof SEASON_PHASES !== "undefined" ? SEASON_PHASES.map(p => Object.assign({}, p)) : null };
   u.hp = u.hpMax;
   return u;
 }
@@ -50,6 +50,7 @@ function newBattle(heroes, enemyKeys, opt = {}) {
   const relicH = opt.relicH || {};
   const B = { heroes: heroes.map(h => heroUnit(h, relicH)), enemies: [], fallen: [], round: 0, order: [], turn: -1, morale: clamp(50 + (relicH.morale || 0) + (opt.morale || 0), 0, 100),
     light: opt.light == null ? 100 : opt.light, relicH, pet: null, over: null, log: [], kills: 0, crits: 0, opt, revived: 0, firstRound: true, mods: opt.mods || {} };
+  if (typeof applyFormations === "function") applyFormations(B); // formations
   for (const k of enemyKeys) { const m = Object.assign({}, opt.mods); if (k.f) { m.hp = (m.hp || 1) * k.f.hp; m.dmg = (m.dmg || 1) * k.f.dmg; m.prot = (m.prot || 0) + k.f.prot * .5; } if (k.corrupt) { m.hp = (m.hp || 1) * 1.3; m.dmg = (m.dmg || 1) * 1.2; } const eu = monUnit(k.key || k, k.lvl || opt.lvl || 1, m); if (k.corrupt) { eu.corrupt = 1; eu.name += " corrompu"; eu.res = (eu.res || 0) + 15; } if (k.named && typeof namedElite === "function") namedElite(eu); B.enemies.push(eu); }
   if (opt.pet && typeof S !== "undefined" && S && S.petHurt && S.petHurt[opt.pet] > 0) opt = Object.assign({}, opt, { pet: null }); // compagnon blessé : au repos
   if (opt.pet) { B.pet = { id: opt.pet, lvl: petLvl(opt.pet), evo: petEvolved(opt.pet), pw: petPower(opt.pet), n: 0 }; if (typeof petMul === "function" && petMul(opt.pet).morale) B.morale = clamp(B.morale + petMul(opt.pet).morale, 0, 100); }
@@ -188,6 +189,7 @@ function act(B, u, sk, tgt) {
   if (sk.morale && u.side === "h") changeMorale(B, sk.morale * (1 + (u.hooks.moralePow || 0)), ev);
   if (sk.light && B.opt.onLight) B.opt.onLight(sk.light);
   if (sk.petStrike && B.pet) for (let i = 0; i < sk.petStrike; i++) petAct(B, ev, true);
+  if (typeof chainFollowUp === "function") chainFollowUp(B, u, sk, ev); // enchaînement
   checkEnd(B);
   return ev;
 }
@@ -323,6 +325,8 @@ function applyDamage(B, src, x, d, ev, o = {}) {
     }
   } else if (x.phase && !x.phaseDone && x.hp / x.hpMax < x.phase.at) {
     x.phaseDone = true; ev.push({ k: "phase", u: x.uid, text: x.phase.n }); for (const f of x.phase.sfx) x.st.push(Object.assign({}, f));
+  } else if (x.phaseS && x.phaseS.some(p => !p.done && x.hp / x.hpMax < p.at)) { // gardien de saison : phases successives, le décor change
+    const p = x.phaseS.find(q => !q.done && x.hp / x.hpMax < q.at); p.done = 1; B.bgTint = p.tint; ev.push({ k: "phase", u: x.uid, text: p.n }); for (const f of p.sfx) x.st.push(Object.assign({}, f, f.k === "shield" ? { v: Math.round(x.hpMax * f.v) } : {}));
   } else if (x.phase2 && !x.phase2Done && x.hp / x.hpMax < x.phase2.at) { // menace IV–V : dernier sursaut du gardien
     x.phase2Done = true; ev.push({ k: "phase", u: x.uid, text: x.phase2.n }); for (const f of x.phase2.sfx) x.st.push(Object.assign({}, f, f.k === "shield" ? { v: Math.round(x.hpMax * f.v) } : {}));
   }

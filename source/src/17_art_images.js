@@ -131,9 +131,10 @@ function monImgSprite(key, pose, sc) {
   return imgSprite(im, { sc, cx: ART_CX[n], h: MON_H[M.art || key] || (M.boss ? 335 : M.elite ? 240 : 190), maxW: big ? 320 : (M.elite ? 200 : 140), flip: !ART_FLIP.has(n),
     pose: { atk: pose.atk, lean: f.lean, hx: f.hx }, tint: f.lean < 0 ? "rgba(170,20,20,.16)" : null, hue: M.hue || null });
 }
-function petImgSprite(id, o, sc) {
+function petImgSprite(id0, o, sc) {
+  const P = PETS[id0], id = (P && P.artOf) || id0; // familier légendaire : illustration de son modèle, recolorée
   const n = "pet_" + id + (o.evo ? "_evo" : ""), im = artImg(n) || artImg("pet_" + id); if (!im) return null;
-  return imgSprite(im, { sc, cx: ART_CX[artHas(n) ? n : "pet_" + id], h: (PET_H[id] || 100) * (o.evo ? 1.25 : 1), maxW: o.evo ? 150 : 120, flip: ART_FLIP.has(n), pose: { atk: o.atk } });
+  return imgSprite(im, { sc, cx: ART_CX[artHas(n) ? n : "pet_" + id], h: (PET_H[id] || 100) * (o.evo ? 1.25 : 1) * (P && P.legend ? 1.15 : 1), maxW: o.evo ? 150 : 120, flip: ART_FLIP.has(n), pose: { atk: o.atk }, hue: (P && P.hue) || null });
 }
 // fond de région peint : recadré en 16/9 (la ligne de sol reste dans le tiers bas)
 function regionArt(id, w, h) {

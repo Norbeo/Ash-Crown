@@ -58,6 +58,7 @@ SCREENS.combat = {
 async function startCombat(node) {
   const run = S.run;
   const enc = genEncounter(run, node);
+  if (typeof retrySnap === "function") retrySnap(node); // seconde chance : état avant le combat
   const B = CB.B = battleFor(run, node, enc);
   CB.vis = {}; CB.fx = []; CB.txt = []; CB.proj = []; CB.log = []; CB.node = node; CB.speed = S.opts.fast ? 3 : S.opts.speed || 1; CB.auto = !!S.opts.auto; CB.banner = null;
   CB.barH = $("#cbar").offsetHeight + 6 || 150;
@@ -345,6 +346,7 @@ async function combatEnd(over) {
   // défaite
   save();
   await new Promise(r => setTimeout(r, 600));
+  if (typeof retryOffer === "function") return retryOffer(() => finishRun("wipe"));
   finishRun("wipe");
 }
 function rewardHTML(R) { return `${R.uniq ? `<div class="reward" style="color:var(--gold2)">${ico("crown", "#ffd27a", 22)}<b>Objet unique de gardien : <span class="rar4">${gearName(R.uniq)}</span> !</b></div>` : ""}${R.gold ? `<div class="reward">${ico("coin", "#e8c060", 22)}<b>+${R.gold} or</b></div>` : ""}${(R.loot || []).map(i => `<div class="reward" style="align-items:flex-start">${slotHTML(i, "itemInfo", i.id)}<div style="flex:1;min-width:0"><b class="rar${i.rar}">${gearName(i)}</b><div class="tiny dim">${i.cls ? CLASSES[i.cls].n + " — " : ""}${itemLine(i)}</div>${runEquipBtns(i)}</div></div>`).join("")}${R.relic ? `<div class="reward">${ico("gem", "#c87aff", 22)}<b>${RELICS[R.relic].n}</b> <span class="tiny">${gl(RELICS[R.relic].d)}</span></div>` : ""}${R.shards ? `<div class="reward">${ico("shard", "#c090ff", 22)}<b>+${R.shards} éclats</b></div>` : ""}`; }
@@ -368,6 +370,7 @@ function drawCombat(x, t, dt) {
   x.fillStyle = "#050304"; x.fillRect(0, stH - 2, W, H);
   if (!SC.amb || SC.ambKind !== reg) { SC.amb = makeAmbient(REGION_AMB[reg] || "braises", 36, W, H); SC.ambKind = reg; }
   drawAmbient(x, SC.amb, t, dt);
+  if (typeof drawCombatTint === "function") drawCombatTint(x, W, stH);
   if (CB.port && B) { x.fillStyle = "rgba(0,0,0,.35)"; x.fillRect(0, stH * .5, W, 3); }
   if (!B) { x.restore(); return; }
   // lumière de torche selon la lueur

@@ -44,7 +44,7 @@ function merchantStock() {
 function merchantBuy(i) { const M = merchantStock(), o = M.items[i]; if (!o || o.sold) return { err: "Déjà vendu." }; if (S.gold < o.cost) return { err: "Pas assez d'or." }; S.gold -= o.cost; o.sold = 1; const it = JSON.parse(JSON.stringify(o.it)); it.id = uid("i"); S.inv.push(it); return { ok: it }; } // copie : l'objet acheté n'est plus lié à l'étal du jour
 
 // ── Tenues alternatives : une teinte d'armure, débloquée par les défis de classe ──
-const OUTFITS = [{ k: "", n: "Tenue d'origine", need: 0 }, { k: "deuil", n: "Tenue de deuil", need: 3, tint: "rgba(40,45,80,.35)" }, { k: "sang", n: "Tenue écarlate", need: 10, tint: "rgba(150,20,20,.26)" }, { k: "cendre", n: "Tenue de cendre", need: 25, tint: "rgba(140,135,128,.5)" }];
+const OUTFITS = [{ k: "", n: "Tenue d'origine", need: 0 }, { k: "deuil", n: "Tenue de deuil", need: 3, tint: "rgba(40,45,80,.35)" }, { k: "sang", n: "Tenue écarlate", need: 10, tint: "rgba(150,20,20,.26)" }, { k: "cendre", n: "Tenue de cendre", need: 25, tint: "rgba(140,135,128,.5)" }, { k: "maitre", n: "Tenue de maître", need: 50, tint: "rgba(220,170,60,.3)" }];
 const outfitOk = (h, k) => { const O = OUTFITS.find(o => o.k === k); return O && ((S.classWins || {})[h.cls] || 0) >= O.need; };
 
 // ── Compagnons en duo : bonus quand le compagnon s'entend avec une classe du groupe ──

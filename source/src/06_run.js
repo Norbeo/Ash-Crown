@@ -9,7 +9,7 @@ const THREAT_N = ["I", "II", "III", "IV", "V"];
 function threatMax(id) { const p = S.prog[id]; return p && p.clears ? Math.min(4, (p.threat || 0) + 1) : 0; }
 function regionsCleared() { return REGIONS.filter(r => S.prog[r.id] && S.prog[r.id].clears > 0).length; }
 function classUnlocked(c) { return CLASSES[c].unlock <= regionsCleared() || !!(S.seen && S.seen.classes[c]); }
-function petUnlocked(id) { const P = PETS[id]; if (!P) return false; if (P.starter || P.pool0 || (typeof S !== "undefined" && S && S.pets && S.pets.owned.includes(id))) return true;
+function petUnlocked(id) { const P = PETS[id]; if (!P) return false; if (P.legend) return (typeof S !== "undefined" && S && S.pets && S.pets.owned.includes(id)) || legendPetOpen(id); if (P.starter || P.pool0 || (typeof S !== "undefined" && S && S.pets && S.pets.owned.includes(id))) return true;
   if (!P.unl) return (P.unlock || 0) <= regionsCleared(); const R = REGIONS[P.unl[0]], p = R && S.prog[R.id]; return !!(p && p.clears && (p.threat || 0) >= P.unl[1] - 1); }
 function regionUnlocked(id) { if (id === "abime") return regionsCleared() >= 1; const i = REGIONS.findIndex(r => r.id === id); return i === 0 || (S.prog[REGIONS[i - 1].id] && S.prog[REGIONS[i - 1].id].clears > 0); }
 
@@ -196,6 +196,7 @@ function rewardFor(run, node, rng = RNG) {
     R.shards = first ? 3 : 1 + (run.region === "abime" && run.floor % 3 === 0 ? 1 : 0) + Math.floor(run.oaths.length / 3); R.relic = randRelic(run, rng, 2);
   }
   const OM = typeof omenOf === "function" ? omenOf(run) : null; R.gold = Math.round(R.gold * goldM * diffOf().gold * (run.night ? 1.35 : 1) * (1 + (OM && OM.gold || 0))); R.xp = Math.round(R.xp * (1 + run.threat * .2) * diffOf().xp * (1 + (OM && OM.xp || 0))); R.petXp = Math.round(R.xp * .8);
+  if (typeof gemDrop === "function") { const g = gemDrop(run, node, rng); if (g) R.gem = g; R.gold = Math.round(R.gold * prestigeGold() * ironMul()); R.xp = Math.round(R.xp * ironMul()); } // gemmes, prestige, Ironman
   if (run.favDrop) { R.loot.push(run.favDrop); R.fav = run.favDrop; run.favDrop = null; } // butin favori d'une élite
   if (node && node.nestOn) { R.gold = Math.round(R.gold * 1.8); R.xp = Math.round(R.xp * 1.5); R.loot.push(lootGear(lvl + 2, .35, null, 3)); R.shards = (R.shards || 0) + 1; } // nid d'élites : gros butin
   R.tome = t === "boss" ? 1 : t === "elite" ? (rng.chance(.22) ? 1 : 0) : t === "treasure" ? (rng.chance(.14) ? 1 : 0) : 0; // tome d'expérience
@@ -215,6 +216,8 @@ function grantReward(run, R) {
   const ups = [];
   if (R.xp) for (const h of runParty()) { if (run.fallen.includes(h.id)) continue; const u = giveXp(h, R.xp); if (u) ups.push(h); }
   if (R.petXp && run.pet) givePetXp(run.pet, R.petXp);
+  if (R.gem && typeof gemAdd === "function") { const [k, l] = R.gem.split(":"); gemAdd(k, +l); }
+  if (R.xp && run.reserve) for (const id of run.reserve) { const h = heroById(id); if (h) giveXp(h, Math.round(R.xp * .5)); } // seconde compagnie : la moitié de l'expérience
   return ups;
 }
 function giveXp(h, v) {

@@ -59,6 +59,7 @@ function heroPassives(h) {
   if (h.affl && typeof AFFLICTIONS !== "undefined" && AFFLICTIONS[h.affl]) out.push(...AFFLICTIONS[h.affl].pas); // stress : affliction ou vertu
   if (h.talents && typeof talentPas === "function") out.push(...talentPas(h));
   if (typeof setPassives === "function") out.push(...setPassives(h), ...ascPassives(h)); // panoplies et ascension
+  if (typeof PAS_HOOKS !== "undefined") for (const f of PAS_HOOKS) out.push(...f(h)); // gemmes, prestige, maîtrise
   if (h.vet && typeof VET_TITLES !== "undefined" && VET_TITLES[h.vet]) out.push(...VET_TITLES[h.vet].pas); // titre de vétéran // arbre de talents (après le niveau 15)
   return out;
 }

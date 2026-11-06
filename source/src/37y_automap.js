@@ -68,6 +68,8 @@ function autoModalStep() {
   if (autoBtn('[data-a="trChoice"]')) { const sly = runParty().some(h => !run.fallen.includes(h.id) && SLY.includes(h.cls)); return autoClick(autoBtn(`[data-a="trChoice"][data-v="${sly ? "disarm" : "force"}"]`)); }
   if (autoBtn('[data-a="leaveShop"]')) return autoClick(autoBtn('[data-a="leaveShop"]'));
   if (autoBtn('[data-a="nest"]')) { const on = autoHpRatio(run) > .8 ? 1 : 0; return autoClick(autoBtn(`[data-a="nest"][data-v$=":${on}"]`) || autoBtn('[data-a="nest"]')); }
+  if (autoBtn('[data-a="wevChoice"]') && UI.wev) { const ch = UI.wev.W[1], hpr = autoHpRatio(run); let bi = 0, bs = -1e9; ch.forEach((c, i) => { const s = autoFxScore(c[1], run, hpr); if (s > bs) { bs = s; bi = i; } }); return autoClick(autoBtn(`[data-a="wevChoice"][data-v="${bi}"]`)); }
+  if (autoBtn('[data-a="retryFight"]')) return autoClick(autoBtn('[data-a="retryFight"]'));
   if (autoBtn('[data-a="bossGo"]')) return autoClick(autoBtn('[data-a="bossGo"]'));
   if (autoBtn('[data-a="abyssDown"]')) return autoClick(autoBtn(autoHpRatio(run) > .45 ? '[data-a="abyssDown"]' : '[data-a="abyssUp"]'));
   // fenêtre de butin / résultat : ranger le butin (emplacements vides seulement) puis continuer

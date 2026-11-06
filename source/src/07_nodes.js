@@ -141,6 +141,7 @@ function battleFor(run, node, enc) {
   if (run.hardBoss && node && node.type === "boss") { mods.bossHp = (mods.bossHp || 0) + HARD_BOSS.hp - 1; mods.hardBoss = 1; } // mode Hardi
   const W = run.weather && WEATHERS[run.weather]; if (W) { if (W.mods.fog) mods.fog = W.mods.fog; if (W.mods.rain) mods.rain = 1; if (W.mods.edmgM) mods.dmg *= 1 + W.mods.edmgM; if (W.mods.espd) mods.spd += W.mods.espd; } // météo
   const OM = typeof omenOf === "function" && omenOf(run); if (OM) { if (OM.edmg) mods.dmg *= 1 + OM.edmg; if (OM.ehp) mods.hp *= 1 + OM.ehp; if (OM.espd) mods.spd += OM.espd; } // présage
+  if (node && node.type === "boss" && run.region === "abime" && run.floor % 5 === 0) mods.season3 = 1; // gardien de saison à trois phases
   if (node && node.type === "boss" && run.threat >= 3) mods.phase2 = 1; // menace IV–V : 2e phase
   if (node && node.type === "boss" && typeof levelGap === "function") { const g = levelGap(run), f = bossTune(run.region, run.threat); mods.bossHp = (mods.bossHp || 0) + g * GAP_HP + (f - 1); mods.bossDmg = (mods.bossDmg || 0) + g * GAP_DMG + (f - 1) * .6; } // écart de niveau + réglage par chapitre
   if (typeof abyssHealCut === "function" && abyssHealCut(run)) mods.healCut = abyssHealCut(run);

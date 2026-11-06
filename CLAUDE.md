@@ -142,6 +142,8 @@ Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
 
 - 6 nov. (v148) : bibelots variés (`makeGear` tr : bibelots de la qualité tirée jusqu'à quelques crans en dessous, au moins 12 au choix, hors uniques) ; bibelot unique propre à chaque gardien (`TRINKETS["u_"+gardien]`, deux effets réunis, `art` = icône de base, `uniqueDrop` enveloppé ; variantes → objet de leur gardien d'origine) ; gravure de panoplie à la Forge (`engraveCost`/`engraveDo`, `ACT.engraveList/engrave/engraveDo`, Légendaire+, armes/armures/bibelots) ; gemmes serties d'un toucher depuis l'onglet Gemmes (`gemPick`/`gemPut`, `gemTargets`) ; marques de gardien propres au gardien vaincu (`GUARD_MARKS["b:"+gardien]`, `bossMarkKey(run)`, gardiens d'histoire = anciennes marques de chapitre, autres générées par `MARK_UP`/`MARK_DOWN`).
 
+- 6 nov. (v149) : carte auto — le choix Manuel/Auto du combat est respecté (`run.cbManual`, posé par `ACT.cbAuto`, lu par `autoMapLoop`) ; bouton Bastion en combat (`ACT.cbHub` : restaure l'état d'avant le combat via `CB.snap`, met l'expédition en pause, arrête la série ; à la reprise le combat recommence).
+
 ## Reste à faire (prochaine séance)
 0. Art en attente (quota Canva) : ART8.md (armures de voie VI–IX, refaites à partir du palier V ; V1 fait) ; puis illustration palier X par classe (VII–IX = VI). Republier ensuite (sw.js + assets).
 1. (Armures V : fait.) Gardiens de menace II–V : déjà présents (`THREAT_BOSS`) — à confirmer avec l'utilisateur s'il en veut d'autres.

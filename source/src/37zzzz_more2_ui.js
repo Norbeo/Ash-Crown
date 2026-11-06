@@ -89,3 +89,13 @@ ACT.gemPick = (id, el, e) => { e && e.stopPropagation && e.stopPropagation(); if
   modal(`<h2>${ico("gem", GEMS[k].c)} Sertir ${gemName(id)}</h2><p class="tiny dim">${GEMS[k].d(gemVal(k, +l))} · il vous en reste ${S.gems[id]}.</p><div class="col">${L.map(({ it, h }) => `<div class="row card" style="gap:10px;cursor:pointer" data-a="gemPut" data-v="${it.id}|${id}">${slotHTML(it, "gemPut", it.id + "|" + id)}<div style="flex:1;min-width:150px"><b class="rar${it.rar}">${gearName(it)}</b> <span class="tiny dim">${h ? "porté par " + esc(h.name) : "inventaire"}</span><div class="row" style="gap:4px;flex-wrap:wrap;margin-top:2px">${(it.gems || []).map(g => gemChip(g)).join("")}<span class="tiny dim">${(it.gems || []).length}/${sockets(it)}</span></div></div><button class="btn sm gold" data-a="gemPut" data-v="${it.id}|${id}">Sertir</button></div>`).join("")}</div><button class="btn ghost sm" style="margin-top:8px" data-a="gemBack">Retour aux gemmes</button>`); };
 ACT.gemPut = (v, el, e) => { e && e.stopPropagation && e.stopPropagation(); const [iid, gid] = v.split("|"), it = allGearTr().map(g => g.it).find(x => x.id === iid); if (!gemSocket(it, gid)) return toast("Impossible de sertir.", "bad"); sfx("forge"); save(); toast(`${gemName(gid)} serti sur ${gearName(it)}.`, "good"); if (S.gems && S.gems[gid] && gemTargets().length) ACT.gemPick(gid); else ACT.gemBack(); };
 ACT.gemBack = () => { closeModal(); openBuilding("forge", "gems"); };
+
+// ── Combat : retour au Bastion (expédition en pause, le combat reprendra depuis son début) ──
+ACT.cbHub = () => { if (!S.run || UI.screen !== "combat") return;
+  confirmBox(`Revenir au Bastion ? L'expédition est mise en pause et <b>ce combat reprendra depuis son début</b> quand vous la reprendrez (PV, butin et ressources d'avant le combat).`, () => {
+    const snap = CB.snap; let ok = false;
+    if (snap) { try { const S2 = JSON.parse(snap); if (S2 && S2.run) { S = S2; ok = true; } } catch (e) { } }
+    CB.snap = null; CB.B = null; CB.resolve = null; closeModal();
+    const run = S.run; if (!run) return go("bastion"); clearTimeout(UI.mapAutoT); clearInterval(UI.autoLoop); UI.autoLoop = 0;
+    if (!ok && CB.node) CB.node.done = 0; run.autoMap = 0; run.paused = 1; if (S.repeat) { S.repeat = null; UI.seriesN = 0; }
+    save(); go("bastion"); toast(`${ico("hourglass", "#e8c878", 14)} Expédition en pause. Reprenez-la depuis la Porte : le combat recommencera.`); }); };

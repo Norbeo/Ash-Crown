@@ -6053,7 +6053,7 @@ function cbLayout() {
 SCREENS.combat = {
   noNav: 1, noHud: 1, pass: 1,
   scene: () => drawCombat,
-  html: () => `<div class="ctop l" id="cb-tl"></div><div id="cb-hud"><div id="cb-ord"></div><div id="cb-mlog"></div></div><div id="cb-boss"></div><div class="ctop" id="cb-tr"><button class="btn ghost sm" data-a="cbSpeed" title="Vitesse">${ico("speed")}<span id="cb-spd">×${S.opts.fast ? 3 : S.opts.speed || 1}</span></button><button class="btn ghost sm ${S.opts.auto ? "on" : ""}" data-a="cbAuto" title="Combat automatique">${ico("auto")}<span id="cb-auto">${S.opts.auto ? "Auto" : "Manuel"}</span></button><button class="btn ghost sm" data-a="cbLogShow" title="Journal du combat">${ico("scroll")}</button><button class="btn ghost sm" data-a="cbFlee" id="cb-flee" title="Fuir">${ico("flee")}</button></div><div id="cbar"><div class="skdesc" id="cb-desc" data-a="cbDesc"></div><div class="skills" id="cb-skills"></div></div>`,
+  html: () => `<div class="ctop l" id="cb-tl"></div><div id="cb-hud"><div id="cb-ord"></div><div id="cb-mlog"></div></div><div id="cb-boss"></div><div class="ctop" id="cb-tr"><button class="btn ghost sm" data-a="cbSpeed" title="Vitesse">${ico("speed")}<span id="cb-spd">×${S.opts.fast ? 3 : S.opts.speed || 1}</span></button><button class="btn ghost sm ${S.opts.auto ? "on" : ""}" data-a="cbAuto" title="Combat automatique">${ico("auto")}<span id="cb-auto">${S.opts.auto ? "Auto" : "Manuel"}</span></button><button class="btn ghost sm" data-a="cbLogShow" title="Journal du combat">${ico("scroll")}</button><button class="btn ghost sm" data-a="cbFlee" id="cb-flee" title="Fuir">${ico("flee")}</button><button class="btn ghost sm" data-a="cbHub" title="Retour au Bastion (expédition en pause)">${ico("castle")}</button></div><div id="cbar"><div class="skdesc" id="cb-desc" data-a="cbDesc"></div><div class="skills" id="cb-skills"></div></div>`,
   mount: arg => startCombat(arg.node),
   leave: () => { CB.B = null; CB.resolve = null; { const ci = $("#cbinfo"); if (ci) ci.remove(); } const c = $("#coach"); if (c) c.remove(); UI.coach = null; document.querySelectorAll(".coachon").forEach(e => e.classList.remove("coachon")); },
   resize: () => { if (CB.B) { CB.barH = $("#cbar") ? $("#cbar").offsetHeight + 6 : 150; cbLayout(); } },
@@ -6181,7 +6181,7 @@ ACT.cbPass = () => { if (CB.resolve) choose({ pass: 1 }); };
 ACT.cbDelay = () => { const u = CB.actor; if (!u || !CB.resolve) return; if (u.delayR === CB.B.round) return toast("Déjà retardé ce tour.", "bad"); if (!turnQueue(CB.B).now.slice(1).length) return toast("Personne ne joue après lui ce tour.", "bad"); choose({ delay: 1 }); };
 ACT.cbFlee = () => { if (!CB.resolve) return toast("Attendez votre tour.", "bad"); confirmBox(CB.node && CB.node.type === "boss" ? "Fuir le gardien ? (50 % de réussite) L'expédition s'arrête : vous rentrez au Bastion avec l'or et le butin, sans la victoire." : "Tenter de fuir ? (75 % de réussite, aucune récompense)", () => choose({ flee: 1 }), { yes: "Fuir" }); };
 ACT.cbSpeed = () => { CB.speed = CB.speed >= 3 ? 1 : CB.speed + 1; S.opts.speed = CB.speed; save(); $("#cb-spd").textContent = "×" + CB.speed; };
-ACT.cbAuto = (v, el) => { CB.auto = !CB.auto; S.opts.auto = CB.auto ? 1 : 0; save(); $("#cb-auto").textContent = CB.auto ? "Auto" : "Manuel"; el.classList.toggle("on", CB.auto); if (CB.auto && CB.resolve && CB.actor) choose(autoChoice(CB.actor)); };
+ACT.cbAuto = (v, el) => { CB.auto = !CB.auto; S.opts.auto = CB.auto ? 1 : 0; if (S.run) S.run.cbManual = CB.auto ? 0 : 1; save(); $("#cb-auto").textContent = CB.auto ? "Auto" : "Manuel"; el.classList.toggle("on", CB.auto); if (CB.auto && CB.resolve && CB.actor) choose(autoChoice(CB.actor)); };
 function cbBar(u) {
   CB.preview = null;
   const box = $("#cb-skills"), d = $("#cb-desc"); if (!box) return; d.classList.remove("mini");
@@ -7701,7 +7701,7 @@ function autoMapLoop() {
   UI.autoLoop = setInterval(() => {
     const run = S.run; if (!run || !run.autoMap) { clearInterval(UI.autoLoop); UI.autoLoop = 0; return; }
     try {
-      if (UI.screen === "combat" && typeof CB !== "undefined" && !CB.auto) { CB.auto = true; if (CB.resolve && CB.actor) choose(autoChoice(CB.actor)); }
+      if (UI.screen === "combat" && typeof CB !== "undefined" && !CB.auto && !run.cbManual) { CB.auto = true; const l = $("#cb-auto"); if (l) { l.textContent = "Auto"; l.parentElement.classList.add("on"); } if (CB.resolve && CB.actor) choose(autoChoice(CB.actor)); }
       if (UI.screen === "travel") return;
       if (autoModalStep()) return;
       if (UI.screen === "map" && $("#modal").hidden && !UI.resolving) { autoLootEquip(run); mapAutoTick(); }
@@ -8025,6 +8025,16 @@ ACT.gemPick = (id, el, e) => { e && e.stopPropagation && e.stopPropagation(); if
   modal(`<h2>${ico("gem", GEMS[k].c)} Sertir ${gemName(id)}</h2><p class="tiny dim">${GEMS[k].d(gemVal(k, +l))} · il vous en reste ${S.gems[id]}.</p><div class="col">${L.map(({ it, h }) => `<div class="row card" style="gap:10px;cursor:pointer" data-a="gemPut" data-v="${it.id}|${id}">${slotHTML(it, "gemPut", it.id + "|" + id)}<div style="flex:1;min-width:150px"><b class="rar${it.rar}">${gearName(it)}</b> <span class="tiny dim">${h ? "porté par " + esc(h.name) : "inventaire"}</span><div class="row" style="gap:4px;flex-wrap:wrap;margin-top:2px">${(it.gems || []).map(g => gemChip(g)).join("")}<span class="tiny dim">${(it.gems || []).length}/${sockets(it)}</span></div></div><button class="btn sm gold" data-a="gemPut" data-v="${it.id}|${id}">Sertir</button></div>`).join("")}</div><button class="btn ghost sm" style="margin-top:8px" data-a="gemBack">Retour aux gemmes</button>`); };
 ACT.gemPut = (v, el, e) => { e && e.stopPropagation && e.stopPropagation(); const [iid, gid] = v.split("|"), it = allGearTr().map(g => g.it).find(x => x.id === iid); if (!gemSocket(it, gid)) return toast("Impossible de sertir.", "bad"); sfx("forge"); save(); toast(`${gemName(gid)} serti sur ${gearName(it)}.`, "good"); if (S.gems && S.gems[gid] && gemTargets().length) ACT.gemPick(gid); else ACT.gemBack(); };
 ACT.gemBack = () => { closeModal(); openBuilding("forge", "gems"); };
+
+// ── Combat : retour au Bastion (expédition en pause, le combat reprendra depuis son début) ──
+ACT.cbHub = () => { if (!S.run || UI.screen !== "combat") return;
+  confirmBox(`Revenir au Bastion ? L'expédition est mise en pause et <b>ce combat reprendra depuis son début</b> quand vous la reprendrez (PV, butin et ressources d'avant le combat).`, () => {
+    const snap = CB.snap; let ok = false;
+    if (snap) { try { const S2 = JSON.parse(snap); if (S2 && S2.run) { S = S2; ok = true; } } catch (e) { } }
+    CB.snap = null; CB.B = null; CB.resolve = null; closeModal();
+    const run = S.run; if (!run) return go("bastion"); clearTimeout(UI.mapAutoT); clearInterval(UI.autoLoop); UI.autoLoop = 0;
+    if (!ok && CB.node) CB.node.done = 0; run.autoMap = 0; run.paused = 1; if (S.repeat) { S.repeat = null; UI.seriesN = 0; }
+    save(); go("bastion"); toast(`${ico("hourglass", "#e8c878", 14)} Expédition en pause. Reprenez-la depuis la Porte : le combat recommencera.`); }); };
 /* ═══════════════════════ Démarrage ═══════════════════════ */
 if (HASWIN) {
   const boot = () => {

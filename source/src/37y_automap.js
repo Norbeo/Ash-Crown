@@ -81,7 +81,7 @@ function autoMapLoop() {
   UI.autoLoop = setInterval(() => {
     const run = S.run; if (!run || !run.autoMap) { clearInterval(UI.autoLoop); UI.autoLoop = 0; return; }
     try {
-      if (UI.screen === "combat" && typeof CB !== "undefined" && !CB.auto) { CB.auto = true; if (CB.resolve && CB.actor) choose(autoChoice(CB.actor)); }
+      if (UI.screen === "combat" && typeof CB !== "undefined" && !CB.auto && !run.cbManual) { CB.auto = true; const l = $("#cb-auto"); if (l) { l.textContent = "Auto"; l.parentElement.classList.add("on"); } if (CB.resolve && CB.actor) choose(autoChoice(CB.actor)); }
       if (UI.screen === "travel") return;
       if (autoModalStep()) return;
       if (UI.screen === "map" && $("#modal").hidden && !UI.resolving) { autoLootEquip(run); mapAutoTick(); }

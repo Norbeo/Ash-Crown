@@ -3418,7 +3418,7 @@ function equip(h, it, slot) {
   return true;
 }
 function unequip(h, slot) { const it = h.gear[slot]; if (!it || slot === "wpn" || slot === "arm") return false; h.gear[slot] = null; S.inv.push(it); return true; }
-function upgradeItem(it) { if (!it || it.up >= 10) return false; if (it.up >= S.bld.forge * 2) return { err: "La Forge doit être améliorée pour aller plus loin." }; const c = upCost(it); if (!pay(c)) return { err: "Ressources insuffisantes." }; it.up++; return { ok: 1 }; }
+function upgradeItem(it) { if (!it || it.up >= 10) return false; if (it.up >= S.bld.forge * 2) return { err: `Forge niveau ${Math.ceil((it.up + 1) / 2)} requise pour passer à +${it.up + 1}.` }; const c = upCost(it); if (!pay(c)) return { err: "Ressources insuffisantes." }; it.up++; return { ok: 1 }; }
 function salvageItem(it) { const i = S.inv.indexOf(it); if (i < 0) return false; const r = salvage(it); S.inv.splice(i, 1); S.gold += r.gold; S.mats.fer += r.fer; S.mats.essence += r.essence; S.mats.cendre += r.cendre; return r; }
 function craft(cls, kind, tier, evo) {
   if (tier > S.bld.forge) return { err: "Améliorez la Forge pour ce palier." };
@@ -3437,7 +3437,7 @@ function skillUp(h, id) { const r = h.skr[id] || 1; if (r >= skillRankMax(h)) re
 function setSkills(h, list) { const pool = heroSkillPool(h); const l = list.filter(x => pool.includes(x)).slice(0, 4); if (l.length < 1) return false; h.skills = l; return true; }
 // bâtiments
 function bldCost(k) { const B = BUILDINGS[k], l = S.bld[k]; if (l >= B.max) return null; return { gold: B.cost[l], shards: B.shards[l] }; }
-function upgradeBld(k) { const c = bldCost(k); if (!c) return { err: "Niveau maximal." }; if (advLevel() < bldAdvReq(k)) return { err: `Niveau d'aventure ${bldAdvReq(k)} requis.` }; if (!pay(c)) return { err: "Ressources insuffisantes." }; if (k === "fonderie") bankTick(); S.bld[k]++; return { ok: 1 }; }
+function upgradeBld(k) { const c = bldCost(k); if (!c) return { err: "Niveau maximal." }; if (!bldAdvOk(k)) return { err: `Niveau d'aventure ${bldAdvReq(k)} requis.` }; if (!pay(c)) return { err: "Ressources insuffisantes." }; if (k === "fonderie") bankTick(); S.bld[k]++; return { ok: 1 }; }
 // compagnons : 6 / 12 / 20 / 32 puis illimité au niveau maximal de la Ménagerie
 const PET_CAP = [0, 6, 12, 20, 32, Infinity];
 const petCap = () => PET_CAP[Math.min(5, S.bld.menagerie)] ?? Infinity;
@@ -3469,6 +3469,9 @@ function advXp() { const st = S.stats || {}; return (st.wins || 0) + (st.runs ||
 function advLevel() { return 1 + Math.floor(Math.sqrt(advXp() / 3)); }
 function advNext() { const l = advLevel(); return { l, cur: advXp() - 3 * (l - 1) * (l - 1), need: 3 * l * l - 3 * (l - 1) * (l - 1) }; }
 const bldAdvReq = k => Math.max(1, S.bld[k] * 3);
+// la Forge ne bloque jamais l'équipement : si un héros a déjà le niveau du palier suivant, elle peut monter quel que soit le niveau d'aventure
+const forgeHeroOk = () => S.bld.forge < 10 && S.heroes.some(h => h.lvl >= TIER_LVL[S.bld.forge + 1]);
+const bldAdvOk = k => advLevel() >= bldAdvReq(k) || (k === "forge" && forgeHeroOk());
 // ── Réglages de fin de partie (5 nov.) : présages d'expédition, 2e phase des gardiens en menace IV–V, soins réduits au fond de l'Abîme ──
 const OMENS = {
   sang: { n: "Présage de sang", ic: "blood", d: "Ennemis +10 % de dégâts ; or +20 %.", edmg: .1, gold: .2 },
@@ -4438,15 +4441,19 @@ function bootDone() { const b = document.getElementById("boot"); if (!b || b.cla
 if (typeof document !== "undefined") { setTimeout(() => { const s = document.getElementById("bootskip"); if (s) { s.style.display = ""; s.onclick = bootDone; } }, 9000); setTimeout(bootDone, 45000); }
 const ART_REPAINT = [];
 // une image vient d'arriver : on vide les caches de sprites et on repeint les vignettes encore à l'écran
+// iOS (Safari) limite la mémoire totale des canevas et ne libère les anciens que tard : au-delà, les nouveaux restent vides.
+// On rend donc immédiatement la mémoire des canevas hors écran qu'on jette (largeur/hauteur à 0).
+function cvFree(c) { try { if (c && c.getContext && !c.isConnected && c.width) { c.width = 0; c.height = 0; } } catch (e) { } }
+function dropCache(o) { for (const k in o) { const v = o[k]; if (v && v.getContext) cvFree(v); else if (v && typeof v === "object") for (const x of Object.values(v)) cvFree(x); delete o[k]; } }
 function artChanged() {
   PIC.v++;
   if (PIC.timer) return;
   PIC.timer = setTimeout(() => {
     PIC.timer = 0;
-    for (const k in BG_CACHE) delete BG_CACHE[k];
-    if (typeof PORT_CACHE !== "undefined") for (const k in PORT_CACHE) delete PORT_CACHE[k];
-    if (typeof WALK_CACHE !== "undefined") for (const k in WALK_CACHE) delete WALK_CACHE[k];
-    if (typeof CB !== "undefined") { for (const id in CB.vis) if (CB.vis[id]) CB.vis[id].cache = {}; CB.petCache = null; }
+    dropCache(BG_CACHE);
+    if (typeof PORT_CACHE !== "undefined") dropCache(PORT_CACHE);
+    if (typeof WALK_CACHE !== "undefined") dropCache(WALK_CACHE);
+    if (typeof CB !== "undefined") { for (const id in CB.vis) if (CB.vis[id]) { dropCache(CB.vis[id].cache || {}); CB.vis[id].cache = {}; } CB.petCache = null; }
     if (typeof ICON_CACHE !== "undefined") for (const k in ICON_CACHE) delete ICON_CACHE[k];
     if (typeof ITEM_WAIT !== "undefined" && ITEM_WAIT.size && typeof document !== "undefined") document.querySelectorAll("span.itw[data-iw]").forEach(sp => {
       const it = ITEM_WAIT.get(sp.dataset.iw); const u = it && itemArt(it); if (u) { sp.outerHTML = `<img class="itimg" src="${u}" alt="">`; ITEM_WAIT.delete(sp.dataset.iw); } });
@@ -4740,8 +4747,9 @@ const IC = {
 const WPN_IC = { masse: "mace", espadon: "sword", baton: "sun", faucille: "scythe", luth: "lute", hache: "axe", dagues: "dagger", arbalete: "bolt", grimoire: "book", faux: "scythe", marteau: "hammer", encensoir: "flask", rapiere: "sword", hallebarde: "pierce", croix: "rosary" };
 // icônes peintes (assets/ui_<nom>.webp) ; les commandes purement fonctionnelles restent au trait
 const ICO_LINE = new Set(["close", "plus", "up", "skip", "auto", "speed", "info", "install", "swap"]);
+const ICO_URL = {}; // armes peintes (planche it_atlas) en data URL
 function ico(name, col, size) {
-  if (name && name.startsWith("wpn_")) { if (artHas(name)) return `<img class="ic pic" src="assets/${name}.webp" alt="" draggable="false"${size ? ` width="${size}" height="${size}"` : ""}>`; name = WPN_IC[name.slice(4)] || "weapon"; }
+  if (name && name.startsWith("wpn_")) { if (artHas(name)) { const im = artImg(name), u = im && (ICO_URL[name] || (ICO_URL[name] = im.toDataURL ? im.toDataURL("image/webp", .85) : im.src)); if (u) return `<img class="ic pic" src="${u}" alt="" draggable="false"${size ? ` width="${size}" height="${size}"` : ""}>`; } name = WPN_IC[name.slice(4)] || "weapon"; }
   if (!ICO_LINE.has(name) && typeof UIA !== "undefined" && UIA && UIA.n[name] != null) { const i = UIA.n[name], cx = i % UIA.c, cy = Math.floor(i / UIA.c); // planche d'icônes
     return `<span class="ic pic" style="background:url(assets/ui_atlas.webp) ${UIA.c > 1 ? cx / (UIA.c - 1) * 100 : 0}% ${UIA.r > 1 ? cy / (UIA.r - 1) * 100 : 0}% / ${UIA.c * 100}% ${UIA.r * 100}% no-repeat${size ? `;width:${size}px;height:${size}px` : ""}"></span>`; }
   if (!ICO_LINE.has(name) && artHas("ui_" + name)) return `<img class="ic pic" src="assets/ui_${name}.webp" alt="" draggable="false"${size ? ` width="${size}" height="${size}"` : ""}>`;
@@ -5241,7 +5249,7 @@ function bldFooter(k) {
   const B = BUILDINGS[k], c = bldCost(k), l = S.bld[k];
   const adv = `<div class="tiny" style="margin-top:6px">${ico("star", "#e8c878", 12)} <b>Bonus d'aventure</b> (niveau ${advLevel()}) : <span class="gold">${advBonusText(k)}</span></div>`;
   const next = { taverne: `Caserne : ${capTxt(ROSTER_CAP[Math.min(5, l + 1)])} héros · ${3 + l} recrues mieux aguerries`, forge: `Palier d'armure ${l + 1} · amélioration jusqu'à +${(l + 1) * 2}`, chapelle: `${3 + l} potions par expédition · soins moins chers`, academie: `Rang de compétence maximal ${l + 1}`, menagerie: `${capTxt(PET_CAP[Math.min(5, l + 1)])} compagnons`, fonderie: `${Math.round([0, 18, 34, 58, 90, 135][l + 1] * (1 + .05 * advA()))} or/h, réserve ${[0, 6, 8, 10, 12, 16][l + 1] + Math.floor(advA() / 5)} h` }[k];
-  return adv + `<div class="sep"></div><div class="row sp"><div><b>${bldName(k)}</b> <span class="gold">niveau ${l}</span>${c ? `<div class="small dim">Niveau ${l + 1} : ${next}</div><div class="tiny ${advLevel() >= bldAdvReq(k) ? "good" : "bad"}">Niveau d'aventure ${bldAdvReq(k)} requis (actuel : ${advLevel()})</div>` : '<div class="small good">Niveau maximal</div>'}</div>${c ? `<button class="btn gold sm ${canPay(c) && advLevel() >= bldAdvReq(k) ? "" : "off"}" data-a="upBld" data-v="${k}">${ico("up")}${c.gold} ${ico("coin", "#e8c060")}${c.shards ? ` ${c.shards} ${ico("shard", "#c090ff")}` : ""}</button>` : ""}</div>`;
+  return adv + `<div class="sep"></div><div class="row sp"><div><b>${bldName(k)}</b> <span class="gold">niveau ${l}</span>${c ? `<div class="small dim">Niveau ${l + 1} : ${next}</div><div class="tiny ${bldAdvOk(k) ? "good" : "bad"}">Niveau d'aventure ${bldAdvReq(k)} requis (actuel : ${advLevel()})${k === "forge" ? ` — ou un héros de niveau ${TIER_LVL[l + 1] || "—"}${forgeHeroOk() ? " ✓" : ""}` : ""}</div>` : '<div class="small good">Niveau maximal</div>'}</div>${c ? `<button class="btn gold sm ${canPay(c) && bldAdvOk(k) ? "" : "off"}" data-a="upBld" data-v="${k}">${ico("up")}${c.gold} ${ico("coin", "#e8c060")}${c.shards ? ` ${c.shards} ${ico("shard", "#c090ff")}` : ""}</button>` : ""}</div>`;
 }
 ACT.upBld = k => { const r = upgradeBld(k); if (r.err) return toast(r.err, "bad"); sfx("forge"); toast(`${bldName(k)} : niveau ${S.bld[k]} !`, "good"); save(); renderHud(); if (UI.screen === "bastion") refresh(); /* étiquettes du Bastion à jour */ const L = (BLD_SCENES[k] || {})[S.bld[k]]; if (L) showLines(`${BUILDINGS[k].n} — niveau ${S.bld[k]}`, L, () => openBuilding(k)); else openBuilding(k); };
 function openBuilding(k, tab) {
@@ -5263,7 +5271,7 @@ function openBuilding(k, tab) {
       <div class="grid" style="--min:250px;margin-top:10px">${Array.from({ length: TIER_MAX }, (_, i) => i + 1).map(t => { const c = craftCost(t), lock = t > S.bld.forge; return `<div class="card ${lock ? "lock" : ""}" style="cursor:default"><div class="row">${t >= 6 ? Object.keys(CLASSES[cls].evos).map(k => `<span data-a="tierZoom" data-v="${cls}:${t}:${k}" style="cursor:zoom-in">${canvasSlot("tier:" + cls + ":" + t + ":" + k, 60, 95)}</span>`).join("") : `<span data-a="tierZoom" data-v="${cls}:${t}" style="cursor:zoom-in">${canvasSlot("tier:" + cls + ":" + t, 76, 95)}</span>`}<div style="flex:1"><h3>${TIER_N[t]} ${lock ? ico("lock", "#9a8c7a", 14) : ""}</h3><div class="tiny gold">Héros niveau ${TIER_LVL[t]}+</div><div class="tiny dim">${t >= 6 ? TIER_PRE[t] + " : " + GEAR_NAMES[cls].wpn[4] + "<br>" + Object.values(CLASSES[cls].evos).map(E => (t > 6 ? "Armure " + TIER_PRE_F[t] + " : " : "Armure ascendante : ") + E.n).join("<br>") + '<br><span class="gold">Réservé aux héros évolués : chaque voie a son armure, qui révèle son aspect final</span>' : GEAR_NAMES[cls].wpn[t - 1] + "<br>" + GEAR_NAMES[cls].arm[t - 1]}</div><div class="tiny" style="margin-top:4px">${c.gold} or · ${c.fer} fer${c.essence ? ` · ${c.essence} ess.` : ""}${c.cendre ? ` · ${c.cendre} cendre` : ""}</div></div></div>${lock ? `<p class="tiny dim">Forge niveau ${t} requise</p>` : `<div class="row" style="margin-top:6px"><button class="btn sm ${canPay(c) ? "" : "off"}" data-a="craft" data-v="${cls}:wpn:${t}">${ico("weapon")}Arme</button>${t >= 6 ? Object.entries(CLASSES[cls].evos).map(([k, E]) => `<button class="btn sm ${canPay(c) && S.heroes.some(h => h.cls === cls && h.evo === k) ? "" : "off"}" data-a="craft" data-v="${cls}:arm:${t}:${k}" ${S.heroes.some(h => h.cls === cls && h.evo === k) ? "" : 'title="Faites d\'abord évoluer un héros dans cette voie"'}>${ico("armor")}${E.n}</button>`).join("") : `<button class="btn sm ${canPay(c) ? "" : "off"}" data-a="craft" data-v="${cls}:arm:${t}">${ico("armor")}Armure</button>`}</div>`}</div>`; }).join("")}</div>`;
     } else if (tb === "gems") { body = head + gemsTabHTML(); } else {
       const junk = S.inv.filter(it => !itemUseful(it) && !itemFuture(it));
-      body = head + (typeof enchantBarHTML === "function" ? enchantBarHTML() : "") + (S.inv.length ? `<div class="row sp" style="margin-bottom:8px"><span class="tiny dim">${junk.length ? `${junk.length} objet${junk.length > 1 ? "s" : ""} moins bon${junk.length > 1 ? "s" : ""} que ce que portent vos héros` : "Tout l'inventaire peut encore servir."}</span><button class="btn sm ${junk.length ? "gold" : "ghost off"}" data-a="salvAll">${ico("iron")}Recyclage rapide</button><button class="btn sm" data-a="autoEquip">${ico("armor")}Équiper le meilleur</button></div>` : "") + invList();
+      body = head + (typeof enchantBarHTML === "function" ? enchantBarHTML() : "") + (S.inv.length ? `<div class="row sp" style="margin-bottom:8px"><span class="tiny dim">${junk.length ? `${junk.length} objet${junk.length > 1 ? "s" : ""} moins bon${junk.length > 1 ? "s" : ""} que ce que portent vos héros` : "Tout l'inventaire peut encore servir."}</span><button class="btn sm ${junk.length ? "gold" : "ghost"}" data-a="salvAll">${ico("iron")}Recyclage rapide</button><button class="btn sm" data-a="autoEquip">${ico("armor")}Optimiser l'équipement</button></div>` : "") + invList();
     }
   }
   if (k === "chapelle") {
@@ -7653,7 +7661,7 @@ function questsHTML() {
   return `<h3 style="margin-top:14px">${ico("quest", "#e8c878", 15)} Quêtes de région</h3><p class="tiny dim">Trois rencontres, sur plusieurs expéditions, mènent au point faible d'un gardien — ou à son trésor caché.</p><div class="col">${QUEST_REG.map(([r, n]) => { const k = r === "catacombes" ? "cata" : r === "citadelle" ? "cit" : r, st = sf.includes("q_" + k + "2") ? 2 : sf.includes("q_" + k + "1") ? 1 : 0, R = regionById(r);
     return `<div class="row sp card" style="cursor:default"><span><b>${esc(n)}</b> <span class="tiny dim">${R ? esc(R.n) : ""}</span></span><span class="tiny ${st ? "gold" : "dim"}">${st ? `Étape ${st + 1}/3 — à poursuivre là-bas` : "Étape 1/3 — rencontre à trouver"}</span></div>`; }).join("")}</div>`;
 }
-// ── Équiper le meilleur : pour chaque héros, l'objet de l'inventaire qui l'améliore le plus (qualité minimale au choix) ──
+// ── Optimiser l'équipement : pour chaque héros, l'objet de l'inventaire qui l'améliore le plus (qualité minimale au choix) ──
 function bestScore(h, it) { const D = gearDelta(h, it), R = CLASSES[h.cls].role; return (R === "tank" ? D.surv * 100 + D.dps * 35 : R === "soin" ? D.surv * 60 + D.dps * 25 + D.score * .4 : D.dps * 100 + D.surv * 35) + D.score * .05; }
 function autoEquipAll(minRar, onlyIds) {
   const out = []; let changed = true, guard = 0;
@@ -7671,7 +7679,7 @@ function autoEquipAll(minRar, onlyIds) {
 }
 ACT.autoEquip = () => {
   const draw = () => { const R = UI.aeq || (UI.aeq = { min: 0 }); const n = (() => { const snap = JSON.stringify(S.heroes.map(h => h.gear)); return snap; })();
-    modal(`<h2>${ico("armor", "#e8c878")} Équiper le meilleur</h2><p class="small">Chaque héros prend dans l'inventaire l'objet qui l'améliore le plus selon son rôle (tank : survie, soigneur : survie et soins, dégâts : dégâts par tour). L'ancien objet retourne à l'inventaire.</p>
+    modal(`<h2>${ico("armor", "#e8c878")} Optimiser l'équipement</h2><p class="small">Chaque héros prend dans l'inventaire l'objet qui l'améliore le plus selon son rôle (tank : survie, soigneur : survie et soins, dégâts : dégâts par tour). L'ancien objet retourne à l'inventaire.</p>
       <div class="small" style="margin:6px 0">Qualité minimale :</div><div class="row" style="gap:4px;flex-wrap:wrap">${RARITY.map((Q, q) => `<button class="btn sm ${R.min === q ? "gold" : "ghost"}" data-a="aeqMin" data-v="${q}"><span class="rar${q}">${Q.n}</span></button>`).join("")}</div>
       <div class="row" style="justify-content:flex-end;gap:6px;margin-top:12px"><button class="btn ghost" data-a="closeModal">Annuler</button><button class="btn main" data-a="aeqGo">Équiper toute la compagnie</button></div>`, { onClose: () => openBuilding("forge", "inv") }); };
   UI.aeqDraw = draw; draw();

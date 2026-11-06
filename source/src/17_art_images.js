@@ -74,15 +74,19 @@ function bootDone() { const b = document.getElementById("boot"); if (!b || b.cla
 if (typeof document !== "undefined") { setTimeout(() => { const s = document.getElementById("bootskip"); if (s) { s.style.display = ""; s.onclick = bootDone; } }, 9000); setTimeout(bootDone, 45000); }
 const ART_REPAINT = [];
 // une image vient d'arriver : on vide les caches de sprites et on repeint les vignettes encore à l'écran
+// iOS (Safari) limite la mémoire totale des canevas et ne libère les anciens que tard : au-delà, les nouveaux restent vides.
+// On rend donc immédiatement la mémoire des canevas hors écran qu'on jette (largeur/hauteur à 0).
+function cvFree(c) { try { if (c && c.getContext && !c.isConnected && c.width) { c.width = 0; c.height = 0; } } catch (e) { } }
+function dropCache(o) { for (const k in o) { const v = o[k]; if (v && v.getContext) cvFree(v); else if (v && typeof v === "object") for (const x of Object.values(v)) cvFree(x); delete o[k]; } }
 function artChanged() {
   PIC.v++;
   if (PIC.timer) return;
   PIC.timer = setTimeout(() => {
     PIC.timer = 0;
-    for (const k in BG_CACHE) delete BG_CACHE[k];
-    if (typeof PORT_CACHE !== "undefined") for (const k in PORT_CACHE) delete PORT_CACHE[k];
-    if (typeof WALK_CACHE !== "undefined") for (const k in WALK_CACHE) delete WALK_CACHE[k];
-    if (typeof CB !== "undefined") { for (const id in CB.vis) if (CB.vis[id]) CB.vis[id].cache = {}; CB.petCache = null; }
+    dropCache(BG_CACHE);
+    if (typeof PORT_CACHE !== "undefined") dropCache(PORT_CACHE);
+    if (typeof WALK_CACHE !== "undefined") dropCache(WALK_CACHE);
+    if (typeof CB !== "undefined") { for (const id in CB.vis) if (CB.vis[id]) { dropCache(CB.vis[id].cache || {}); CB.vis[id].cache = {}; } CB.petCache = null; }
     if (typeof ICON_CACHE !== "undefined") for (const k in ICON_CACHE) delete ICON_CACHE[k];
     if (typeof ITEM_WAIT !== "undefined" && ITEM_WAIT.size && typeof document !== "undefined") document.querySelectorAll("span.itw[data-iw]").forEach(sp => {
       const it = ITEM_WAIT.get(sp.dataset.iw); const u = it && itemArt(it); if (u) { sp.outerHTML = `<img class="itimg" src="${u}" alt="">`; ITEM_WAIT.delete(sp.dataset.iw); } });

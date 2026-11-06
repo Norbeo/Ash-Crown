@@ -56,7 +56,7 @@ function questsHTML() {
   return `<h3 style="margin-top:14px">${ico("quest", "#e8c878", 15)} Quêtes de région</h3><p class="tiny dim">Trois rencontres, sur plusieurs expéditions, mènent au point faible d'un gardien — ou à son trésor caché.</p><div class="col">${QUEST_REG.map(([r, n]) => { const k = r === "catacombes" ? "cata" : r === "citadelle" ? "cit" : r, st = sf.includes("q_" + k + "2") ? 2 : sf.includes("q_" + k + "1") ? 1 : 0, R = regionById(r);
     return `<div class="row sp card" style="cursor:default"><span><b>${esc(n)}</b> <span class="tiny dim">${R ? esc(R.n) : ""}</span></span><span class="tiny ${st ? "gold" : "dim"}">${st ? `Étape ${st + 1}/3 — à poursuivre là-bas` : "Étape 1/3 — rencontre à trouver"}</span></div>`; }).join("")}</div>`;
 }
-// ── Équiper le meilleur : pour chaque héros, l'objet de l'inventaire qui l'améliore le plus (qualité minimale au choix) ──
+// ── Optimiser l'équipement : pour chaque héros, l'objet de l'inventaire qui l'améliore le plus (qualité minimale au choix) ──
 function bestScore(h, it) { const D = gearDelta(h, it), R = CLASSES[h.cls].role; return (R === "tank" ? D.surv * 100 + D.dps * 35 : R === "soin" ? D.surv * 60 + D.dps * 25 + D.score * .4 : D.dps * 100 + D.surv * 35) + D.score * .05; }
 function autoEquipAll(minRar, onlyIds) {
   const out = []; let changed = true, guard = 0;
@@ -74,7 +74,7 @@ function autoEquipAll(minRar, onlyIds) {
 }
 ACT.autoEquip = () => {
   const draw = () => { const R = UI.aeq || (UI.aeq = { min: 0 }); const n = (() => { const snap = JSON.stringify(S.heroes.map(h => h.gear)); return snap; })();
-    modal(`<h2>${ico("armor", "#e8c878")} Équiper le meilleur</h2><p class="small">Chaque héros prend dans l'inventaire l'objet qui l'améliore le plus selon son rôle (tank : survie, soigneur : survie et soins, dégâts : dégâts par tour). L'ancien objet retourne à l'inventaire.</p>
+    modal(`<h2>${ico("armor", "#e8c878")} Optimiser l'équipement</h2><p class="small">Chaque héros prend dans l'inventaire l'objet qui l'améliore le plus selon son rôle (tank : survie, soigneur : survie et soins, dégâts : dégâts par tour). L'ancien objet retourne à l'inventaire.</p>
       <div class="small" style="margin:6px 0">Qualité minimale :</div><div class="row" style="gap:4px;flex-wrap:wrap">${RARITY.map((Q, q) => `<button class="btn sm ${R.min === q ? "gold" : "ghost"}" data-a="aeqMin" data-v="${q}"><span class="rar${q}">${Q.n}</span></button>`).join("")}</div>
       <div class="row" style="justify-content:flex-end;gap:6px;margin-top:12px"><button class="btn ghost" data-a="closeModal">Annuler</button><button class="btn main" data-a="aeqGo">Équiper toute la compagnie</button></div>`, { onClose: () => openBuilding("forge", "inv") }); };
   UI.aeqDraw = draw; draw();

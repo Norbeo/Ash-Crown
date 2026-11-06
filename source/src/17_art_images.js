@@ -24,6 +24,14 @@ function atlasCut(n, e) {
   const c = document.createElement("canvas"); c.width = c.height = S; c.getContext("2d").drawImage(A.im, (i % UIA.c) * S, Math.floor(i / UIA.c) * S, S, S, 0, 0, S, S);
   e.im = c; e.ok = 1; return true;
 }
+// icônes d'objets (wpn_*, tr_*) regroupées dans la planche it_atlas : rectangles de tailles variables
+const ITA = typeof window !== "undefined" && window.IT_ATLAS ? window.IT_ATLAS : null;
+const itAtlasRect = n => ITA && ITA.n[n];
+function itAtlasCut(n, e) {
+  const A = PIC.img.it_atlas; if (!A || !A.ok) return false; const [x, y, w, h] = ITA.n[n];
+  const c = document.createElement("canvas"); c.width = w; c.height = h; c.getContext("2d").drawImage(A.im, x, y, w, h, 0, 0, w, h);
+  e.im = c; e.ok = 1; return true;
+}
 function artPump() {
   while (PIC.busy < 6 && PIC.queue.length) {
     const n = PIC.queue.shift(), e = PIC.img[n] || (PIC.img[n] = { ok: 0 });
@@ -31,9 +39,12 @@ function artPump() {
     if (uiAtlasIdx(n) != null) { // icône de la planche
       if (atlasCut(n, e)) { e.started = 1; PIC.done++; artProgress(); continue; }
       const A = PIC.img.ui_atlas || (PIC.img.ui_atlas = { ok: 0 }); (A.wait = A.wait || []).push(n); if (!A.started) PIC.queue.unshift("ui_atlas"); e.started = 1; continue; }
+    if (itAtlasRect(n)) { // icône d'objet de la planche
+      if (itAtlasCut(n, e)) { e.started = 1; PIC.done++; artProgress(); continue; }
+      const A = PIC.img.it_atlas || (PIC.img.it_atlas = { ok: 0 }); (A.wait = A.wait || []).push(n); if (!A.started) PIC.queue.unshift("it_atlas"); e.started = 1; continue; }
     e.started = 1; PIC.busy++;
     const im = new Image(); im.decoding = "async";
-    im.onload = () => { e.im = im; e.ok = 1; PIC.busy--; PIC.done++; if (n === "ui_atlas" && e.wait) { for (const w of e.wait.splice(0)) { atlasCut(w, PIC.img[w]); PIC.done++; } } artProgress(); artChanged(); artPump(); };
+    im.onload = () => { e.im = im; e.ok = 1; PIC.busy--; PIC.done++; if (n === "ui_atlas" && e.wait) { for (const w of e.wait.splice(0)) { atlasCut(w, PIC.img[w]); PIC.done++; } } if (n === "it_atlas" && e.wait) { for (const w of e.wait.splice(0)) { itAtlasCut(w, PIC.img[w]); PIC.done++; } } artProgress(); artChanged(); artPump(); };
     im.onerror = () => { e.fail = 1; PIC.busy--; PIC.done++; artProgress(); artPump(); };
     im.src = "assets/" + n + ".webp";
   }

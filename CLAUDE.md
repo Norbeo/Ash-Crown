@@ -144,6 +144,8 @@ Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
 
 - 6 nov. (v149) : carte auto — le choix Manuel/Auto du combat est respecté (`run.cbManual`, posé par `ACT.cbAuto`, lu par `autoMapLoop`) ; bouton Bastion en combat (`ACT.cbHub` : restaure l'état d'avant le combat via `CB.snap`, met l'expédition en pause, arrête la série ; à la reprise le combat recommence).
 
+- 6 nov. (v150) : aperçu d'évolution sur la fiche du héros = palier le plus haut peint pour la voie (`evoTopTier(cls, voie)` dans 17_art_images : X → VII, sinon VI), libellé « Aspect final avec une armure de palier … » dynamique.
+
 ## Reste à faire (prochaine séance)
 0. Art en attente (quota Canva) : ART8.md (armures de voie VI–IX, refaites à partir du palier V ; V1 fait) ; puis illustration palier X par classe (VII–IX = VI). Republier ensuite (sw.js + assets).
 1. (Armures V : fait.) Gardiens de menace II–V : déjà présents (`THREAT_BOSS`) — à confirmer avec l'utilisateur s'il en veut d'autres.

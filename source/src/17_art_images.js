@@ -121,6 +121,7 @@ function imgSprite(im, o) {
 }
 // illustration d'un héros : sa voie d'évolution si elle est peinte, sinon son palier d'armure
 // l'illustration de la voie n'apparaît qu'avec une armure de palier VI (ascendante) ; avant, palier d'armure
+function evoTopTier(cls, evo) { for (let t = 10; t >= 7; t--) if (artHas("hero_" + cls + "_" + evo + "_t" + t)) return t; return 6; } // palier le plus haut déjà peint pour une voie
 function heroArtName(L) { if (L.evo && (L.tier || 1) >= 6) { for (let t = Math.min(10, L.tier); t >= 7; t--) { const n = "hero_" + L.cls + "_" + L.evo + "_t" + t; if (artHas(n)) return n; } if (artHas("hero_" + L.cls + "_" + L.evo)) return "hero_" + L.cls + "_" + L.evo; } const n = "hero_" + L.cls + "_t" + clamp(L.tier || 1, 1, 5); return artHas(n) ? n : "hero_" + L.cls + "_t3"; }
 function heroArt(L) { return artImg(heroArtName(L)) || (L.evo && L.tier >= 6 ? artImg("hero_" + L.cls + "_t" + clamp(L.tier || 1, 1, 5)) : null); }
 function heroImgSprite(L, pose, sc, o = {}) {

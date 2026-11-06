@@ -25,7 +25,7 @@ function bldTinted(im, lvl, k) { // niveau 1 : bâtiment délabré, assombri ; p
 const bldScale = k => (SC.w < SC.h * .9 ? 1.15 : 1.35) * (k === "porte" ? .85 : 1); // bâtiments agrandis par rapport au décor de la cour (moins en portrait)
 // la Porte évolue avec l'histoire : chapitres vaincus 2 / 4 / 6 → bld_porte_2 / _3 / _4 (si peintes)
 const porteStage = () => { const n = typeof regionsCleared === "function" && S ? regionsCleared() : 0; return n >= 6 ? 4 : n >= 4 ? 3 : n >= 2 ? 2 : 1; };
-function bldArtName(k, lvl) { if (k === "porte") { for (let v = porteStage(); v >= 2; v--) if (artHas("bld_porte_" + v)) return "bld_porte_" + v; return "bld_porte"; } if (k !== "porte") for (const [n, v] of [[5, 3], [3, 2]]) if (lvl >= n && artHas("bld_" + k + "_" + v)) return "bld_" + k + "_" + v; return "bld_" + k; }
+function bldArtName(k, lvl) { if (k === "porte") { for (let v = porteStage(); v >= 2; v--) if (artHas("bld_porte_" + v)) return "bld_porte_" + v; return "bld_porte"; } if (k !== "porte") for (const [n, v] of [[10, 5], [8, 4], [5, 3], [3, 2]]) if (lvl >= n && artHas("bld_" + k + "_" + v)) return "bld_" + k + "_" + v; return "bld_" + k; }
 // taille affichée d'un bâtiment (sert au dessin et à la zone cliquable / étiquette)
 function bldDims(k, s, lvl) {
   const nm = bldArtName(k, lvl), im = artImg(nm) || artImg("bld_" + k); if (!im) return null;

@@ -213,5 +213,21 @@
   "chasseur_sorcieres": "MAHY79mDKkQ",
   "hallebardier": "MAHY75fJFHk",
   "exorciste": "MAHY8Kes4d8"
+ },
+ "t5ref": {
+  "templier": "MAHaJD9OhUE",
+  "pretresse": "MAHaJAMmLdo",
+  "revenant": "MAHaJE6TS8I",
+  "sorciere": "MAHaJNd6BBw",
+  "menestrel": "MAHaJKhOy9M",
+  "berserker": "MAHaJITlL4w",
+  "ombre": "MAHaJFRJtRk",
+  "arbaletriere": "MAHaJAiFQms",
+  "pyromancien": "MAHaJNqaums",
+  "necromancien": "MAHaJHP4DTU",
+  "gardien_runes": "MAHaJNecXMY",
+  "medecin_peste": "MAHaJANPhJ4",
+  "chasseur_sorcieres": "MAHaJNtFn68",
+  "hallebardier": "MAHaJKCkd8c"
  }
 }

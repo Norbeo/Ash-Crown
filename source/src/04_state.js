@@ -219,5 +219,11 @@ const potionMax = () => 2 + (S ? S.bld.chapelle : 1) + Math.floor(advA() / 12);
 const ROSTER_CAP = [0, 8, 16, 28, 44, Infinity]; // illimité au niveau maximal de la Taverne : chaque classe et chaque voie
 const rosterMax = () => ROSTER_CAP[Math.min(5, S.bld.taverne)] ?? Infinity;
 const skillRankMax = h => S.bld.academie + Math.floor(advA() / 15) + (h ? Math.floor(h.lvl / 10) : 0); // la Salle des maîtres, puis le niveau du héros : sans limite
-const fonderieRate = () => Math.round([0, 18, 34, 58, 90, 135][S.bld.fonderie] * (1 + .05 * advA())); // or par heure, +5 % par niveau d'aventure
-const fonderieCap = () => [0, 6, 8, 10, 12, 16][S.bld.fonderie] + Math.floor(advA() / 5); // heures, +1 h tous les 5 niveaux d'aventure
+// or par heure : base par niveau de Fonderie × (1 + 8 %/niveau d'aventure) × (1 + niveau du meilleur héros / 10)
+const FOND_BASE = [0, 60, 150, 320, 600, 1000, 1600, 2400, 3500, 5000, 7000], FOND_CAP = [0, 8, 10, 12, 14, 16, 18, 20, 22, 24, 24];
+const fondHeroMul = () => 1 + Math.max(0, ...((typeof S !== "undefined" && S && S.heroes) || []).map(h => h.lvl || 0)) / 10;
+const fonderieRateAt = l => Math.round(FOND_BASE[Math.min(10, l)] * (1 + .08 * advA()) * fondHeroMul());
+const fonderieRate = () => fonderieRateAt(S.bld.fonderie);
+const fonderieCap = () => FOND_CAP[Math.min(10, S.bld.fonderie)] + Math.floor(advA() / 5); // heures, +1 h tous les 5 niveaux d'aventure
+// dîme quotidienne de la Fonderie (une fois par jour)
+const fondTithe = (l = S.bld.fonderie) => { const a = 1 + advA() / 10; return { shards: Math.round(l * a), essence: Math.round(4 * l * a), fer: Math.round(15 * l * a), cendre: Math.round((l / 2) * a) }; };

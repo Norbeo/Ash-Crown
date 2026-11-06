@@ -108,7 +108,7 @@ if (typeof classChCodexHTML === "function") { const cc0 = classChCodexHTML; clas
 
 // 6 · Bastion doré au prestige (nouveaux cycles)
 if (typeof bldTinted === "function") { const bt0 = bldTinted; bldTinted = (im, lvl, k) => { const p = prestigeRank(); if (!p) return bt0(im, lvl, k); const key = k + "|" + lvl + "|" + im.width + "|p" + p; if (BLD_CACHE[key]) return BLD_CACHE[key];
-  const base = bt0(im, lvl, k), c = mkCanvas(base.width, base.height), x = c.getContext("2d"); x.drawImage(base, 0, 0); x.globalCompositeOperation = "source-atop"; const g = x.createLinearGradient(0, 0, 0, c.height); g.addColorStop(0, `rgba(255,215,110,${Math.min(.35, .12 + .06 * p)})`); g.addColorStop(1, "rgba(255,180,60,.05)"); x.fillStyle = g; x.fillRect(0, 0, c.width, c.height); return BLD_CACHE[key] = c; }; }
+  const base = bt0(im, lvl, k), c = mkCanvas(base.width, base.height), x = c.getContext("2d"); x.drawImage(base, 0, 0); x.globalCompositeOperation = "source-atop"; const g = x.createLinearGradient(0, 0, 0, c.height); g.addColorStop(0, `rgba(255,215,110,${Math.min(.1, .04 + .02 * p)})`); g.addColorStop(.35, "rgba(255,180,60,0)"); x.fillStyle = g; x.fillRect(0, 0, c.width, c.height); return BLD_CACHE[key] = c; }; }
 
 // 12 · Ironman (Options) : irréversible
 function ironmanHTML() { return `<div class="panel" style="padding:12px;margin-top:10px"><h3>${ico("skull", "#ff6a5a")} Mode Ironman</h3><p class="small dim">Morts définitives, pas de seconde chance après une défaite, pas d'import de sauvegarde. En échange, l'or et l'expérience sont doublés. Irréversible.</p>${S.ironman ? '<span class="tag bad">Ironman actif</span>' : '<button class="btn sm" data-a="ironOn">Activer le mode Ironman</button>'}</div>`; }

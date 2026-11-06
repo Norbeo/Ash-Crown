@@ -18,17 +18,19 @@ function bldTinted(im, lvl, k) { // niveau 1 : bâtiment délabré, assombri ; p
   const key = k + "|" + lvl + "|" + im.width; if (BLD_CACHE[key]) return BLD_CACHE[key];
   const c = mkCanvas(im.width, im.height), x = c.getContext("2d"); x.drawImage(im, 0, 0);
   const dark = Math.max(0, .5 - (lvl - 1) * .12); if (dark > 0) { x.globalCompositeOperation = "source-atop"; x.fillStyle = `rgba(12,8,14,${dark})`; x.fillRect(0, 0, c.width, c.height); }
-  if (lvl >= 4) { x.globalCompositeOperation = "source-atop"; const g = x.createLinearGradient(0, 0, 0, c.height); g.addColorStop(0, `rgba(255,200,110,${.05 * (lvl - 3)})`); g.addColorStop(1, "rgba(255,140,60,0)"); x.fillStyle = g; x.fillRect(0, 0, c.width, c.height); }
+  if (lvl >= 4) { x.globalCompositeOperation = "source-atop"; const g = x.createLinearGradient(0, 0, 0, c.height * .5); g.addColorStop(0, `rgba(255,200,110,${Math.min(.06, .02 * (lvl - 3))})`); g.addColorStop(1, "rgba(255,140,60,0)"); x.fillStyle = g; x.fillRect(0, 0, c.width, c.height); } // lueur discrète en haut : ne recolore plus l'illustration
   return BLD_CACHE[key] = c;
 }
 // illustration évolutive : bld_<k>_2 dès le niveau 3, bld_<k>_3 dès le niveau 5 (si peintes)
 const bldScale = k => (SC.w < SC.h * .9 ? 1.15 : 1.35) * (k === "porte" ? .85 : 1); // bâtiments agrandis par rapport au décor de la cour (moins en portrait)
-function bldArtName(k, lvl) { if (k !== "porte") for (const [n, v] of [[5, 3], [3, 2]]) if (lvl >= n && artHas("bld_" + k + "_" + v)) return "bld_" + k + "_" + v; return "bld_" + k; }
+// la Porte évolue avec l'histoire : chapitres vaincus 2 / 4 / 6 → bld_porte_2 / _3 / _4 (si peintes)
+const porteStage = () => { const n = typeof regionsCleared === "function" && S ? regionsCleared() : 0; return n >= 6 ? 4 : n >= 4 ? 3 : n >= 2 ? 2 : 1; };
+function bldArtName(k, lvl) { if (k === "porte") { for (let v = porteStage(); v >= 2; v--) if (artHas("bld_porte_" + v)) return "bld_porte_" + v; return "bld_porte"; } if (k !== "porte") for (const [n, v] of [[5, 3], [3, 2]]) if (lvl >= n && artHas("bld_" + k + "_" + v)) return "bld_" + k + "_" + v; return "bld_" + k; }
 // taille affichée d'un bâtiment (sert au dessin et à la zone cliquable / étiquette)
 function bldDims(k, s, lvl) {
   const nm = bldArtName(k, lvl), im = artImg(nm) || artImg("bld_" + k); if (!im) return null;
   const grow = k === "porte" ? 1 : .86 + Math.min(lvl, 8) * .035;
-  const hh = s * grow * bldScale(k) * (k === "porte" ? 1.62 : k === "academie" ? 2.0 : k === "chapelle" ? 1.9 : 1.3), sc = Math.min(hh / im.height, s * grow * bldScale(k) * 1.9 / im.width);
+  const hh = s * grow * bldScale(k) * (k === "porte" ? 1.62 : k === "academie" ? 2.0 : k === "chapelle" ? 1.9 : 1.3), sc = Math.min(hh / im.height, s * grow * bldScale(k) * (k === "porte" ? 1.5 : 1.9) / im.width); // la Porte évoluée est plus large : largeur bornée pour ne pas couvrir ses voisins
   return { im, nm, w: im.width * sc, h: im.height * sc };
 }
 function drawBuilding(x, k, bx, by, s, lvl, t) { // bâtiment peint : grandit, s'éclaire et se pare de bannières et de braseros à chaque niveau
@@ -53,7 +55,7 @@ SCREENS.bastion = {
   html: () => {
     const L = hubLayout(SC.w || innerWidth, SC.h || innerHeight);
     const names = { porte: "La Porte", ...Object.fromEntries(Object.keys(BUILDINGS).map(k => [k, bldName(k)])) };
-    const note = k => (k === "taverne" && S.heroes.length < 4) || (k === "fonderie" && idleBank() >= fonderieRate()) || (k === "academie" && S.heroes.some(h => h.lvl >= EVO_LVL && !h.evo)) || (k === "chapelle" && S.heroes.some(isInjured));
+    const note = k => (k === "taverne" && S.heroes.length < 4) || (k === "fonderie" && (idleBank() >= fonderieRate() || S.fondDay !== dayKey())) || (k === "academie" && S.heroes.some(h => h.lvl >= EVO_LVL && !h.evo)) || (k === "chapelle" && S.heroes.some(isInjured));
     const ct = S.daily.contracts || [];
     const off = $("#view") ? $("#view").getBoundingClientRect().top : 0;
     setTimeout(() => document.querySelectorAll(".hot .lbl").forEach(l => { l.style.transform = ""; const r = l.getBoundingClientRect(), d = r.left < 4 ? 4 - r.left : r.right > innerWidth - 4 ? innerWidth - 4 - r.right : 0; if (d) l.style.transform = `translateX(${d}px)`; }), 0); // étiquettes jamais coupées au bord de l'écran
@@ -80,11 +82,11 @@ ACT.dailyRun = () => { if (S.daily.done) return; const d = dailyRun(); UI.expe =
 function tutoHint(k, text) { if (S.tuto[k]) return; S.tuto[k] = 1; setTimeout(() => toast(`${ico("info", "#e8c878")} ${text}`), 700); }
 ACT.bld = k => { if (k === "porte") { sfx("door"); go("expe"); return; } sfx("open"); openBuilding(k); };
 function advBonusText(k) { const A = advA(); if (!A) return "Gagnez des niveaux d'aventure pour renforcer ce bâtiment.";
-  return { taverne: `+${Math.floor(A / 10)} recrue${Math.floor(A / 10) > 1 ? "s" : ""} · recrues +${Math.floor(A / 3)} niveaux`, forge: `meilleures qualités à la fabrication · améliorations −${Math.round(Math.min(.3, .01 * A) * 100)} %`, chapelle: `+${Math.floor(A / 12)} potion${Math.floor(A / 12) > 1 ? "s" : ""} · soins −${Math.round(Math.min(.4, .01 * A) * 100)} %`, academie: `rang de compétence +${Math.floor(A / 15)}`, menagerie: `expérience des compagnons +${3 * A} %`, fonderie: `production +${5 * A} % · réserve +${Math.floor(A / 5)} h` }[k] || ""; }
+  return { taverne: `+${Math.floor(A / 10)} recrue${Math.floor(A / 10) > 1 ? "s" : ""} · recrues +${Math.floor(A / 3)} niveaux`, forge: `meilleures qualités à la fabrication · améliorations −${Math.round(Math.min(.3, .01 * A) * 100)} %`, chapelle: `+${Math.floor(A / 12)} potion${Math.floor(A / 12) > 1 ? "s" : ""} · soins −${Math.round(Math.min(.4, .01 * A) * 100)} %`, academie: `rang de compétence +${Math.floor(A / 15)}`, menagerie: `expérience des compagnons +${3 * A} %`, fonderie: `production +${8 * A} % (et ×${fondHeroMul().toFixed(1)} selon le meilleur héros) · réserve +${Math.floor(A / 5)} h · dîme ×${(1 + A / 10).toFixed(1)}` }[k] || ""; }
 function bldFooter(k) {
   const B = BUILDINGS[k], c = bldCost(k), l = S.bld[k];
   const adv = `<div class="tiny" style="margin-top:6px">${ico("star", "#e8c878", 12)} <b>Bonus d'aventure</b> (niveau ${advLevel()}) : <span class="gold">${advBonusText(k)}</span></div>`;
-  const next = { taverne: `Caserne : ${capTxt(ROSTER_CAP[Math.min(5, l + 1)])} héros · ${3 + l} recrues mieux aguerries`, forge: `Palier d'armure ${l + 1} · amélioration jusqu'à +${(l + 1) * 2}`, chapelle: `${3 + l} potions par expédition · soins moins chers`, academie: `Rang de compétence maximal ${l + 1}`, menagerie: `${capTxt(PET_CAP[Math.min(5, l + 1)])} compagnons`, fonderie: `${Math.round([0, 18, 34, 58, 90, 135][l + 1] * (1 + .05 * advA()))} or/h, réserve ${[0, 6, 8, 10, 12, 16][l + 1] + Math.floor(advA() / 5)} h` }[k];
+  const next = { taverne: `Caserne : ${capTxt(ROSTER_CAP[Math.min(5, l + 1)])} héros · ${3 + l} recrues mieux aguerries`, forge: `Palier d'armure ${l + 1} · amélioration jusqu'à +${(l + 1) * 2}`, chapelle: `${3 + l} potions par expédition · soins moins chers`, academie: `Rang de compétence maximal ${l + 1}`, menagerie: `${capTxt(PET_CAP[Math.min(5, l + 1)])} compagnons`, fonderie: `${fmt(fonderieRateAt(l + 1))} or/h, réserve ${FOND_CAP[Math.min(10, l + 1)] + Math.floor(advA() / 5)} h, dîme : ${(t => `${t.shards} éclats, ${t.essence} ess., ${t.fer} fer, ${t.cendre} cendre`)(fondTithe(l + 1))}` }[k];
   return adv + `<div class="sep"></div><div class="row sp"><div><b>${bldName(k)}</b> <span class="gold">niveau ${l}</span>${c ? `<div class="small dim">Niveau ${l + 1} : ${next}</div><div class="tiny ${bldAdvOk(k) ? "good" : "bad"}">Niveau d'aventure ${bldAdvReq(k)} requis (actuel : ${advLevel()})${k === "forge" ? ` — ou un héros de niveau ${TIER_LVL[l + 1] || "—"}${forgeHeroOk() ? " ✓" : ""}` : ""}</div>` : '<div class="small good">Niveau maximal</div>'}</div>${c ? `<button class="btn gold sm ${canPay(c) && bldAdvOk(k) ? "" : "off"}" data-a="upBld" data-v="${k}">${ico("up")}${c.gold} ${ico("coin", "#e8c060")}${c.shards ? ` ${c.shards} ${ico("shard", "#c090ff")}` : ""}</button>` : ""}</div>`;
 }
 ACT.upBld = k => { const r = upgradeBld(k); if (r.err) return toast(r.err, "bad"); sfx("forge"); toast(`${bldName(k)} : niveau ${S.bld[k]} !`, "good"); save(); renderHud(); if (UI.screen === "bastion") refresh(); /* étiquettes du Bastion à jour */ const L = (BLD_SCENES[k] || {})[S.bld[k]]; if (L) showLines(`${BUILDINGS[k].n} — niveau ${S.bld[k]}`, L, () => openBuilding(k)); else openBuilding(k); };
@@ -128,7 +130,7 @@ function openBuilding(k, tab) {
   }
   if (k === "fonderie") {
     const b = idleBank();
-    body = `<p class="lore">Les âmes des morts brûlent ici, et leur chaleur se change en or. Elle travaille même quand vous dormez.</p><div class="row sp card" style="cursor:default"><div><div class="small dim">Réserve</div><div style="font-size:28px;font-family:var(--f-head)" class="gold">${fmt(b)} or</div><div class="small dim">${fonderieRate()} or par heure · réserve pleine en ${fonderieCap()} h</div></div><button class="btn main ${b > 0 ? "glow" : "off"}" data-a="collect">${ico("coin")}Récolter</button></div>`;
+    body = `<p class="lore">Les âmes des morts brûlent ici, et leur chaleur se change en or. Elle travaille même quand vous dormez.</p><div class="row sp card" style="cursor:default"><div><div class="small dim">Réserve</div><div style="font-size:28px;font-family:var(--f-head)" class="gold">${fmt(b)} or</div><div class="small dim">${fmt(fonderieRate())} or par heure · réserve pleine en ${fonderieCap()} h</div></div><button class="btn main ${b > 0 ? "glow" : "off"}" data-a="collect">${ico("coin")}Récolter</button></div>${(() => { const t = fondTithe(), got = S.fondDay === dayKey(); return `<div class="row sp card" style="cursor:default;margin-top:6px"><div><div class="small"><b>Dîme du jour</b></div><div class="tiny dim">${t.shards} éclats · ${t.essence} essence · ${t.fer} fer · ${t.cendre} cendre — grandit avec la Fonderie et le niveau d'aventure</div></div><button class="btn sm ${got ? "off" : "gold glow"}" data-a="tithe">${got ? "Reçue" : "Recevoir"}</button></div>`; })()}`;
   }
   modal(`<h2>${ico(B.ic, "#e8c878")} ${B.n}</h2>${body}${bldFooter(k)}`, { wide: 1, mount: m => fillCanvases(m, (c, id) => { const p = id.split(":"); if (p[0] === "r") paintHero(c, S.recruits[+p[1]], true); if (p[0] === "lg") { const L = legendById(p[1]); if (L) paintHero(c, { cls: L.cls, lvl: 20, gear: { wpn: { tier: 5, rar: legendRoll(L.id).rar }, arm: { tier: 5, rar: legendRoll(L.id).rar } }, look: { skin: SKINS[1], hair: 1, hairCol: HAIRCOL[1], beard: 0 }, traits: [], name: L.name }, true); } if (p[0] === "h") paintHero(c, heroById(p[1])); if (p[0] === "p") paintPet(c, p[1], p[2] === "1"); if (p[0] === "tier") { const x = c.getContext("2d"); const sp = heroSprite({ cls: p[1], tier: +p[2], wtier: +p[2], evo: p[3] || null, skin: SKINS[1], hair: 1, hairCol: HAIRCOL[1], beard: 0 }, {}, 0, c.width / 230 * 1.2); x.drawImage(sp, c.width / 2 - sp.ax, c.height - 4 - sp.ay); } if (p[0] === "it") paintItem(c, findItem(p[1])); }) });
   UI.bldOpen = k; UI.inBld = true;
@@ -144,6 +146,7 @@ ACT.craft = v => { const [c, kind, t, evo] = v.split(":"); const r = craft(c, ki
 ACT.recruit = i => { const r = recruit(+i); if (r.err) return toast(r.err, "bad"); sfx("coin"); toast(`${esc(r.ok.name)} rejoint le Bastion.`, "good"); save(); renderHud(); openBuilding("taverne"); };
 ACT.reroll = () => { if (!rerollRecruits()) return toast("Pas assez d'or.", "bad"); save(); renderHud(); openBuilding("taverne"); };
 ACT.heal = id => { if (!healInjured(id)) return toast("Pas assez d'or.", "bad"); sfx("heal"); save(); renderHud(); openBuilding("chapelle"); };
+ACT.tithe = () => { if (S.fondDay === dayKey()) return toast("Dîme déjà reçue aujourd'hui.", "bad"); const t = fondTithe(); S.fondDay = dayKey(); S.shards = (S.shards || 0) + t.shards; S.mats.essence += t.essence; S.mats.fer += t.fer; S.mats.cendre += t.cendre; sfx("coin"); save(); renderHud(); toast(`Dîme : +${t.shards} éclats, +${t.essence} essence, +${t.fer} fer, +${t.cendre} cendre`, "good"); openBuilding("fonderie"); };
 ACT.collect = () => { const v = collectBank(); if (v <= 0) return; sfx("coin"); toast(`+${v} or`, "good"); save(); renderHud(); openBuilding("fonderie"); };
 ACT.setPet = id => { S.pet = id; save(); openBuilding("menagerie"); };
 ACT.adopt = id => { const r = adoptPet(id); if (r.err) return toast(r.err, "bad"); sfx("level"); toast(`${PETS[id].n} vous rejoint !`, "good"); save(); renderHud(); openBuilding("menagerie"); };

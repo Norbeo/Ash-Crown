@@ -253,7 +253,7 @@ const BUILDINGS = {
   chapelle: { n: "Chapelle en ruine", nl: [[5, "Cathédrale de l'Aube"], [3, "Chapelle restaurée"]], ic: "chapel", d: "Soignez les blessés. Chaque niveau ajoute une potion par expédition.", max: 5, cost: [0, 200, 600, 1400, 3000], shards: [0, 0, 1, 2, 3] },
   academie: { n: "Salle des maîtres", ic: "book", d: "Entraînez les compétences. Chaque niveau élève le rang maximal des compétences.", max: 5, cost: [0, 300, 800, 1800, 3600], shards: [0, 1, 1, 2, 4] },
   menagerie: { n: "Ménagerie", ic: "paw", d: "Adoptez et entraînez des compagnons.", max: 5, cost: [0, 250, 700, 1600, 3200], shards: [0, 0, 1, 2, 3] },
-  fonderie: { n: "Fonderie d'âmes", ic: "furnace", d: "Elle produit de l'or même quand vous êtes absent.", max: 5, cost: [0, 200, 600, 1500, 3000], shards: [0, 0, 1, 2, 3] },
+  fonderie: { n: "Fonderie d'âmes", ic: "furnace", d: "Elle produit de l'or même quand vous êtes absent, et verse chaque jour une dîme d'éclats, d'essence, de fer et de cendre.", max: 10, cost: [0, 200, 600, 1500, 3000, 8000, 16000, 32000, 64000, 128000], shards: [0, 0, 1, 2, 3, 5, 8, 12, 18, 25] },
 };
 // succès
 const ACHIEVEMENTS = [

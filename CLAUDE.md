@@ -128,6 +128,8 @@ Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
 - 6 nov. : noms (`37zzz_names.js`) — ~50 prénoms masculins et féminins et 24 surnoms dark fantasy de plus ; légendes, légendes de voie et Mythes nommés au hasard une fois par partie (`lgName`, `S.lgNames`, titres `LG_HONOR`, épithètes `LG_EPI_PAIRS`/`MYTH_TITLES` sans doublon), toujours au sexe de la classe (`CLASS_FEMALE`) ; récits accordés (`LG_TALES_G`, `LG_STORY_FIX`) ; anciens héros mal genrés renommés une fois (`lgFixHeroes`, `S.lgFix`).
 - 6 nov. (v129) : jauge d'ultime conservée entre les combats d'une expédition (`run.ult`) ; mode auto de la carte mémorisé (`S.opts.autoMap`) ; Forge VII–X : noms `TIER_N` jusqu'à Absolu, bouton d'armure de voie au bon palier (avant : toujours VI), accords `TIER_PRE_F` ; armures de voie par palier `hero_<classe>_<voie>_t7…t10` (`heroArtName`, repli palier inférieur puis `hero_<classe>_<voie>` = VI) regroupées par classe dans `assets/hx_<classe>.webp` (`art/mkatlas2.py`, lancé par build.sh ; `art/classes.json`).
 
+- 6 nov. (v130) : armures de voie VI–IX en cours (file /tmp/claude-0/canva/ART7.md) — silhouette étroite obligatoire (largeur ≤ 0,85 × hauteur), continuité avec le palier V (2e référence `canva.json hero <classe>_t5`) ; `heroImgSprite` maxW 165 (plafond de largeur en combat). Templier Bastion refait.
+
 ## Reste à faire (prochaine séance)
 0. Art en attente (quota Canva) : ART5.md T6 hallebardier, M1 portraits marchands ; puis illustration palier X par classe (VII–IX = VI). Republier ensuite (sw.js + assets).
 1. (Armures V : fait.) Gardiens de menace II–V : déjà présents (`THREAT_BOSS`) — à confirmer avec l'utilisateur s'il en veut d'autres.

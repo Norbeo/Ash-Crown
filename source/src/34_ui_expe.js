@@ -105,18 +105,18 @@ SCREENS.map = {
       <div class="row" style="justify-content:center;gap:6px;margin-top:6px;flex-wrap:nowrap">${party.map(h => { const mx = heroStats(h, relicHooks(run)).hp, hp = h.hp == null ? mx : h.hp, fallen = run.fallen.includes(h.id); return `<div class="panel" style="padding:4px;width:84px;text-align:center;${fallen ? "filter:grayscale(1) brightness(.5)" : ""}">${canvasSlot("mh:" + h.id, 64, 64)}<div class="tiny"><b>${esc(h.name.split(" ")[0])}</b></div><div class="bar" style="height:6px"><i style="width:${100 * hp / mx}%"></i></div><div class="tiny dim">${fallen ? "Tombé" : hp + "/" + mx}</div></div>`; }).join("")}</div>
       <p class="tiny dim" style="text-align:center">${run.region === "abime" ? "Chaque gardien vaincu ouvre un passage plus profond." : "Atteignez le gardien au bout du chemin."} Touchez une salle lumineuse pour avancer.</p></div>`;
   },
-  mount: () => { fillCanvases($("#view"), (c, id) => id === "mapbg" ? paintMapBg(c, S.run, UI.mapWH[0], UI.mapWH[1], UI.mapPos) : paintHero(c, heroById(id.split(":")[1]))); resumeNode(); mapAutoTick(); tutoHint("map", "Choisissez votre chemin : <b>combats</b>, <b>mystères</b>, <b>trésors</b>, <b>feux de camp</b>… La lueur baisse à chaque salle."); },
+  mount: () => { fillCanvases($("#view"), (c, id) => id === "mapbg" ? paintMapBg(c, S.run, UI.mapWH[0], UI.mapWH[1], UI.mapPos) : paintHero(c, heroById(id.split(":")[1]))); resumeNode(); mapAutoTick(); if (S.run && S.run.autoMap && !UI.autoLoop && typeof autoMapLoop === "function") autoMapLoop(); tutoHint("map", "Choisissez votre chemin : <b>combats</b>, <b>mystères</b>, <b>trésors</b>, <b>feux de camp</b>… La lueur baisse à chaque salle."); },
   resize: () => refresh(),
 };
 ACT.relicInfo = k => toast(`<b>${RELICS[k].n}</b><br><span class="small">${gl(RELICS[k].d)}</span>`);
 ACT.runPause = () => { const run = S.run; if (!run) return; if (UI.resolving || !$("#modal").hidden || UI.screen !== "map") return toast("Terminez d'abord la salle en cours.", "bad"); clearTimeout(UI.mapAutoT); run.autoMap = 0; run.paused = 1; save(); go("bastion"); toast(`${ico("hourglass", "#e8c878", 14)} Expédition en pause. Passez par la Porte pour la reprendre ; aucune autre expédition ne peut partir d'ici là.`, ""); };
 ACT.runResume = () => { if (!S.run) return; S.run.paused = 0; save(); go("map"); };
-ACT.mapAuto = () => { const run = S.run; if (!run) return; run.autoMap = run.autoMap ? 0 : 1; save(); refresh(); if (run.autoMap) mapAutoTick(); };
+ACT.mapAuto = () => { const run = S.run; if (!run) return; run.autoMap = run.autoMap ? 0 : 1; save(); refresh(); if (run.autoMap) { mapAutoTick(); if (typeof autoMapLoop === "function") autoMapLoop(); } };
 // carte automatique : choisit la prochaine salle (feu de camp si le groupe est mal en point, puis élite, trésor, mystère, colporteur, combat)
 function mapAutoPick(run) {
   const av = availableNodes(run); if (!av.length) return null;
   const party = runParty().filter(h => !run.fallen.includes(h.id)), hpr = party.length ? party.reduce((a, h) => { const mx = heroStats(h, relicHooks(run)).hp; return a + (h.hp == null ? 1 : h.hp / mx); }, 0) / party.length : 1;
-  const pr = { camp: hpr < .55 ? 100 : 20, boss: 90, elite: hpr > .7 ? 60 : 5, treasure: 55, event: 45, shop: run.gold > 150 ? 40 : 15, combat: 35 };
+  const pr = { camp: hpr < .55 ? 100 : 20, boss: 90, elite: hpr > .7 ? 60 : 5, treasure: 55, event: 45, shop: 1, combat: 35 }; // colporteur évité : il arrêterait le mode auto
   return av.slice().sort((a, b) => (pr[b.type] || 30) - (pr[a.type] || 30))[0];
 }
 function mapAutoTick() {

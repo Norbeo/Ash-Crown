@@ -197,7 +197,7 @@ function cropDraw(src, W, pad) { // recadre au plus juste puis centre dans un ca
 function itemArt(it) {
   if (!HASWIN || !it) return "";
   const bust = it.kind === "arm" ? heroArt({ cls: it.cls, tier: it.tier, evo: it.evo }) : null;
-  const wim = it.kind === "wpn" ? artImg("wpn_" + CLASSES[it.cls].wpn) : null, tim = it.kind === "tr" ? artImg("tr_" + it.key) : null;
+  const wim = it.kind === "wpn" ? artImg("wpn_" + CLASSES[it.cls].wpn) : null, tim = it.kind === "tr" ? artImg("tr_" + ((TRINKETS[it.key] && TRINKETS[it.key].art) || it.key)) : null;
   const key = (it.kind === "tr" ? "tr|" + it.key + "|" + it.rar : [it.kind, it.cls, it.tier, it.rar, it.evo || ""].join("|")) + (bust || wim || tim ? "|i" : "");
   if (ITEM_ART[key]) return ITEM_ART[key];
   const W = 112;

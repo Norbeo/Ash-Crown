@@ -91,7 +91,7 @@ function makeGear(kind, cls, tier, rar, key, evo) {
   const it = { id: uid("i"), kind, tier: clamp(tier, 1, TIER_MAX), rar: clamp(rar, 0, RARITY.length - 1), up: 0, aff: [] };
   if (kind === "arm" && it.tier >= 6 && evo) it.evo = evo; // armure Ascendante : propre à une voie d'évolution
   if (kind === "tr") {
-    let pool = []; for (let q = rar; q >= 0 && !pool.length; q--) pool = Object.keys(TRINKETS).filter(k => TRINKETS[k].r === q); // qualité sans bibelot : la plus proche en dessous
+    const TK = Object.keys(TRINKETS).filter(k => !TRINKETS[k].uniq); let pool = []; for (let w = 2; pool.length < 12 && w <= 9; w++) pool = TK.filter(k => TRINKETS[k].r <= rar && TRINKETS[k].r >= rar - w); // variété : bibelots de la qualité tirée et jusqu'à quelques crans en dessous (amplifiés de +20 %/cran)
     it.key = key || pick(pool.length ? pool : Object.keys(TRINKETS)); it.rar = Math.max(clamp(rar, 0, RARITY.length - 1), TRINKETS[it.key].r); it.rarT = it.rar; it.tier = 1; // la qualité tirée est conservée
   } else it.cls = cls;
   const nAff = kind === "tr" ? 0 : RARITY[it.rar].aff;

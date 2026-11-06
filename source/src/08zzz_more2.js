@@ -61,3 +61,34 @@ const COLL_ACH = [
 if (typeof HIDDEN_ACH !== "undefined") for (const A of COLL_ACH) if (!HIDDEN_ACH.some(a => a.id === A.id)) HIDDEN_ACH.push(Object.assign({ coll: 1 }, A));
 function collAchCheck() { const got = []; for (const A of COLL_ACH) { try { if (A.ok()) { const r = hiddenAch(A.id); if (r) got.push(r); } } catch (e) { } } return got; }
 { const he0 = hiddenEndRun; hiddenEndRun = function (run, outcome, res) { const r = he0.apply(this, arguments); try { if (res) res.hidden = (res.hidden || []).concat(collAchCheck()); } catch (e) { } return r; }; }
+
+// ── Bibelots uniques : chaque gardien a son propre accessoire (deux effets de bibelots réunis), jamais tiré au hasard ──
+{ const base = Object.keys(TRINKETS).filter(k => !TRINKETS[k].uniq && TRINKETS[k].r >= 2), used = new Set(); let i = 0;
+  for (const [bk, U] of Object.entries(typeof UNIQ !== "undefined" ? UNIQ : {})) { if (U.kind !== "tr") continue;
+    let h = hashStr("uniq:" + bk), a, b, tries = 0;
+    do { a = base[(h + tries) % base.length]; b = base[(Math.floor(h / 7) + tries * 3 + 1) % base.length]; tries++; } while ((a === b || used.has(a + "|" + b) || TRINKETS[a].pas.some(p => TRINKETS[b].pas.some(q => q.k === p.k && q.s === p.s))) && tries < 60);
+    used.add(a + "|" + b); i++;
+    const A = TRINKETS[a], B = TRINKETS[b];
+    TRINKETS["u_" + bk] = { n: U.n, r: 4, ic: A.ic, art: a, uniq: bk, pas: A.pas.concat(B.pas.map(p => typeof p.v === "number" ? Object.assign({}, p, { v: Math.round(p.v * .75 * 100) / 100 }) : p)), d: A.d + " " + B.d.replace(/(\d+(?:[.,]\d+)?)/, m => String(Math.max(1, Math.round(parseFloat(m.replace(",", ".")) * .75)))) };
+  } }
+{ const ud0 = uniqueDrop; uniqueDrop = function (bk, lvl, first) { const it = ud0.apply(this, arguments); const key = "u_" + (typeof bossBase === "function" ? bossBase(bk) : bk);
+    if (it && it.kind === "tr" && TRINKETS[key]) { it.key = key; it.rar = Math.max(4, it.rar); it.rarT = it.rar; } return it; }; }
+// les variantes de gardien laissent l'objet unique de leur gardien d'origine
+if (typeof UNIQ !== "undefined") for (const k of Object.keys(MONSTERS)) { const b = MONSTERS[k].variantOf; if (b && UNIQ[b] && !UNIQ[k]) UNIQ[k] = UNIQ[b]; }
+
+// ── Gravure de panoplie (Forge) : comme l'enchantement, on choisit la panoplie gravée sur un objet Légendaire ou mieux ──
+function engraveCost(it) { return { gold: 400 * (it.tier || 1) + 250 * Math.max(0, it.rar - 3), shards: Math.max(2, it.rar - 2) }; }
+function engraveDo(it, set) { if (!it || it.rar < 4 || !SETS[set] || it.set === set) return { err: "Impossible." }; const c = engraveCost(it); if (S.gold < c.gold || (S.shards || 0) < c.shards) return { err: `Il faut ${fmt(c.gold)} or et ${c.shards} éclats.` }; S.gold -= c.gold; S.shards -= c.shards; it.set = set; return { ok: 1 }; }
+
+// ── Marques de gardien propres à chaque gardien vaincu (et non au chapitre) ──
+const MARK_UP = [["dmg", .1, "+10 % de dégâts"], ["hp", .1, "+10 % de PV"], ["prot", .08, "+8 % de protection"], ["res", 15, "+15 de résistance"], ["crit", 8, "+8 de critique"], ["acc", 10, "+10 de précision"], ["dodge", 8, "+8 d'esquive"], ["spd", 2, "+2 de vitesse"], ["healPow", .15, "+15 % de soins prodigués"]];
+const MARK_DOWN = [["hp", -.08, "−8 % de PV"], ["dodge", -6, "−6 d'esquive"], ["spd", -2, "−2 de vitesse"], ["acc", -5, "−5 de précision"], ["res", -8, "−8 de résistance"], ["prot", -.05, "−5 % de protection"], ["crit", -5, "−5 de critique"], ["dmg", -.06, "−6 % de dégâts"]];
+const MARK_WORDS = ["Marque", "Stigmate", "Sceau", "Empreinte", "Cicatrice", "Souillure"];
+{ const storyMark = {}; for (const R of REGIONS) if (R.boss && GUARD_MARKS[R.id]) storyMark[R.boss] = GUARD_MARKS[R.id];
+  for (const k of Object.keys(MONSTERS)) { const M = MONSTERS[k]; if (!M.boss || M.variantOf) continue; const key = "b:" + k;
+    if (storyMark[k]) { GUARD_MARKS[key] = Object.assign({ boss: k }, storyMark[k]); continue; }
+    const h = hashStr("mark:" + k), U = MARK_UP[h % MARK_UP.length]; let D = MARK_DOWN[Math.floor(h / 13) % MARK_DOWN.length]; if (D[0] === U[0]) D = MARK_DOWN[(Math.floor(h / 13) + 1) % MARK_DOWN.length];
+    const N = M.n || k, of = /^Le /.test(N) ? "du " + N.slice(3) : /^Les /.test(N) ? "des " + N.slice(4) : /^La /.test(N) ? "de la " + N.slice(3) : /^L'/.test(N) ? "de l'" + N.slice(2) : (/^[AEIOUÉÈaeiouéè]/.test(N) ? "d'" : "de ") + N;
+    GUARD_MARKS[key] = { boss: k, n: MARK_WORDS[Math.floor(h / 7) % MARK_WORDS.length] + " " + of, d: `${U[2]}, mais ${D[2]}.`, pas: [{ k: "stat", s: U[0], v: U[1] }, { k: "stat", s: D[0], v: D[1] }] }; } }
+function bossMarkKey(run) { const last = run && run.map && run.map[run.map.length - 1], bn = last && last.find(n => n.type === "boss"); const b = bn && bn.enc && bn.enc.find(e => MONSTERS[e.key] && MONSTERS[e.key].boss);
+  if (b) { const base = typeof bossBase === "function" ? bossBase(b.key) : b.key; if (GUARD_MARKS["b:" + base]) return "b:" + base; } return run ? run.region : null; }

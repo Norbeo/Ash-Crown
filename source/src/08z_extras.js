@@ -97,7 +97,7 @@ function extrasEndRun(run, outcome, res) {
   for (const h of party) if (h.lvl >= 3 && (!h.quest || h.quest.done) && chance(.34)) { const q = questFor(h); if (q) { h.quest = q; fresh.push(h); } }
   res.quests = done.map(d => ({ name: d.h.name, trait: d.trait })); res.newQuests = fresh.map(h => ({ name: h.name, q: questText(h.quest), n: QUESTS[h.quest.k].n }));
   // marque du gardien vaincu
-  if (outcome === "victory" && !run.rush && GUARD_MARKS[run.region]) { res.marks = []; for (const h of party) if (!run.fallen.includes(h.id) && !h.mark) { h.mark = run.region; res.marks.push(h.name); } if (res.marks.length) res.mark = GUARD_MARKS[run.region]; }
+  { const mk = typeof bossMarkKey === "function" ? bossMarkKey(run) : run.region; if (outcome === "victory" && !run.rush && GUARD_MARKS[mk]) { res.marks = []; for (const h of party) if (!run.fallen.includes(h.id) && !h.mark) { h.mark = mk; res.marks.push(h.name); } if (res.marks.length) res.mark = GUARD_MARKS[mk]; } }
   // saison de l'Abîme
   if (run.region === "abime" && S.season) { S.season.best = Math.max(S.season.best, run.floor - (outcome === "victory" ? 0 : 1)); if (S.season.best >= 10 && !S.season.claimed) { S.season.claimed = 1; const it = makeGear("tr", null, 1, TRINKETS[S.season.relic].r, S.season.relic); S.inv.push(it); S.shards += 3; res.season = { it }; } }
   // boss rush

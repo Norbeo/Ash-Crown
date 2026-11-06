@@ -140,6 +140,8 @@ Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
 
 - 6 nov. (v147) : monstres à l'intérieur opaque — `/tmp/claude-0/canva/solid.py` (depuis `cut_bak/`, comble les zones translucides et les petits trous dans la silhouette, garde les grands vides comme l'intérieur d'un arc, retire les fragments isolés ; anguille_ombre exclue) ; amélioration d'objet visible aussitôt dans la fenêtre d'équipement (`UI.gsV` → `ACT.gearSlot` relancé par `ACT.upItem`).
 
+- 6 nov. (v148) : bibelots variés (`makeGear` tr : bibelots de la qualité tirée jusqu'à quelques crans en dessous, au moins 12 au choix, hors uniques) ; bibelot unique propre à chaque gardien (`TRINKETS["u_"+gardien]`, deux effets réunis, `art` = icône de base, `uniqueDrop` enveloppé ; variantes → objet de leur gardien d'origine) ; gravure de panoplie à la Forge (`engraveCost`/`engraveDo`, `ACT.engraveList/engrave/engraveDo`, Légendaire+, armes/armures/bibelots) ; gemmes serties d'un toucher depuis l'onglet Gemmes (`gemPick`/`gemPut`, `gemTargets`) ; marques de gardien propres au gardien vaincu (`GUARD_MARKS["b:"+gardien]`, `bossMarkKey(run)`, gardiens d'histoire = anciennes marques de chapitre, autres générées par `MARK_UP`/`MARK_DOWN`).
+
 ## Reste à faire (prochaine séance)
 0. Art en attente (quota Canva) : ART8.md (armures de voie VI–IX, refaites à partir du palier V ; V1 fait) ; puis illustration palier X par classe (VII–IX = VI). Republier ensuite (sw.js + assets).
 1. (Armures V : fait.) Gardiens de menace II–V : déjà présents (`THREAT_BOSS`) — à confirmer avec l'utilisateur s'il en veut d'autres.

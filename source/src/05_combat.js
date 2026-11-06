@@ -26,7 +26,7 @@ function monUnit(key, lvl, mods = {}) {
   // difficulté : les combats ordinaires mordent dès le chapitre II, les derniers gardiens sont de vrais murs
   const late = eL >= 11 ? 1 : 0, early = eL <= 3 ? 1 : 0;
   const hpM = 1.2 * (1 + (M.boss ? .12 : .2) * L) * (mods.hp || 1) * (M.boss ? (1 + (mods.bossHp || 0)) * (late ? 1.75 : 1) : early ? 1 : 1.2),
-    dM = 1.4 * (1 + .11 * L) * (mods.dmg || 1) * (M.boss ? (late ? 1.38 : 1.1) : early ? 1.08 : 1.45);
+    dM = 1.4 * (1 + .11 * L) * (mods.dmg || 1) * (M.boss ? (late ? 1.38 : 1.1) * (1 + (mods.bossDmg || 0)) : early ? 1.08 : 1.45);
   const u = { uid: uid("E"), side: "e", key, name: M.name || M.n, art: M.art, tags: M.tags, sz: M.sz || 1, boss: !!M.boss, elite: !!M.elite, lvl,
     hpMax: Math.round(M.hp * hpM), dmgLo: Math.max(1, Math.round(M.dmg[0] * dM)), dmgHi: Math.max(2, Math.round(M.dmg[1] * dM)), prot: clamp(M.prot + (mods.prot || 0), 0, .7),
     spd: M.spd + Math.floor(L / 5) + (mods.spd || 0), crit: 4 + L * .3, dodge: M.dodge + L * .4, acc: 90 + L * .7, res: (M.res || 15) + L * 1.4, healPow: 1, leech: 0, hooks: {},
@@ -45,6 +45,7 @@ function stSum(u, k) { let v = 0; for (const s of u.st) if (s.k === k) v += s.v 
 function hasSt(u, k) { return u.st.some(s => s.k === k); }
 
 // ── création d'un combat ──
+const ENRAGE_STEP = .08;
 function newBattle(heroes, enemyKeys, opt = {}) {
   const relicH = opt.relicH || {};
   const B = { heroes: heroes.map(h => heroUnit(h, relicH)), enemies: [], fallen: [], round: 0, order: [], turn: -1, morale: clamp(50 + (relicH.morale || 0) + (opt.morale || 0), 0, 100),
@@ -68,6 +69,9 @@ function startRound(B) {
   // rage : un combat qui s'éternise devient de plus en plus mortel (pas d'impasse)
   if (B.round > 14) for (const e of B.enemies.filter(alive)) { const r = e.st.find(z => z.k === "dmgUp" && z.rage); if (r) { r.v += .12; r.t = 99; } else e.st.push({ k: "dmgUp", v: .12, t: 99, rage: 1 }); }
   if (B.round === 15) B.rageMsg = 1;
+  // enrage des gardiens : dès le tour 9, chaque tour ajoute +8 % de dégâts (cumulés) — un groupe trop faible ne peut plus gagner à l'usure
+  if (B.round >= 9) for (const e of B.enemies.filter(x => alive(x) && x.boss)) { const r = e.st.find(z => z.k === "dmgUp" && z.enrage); if (r) { r.v += ENRAGE_STEP; r.t = 99; } else e.st.push({ k: "dmgUp", v: ENRAGE_STEP, t: 99, enrage: 1 }); }
+  if (B.round === 9 && B.enemies.some(x => alive(x) && x.boss)) B.enrageMsg = 1;
   if (B.relicH.roundHeal) for (const h of B.heroes.filter(alive)) healUnit(B, null, h, h.hpMax * B.relicH.roundHeal, []);
   terrainRound(B);
   planIntents(B);

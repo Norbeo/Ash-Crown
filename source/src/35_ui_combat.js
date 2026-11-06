@@ -77,6 +77,7 @@ async function combatLoop() {
   const B = CB.B;
   while (B && !B.over && CB.B === B) {
     startRound(B); cbTopLeft();
+    if (B.enrageMsg === 1) { B.enrageMsg = 2; await showBanner("Le gardien s'enrage", "+8 % de dégâts à chaque tour : achevez-le vite", "#ff6a2a", 1100); }
     if (B.rageMsg === 1) { B.rageMsg = 2; await showBanner("Rage !", "Les ennemis frappent plus fort, mais se soignent moins", "#ff3a2a", 1100); }
     let u;
     while (!B.over && CB.B === B && (u = nextActor(B))) {

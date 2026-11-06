@@ -3,8 +3,12 @@ SCREENS.heroes = {
   title: "Les Héros", tab: "heroes",
   scene: () => backdrop("bastion", { dark: .55 }),
   html: () => {
-    const hs = S.heroes.slice().sort((a, b) => b.lvl - a.lvl);
+    const tab = ["all", "tank", "soin", "soutien", "dps"].includes(UI.heroTab) ? UI.heroTab : "all";
+    const hs = S.heroes.filter(h => tab === "all" || CLASSES[h.cls].role === tab).sort((a, b) => b.lvl - a.lvl || a.cls.localeCompare(b.cls));
+    const cnt = r => S.heroes.filter(h => r === "all" || CLASSES[h.cls].role === r).length;
+    const tb = (k, n) => `<button class="btn sm ${tab === k ? "gold" : "ghost"}" data-a="heroTab" data-v="${k}">${n} (${cnt(k)})</button>`;
     return `<div class="wrap"><div class="row sp"><h1>La Compagnie</h1><span class="small dim">${S.heroes.length}/${capTxt(rosterMax())} héros</span></div>
+    <div class="row" style="gap:4px;margin:4px 0 8px;flex-wrap:wrap">${tb("all", "Tous")}${tb("tank", "Tanks")}${tb("soin", "Soigneurs")}${tb("soutien", "Soutiens")}${tb("dps", "Dégâts")}</div>
     <div class="grid" style="--min:250px">${hs.map(h => { const C = CLASSES[h.cls]; return `<div class="card" data-go="hero" data-arg="${h.id}"><div class="row" style="gap:10px;flex-wrap:nowrap">${canvasSlot("h:" + h.id, 84, 84)}<div style="flex:1;min-width:0"><h3 style="margin:0">${esc(h.name)}</h3><div class="small gold">${heroTitle(h)}</div><div class="row" style="gap:4px;margin:3px 0">${roleTag(C.role)}<span class="tag">niv ${h.lvl}</span>${isInjured(h) ? '<span class="tag bad">Blessé</span>' : ""}${h.lvl >= EVO_LVL && !h.evo ? '<span class="tag gold">Évolution !</span>' : ""}</div><div class="bar xp"><i style="width:${h.lvl >= MAX_LVL ? 100 : 100 * h.xp / xpNeed(h.lvl)}%"></i></div><div class="row sp" style="margin-top:3px"><span class="tiny dim">Puissance ${heroPower(h)} · ${h.kills} victimes</span>${hubShowBtn(h)}</div></div></div></div>`; }).join("")}</div>
     <div class="row" style="margin-top:12px"><button class="btn" data-a="openInv">${ico("chest")}Inventaire (${S.inv.length})</button><button class="btn ghost" data-a="bld" data-v="taverne">${ico("tavern")}Recruter</button></div></div>`;
   },
@@ -115,3 +119,5 @@ function petSheet(id, foot = "") {
 }
 ACT.petInfo = (id, el, e) => { e && e.stopPropagation(); petSheet(id, `<div class="row" style="justify-content:flex-end;margin-top:10px"><button class="btn" data-a="bld" data-v="menagerie">Retour à la Ménagerie</button></div>`); };
 ACT.recruitInfo = (i, el, e) => { e && e.stopPropagation(); const h = S.recruits[+i]; if (!h) return; const c = recruitPrice(+i); heroSheet(h, `<div class="row" style="justify-content:flex-end;gap:6px;margin-top:12px"><button class="btn ghost" data-a="bld" data-v="taverne">Retour</button><button class="btn main" data-a="recruit" data-v="${i}">Recruter · ${c === 0 ? "gratuit" : c + " or"}</button></div>`); };
+
+ACT.heroTab = t => { UI.heroTab = t; refresh(); };

@@ -18,7 +18,7 @@ SCREENS.expe = {
     const R = regionById(E.region), prog = S.prog[E.region], cleared = prog && prog.clears;
     const avgL = E.party.length ? Math.round(E.party.reduce((a, id) => a + heroById(id).lvl, 0) / E.party.length) : 0;
     const roles = E.party.map(id => CLASSES[heroById(id).cls].role);
-    const warn = [!roles.includes("soin") && "Aucun soigneur : les blessures vont s'accumuler.", !roles.includes("tank") && "Aucun tank : vos héros fragiles seront exposés.", E.party.length < 4 && "Moins de 4 héros.", avgL < R.lvl - 1 && E.region !== "abime" && `Niveau conseillé : ${R.lvl}+ (votre groupe : ${avgL}).`].filter(Boolean);
+    const warn = [!roles.includes("soin") && "Aucun soigneur : les blessures vont s'accumuler.", !roles.includes("tank") && "Aucun tank : vos héros fragiles seront exposés.", E.party.length < 4 && "Moins de 4 héros.", E.region !== "abime" && typeof recLevel === "function" && avgL < recLevel(E.region, E.threat) && `Niveau conseillé pour le gardien : ${recLevel(E.region, E.threat)} (votre groupe : ${avgL}). En dessous, le gardien est plus coriace et s'enrage.`].filter(Boolean);
     const regs = [...REGIONS, ABYSS];
     return `<div class="wrap"><h1>Préparer l'expédition</h1>
     ${E.week && weekRule() ? `<div class="panel" style="padding:10px;margin-bottom:10px;border-color:#c9a24a"><b class="gold">${ico("trophy", "#e8c878", 14)} Défi de la semaine : ${weekRule().n}</b> <span class="small">— ${gl(weekRule().d)}</span> <button class="btn ghost sm" data-a="noWeek">Annuler</button>${weekPartyOk(E.party || []) ? `<div class="small bad" style="margin-top:4px">${weekPartyOk(E.party || [])}</div>` : ""}</div>` : ""}
@@ -32,7 +32,7 @@ SCREENS.expe = {
     ${warn.length ? `<div class="small bad" style="text-align:center">${warn.join("<br>")}</div>` : ""}
     ${synergyHTML(E.party.map(id => heroById(id).cls), S.heroes.filter(h => !E.party.includes(h.id)).map(h => h.cls))}
     ${teamsHTML(E)}${duoHTML(E)}
-    <div class="row" style="gap:6px;margin-top:8px">${S.heroes.filter(h => !E.party.includes(h.id)).map(h => `<div class="card" style="padding:4px 8px" data-a="addParty" data-v="${h.id}"><div class="row" style="gap:6px;flex-wrap:nowrap">${canvasSlot("ro:" + h.id, 40, 40)}<div class="tiny"><b>${esc(h.name.split(" ")[0])}</b><br><span class="dim">${CLASSES[h.cls].n} ${h.lvl}${isInjured(h) ? ' · <span class="bad">blessé</span>' : ""}</span></div></div></div>`).join("")}<button class="btn ghost sm" data-a="autoParty">${ico("auto")}Composition auto</button></div>
+    <div class="row" style="gap:4px;margin-top:8px;flex-wrap:wrap">${[["all", "Tous"], ["tank", "Tanks"], ["soin", "Soigneurs"], ["soutien", "Soutiens"], ["dps", "Dégâts"]].map(([k, n]) => `<button class="btn sm ${(UI.expeTab || "all") === k ? "gold" : "ghost"}" data-a="expeTab" data-v="${k}">${n}</button>`).join("")}</div><div class="row" style="gap:6px;margin-top:6px">${S.heroes.filter(h => !E.party.includes(h.id) && ((UI.expeTab || "all") === "all" || CLASSES[h.cls].role === UI.expeTab)).sort((a, b) => b.lvl - a.lvl).map(h => `<div class="card" style="padding:4px 8px" data-a="addParty" data-v="${h.id}"><div class="row" style="gap:6px;flex-wrap:nowrap">${canvasSlot("ro:" + h.id, 40, 40)}<div class="tiny"><b>${esc(h.name.split(" ")[0])}</b><br><span class="dim">${CLASSES[h.cls].n} ${h.lvl}${isInjured(h) ? ' · <span class="bad">blessé</span>' : ""}</span></div></div></div>`).join("")}<button class="btn ghost sm" data-a="autoParty">${ico("auto")}Composition auto</button></div>
     <h2 style="margin-top:14px">Compagnon</h2><div class="row">${S.pets.owned.map(id => `<div class="card ${E.pet === id ? "sel" : ""}" style="padding:4px 10px;text-align:center" data-a="pickPet" data-v="${id}">${canvasSlot("pe:" + id, 90, 64)}<div class="tiny"><b>${petName(id)}</b> niv ${petLvl(id)}</div></div>`).join("")}</div>
     <div class="stickybar"><span class="small dim">${ico("potion", "#e86a5a", 16)} ${potionMax() - (E.region === "abime" && (S.abyss.oaths || []).includes("jeune") ? 1 : 0)} potions</span><button class="btn main glow" data-a="launch" ${E.party.length ? "" : "disabled"}>${ico("map")}Commencer l'expédition</button></div></div>`;
   },
@@ -317,3 +317,5 @@ function resumeNode() {
   if (["combat", "elite", "boss"].includes(n.type)) { setTimeout(() => { if (UI.screen === "map") go("combat", { node: n }); }, 300); return; }
   if (n.type === "event") showEvent(n); else if (n.type === "camp") showCamp(n); else if (n.type === "shop") showShop(n); else if (n.type === "treasure") showTreasure(n);
 }
+
+ACT.expeTab = t => { UI.expeTab = t; refresh(); };

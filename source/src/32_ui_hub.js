@@ -271,7 +271,7 @@ function itemUseful(it) {
 }
 // objet gardé pour plus tard : un héros de la classe existe mais n'a pas encore le niveau pour ce palier
 function itemFuture(it) { if (it.kind === "tr") return false; const hs = S.heroes.filter(h => h.cls === it.cls); return hs.length > 0 && hs.every(h => h.lvl < TIER_LVL[it.tier]) && hs.some(h => !h.gear[it.kind] || h.gear[it.kind].tier < it.tier); }
-function salvCandidates(rars, keepUseful, all) { return S.inv.filter(it => rars.includes(it.rar) && (all ? !it.uniq : !(keepUseful && itemUseful(it)))); } // all : tout par qualité, sans regarder qui peut le porter (objets uniques de gardien exceptés)
+function salvCandidates(rars, keepUseful, all) { return S.inv.filter(it => rars.includes(it.rar) && (all || !(keepUseful && itemUseful(it)))); } // all : tout par qualité, objets uniques de gardien compris (seuls les objets verrouillés sont épargnés)
 ACT.salvAll = () => {
   UI.salv = UI.salv || { rars: [0, 1], keep: 1 };
   const draw = () => {
@@ -279,9 +279,9 @@ ACT.salvAll = () => {
     const fut = S.inv.filter(itemFuture).length;
     modal(`<h2>${ico("iron", "#c8c8c8")} Recyclage rapide</h2><p class="small">Choisissez les qualités à recycler.</p>
       <div class="col" style="gap:4px">${RARITY.map((Q, q) => { const n = S.inv.filter(it => it.rar === q).length; return n ? `<label class="row sp card" style="cursor:pointer;padding:6px 10px"><span class="rar${q}"><b>${Q.n}</b></span><span class="tiny dim">${n} objet${n > 1 ? "s" : ""}</span><input type="checkbox" data-salvq="${q}" ${R.rars.includes(q) ? "checked" : ""}></label>` : ""; }).join("")}</div>
-      <label class="row sp" style="margin-top:8px;flex-wrap:nowrap;gap:10px"><span class="small" style="flex:1">Tout recycler par qualité <span class="tiny dim">— sans regarder si un héros peut s'en servir (palier supérieur compris ; les objets uniques de gardien sont gardés)</span></span><input type="checkbox" id="salvall" ${R.all ? "checked" : ""}></label>
-      ${R.all ? "" : `<label class="row sp" style="margin-top:4px"><span class="small">Garder ce qui est meilleur que l'équipement porté</span><input type="checkbox" id="salvkeep" ${R.keep ? "checked" : ""}></label>`}
-      <p class="tiny dim">Seuls les objets verrouillés, les objets uniques de gardien et${R.all || !R.keep ? "" : " ceux qui sont meilleurs que l'équipement porté par un héros capable de les porter"} sont gardés.</p>
+      <label class="row sp" style="margin-top:8px;flex-wrap:nowrap;gap:10px"><span class="small" style="flex:1">Tout recycler par qualité <span class="tiny dim">— tous les objets des qualités cochées partent, objets uniques de gardien compris</span></span><input type="checkbox" id="salvall" ${R.all ? "checked" : ""}></label>
+      ${R.all ? "" : `<label class="row sp" style="margin-top:4px;flex-wrap:nowrap;gap:10px"><span class="small" style="flex:1">Épargner les améliorations <span class="tiny dim">— un objet est gardé s'il ferait mieux que ce que porte un de vos héros capable de l'équiper</span></span><input type="checkbox" id="salvkeep" ${R.keep ? "checked" : ""}></label>`}
+      <p class="tiny dim">${R.all ? "Seuls les objets verrouillés 🔒 sont épargnés." : R.keep ? "Sont épargnés : les objets verrouillés 🔒 et les améliorations pour vos héros." : "Seuls les objets verrouillés 🔒 sont épargnés."}</p>
       <div class="row sp" style="margin-top:10px"><span class="small">${list.length} objet${list.length > 1 ? "s" : ""} · +${tot.gold} or, +${tot.fer} fer${tot.essence ? `, +${tot.essence} ess.` : ""}${tot.cendre ? `, +${tot.cendre} cendre` : ""}</span><button class="btn main ${list.length ? "" : "off"}" data-a="salvGo">Recycler</button></div>`,
       { onClose: () => setTimeout(() => { if ($("#modal").hidden && UI.screen === "bastion") openBuilding("forge", "inv"); }, 0), mount: m => { m.querySelectorAll("[data-salvq]").forEach(c => c.onchange = () => { const q = +c.dataset.salvq; R.rars = c.checked ? [...new Set([...R.rars, q])] : R.rars.filter(x => x !== q); draw(); }); const k = m.querySelector("#salvkeep"); if (k) k.onchange = () => { R.keep = k.checked ? 1 : 0; draw(); }; const a = m.querySelector("#salvall"); if (a) a.onchange = () => { R.all = a.checked ? 1 : 0; draw(); }; } });
   };

@@ -8259,7 +8259,9 @@ function heroStatsBlockHTML(h, st) {
   if (H.vsTag && H.vsTagV) sp.push({ k: "vsTag", tag: H.vsTag, v: H.vsTagV });
   const spec = sp.filter(p => p.k !== "vsTag" || p.tag).length ? `<div class="tiny" style="margin-top:4px"><b>Effets spéciaux</b> : ${pasText(sp.filter(p => p.k !== "vsTag" || p.tag))}</div>` : "";
   const src = heroBonusSources(h).map(s => `<div class="tiny" style="margin:2px 0"><b>${s.n}</b> : ${s.txt || pasText(s.pas)}</div>`).join("");
-  return `<div class="statgrid" style="margin-top:8px">${grid}</div>${spec}<details style="margin-top:4px"><summary class="tiny gold" style="cursor:pointer">Détail des bonus par source</summary><div style="margin-top:4px">${src}</div></details>`;
+  const sn = typeof setCount === "function" ? setCount(h) : {};
+  const sets = Object.keys(sn).map(k => { const T = SETS[k], n = sn[k], b = (i, B) => B ? `<span class="${n >= i ? "good" : "dim"}">${i} : ${B.d}</span>` : ""; return `<div class="tiny" style="margin:2px 0"><b style="color:${T.c}">❖ ${T.n}</b> <b>${n}/4</b> — ${[b(2, T.b2), b(3, T.b3), b(4, T.b4)].filter(Boolean).join(" · ")}</div>`; }).join("");
+  return `<div class="statgrid" style="margin-top:8px">${grid}</div>${sets ? `<div style="margin-top:4px">${sets}</div>` : ""}${spec}<details style="margin-top:4px"><summary class="tiny gold" style="cursor:pointer">Détail des bonus par source</summary><div style="margin-top:4px">${src}</div></details>`;
 }
 
 // cadenas devant le nom d'un objet verrouillé (listes, fiches, comparaisons)

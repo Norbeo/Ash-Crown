@@ -148,6 +148,8 @@ Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
 
 - 6 nov. (v151) : armures des héros (toutes, `cut_bak_h/` → `SRC=cut_bak_h python3 solid.py`) à l'intérieur opaque ; série évolutive : après la menace V du dernier chapitre, proposition d'un nouveau cycle (`askNewCycle`, `ACT.ngYes`/`ngNo`, `R.ngWait`) ; chance de qualité +5 %/cycle (`cycleLuck` dans `rollRarity`, max +50 %) ; journal de combat en direct (ajout ligne à ligne dans `#cblogbox` depuis `cbLog`) et non refermé par la carte auto (`autoModalStep` ignore les fenêtres ouvertes par le joueur en combat).
 
+- 7 nov. (v154) : recyclage d'un objet amélioré : 60 % de l'or (`UP_REFUND`) et 50 % de l'essence/cendre investis rendus (`upInvested` dans 04_state, `salvage().refund`, affiché dans la confirmation de `ACT.salv`).
+
 ## Reste à faire (prochaine séance)
 0. Art en attente (quota Canva) : ART8.md (armures de voie VI–IX, refaites à partir du palier V ; V1 fait) ; puis illustration palier X par classe (VII–IX = VI). Republier ensuite (sw.js + assets).
 1. (Armures V : fait.) Gardiens de menace II–V : déjà présents (`THREAT_BOSS`) — à confirmer avec l'utilisateur s'il en veut d'autres.

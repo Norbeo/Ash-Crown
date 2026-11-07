@@ -32,7 +32,7 @@ SCREENS.hero = {
         <div class="bar xp" style="margin:8px 0 2px"><i style="width:${h.lvl >= MAX_LVL ? 100 : 100 * h.xp / xpNeed(h.lvl)}%"></i></div><div class="tiny dim">${h.lvl >= MAX_LVL ? "Niveau maximal" : `${h.xp} / ${xpNeed(h.lvl)} XP`}</div>
         <p class="lore small">${C.lore}</p>
         <div class="row small">${h.traits.map(t => `<span class="tag ${TRAITS[t].good ? "good" : "bad"}" ${tipAttr(TRAITS[t].n, TRAITS[t].d)}>${TRAITS[t].n}</span>`).join("")}</div>
-        <div class="statgrid" style="margin-top:8px"><div>PV <b>${Math.round(st.hp)}</b></div><div>Dégâts <b>${Math.round(st.dmgLo)}–${Math.round(st.dmgHi)}</b></div><div>Protection <b>${Math.round(st.prot * 100)} %</b></div><div>Vitesse <b>${Math.round(st.spd)}</b></div><div>Critique <b>${Math.round(st.crit)} %</b></div><div>Esquive <b>${Math.round(st.dodge)}</b></div><div>Précision <b>${Math.round(st.acc)}</b></div><div>Résistance <b>${Math.round(st.res)}</b></div>${st.healPow > 1.01 ? `<div>Soins <b>${Math.round(st.healPow * 100)} %</b></div>` : ""}${st.leech ? `<div>Vol de vie <b>${Math.round(st.leech * 100)} %</b></div>` : ""}</div>
+        ${heroStatsBlockHTML(h, st)}
         <p class="tiny dim" style="margin-top:6px">Rangs préférés : ${C.rk.join(", ")} · Armure ${C.armor} · Puissance ${heroPower(h)}</p>
       </div>
     </div>
@@ -49,7 +49,7 @@ SCREENS.hero = {
 function pasText(pas) {
   const N = { dmg: "dégâts", hp: "PV", prot: "protection", spd: "vitesse", crit: "critique", dodge: "esquive", acc: "précision", res: "résistance", healPow: "soins", leech: "vol de vie" };
   const H = { guardProt: "protection quand il protège", burnPow: "brûlures", dodgeRiposte: "riposte en esquivant", lowHpDmg: "dégâts sous 50 % PV", overhealShield: "surplus de soin en bouclier", regenPow: "régénération", dotPow: "dégâts sur la durée", buffPow: "renforcements", moralePow: "résolution", debuffPow: "altérations", markDmg: "dégâts contre les marqués", critBleed: "critiques qui font saigner", killMorale: "résolution par victime", critDmg: "dégâts critiques", killStealth: "furtivité après une victime", dodgeBleed: "saignement en esquivant", petDmg: "dégâts du compagnon", aoeDmg: "dégâts de zone", cheatDeath: "survie à un coup fatal", shieldPow: "boucliers", healTaken: "soins reçus", ultGain: "charge de l'ultime", xp: "expérience", gold: "or", execute: "dégâts sur les blessés", thornsP: "renvoi des dégâts" };
-  return gl(pas.map(p => { if (p.k === "stat") { const pc = ["dmg", "hp", "prot", "healPow", "leech"].includes(p.s); return `${p.v > 0 ? "+" : ""}${pc ? Math.round(p.v * 100) + " %" : Math.round(p.v)} ${N[p.s]}`; } if (p.k === "cheatDeath") return `survit ${p.v > 1 ? p.v + " fois" : "une fois"} à un coup fatal`; return `+${p.v < 2 ? Math.round(p.v * 100) + " %" : p.v} ${H[p.k] || p.k}`; }).join(" · "));
+  return gl(pas.map(p => { if (p.k === "stat") { const pc = ["dmg", "hp", "prot", "healPow", "leech"].includes(p.s); return `${p.v > 0 ? "+" : ""}${pc ? Math.round(p.v * 100) + " %" : Math.round(p.v) + (p.s === "crit" ? " %" : "")} ${N[p.s]}`; } if (p.k === "cheatDeath") return `survit ${p.v >= 2 ? Math.floor(p.v) + " fois" : "une fois"} à un coup fatal`; if (p.k === "critBleed") return `critiques : saignement de ${Math.round(p.v * 100)} % des dégâts moyens par tour (3 tours)`; if (p.k === "vsTag") return `+${Math.round(p.v * 100)} % contre les ${p.tag}s`; if (p.k === "killMorale") return `+${Math.round(p.v)} de résolution par victime`; return `+${p.v < 2 ? Math.round(p.v * 100) + " %" : p.v} ${H[p.k] || p.k}`; }).join(" · "));
 }
 ACT.toggleSk = (v, el, e) => { if (e && e.target.closest("[data-a=skUp]")) return; const [id, k] = v.split(":"); const h = heroById(id); if (h.skills.includes(k)) { if (h.skills.length <= 1) return; h.skills = h.skills.filter(x => x !== k); } else { if (h.skills.length >= 4) return toast("4 compétences au maximum : retirez-en une d'abord.", "bad"); h.skills.push(k); } save(); refresh(); };
 ACT.skUp = (v, el, e) => { e && e.stopPropagation(); const [id, k] = v.split(":"); const h = heroById(id); const r = skillUp(h, k); if (r.err) return toast(r.err, "bad"); sfx("level"); save(); renderHud(); refresh(); };
@@ -76,7 +76,7 @@ function heroSheetHTML(h, foot = "") {
       <p class="lore small" style="margin:4px 0">${C.lore}</p>
       ${typeof heroProgressHTML === "function" ? heroProgressHTML(h) : ""}
       <div class="col" style="gap:2px">${h.traits.map(t => `<div class="tiny"><b class="${TRAITS[t].good ? "good" : "bad"}">${TRAITS[t].n}</b> — ${gl(TRAITS[t].d)}</div>`).join("")}</div>
-      <div class="statgrid" style="margin-top:8px"><div>PV <b>${Math.round(st.hp)}</b></div><div>Dégâts <b>${Math.round(st.dmgLo)}–${Math.round(st.dmgHi)}</b></div><div>Protection <b>${Math.round(st.prot * 100)} %</b></div><div>Vitesse <b>${Math.round(st.spd)}</b></div><div>Critique <b>${Math.round(st.crit)} %</b></div><div>Esquive <b>${Math.round(st.dodge)}</b></div></div>
+      ${heroStatsBlockHTML(h, st)}
       <p class="tiny dim" style="margin:6px 0 0">Rangs préférés : ${C.rk.join(", ")} · Armure ${C.armor}</p>
     </div></div>
     ${questMarkHTML(h)}

@@ -10,7 +10,16 @@ const SETS = {
 };
 function rollSet(it) { if (it && it.rar >= 4 && !it.set && chance(it.rar >= 5 ? .35 : .2)) it.set = pick(Object.keys(SETS)); return it; }
 function setCount(h) { const n = {}; for (const s of ["wpn", "arm", "tr1", "tr2"]) { const it = h.gear[s]; if (it && it.set && SETS[it.set]) n[it.set] = (n[it.set] || 0) + 1; } return n; }
-function setPassives(h) { const out = [], n = setCount(h); for (const k in n) { if (n[k] >= 2) out.push(...SETS[k].b2.pas); if (n[k] >= 3) out.push(...SETS[k].b3.pas); } return out; }
+// bonus de panoplie complète (4 pièces : arme, armure et les deux bibelots)
+const SET_B4 = {
+  roi: { d: "+12 % de dégâts, +8 % de vol de vie, ultime 25 % plus vite", pas: [{ k: "stat", s: "dmg", v: .12 }, { k: "stat", s: "leech", v: .08 }, { k: "ultGain", v: .25 }] },
+  veilleur: { d: "+12 % de protection, +12 % de PV, renvoie 20 % des dégâts de mêlée", pas: [{ k: "stat", s: "prot", v: .12 }, { k: "stat", s: "hp", v: .12 }, { k: "thornsP", v: .2 }] },
+  peste: { d: "+35 % de dégâts sur la durée, +20 % de dégâts de zone, +20 résistance", pas: [{ k: "dotPow", v: .35 }, { k: "aoeDmg", v: .2 }, { k: "stat", s: "res", v: 20 }] },
+  aube: { d: "+25 % de soins, le surplus devient bouclier, survit une fois à un coup fatal", pas: [{ k: "stat", s: "healPow", v: .25 }, { k: "overhealShield", v: .4 }, { k: "cheatDeath", v: 1 }] },
+  loup: { d: "+3 vitesse, +10 esquive, riposte en esquivant, compagnon +25 %", pas: [{ k: "stat", s: "spd", v: 3 }, { k: "stat", s: "dodge", v: 10 }, { k: "dodgeRiposte", v: .3 }, { k: "petDmg", v: .25 }] },
+};
+for (const k in SET_B4) if (SETS[k]) SETS[k].b4 = SET_B4[k];
+function setPassives(h) { const out = [], n = setCount(h); for (const k in n) { if (n[k] >= 2) out.push(...SETS[k].b2.pas); if (n[k] >= 3) out.push(...SETS[k].b3.pas); if (n[k] >= 4 && SETS[k].b4) out.push(...SETS[k].b4.pas); } return out; }
 
 // Enchantement : relancer l'effet unique d'un objet Épique ou mieux (choix parmi trois)
 function enchantCost(it) { return { gold: 250 * it.tier + 150 * (it.rar - 2), shards: Math.max(1, it.rar - 2) }; }

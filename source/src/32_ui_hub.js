@@ -197,7 +197,7 @@ function cropDraw(src, W, pad) { // recadre au plus juste puis centre dans un ca
 function itemArt(it) {
   if (!HASWIN || !it) return "";
   const bust = it.kind === "arm" ? heroArt({ cls: it.cls, tier: it.tier, evo: it.evo }) : null;
-  const wim = it.kind === "wpn" ? artImg("wpn_" + CLASSES[it.cls].wpn) : null, tim = it.kind === "tr" ? artImg("tr_" + ((TRINKETS[it.key] && TRINKETS[it.key].art) || it.key)) : null;
+  const wim = it.kind === "wpn" ? artImg("wpn_" + CLASSES[it.cls].wpn) : null, tim = it.kind === "tr" ? artImg("tr_" + trArtKey(it.key)) : null;
   const key = (it.kind === "tr" ? "tr|" + it.key + "|" + it.rar : [it.kind, it.cls, it.tier, it.rar, it.evo || ""].join("|")) + (bust || wim || tim ? "|i" : "");
   if (ITEM_ART[key]) return ITEM_ART[key];
   const W = 112;
@@ -230,16 +230,24 @@ function itemArt(it) {
     return url;
   } catch (e) { return ITEM_ART[key] = ""; }
 }
+function trArtKey(k) { const T = TRINKETS[k]; if (!T) return k; if (T.art) return T.art; if (itAtlasRect("tr_" + k) || ART_SET.has("tr_" + k)) return k; return (typeof TR_ART_BY_IC !== "undefined" && TR_ART_BY_IC[T.ic]) || k; }
 function itemIcon(it) { return it.kind === "wpn" ? "wpn_" + CLASSES[it.cls].wpn : it.kind === "arm" ? "armor" : TRINKETS[it.key].ic; }
 function paintItem(c, it) { if (!it) return; const x = c.getContext("2d"); const g = x.createRadialGradient(c.width / 2, c.height / 2, 2, c.width / 2, c.height / 2, c.width / 2); g.addColorStop(0, RARITY[it.rar].c + "55"); g.addColorStop(1, "#0000"); x.fillStyle = g; x.fillRect(0, 0, c.width, c.height); }
+// effets du bibelot avec le bonus de qualité déjà appliqué (+20 % par cran au-dessus de sa qualité de base)
+function trinketText(it) {
+  const T = TRINKETS[it.key]; if (!T) return ""; const up = Math.max(0, (it.rar || 0) - T.r), m = 1 + .2 * up;
+  if (!T.pas || !T.pas.length) return T.d;
+  const sc = T.pas.map(p => typeof p.v !== "number" || p.k === "cheatDeath" ? p : Object.assign({}, p, { v: p.v * m }));
+  return pasText(sc) + (T.h ? " · " + T.d : "") + (up && T.pas.some(p => typeof p.v === "number" && p.k !== "cheatDeath") ? ` <span class="tiny good">(qualité : +${up * 20} % inclus)</span>` : "");
+}
 function itemLine(it) {
   if (!it) return "";
   const stats = [];
   if (it.kind === "wpn") stats.push(`+${Math.round((WPN_DMG[it.tier] * (1 + .07 * it.up) + it.up * .03) * 100)} % dégâts`);
   if (it.kind === "arm") stats.push(`+${Math.round((ARM_HP[it.tier] * (1 + .07 * it.up) + it.up * .025) * 100)} % PV`, `+${Math.round(ARM_PROT[it.tier] * 100)} % protection`);
-  if (it.kind === "tr") { const up = Math.max(0, (it.rar || 0) - TRINKETS[it.key].r); stats.push(TRINKETS[it.key].d + (up ? ` <span class="good">(effets +${up * 20} % grâce à sa qualité)</span>` : "")); }
+  if (it.kind === "tr") stats.push(trinketText(it));
   if (it.mod && ITEM_MODS[it.mod]) stats.push(`<b style="color:#ffb848">✦ ${ITEM_MODS[it.mod].n}</b> : ${ITEM_MODS[it.mod].d}`);
-  if (it.set && SETS[it.set]) stats.push(`<b style="color:${SETS[it.set].c}">❖ ${SETS[it.set].n}</b> (2 : ${SETS[it.set].b2.d} ; 3 : ${SETS[it.set].b3.d})`);
+  if (it.set && SETS[it.set]) stats.push(`<b style="color:${SETS[it.set].c}">❖ ${SETS[it.set].n}</b> (2 : ${SETS[it.set].b2.d} ; 3 : ${SETS[it.set].b3.d}${SETS[it.set].b4 ? " ; 4 : " + SETS[it.set].b4.d : ""})`);
   for (const f of it.aff || []) { const A = AFFIXES[f.k]; stats.push(`+${A.fmt === "pct" ? Math.round(f.v * 100) + " %" : f.v} ${A.n}`); }
   const req = it.kind !== "tr" && TIER_LVL[it.tier] > 1 ? ` · <span class="tiny dim">niv ${TIER_LVL[it.tier]}+</span>` : "";
   return (gl(stats.filter(t => !/^\+0 %/.test(t)).join(" · ")) || "Équipement de base") + req;

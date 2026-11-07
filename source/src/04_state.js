@@ -52,7 +52,7 @@ function heroPassives(h) {
   const C = CLASSES[h.cls], out = [];
   for (const t of h.traits) out.push(...TRAITS[t].pas);
   if (h.evo) { out.push(...C.evos[h.evo].pas); if (h.lvl >= APEX_LVL) out.push(...APEX[h.evo].pas); }
-  for (const s of ["tr1", "tr2"]) { const it = h.gear[s]; if (it && TRINKETS[it.key]) { const m = 1 + .2 * Math.max(0, (it.rar || 0) - TRINKETS[it.key].r); out.push(...TRINKETS[it.key].pas.map(p => m === 1 || typeof p.v !== "number" ? p : Object.assign({}, p, { v: p.v * m }))); } } // bibelot au-dessus de sa qualité de base : +20 % par cran
+  for (const s of ["tr1", "tr2"]) { const it = h.gear[s]; if (it && TRINKETS[it.key]) { const m = 1 + .2 * Math.max(0, (it.rar || 0) - TRINKETS[it.key].r); out.push(...TRINKETS[it.key].pas.map(p => m === 1 || typeof p.v !== "number" || p.k === "cheatDeath" ? p : Object.assign({}, p, { v: p.v * m }))); } } // bibelot au-dessus de sa qualité de base : +20 % par cran
   if (h.cursed > 0) out.push({ k: "stat", s: "dmg", v: -.12 }); // larme de l'idole (événement)
   for (const s of ["wpn", "arm"]) { const it = h.gear[s]; if (it && it.mod && ITEM_MODS[it.mod]) out.push(...ITEM_MODS[it.mod].pas); } // effet unique d'équipement
   if (h.mark && typeof GUARD_MARKS !== "undefined" && GUARD_MARKS[h.mark]) out.push(...GUARD_MARKS[h.mark].pas); // marque d'un gardien vaincu

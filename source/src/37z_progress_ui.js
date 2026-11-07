@@ -22,7 +22,7 @@ ACT.enchantDo = k => {
 function heroProgressHTML(h) {
   if (!S || !h || !h.gear) return ""; // nouvelle aventure : pas encore de partie
   let out = ""; const n = setCount(h);
-  for (const k in n) { const T = SETS[k]; out += `<div class="tiny" style="margin:2px 0"><b style="color:${T.c}">❖ ${T.n}</b> ${n[k]}/3 — <span class="${n[k] >= 2 ? "good" : "dim"}">2 : ${T.b2.d}</span> · <span class="${n[k] >= 3 ? "good" : "dim"}">3 : ${T.b3.d}</span></div>`; }
+  for (const k in n) { const T = SETS[k]; out += `<div class="tiny" style="margin:2px 0"><b style="color:${T.c}">❖ ${T.n}</b> ${n[k]}/4 — <span class="${n[k] >= 2 ? "good" : "dim"}">2 : ${T.b2.d}</span> · <span class="${n[k] >= 3 ? "good" : "dim"}">3 : ${T.b3.d}</span>${T.b4 ? ` · <span class="${n[k] >= 4 ? "good" : "dim"}">4 : ${T.b4.d}</span>` : ""}</div>`; }
   if (h.asc) out += `<div class="tiny" style="color:${ASC_COL[(h.asc - 1) % ASC_COL.length]}">✦ Ascension ${roman(h.asc)} : +${6 * h.asc} % de dégâts et de PV, +${4 * h.asc} résistance.</div>`;
   if (S.heroes.includes(h)) out += canAscend(h) ? `<button class="btn sm gold" style="margin:4px 0" data-a="ascend" data-v="${h.id}">✦ Ascension : renaître au niveau ${ASC_BACK}</button>` : h.lvl >= 20 ? `<div class="tiny dim">✦ Ascension possible au niveau ${ASC_LVL} pour un héros évolué.</div>` : "";
   return out;

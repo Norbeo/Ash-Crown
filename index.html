@@ -1616,6 +1616,61 @@ const OATHS = {
   pierre: { n: "Serment de pierre", d: "Les ennemis ont +10 % de protection.", v: .1 },
   silence: { n: "Serment du silence", d: "Les ultimes se chargent 30 % moins vite.", v: .3 },
 };
+/* Bibelots supplémentaires (7 nov.) : 40 nouveaux noms répartis sur toutes les qualités, y compris Peu commun, Céleste et Primordial.
+   `art` = icône peinte réutilisée (même famille d'objet). */
+const TR_MORE = {
+  // Commun (0)
+  os_saint: { n: "Os de saint anonyme", r: 0, ic: "skull", art: "crane_saint", pas: [{ k: "stat", s: "res", v: 10 }, { k: "stat", s: "hp", v: .03 }], d: "+10 de résistance, +3 % de PV." },
+  anneau_cuivre: { n: "Anneau de cuivre terni", r: 0, ic: "ring", art: "bague_fer", pas: [{ k: "stat", s: "dodge", v: 3 }, { k: "stat", s: "acc", v: 3 }], d: "+3 d'esquive, +3 de précision." },
+  brin_sauge: { n: "Brin de sauge", r: 0, ic: "herb", art: "herbe_rare", pas: [{ k: "stat", s: "healPow", v: .07 }], d: "+7 % de soins prodigués." },
+  griffe_rat: { n: "Griffe de rat géant", r: 0, ic: "claw", art: "griffe_ombre", pas: [{ k: "stat", s: "dmg", v: .03 }, { k: "stat", s: "spd", v: 1 }], d: "+3 % de dégâts, +1 de vitesse." },
+  // Peu commun (1)
+  fiole_vinaigre: { n: "Fiole de vinaigre des Quatre", r: 1, ic: "vial", art: "fiole_sang", pas: [{ k: "stat", s: "res", v: 18 }, { k: "healTaken", v: .08 }], d: "+18 de résistance, +8 % de soins reçus." },
+  cloche_lepreux: { n: "Cloche de lépreux", r: 1, ic: "bell", art: "cloche_morte", pas: [{ k: "debuffPow", v: .12 }], d: "+12 % de chances d'altération." },
+  medaillon_veuve: { n: "Médaillon de la veuve", r: 1, ic: "amulet", art: "amulette_sel", pas: [{ k: "stat", s: "hp", v: .06 }, { k: "stat", s: "prot", v: .03 }], d: "+6 % de PV, +3 % de protection." },
+  plume_hibou: { n: "Plume de grand-duc", r: 1, ic: "feather", art: "plume_corbeau", pas: [{ k: "stat", s: "acc", v: 6 }, { k: "stat", s: "crit", v: 2 }], d: "+6 de précision, +2 % de critique." },
+  chapelet_buis: { n: "Chapelet de buis", r: 1, ic: "rosary", art: "chapelet", pas: [{ k: "moralePow", v: .15 }, { k: "stat", s: "res", v: 8 }], d: "+15 % de résolution, +8 de résistance." },
+  boucle_ecu: { n: "Boucle d'écu", r: 1, ic: "shield", art: "ecu_brise", pas: [{ k: "stat", s: "prot", v: .05 }, { k: "thornsP", v: .08 }], d: "+5 % de protection, renvoie 8 % des dégâts de mêlée." },
+  // Rare (2)
+  sceau_inquisiteur: { n: "Sceau de l'inquisiteur", r: 2, ic: "seal", art: "sceau_rouge", pas: [{ k: "markDmg", v: .2 }, { k: "stat", s: "acc", v: 4 }], d: "+20 % de dégâts contre les marqués, +4 de précision." },
+  dent_ogre: { n: "Molaire d'ogre", r: 2, ic: "fang", art: "croc_vampire", pas: [{ k: "stat", s: "hp", v: .08 }, { k: "stat", s: "dmg", v: .05 }], d: "+8 % de PV, +5 % de dégâts." },
+  sablier_fele: { n: "Sablier fêlé", r: 2, ic: "hourglass", art: "sablier", pas: [{ k: "ultGain", v: .2 }, { k: "stat", s: "spd", v: 1 }], d: "Ultime 20 % plus vite, +1 de vitesse." },
+  gant_ecorcheur: { n: "Gant d'écorcheur", r: 2, ic: "glove", art: "gant_bourreau", pas: [{ k: "critBleed", v: .3 }, { k: "stat", s: "crit", v: 3 }], d: "Les critiques font saigner, +3 % de critique." },
+  ronce_tombale: { n: "Ronce tombale", r: 2, ic: "herb", art: "herbe_rare", pas: [{ k: "regenPow", v: .25 }, { k: "stat", s: "healPow", v: .08 }], d: "+25 % de régénération, +8 % de soins." },
+  // Épique (3)
+  coeur_gargouille: { n: "Cœur de gargouille", r: 3, ic: "heart", art: "coeur_roi", pas: [{ k: "stat", s: "prot", v: .1 }, { k: "stat", s: "hp", v: .06 }, { k: "stat", s: "spd", v: -1 }], d: "+10 % de protection, +6 % de PV, −1 de vitesse." },
+  oeil_sorciere: { n: "Œil de la sorcière", r: 3, ic: "eye", art: "oeil_abime", pas: [{ k: "debuffPow", v: .25 }, { k: "dotPow", v: .15 }], d: "+25 % d'altération, +15 % de dégâts sur la durée." },
+  couronne_rouille: { n: "Couronne rouillée", r: 3, ic: "crown", art: "couronne_epines", pas: [{ k: "killMorale", v: 4 }, { k: "stat", s: "dmg", v: .07 }], d: "+4 de résolution par victime, +7 % de dégâts." },
+  fiole_peste: { n: "Fiole de peste", r: 3, ic: "vial", art: "fiole_sang", pas: [{ k: "dotPow", v: .35 }], d: "+35 % de dégâts sur la durée." },
+  ecu_sacre: { n: "Umbo sacré", r: 3, ic: "shield", art: "ecu_brise", pas: [{ k: "shieldPow", v: .3 }, { k: "stat", s: "res", v: 10 }], d: "+30 % de boucliers, +10 de résistance." },
+  // Légendaire (4)
+  griffe_wyverne: { n: "Griffe de wyverne", r: 4, ic: "claw", art: "griffe_ombre", pas: [{ k: "critBleed", v: .6 }, { k: "critDmg", v: .25 }, { k: "stat", s: "crit", v: 5 }], d: "Les critiques font saigner, critiques +25 %, +5 % de critique." },
+  amulette_ermite: { n: "Amulette de l'ermite", r: 4, ic: "amulet", art: "amulette_sel", pas: [{ k: "stat", s: "healPow", v: .22 }, { k: "overhealShield", v: .3 }, { k: "stat", s: "res", v: 10 }], d: "+22 % de soins, le surplus devient bouclier, +10 de résistance." },
+  cloche_glas: { n: "Cloche du glas", r: 4, ic: "bell", art: "cloche_morte", pas: [{ k: "aoeDmg", v: .25 }, { k: "debuffPow", v: .15 }], d: "+25 % de dégâts de zone, +15 % d'altération." },
+  anneau_bourreau: { n: "Anneau du bourreau", r: 4, ic: "ring", art: "bague_fer", pas: [{ k: "execute", v: .35 }, { k: "stat", s: "dmg", v: .08 }], d: "+35 % de dégâts sur les blessés, +8 % de dégâts." },
+  // Mythique (5)
+  plume_seraphin: { n: "Plume de séraphin déchu", r: 5, ic: "feather", art: "plume_corbeau", pas: [{ k: "stat", s: "dodge", v: 12 }, { k: "stat", s: "spd", v: 3 }, { k: "dodgeRiposte", v: .3 }], d: "+12 d'esquive, +3 de vitesse, riposte en esquivant." },
+  pierre_sabbat: { n: "Pierre du Sabbat", r: 5, ic: "gem", art: "pierre_ame", pas: [{ k: "ultGain", v: .45 }, { k: "stat", s: "crit", v: 6 }], d: "Ultime 45 % plus vite, +6 % de critique." },
+  relique_martyr: { n: "Relique du martyr", r: 5, ic: "sun", art: "relique_aube", pas: [{ k: "cheatDeath", v: 1 }, { k: "stat", s: "hp", v: .12 }, { k: "healTaken", v: .15 }], d: "Survit une fois à un coup fatal, +12 % de PV, +15 % de soins reçus." },
+  sceau_cardinal: { n: "Sceau du Cardinal", r: 5, ic: "seal", art: "sceau_rouge", pas: [{ k: "burnPow", v: .5 }, { k: "dotPow", v: .25 }, { k: "stat", s: "dmg", v: .08 }], d: "+50 % de brûlure, +25 % sur la durée, +8 % de dégâts." },
+  // Divin (6)
+  crane_prophete: { n: "Crâne du prophète", r: 6, ic: "skull", art: "crane_saint", pas: [{ k: "stat", s: "crit", v: 12 }, { k: "critDmg", v: .4 }, { k: "stat", s: "acc", v: 8 }], d: "+12 % de critique, critiques +40 %, +8 de précision." },
+  coeur_titan: { n: "Cœur de titan", r: 6, ic: "heart", art: "coeur_roi", pas: [{ k: "stat", s: "hp", v: .25 }, { k: "stat", s: "prot", v: .1 }, { k: "thornsP", v: .2 }], d: "+25 % de PV, +10 % de protection, renvoie 20 % des dégâts." },
+  gantelet_archonte: { n: "Gantelet de l'Archonte", r: 6, ic: "glove", art: "gant_bourreau", pas: [{ k: "stat", s: "dmg", v: .18 }, { k: "execute", v: .3 }, { k: "stat", s: "spd", v: 1 }], d: "+18 % de dégâts, +30 % sur les blessés, +1 de vitesse." },
+  // Céleste (7)
+  sablier_astres: { n: "Sablier des astres", r: 7, ic: "hourglass", art: "sablier", pas: [{ k: "stat", s: "spd", v: 5 }, { k: "ultGain", v: .5 }, { k: "stat", s: "dodge", v: 8 }], d: "+5 de vitesse, ultime 50 % plus vite, +8 d'esquive." },
+  oeil_firmament: { n: "Œil du firmament", r: 7, ic: "eye", art: "oeil_abime", pas: [{ k: "stat", s: "crit", v: 15 }, { k: "critDmg", v: .5 }, { k: "critBleed", v: .5 }], d: "+15 % de critique, critiques +50 %, les critiques font saigner." },
+  couronne_aube: { n: "Couronne de l'aube", r: 7, ic: "crown", art: "couronne_epines", pas: [{ k: "stat", s: "healPow", v: .4 }, { k: "overhealShield", v: .5 }, { k: "stat", s: "hp", v: .15 }], d: "+40 % de soins, le surplus devient bouclier, +15 % de PV." },
+  ecu_firmament: { n: "Égide céleste", r: 7, ic: "shield", art: "ecu_brise", pas: [{ k: "stat", s: "prot", v: .15 }, { k: "stat", s: "hp", v: .2 }, { k: "shieldPow", v: .35 }], d: "+15 % de protection, +20 % de PV, +35 % de boucliers." },
+  // Primordial (8)
+  croc_fenrir: { n: "Croc du Dévoreur", r: 8, ic: "fang", art: "croc_vampire", pas: [{ k: "stat", s: "dmg", v: .25 }, { k: "stat", s: "leech", v: .15 }, { k: "lowHpDmg", v: .3 }], d: "+25 % de dégâts, +15 % de vol de vie, +30 % sous 50 % de PV." },
+  chapelet_origine: { n: "Chapelet de l'Origine", r: 8, ic: "rosary", art: "chapelet", pas: [{ k: "cheatDeath", v: 2 }, { k: "stat", s: "res", v: 40 }, { k: "moralePow", v: .3 }], d: "Survit deux fois à un coup fatal, +40 de résistance, +30 % de résolution." },
+  amulette_premier: { n: "Amulette du Premier Feu", r: 8, ic: "amulet", art: "amulette_sel", pas: [{ k: "stat", s: "dmg", v: .22 }, { k: "stat", s: "hp", v: .22 }, { k: "stat", s: "spd", v: 3 }], d: "+22 % de dégâts et de PV, +3 de vitesse." },
+  herbe_monde: { n: "Racine du Monde", r: 8, ic: "herb", art: "herbe_rare", pas: [{ k: "stat", s: "healPow", v: .5 }, { k: "regenPow", v: .5 }, { k: "healTaken", v: .2 }], d: "+50 % de soins, +50 % de régénération, +20 % de soins reçus." },
+};
+Object.assign(TRINKETS, TR_MORE);
+// icônes : chaque bibelot sans icône peinte reprend celle de sa famille
+const TR_ART_BY_IC = { eye: "oeil_abime", feather: "plume_corbeau", skull: "crane_saint", glove: "gant_bourreau", hourglass: "sablier", heart: "coeur_roi", cloak: "cape_brume", fang: "croc_vampire", gem: "pierre_ame", crown: "couronne_epines", sun: "relique_aube", rosary: "chapelet", ring: "bague_fer", vial: "fiole_sang", amulet: "amulette_sel", bell: "cloche_morte", herb: "herbe_rare", shield: "ecu_brise", claw: "griffe_ombre", seal: "sceau_rouge", ember: "coeur_braise", dagger: "griffe_ombre", flask: "fiole_sang" };
 // ── Synergies et succès supplémentaires (nov. 2026) ──
 Object.assign(SYNERGIES, {
   feu_croise: { n: "Feu croisé", need: [["pyromancien"], ["arbaletriere"]], h: { burnT: 1, crit: 4 }, d: "Brûlures +1 tour, +4 % de critique." },
@@ -2067,7 +2122,7 @@ function heroPassives(h) {
   const C = CLASSES[h.cls], out = [];
   for (const t of h.traits) out.push(...TRAITS[t].pas);
   if (h.evo) { out.push(...C.evos[h.evo].pas); if (h.lvl >= APEX_LVL) out.push(...APEX[h.evo].pas); }
-  for (const s of ["tr1", "tr2"]) { const it = h.gear[s]; if (it && TRINKETS[it.key]) { const m = 1 + .2 * Math.max(0, (it.rar || 0) - TRINKETS[it.key].r); out.push(...TRINKETS[it.key].pas.map(p => m === 1 || typeof p.v !== "number" ? p : Object.assign({}, p, { v: p.v * m }))); } } // bibelot au-dessus de sa qualité de base : +20 % par cran
+  for (const s of ["tr1", "tr2"]) { const it = h.gear[s]; if (it && TRINKETS[it.key]) { const m = 1 + .2 * Math.max(0, (it.rar || 0) - TRINKETS[it.key].r); out.push(...TRINKETS[it.key].pas.map(p => m === 1 || typeof p.v !== "number" || p.k === "cheatDeath" ? p : Object.assign({}, p, { v: p.v * m }))); } } // bibelot au-dessus de sa qualité de base : +20 % par cran
   if (h.cursed > 0) out.push({ k: "stat", s: "dmg", v: -.12 }); // larme de l'idole (événement)
   for (const s of ["wpn", "arm"]) { const it = h.gear[s]; if (it && it.mod && ITEM_MODS[it.mod]) out.push(...ITEM_MODS[it.mod].pas); } // effet unique d'équipement
   if (h.mark && typeof GUARD_MARKS !== "undefined" && GUARD_MARKS[h.mark]) out.push(...GUARD_MARKS[h.mark].pas); // marque d'un gardien vaincu
@@ -3520,7 +3575,16 @@ const SETS = {
 };
 function rollSet(it) { if (it && it.rar >= 4 && !it.set && chance(it.rar >= 5 ? .35 : .2)) it.set = pick(Object.keys(SETS)); return it; }
 function setCount(h) { const n = {}; for (const s of ["wpn", "arm", "tr1", "tr2"]) { const it = h.gear[s]; if (it && it.set && SETS[it.set]) n[it.set] = (n[it.set] || 0) + 1; } return n; }
-function setPassives(h) { const out = [], n = setCount(h); for (const k in n) { if (n[k] >= 2) out.push(...SETS[k].b2.pas); if (n[k] >= 3) out.push(...SETS[k].b3.pas); } return out; }
+// bonus de panoplie complète (4 pièces : arme, armure et les deux bibelots)
+const SET_B4 = {
+  roi: { d: "+12 % de dégâts, +8 % de vol de vie, ultime 25 % plus vite", pas: [{ k: "stat", s: "dmg", v: .12 }, { k: "stat", s: "leech", v: .08 }, { k: "ultGain", v: .25 }] },
+  veilleur: { d: "+12 % de protection, +12 % de PV, renvoie 20 % des dégâts de mêlée", pas: [{ k: "stat", s: "prot", v: .12 }, { k: "stat", s: "hp", v: .12 }, { k: "thornsP", v: .2 }] },
+  peste: { d: "+35 % de dégâts sur la durée, +20 % de dégâts de zone, +20 résistance", pas: [{ k: "dotPow", v: .35 }, { k: "aoeDmg", v: .2 }, { k: "stat", s: "res", v: 20 }] },
+  aube: { d: "+25 % de soins, le surplus devient bouclier, survit une fois à un coup fatal", pas: [{ k: "stat", s: "healPow", v: .25 }, { k: "overhealShield", v: .4 }, { k: "cheatDeath", v: 1 }] },
+  loup: { d: "+3 vitesse, +10 esquive, riposte en esquivant, compagnon +25 %", pas: [{ k: "stat", s: "spd", v: 3 }, { k: "stat", s: "dodge", v: 10 }, { k: "dodgeRiposte", v: .3 }, { k: "petDmg", v: .25 }] },
+};
+for (const k in SET_B4) if (SETS[k]) SETS[k].b4 = SET_B4[k];
+function setPassives(h) { const out = [], n = setCount(h); for (const k in n) { if (n[k] >= 2) out.push(...SETS[k].b2.pas); if (n[k] >= 3) out.push(...SETS[k].b3.pas); if (n[k] >= 4 && SETS[k].b4) out.push(...SETS[k].b4.pas); } return out; }
 
 // Enchantement : relancer l'effet unique d'un objet Épique ou mieux (choix parmi trois)
 function enchantCost(it) { return { gold: 250 * it.tier + 150 * (it.rar - 2), shards: Math.max(1, it.rar - 2) }; }
@@ -5502,7 +5566,7 @@ function cropDraw(src, W, pad) { // recadre au plus juste puis centre dans un ca
 function itemArt(it) {
   if (!HASWIN || !it) return "";
   const bust = it.kind === "arm" ? heroArt({ cls: it.cls, tier: it.tier, evo: it.evo }) : null;
-  const wim = it.kind === "wpn" ? artImg("wpn_" + CLASSES[it.cls].wpn) : null, tim = it.kind === "tr" ? artImg("tr_" + ((TRINKETS[it.key] && TRINKETS[it.key].art) || it.key)) : null;
+  const wim = it.kind === "wpn" ? artImg("wpn_" + CLASSES[it.cls].wpn) : null, tim = it.kind === "tr" ? artImg("tr_" + trArtKey(it.key)) : null;
   const key = (it.kind === "tr" ? "tr|" + it.key + "|" + it.rar : [it.kind, it.cls, it.tier, it.rar, it.evo || ""].join("|")) + (bust || wim || tim ? "|i" : "");
   if (ITEM_ART[key]) return ITEM_ART[key];
   const W = 112;
@@ -5535,16 +5599,24 @@ function itemArt(it) {
     return url;
   } catch (e) { return ITEM_ART[key] = ""; }
 }
+function trArtKey(k) { const T = TRINKETS[k]; if (!T) return k; if (T.art) return T.art; if (itAtlasRect("tr_" + k) || ART_SET.has("tr_" + k)) return k; return (typeof TR_ART_BY_IC !== "undefined" && TR_ART_BY_IC[T.ic]) || k; }
 function itemIcon(it) { return it.kind === "wpn" ? "wpn_" + CLASSES[it.cls].wpn : it.kind === "arm" ? "armor" : TRINKETS[it.key].ic; }
 function paintItem(c, it) { if (!it) return; const x = c.getContext("2d"); const g = x.createRadialGradient(c.width / 2, c.height / 2, 2, c.width / 2, c.height / 2, c.width / 2); g.addColorStop(0, RARITY[it.rar].c + "55"); g.addColorStop(1, "#0000"); x.fillStyle = g; x.fillRect(0, 0, c.width, c.height); }
+// effets du bibelot avec le bonus de qualité déjà appliqué (+20 % par cran au-dessus de sa qualité de base)
+function trinketText(it) {
+  const T = TRINKETS[it.key]; if (!T) return ""; const up = Math.max(0, (it.rar || 0) - T.r), m = 1 + .2 * up;
+  if (!T.pas || !T.pas.length) return T.d;
+  const sc = T.pas.map(p => typeof p.v !== "number" || p.k === "cheatDeath" ? p : Object.assign({}, p, { v: p.v * m }));
+  return pasText(sc) + (T.h ? " · " + T.d : "") + (up && T.pas.some(p => typeof p.v === "number" && p.k !== "cheatDeath") ? ` <span class="tiny good">(qualité : +${up * 20} % inclus)</span>` : "");
+}
 function itemLine(it) {
   if (!it) return "";
   const stats = [];
   if (it.kind === "wpn") stats.push(`+${Math.round((WPN_DMG[it.tier] * (1 + .07 * it.up) + it.up * .03) * 100)} % dégâts`);
   if (it.kind === "arm") stats.push(`+${Math.round((ARM_HP[it.tier] * (1 + .07 * it.up) + it.up * .025) * 100)} % PV`, `+${Math.round(ARM_PROT[it.tier] * 100)} % protection`);
-  if (it.kind === "tr") { const up = Math.max(0, (it.rar || 0) - TRINKETS[it.key].r); stats.push(TRINKETS[it.key].d + (up ? ` <span class="good">(effets +${up * 20} % grâce à sa qualité)</span>` : "")); }
+  if (it.kind === "tr") stats.push(trinketText(it));
   if (it.mod && ITEM_MODS[it.mod]) stats.push(`<b style="color:#ffb848">✦ ${ITEM_MODS[it.mod].n}</b> : ${ITEM_MODS[it.mod].d}`);
-  if (it.set && SETS[it.set]) stats.push(`<b style="color:${SETS[it.set].c}">❖ ${SETS[it.set].n}</b> (2 : ${SETS[it.set].b2.d} ; 3 : ${SETS[it.set].b3.d})`);
+  if (it.set && SETS[it.set]) stats.push(`<b style="color:${SETS[it.set].c}">❖ ${SETS[it.set].n}</b> (2 : ${SETS[it.set].b2.d} ; 3 : ${SETS[it.set].b3.d}${SETS[it.set].b4 ? " ; 4 : " + SETS[it.set].b4.d : ""})`);
   for (const f of it.aff || []) { const A = AFFIXES[f.k]; stats.push(`+${A.fmt === "pct" ? Math.round(f.v * 100) + " %" : f.v} ${A.n}`); }
   const req = it.kind !== "tr" && TIER_LVL[it.tier] > 1 ? ` · <span class="tiny dim">niv ${TIER_LVL[it.tier]}+</span>` : "";
   return (gl(stats.filter(t => !/^\+0 %/.test(t)).join(" · ")) || "Équipement de base") + req;
@@ -5630,7 +5702,7 @@ SCREENS.hero = {
         <div class="bar xp" style="margin:8px 0 2px"><i style="width:${h.lvl >= MAX_LVL ? 100 : 100 * h.xp / xpNeed(h.lvl)}%"></i></div><div class="tiny dim">${h.lvl >= MAX_LVL ? "Niveau maximal" : `${h.xp} / ${xpNeed(h.lvl)} XP`}</div>
         <p class="lore small">${C.lore}</p>
         <div class="row small">${h.traits.map(t => `<span class="tag ${TRAITS[t].good ? "good" : "bad"}" ${tipAttr(TRAITS[t].n, TRAITS[t].d)}>${TRAITS[t].n}</span>`).join("")}</div>
-        <div class="statgrid" style="margin-top:8px"><div>PV <b>${Math.round(st.hp)}</b></div><div>Dégâts <b>${Math.round(st.dmgLo)}–${Math.round(st.dmgHi)}</b></div><div>Protection <b>${Math.round(st.prot * 100)} %</b></div><div>Vitesse <b>${Math.round(st.spd)}</b></div><div>Critique <b>${Math.round(st.crit)} %</b></div><div>Esquive <b>${Math.round(st.dodge)}</b></div><div>Précision <b>${Math.round(st.acc)}</b></div><div>Résistance <b>${Math.round(st.res)}</b></div>${st.healPow > 1.01 ? `<div>Soins <b>${Math.round(st.healPow * 100)} %</b></div>` : ""}${st.leech ? `<div>Vol de vie <b>${Math.round(st.leech * 100)} %</b></div>` : ""}</div>
+        ${heroStatsBlockHTML(h, st)}
         <p class="tiny dim" style="margin-top:6px">Rangs préférés : ${C.rk.join(", ")} · Armure ${C.armor} · Puissance ${heroPower(h)}</p>
       </div>
     </div>
@@ -5647,7 +5719,7 @@ SCREENS.hero = {
 function pasText(pas) {
   const N = { dmg: "dégâts", hp: "PV", prot: "protection", spd: "vitesse", crit: "critique", dodge: "esquive", acc: "précision", res: "résistance", healPow: "soins", leech: "vol de vie" };
   const H = { guardProt: "protection quand il protège", burnPow: "brûlures", dodgeRiposte: "riposte en esquivant", lowHpDmg: "dégâts sous 50 % PV", overhealShield: "surplus de soin en bouclier", regenPow: "régénération", dotPow: "dégâts sur la durée", buffPow: "renforcements", moralePow: "résolution", debuffPow: "altérations", markDmg: "dégâts contre les marqués", critBleed: "critiques qui font saigner", killMorale: "résolution par victime", critDmg: "dégâts critiques", killStealth: "furtivité après une victime", dodgeBleed: "saignement en esquivant", petDmg: "dégâts du compagnon", aoeDmg: "dégâts de zone", cheatDeath: "survie à un coup fatal", shieldPow: "boucliers", healTaken: "soins reçus", ultGain: "charge de l'ultime", xp: "expérience", gold: "or", execute: "dégâts sur les blessés", thornsP: "renvoi des dégâts" };
-  return gl(pas.map(p => { if (p.k === "stat") { const pc = ["dmg", "hp", "prot", "healPow", "leech"].includes(p.s); return `${p.v > 0 ? "+" : ""}${pc ? Math.round(p.v * 100) + " %" : Math.round(p.v)} ${N[p.s]}`; } if (p.k === "cheatDeath") return `survit ${p.v > 1 ? p.v + " fois" : "une fois"} à un coup fatal`; return `+${p.v < 2 ? Math.round(p.v * 100) + " %" : p.v} ${H[p.k] || p.k}`; }).join(" · "));
+  return gl(pas.map(p => { if (p.k === "stat") { const pc = ["dmg", "hp", "prot", "healPow", "leech"].includes(p.s); return `${p.v > 0 ? "+" : ""}${pc ? Math.round(p.v * 100) + " %" : Math.round(p.v) + (p.s === "crit" ? " %" : "")} ${N[p.s]}`; } if (p.k === "cheatDeath") return `survit ${p.v >= 2 ? Math.floor(p.v) + " fois" : "une fois"} à un coup fatal`; if (p.k === "critBleed") return `critiques : saignement de ${Math.round(p.v * 100)} % des dégâts moyens par tour (3 tours)`; if (p.k === "vsTag") return `+${Math.round(p.v * 100)} % contre les ${p.tag}s`; if (p.k === "killMorale") return `+${Math.round(p.v)} de résolution par victime`; return `+${p.v < 2 ? Math.round(p.v * 100) + " %" : p.v} ${H[p.k] || p.k}`; }).join(" · "));
 }
 ACT.toggleSk = (v, el, e) => { if (e && e.target.closest("[data-a=skUp]")) return; const [id, k] = v.split(":"); const h = heroById(id); if (h.skills.includes(k)) { if (h.skills.length <= 1) return; h.skills = h.skills.filter(x => x !== k); } else { if (h.skills.length >= 4) return toast("4 compétences au maximum : retirez-en une d'abord.", "bad"); h.skills.push(k); } save(); refresh(); };
 ACT.skUp = (v, el, e) => { e && e.stopPropagation(); const [id, k] = v.split(":"); const h = heroById(id); const r = skillUp(h, k); if (r.err) return toast(r.err, "bad"); sfx("level"); save(); renderHud(); refresh(); };
@@ -5674,7 +5746,7 @@ function heroSheetHTML(h, foot = "") {
       <p class="lore small" style="margin:4px 0">${C.lore}</p>
       ${typeof heroProgressHTML === "function" ? heroProgressHTML(h) : ""}
       <div class="col" style="gap:2px">${h.traits.map(t => `<div class="tiny"><b class="${TRAITS[t].good ? "good" : "bad"}">${TRAITS[t].n}</b> — ${gl(TRAITS[t].d)}</div>`).join("")}</div>
-      <div class="statgrid" style="margin-top:8px"><div>PV <b>${Math.round(st.hp)}</b></div><div>Dégâts <b>${Math.round(st.dmgLo)}–${Math.round(st.dmgHi)}</b></div><div>Protection <b>${Math.round(st.prot * 100)} %</b></div><div>Vitesse <b>${Math.round(st.spd)}</b></div><div>Critique <b>${Math.round(st.crit)} %</b></div><div>Esquive <b>${Math.round(st.dodge)}</b></div></div>
+      ${heroStatsBlockHTML(h, st)}
       <p class="tiny dim" style="margin:6px 0 0">Rangs préférés : ${C.rk.join(", ")} · Armure ${C.armor}</p>
     </div></div>
     ${questMarkHTML(h)}
@@ -7772,7 +7844,7 @@ ACT.enchantDo = k => {
 function heroProgressHTML(h) {
   if (!S || !h || !h.gear) return ""; // nouvelle aventure : pas encore de partie
   let out = ""; const n = setCount(h);
-  for (const k in n) { const T = SETS[k]; out += `<div class="tiny" style="margin:2px 0"><b style="color:${T.c}">❖ ${T.n}</b> ${n[k]}/3 — <span class="${n[k] >= 2 ? "good" : "dim"}">2 : ${T.b2.d}</span> · <span class="${n[k] >= 3 ? "good" : "dim"}">3 : ${T.b3.d}</span></div>`; }
+  for (const k in n) { const T = SETS[k]; out += `<div class="tiny" style="margin:2px 0"><b style="color:${T.c}">❖ ${T.n}</b> ${n[k]}/4 — <span class="${n[k] >= 2 ? "good" : "dim"}">2 : ${T.b2.d}</span> · <span class="${n[k] >= 3 ? "good" : "dim"}">3 : ${T.b3.d}</span>${T.b4 ? ` · <span class="${n[k] >= 4 ? "good" : "dim"}">4 : ${T.b4.d}</span>` : ""}</div>`; }
   if (h.asc) out += `<div class="tiny" style="color:${ASC_COL[(h.asc - 1) % ASC_COL.length]}">✦ Ascension ${roman(h.asc)} : +${6 * h.asc} % de dégâts et de PV, +${4 * h.asc} résistance.</div>`;
   if (S.heroes.includes(h)) out += canAscend(h) ? `<button class="btn sm gold" style="margin:4px 0" data-a="ascend" data-v="${h.id}">✦ Ascension : renaître au niveau ${ASC_BACK}</button>` : h.lvl >= 20 ? `<div class="tiny dim">✦ Ascension possible au niveau ${ASC_LVL} pour un héros évolué.</div>` : "";
   return out;
@@ -8052,7 +8124,7 @@ ACT.engraveList = () => { const L = allGearTr().filter(g => g.it.rar >= 4).sort(
   modal(`<h2>${ico("link", "#e8c878")} Gravure de panoplie</h2><p class="tiny dim">Éclats : <b>${S.shards || 0}</b> · Or : <b>${fmt(S.gold)}</b></p><div class="col">${L.map(({ it, h }) => { const c = engraveCost(it), T = it.set && SETS[it.set];
     return `<div class="row card" style="cursor:default;gap:10px">${slotHTML(it, "itemInfo", it.id)}<div style="flex:1;min-width:150px"><b class="rar${it.rar}">${gearName(it)}</b> <span class="tiny dim">${h ? "porté par " + esc(h.name) : "inventaire"}</span><div class="tiny">${T ? `<b style="color:${T.c}">❖ ${T.n}</b>` : '<span class="dim">Aucune panoplie</span>'}</div></div><button class="btn sm ${S.gold >= c.gold && (S.shards || 0) >= c.shards ? "gold" : "ghost off"}" data-a="engrave" data-v="${it.id}">${fmt(c.gold)} or · ${c.shards} éclats</button></div>`; }).join("")}</div>`); };
 ACT.engrave = id => { const it = allGearTr().map(g => g.it).find(x => x.id === id); if (!it) return; const c = engraveCost(it);
-  modal(`<h2>${ico("link", "#e8c878")} ${gearName(it)}</h2><p class="small">Choisissez la panoplie à graver (${fmt(c.gold)} or et ${c.shards} éclats). Deux pièces de la même panoplie sur un héros donnent le premier bonus, trois pièces le second.</p><div class="col">${Object.entries(SETS).map(([k, T]) => `<button class="choice ${it.set === k ? "off" : ""}" data-a="engraveDo" data-v="${id}|${k}"><b style="color:${T.c}">❖ ${T.n}</b>${it.set === k ? ' <span class="tag">Actuelle</span>' : ""}<div class="tiny">2 pièces : ${T.b2.d} · 3 pièces : ${T.b3.d}</div></button>`).join("")}</div><button class="btn ghost sm" style="margin-top:8px" data-a="engraveList">Retour</button>`); };
+  modal(`<h2>${ico("link", "#e8c878")} ${gearName(it)}</h2><p class="small">Choisissez la panoplie à graver (${fmt(c.gold)} or et ${c.shards} éclats). Deux pièces de la même panoplie sur un héros donnent le premier bonus, trois pièces le deuxième, la panoplie complète (4 pièces : arme, armure et deux bibelots) le troisième.</p><div class="col">${Object.entries(SETS).map(([k, T]) => `<button class="choice ${it.set === k ? "off" : ""}" data-a="engraveDo" data-v="${id}|${k}"><b style="color:${T.c}">❖ ${T.n}</b>${it.set === k ? ' <span class="tag">Actuelle</span>' : ""}<div class="tiny">2 pièces : ${T.b2.d} · 3 pièces : ${T.b3.d}${T.b4 ? " · 4 pièces : " + T.b4.d : ""}</div></button>`).join("")}</div><button class="btn ghost sm" style="margin-top:8px" data-a="engraveList">Retour</button>`); };
 ACT.engraveDo = v => { const [id, k] = v.split("|"), it = allGearTr().map(g => g.it).find(x => x.id === id); const r = engraveDo(it, k); if (r.err) return toast(r.err, "bad"); sfx("forge"); save(); renderHud(); toast(`${gearName(it)} : ❖ ${SETS[k].n}`, "good"); ACT.engraveList(); };
 
 // ── Gemmes : sertir directement depuis l'onglet Gemmes ──
@@ -8130,6 +8202,57 @@ function uniqCodexHTML() { const U = S.uniqs || {}, keys = Object.keys(UNIQ).fil
 { const ch1 = SCREENS.codex.html; SCREENS.codex.html = () => { let h = ch1(); const on = UI.codexTab === "uniques";
     h = h.replace('<div class="tabs">', `<div class="tabs"><button class="btn sm ${on ? "on" : ""}" data-a="codexTab" data-v="uniques">${ico("crown")}Uniques</button>`);
     if (on) { const i = h.lastIndexOf("</div>"); h = h.slice(0, i) + uniqCodexHTML() + h.slice(i); } return h; }; }
+/* Fiche du héros : toutes les caractéristiques + détail des bonus par source (niveau, équipement, bibelots, talents…). */
+function pasSum(list) {
+  const m = new Map();
+  for (const p of list || []) { if (typeof p.v !== "number") continue; const key = p.k + "|" + (p.s || "") + "|" + (p.tag || ""); const o = m.get(key); if (o) o.v += p.v; else m.set(key, Object.assign({}, p)); }
+  return [...m.values()].filter(p => Math.abs(p.v) > 1e-6);
+}
+const pasMinus = (all, parts) => { const sub = pasSum(parts).map(p => Object.assign({}, p, { v: -p.v })); return pasSum(all.concat(sub)).filter(p => Math.abs(p.v) > .004); };
+function heroBonusSources(h) {
+  const C = CLASSES[h.cls], L = h.lvl - 1, src = [];
+  const add = (n, pas) => { const s = pasSum(pas); if (s.length) src.push({ n, pas: s }); return pas; };
+  const known = [];
+  // niveau
+  src.push({ n: `Niveau ${h.lvl}`, txt: L ? `+${Math.round(11 * L)} % PV · +${Math.round(8 * L)} % dégâts · +${Math.floor(L / 4)} vitesse · +${Math.round(L * .3)} % critique · +${Math.round(L * .5)} esquive · +${Math.round(L * .6)} précision · +${Math.round(L * 1.5)} résistance · +${Math.round(L * 4)} % soins` : "aucun bonus au niveau 1" });
+  // équipement
+  const w = h.gear.wpn, a = h.gear.arm, eq = [];
+  if (w) eq.push({ k: "stat", s: "dmg", v: WPN_DMG[w.tier] * (1 + .07 * w.up) + w.up * .03 });
+  if (a) eq.push({ k: "stat", s: "hp", v: ARM_HP[a.tier] * (1 + .07 * a.up) + a.up * .025 }, { k: "stat", s: "prot", v: ARM_PROT[a.tier] });
+  for (const it of [w, a, h.gear.tr1, h.gear.tr2]) if (it && it.aff) for (const f of it.aff) eq.push({ k: "stat", s: f.k, v: f.v });
+  add("Arme, armure et affixes", eq);
+  const tr = [];
+  for (const s of ["tr1", "tr2"]) { const it = h.gear[s]; if (it && TRINKETS[it.key]) { const m = 1 + .2 * Math.max(0, (it.rar || 0) - TRINKETS[it.key].r); tr.push(...TRINKETS[it.key].pas.map(p => m === 1 || typeof p.v !== "number" || p.k === "cheatDeath" ? p : Object.assign({}, p, { v: p.v * m }))); } }
+  known.push(...add("Bibelots (qualité incluse)", tr));
+  const mods = []; for (const s of ["wpn", "arm"]) { const it = h.gear[s]; if (it && it.mod && ITEM_MODS[it.mod]) mods.push(...ITEM_MODS[it.mod].pas); }
+  known.push(...add("Effets uniques d'équipement", mods));
+  if (typeof setPassives === "function") known.push(...add("Panoplies", setPassives(h)));
+  if (h.talents && typeof talentPas === "function") known.push(...add("Talents", talentPas(h)));
+  known.push(...add("Traits", [].concat(...h.traits.map(t => TRAITS[t] ? TRAITS[t].pas : []))));
+  if (h.evo) known.push(...add(h.lvl >= APEX_LVL ? "Évolution et apogée" : "Évolution", C.evos[h.evo].pas.concat(h.lvl >= APEX_LVL && APEX[h.evo] ? APEX[h.evo].pas : [])));
+  if (typeof ascPassives === "function") known.push(...add("Ascension", ascPassives(h)));
+  if (typeof PAS_HOOKS !== "undefined") { const ph = []; for (const f of PAS_HOOKS) ph.push(...f(h)); known.push(...add("Gemmes, prestige, maîtrise et Bastion", ph)); }
+  const rest = [];
+  if (h.cursed > 0) rest.push({ k: "stat", s: "dmg", v: -.12 });
+  if (h.mark && typeof GUARD_MARKS !== "undefined" && GUARD_MARKS[h.mark]) rest.push(...GUARD_MARKS[h.mark].pas);
+  if (h.affl && typeof AFFLICTIONS !== "undefined" && AFFLICTIONS[h.affl]) rest.push(...AFFLICTIONS[h.affl].pas);
+  if (h.vet && typeof VET_TITLES !== "undefined" && VET_TITLES[h.vet]) rest.push(...VET_TITLES[h.vet].pas);
+  known.push(...add("Marque, état, malédiction et vétéran", rest));
+  const other = pasMinus(heroPassives(h), known); if (other.length) src.push({ n: "Autres (héritage, liens…)", pas: other });
+  return src;
+}
+function heroStatsBlockHTML(h, st) {
+  st = st || heroStats(h); const H = st.hooks || {};
+  const cell = (n, v, tip) => `<div${tip ? ` data-tip="${tip}"` : ""}>${n} <b>${v}</b></div>`;
+  const grid = [cell("PV", Math.round(st.hp)), cell("Dégâts", `${Math.round(st.dmgLo)}–${Math.round(st.dmgHi)}`), cell("Protection", Math.round(st.prot * 100) + " %"), cell("Vitesse", Math.round(st.spd)),
+    cell("Critique", Math.round(st.crit) + " %"), cell("Esquive", Math.round(st.dodge)), cell("Précision", Math.round(st.acc)), cell("Résistance", Math.round(st.res)),
+    cell("Soins", Math.round(st.healPow * 100) + " %"), cell("Vol de vie", Math.round((st.leech || 0) * 100) + " %")].join("");
+  const sp = Object.keys(H).filter(k => k !== "vsTag" && k !== "vsTagV" && typeof H[k] === "number" && H[k]).map(k => k === "vsTag" ? null : { k, v: H[k] });
+  if (H.vsTag && H.vsTagV) sp.push({ k: "vsTag", tag: H.vsTag, v: H.vsTagV });
+  const spec = sp.filter(p => p.k !== "vsTag" || p.tag).length ? `<div class="tiny" style="margin-top:4px"><b>Effets spéciaux</b> : ${pasText(sp.filter(p => p.k !== "vsTag" || p.tag))}</div>` : "";
+  const src = heroBonusSources(h).map(s => `<div class="tiny" style="margin:2px 0"><b>${s.n}</b> : ${s.txt || pasText(s.pas)}</div>`).join("");
+  return `<div class="statgrid" style="margin-top:8px">${grid}</div>${spec}<details style="margin-top:4px"><summary class="tiny gold" style="cursor:pointer">Détail des bonus par source</summary><div style="margin-top:4px">${src}</div></details>`;
+}
 /* ═══════════════════════ Démarrage ═══════════════════════ */
 if (HASWIN) {
   const boot = () => {

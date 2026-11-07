@@ -150,6 +150,8 @@ Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
 
 - 7 nov. (v154) : recyclage d'un objet amélioré : 60 % de l'or (`UP_REFUND`) et 50 % de l'essence/cendre investis rendus (`upInvested` dans 04_state, `salvage().refund`, affiché dans la confirmation de `ACT.salv`).
 
+- 7 nov. (v155) — 8 améliorations « toutes » (08zzz_more2 + 37zzzz_more2_ui) : objets verrouillés (`it.lock`, `ACT.itemLock` dans la fiche d'objet ; exclus de `salvCandidates`, `salvageItem`, `ACT.salv`, `merchantSellHTML`) ; transfert d'amélioration (`upTransfer`, taxe `UP_TAX` 20 % de l'or investi, `ACT.upXfer`) ; préréglages d'équipement ×3 par héros (`h.presets`, `presetSave/presetLoad`, fiche du héros via `heroProgressHTML`) ; comparaison d'équipes avec chance estimée face au gardien de la préparation (`ACT.teamCmp` redéfini, 85 % ± 4/niveau autour de `recLevel`) ; quêtes de classe hebdomadaires (`classWeek`, `S.classWeek`, gardiens vaincus avec la classe, Taverne, `ACT.cwClaim`) ; gemmes rares Grenat/Améthyste/Perle noire (`GEMS[..].rare`, 70 % relancées dans `gemRoll`) ; Archives › Uniques (`uniqCodexHTML`) ; faits d'armes par héros (`h.st` : combats, gardiens, dégâts, soins, plus gros coup, agonies ; via `afterBattle`, copiés au Mémorial `g.st`).
+
 ## Reste à faire (prochaine séance)
 0. Art en attente (quota Canva) : ART8.md (armures de voie VI–IX, refaites à partir du palier V ; V1 fait) ; puis illustration palier X par classe (VII–IX = VI). Republier ensuite (sw.js + assets).
 1. (Armures V : fait.) Gardiens de menace II–V : déjà présents (`THREAT_BOSS`) — à confirmer avec l'utilisateur s'il en veut d'autres.

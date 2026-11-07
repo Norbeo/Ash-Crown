@@ -92,3 +92,38 @@ const MARK_WORDS = ["Marque", "Stigmate", "Sceau", "Empreinte", "Cicatrice", "So
     GUARD_MARKS[key] = { boss: k, n: MARK_WORDS[Math.floor(h / 7) % MARK_WORDS.length] + " " + of, d: `${U[2]}, mais ${D[2]}.`, pas: [{ k: "stat", s: U[0], v: U[1] }, { k: "stat", s: D[0], v: D[1] }] }; } }
 function bossMarkKey(run) { const last = run && run.map && run.map[run.map.length - 1], bn = last && last.find(n => n.type === "boss"); const b = bn && bn.enc && bn.enc.find(e => MONSTERS[e.key] && MONSTERS[e.key].boss);
   if (b) { const base = typeof bossBase === "function" ? bossBase(b.key) : b.key; if (GUARD_MARKS["b:" + base]) return "b:" + base; } return run ? run.region : null; }
+
+// ════════ 7 nov. — 8 améliorations « toutes » ════════
+// 1 · Objets verrouillés : jamais recyclés ni vendus
+{ const si0 = salvageItem; salvageItem = function (it) { if (it && it.lock) return false; return si0.apply(this, arguments); }; }
+// 2 · Transfert d'amélioration : le +N passe d'un objet à un autre du même type, taxe = 20 % de l'or investi
+const UP_TAX = .2;
+function upTransferCost(src) { return Math.round(upInvested(src).gold * UP_TAX); }
+function upTransfer(src, dst) { if (!src || !dst || src === dst || src.kind !== dst.kind || src.kind === "tr" || !src.up || dst.up >= src.up) return { err: "Transfert impossible." };
+  const c = upTransferCost(src); if (S.gold < c) return { err: `Il faut ${fmt(c)} or.` }; S.gold -= c; dst.up = src.up; src.up = 0; return { ok: 1, c }; }
+// 3 · Préréglages d'équipement par héros (3 emplacements)
+function presetSave(h, i) { h.presets = h.presets || []; h.presets[i] = { wpn: h.gear.wpn && h.gear.wpn.id, arm: h.gear.arm && h.gear.arm.id, tr1: h.gear.tr1 && h.gear.tr1.id, tr2: h.gear.tr2 && h.gear.tr2.id }; }
+function presetLoad(h, i) { const P = h.presets && h.presets[i]; if (!P) return { err: "Préréglage vide." }; let miss = 0;
+  for (const s of ["wpn", "arm", "tr1", "tr2"]) { const id = P[s]; if (!id) continue; if (h.gear[s] && h.gear[s].id === id) continue;
+    let it = S.inv.find(x => x.id === id); if (!it) { const o = S.heroes.find(x => x !== h && Object.values(x.gear).some(g => g && g.id === id)); if (o) { const sl = Object.keys(o.gear).find(k => o.gear[k] && o.gear[k].id === id); if (sl === "tr1" || sl === "tr2") { unequip(o, sl); it = S.inv.find(x => x.id === id); } } }
+    if (!it || !equip(h, it, s)) miss++; }
+  return { ok: 1, miss }; }
+// 5 · Quêtes hebdomadaires de classe
+function classWeek() { const wk = legWeekKey(); if (S.classWeek && S.classWeek.wk === wk) return S.classWeek; const r = mkRng(hashStr("cw" + wk)), cls = r.shuffle(CLASS_IDS.slice()).slice(0, 3);
+  return S.classWeek = { wk, list: cls.map((c, i) => ({ cls: c, n: 2 + i, got: 0, done: 0, shards: 3 + 2 * i })) }; }
+function classWeekClaim(i) { const Q = classWeek().list[i]; if (!Q || Q.done || Q.got < Q.n) return null; Q.done = 1; S.shards += Q.shards; if (typeof gemAdd === "function") { const [k, l] = gemRoll(RNG, 2 + i).split(":"); gemAdd(k, +l); return { shards: Q.shards, gem: k + ":" + l }; } return { shards: Q.shards }; }
+// 6 · Gemmes rares à effets spéciaux
+if (typeof GEMS !== "undefined") Object.assign(GEMS, {
+  grenat: { n: "Grenat", c: "#c0304a", rare: 1, d: v => `+${Math.round(v * 100)} % de dégâts critiques`, pas: v => [{ k: "critDmg", v }], v: .05 },
+  amethyste: { n: "Améthyste", c: "#a060e0", rare: 1, d: v => `+${Math.round(v)} de résolution par ennemi tué`, pas: v => [{ k: "killMorale", v }], v: 2 },
+  perle: { n: "Perle noire", c: "#8890a8", rare: 1, d: v => `+${Math.round(v * 100)} % de dégâts contre les cibles affaiblies (< 50 % PV)`, pas: v => [{ k: "lowHpDmg", v }], v: .04 },
+});
+{ const gr0 = gemRoll; gemRoll = function (rng, lvlMax = 1) { const id = gr0.apply(this, arguments), [k, l] = id.split(":"); if (GEMS[k] && GEMS[k].rare && rng() < .7) { const c = Object.keys(GEMS).filter(x => !GEMS[x].rare); return rng.pick(c) + ":" + l; } return id; }; }
+// 8 · Statistiques par héros (dégâts, soins, gardiens, agonies, combats)
+{ const ab2 = afterBattle; afterBattle = function (run, B) {
+    try { if (B) { const T = B.tally || {}, boss = B.enemies.some(e => MONSTERS[e.key] && MONSTERS[e.key].boss), win = B.over === "win";
+        for (const u of [...B.heroes, ...(B.fallen || [])]) { const h = u.hid && heroById(u.hid); if (!h) continue; const st = h.st || (h.st = { dmg: 0, heal: 0, boss: 0, ago: 0, fights: 0, best: 0 });
+          st.dmg += (T.dmg || {})[u.hid] || 0; st.heal += ((T.heal || {})[u.hid] || 0) + (((T.shield || {})[u.hid]) || 0); st.ago += u.agonyN || 0; st.fights++; if (win && boss) st.boss++;
+          if (T.best && T.best.hid === u.hid) st.best = Math.max(st.best, Math.round(T.best.v || T.best.d || 0)); }
+        if (win && boss && run) { const W = classWeek(), cl = run.party.map(id => { const h = heroById(id); return h && h.cls; }); for (const Q of W.list) if (!Q.done && cl.includes(Q.cls)) Q.got = Math.min(Q.n, Q.got + 1); } } } catch (e) { }
+    return ab2.apply(this, arguments); }; }

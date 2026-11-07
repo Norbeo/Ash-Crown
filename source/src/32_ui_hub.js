@@ -261,9 +261,8 @@ function invList(filter) {
 ACT.itemInfo = id => { const it = findItem(id); if (!it) return; const c = it.kind !== "tr" ? upCost(it) : null; toast(`<b class="rar${it.rar}">${gearName(it)}</b><br><span class="small">${itemLine(it)}</span>${c ? `<br><span class="tiny dim">Amélioration vers +${it.up + 1} : ${c.gold} or, ${c.fer} fer${c.essence ? ", " + c.essence + " ess." : ""}${c.cendre ? ", " + c.cendre + " cendre" : ""}</span>` : ""}`); };
 ACT.upItem = id => { const it = findItem(id); const r = upgradeItem(it); if (!r || r.err) return toast((r && r.err) || "Impossible.", "bad"); sfx("forge"); toast(`${gearName(it)}`, "good"); save(); renderHud(); if (UI.bldOpen === "forge" && !$("#modal").hidden && !UI.heroOpen) openBuilding("forge", "inv"); else { refresh(); const M = $("#modal"); const h2 = M.querySelector("h2"); if (!M.hidden && UI.gsV && h2 && /^(Arme|Armure|Bibelot) —/.test(h2.textContent.trim())) ACT.gearSlot(UI.gsV); } };
 ACT.salv = id => { const it = findItem(id); if (!it) return; const go2 = () => { const r = salvageItem(it); sfx("forge"); toast(`Recyclé : +${r.fer} fer${r.essence ? `, +${r.essence} ess.` : ""}${r.cendre ? ", +1 cendre" : ""}, +${r.gold} or`); save(); renderHud(); openBuilding("forge", "inv"); }; const pv = salvage(it); if (it.rar >= 2 || it.up) confirmBox(`Recycler <b class="rar${it.rar}">${gearName(it)}</b> ?${pv.refund ? `<br><span class="small">Améliorations remboursées à ${Math.round(UP_REFUND * 100)} % : <b class="gold">+${fmt(pv.refund)} or</b> (total ${fmt(pv.gold)} or).</span>` : ""}`, go2); else go2(); };
-// un objet sert encore s'il améliore au moins un héros de la caserne (les légendaires sont toujours gardés)
+// un objet sert encore s'il améliore au moins un héros de la caserne capable de le porter (quelle que soit sa qualité)
 function itemUseful(it) {
-  if (it.rar >= 4) return true;
   return S.heroes.some(h => {
     if (!canEquip(h, it)) return false;
     if (it.kind === "tr") { const t = [h.gear.tr1, h.gear.tr2]; if (t.some(x => x && x.key === it.key)) return false; if (!t[0] || !t[1]) return true; return it.rar > Math.min(t[0].rar, t[1].rar); }
@@ -272,7 +271,7 @@ function itemUseful(it) {
 }
 // objet gardé pour plus tard : un héros de la classe existe mais n'a pas encore le niveau pour ce palier
 function itemFuture(it) { if (it.kind === "tr") return false; const hs = S.heroes.filter(h => h.cls === it.cls); return hs.length > 0 && hs.every(h => h.lvl < TIER_LVL[it.tier]) && hs.some(h => !h.gear[it.kind] || h.gear[it.kind].tier < it.tier); }
-function salvCandidates(rars, keepUseful, all) { return S.inv.filter(it => rars.includes(it.rar) && (all ? !it.uniq : !itemFuture(it) && !(keepUseful && itemUseful(it)))); } // all : tout par qualité, sans regarder qui peut le porter (objets uniques de gardien exceptés)
+function salvCandidates(rars, keepUseful, all) { return S.inv.filter(it => rars.includes(it.rar) && (all ? !it.uniq : !(keepUseful && itemUseful(it)))); } // all : tout par qualité, sans regarder qui peut le porter (objets uniques de gardien exceptés)
 ACT.salvAll = () => {
   UI.salv = UI.salv || { rars: [0, 1], keep: 1 };
   const draw = () => {
@@ -281,8 +280,8 @@ ACT.salvAll = () => {
     modal(`<h2>${ico("iron", "#c8c8c8")} Recyclage rapide</h2><p class="small">Choisissez les qualités à recycler.</p>
       <div class="col" style="gap:4px">${RARITY.map((Q, q) => { const n = S.inv.filter(it => it.rar === q).length; return n ? `<label class="row sp card" style="cursor:pointer;padding:6px 10px"><span class="rar${q}"><b>${Q.n}</b></span><span class="tiny dim">${n} objet${n > 1 ? "s" : ""}</span><input type="checkbox" data-salvq="${q}" ${R.rars.includes(q) ? "checked" : ""}></label>` : ""; }).join("")}</div>
       <label class="row sp" style="margin-top:8px;flex-wrap:nowrap;gap:10px"><span class="small" style="flex:1">Tout recycler par qualité <span class="tiny dim">— sans regarder si un héros peut s'en servir (palier supérieur compris ; les objets uniques de gardien sont gardés)</span></span><input type="checkbox" id="salvall" ${R.all ? "checked" : ""}></label>
-      ${R.all ? "" : `<label class="row sp" style="margin-top:4px"><span class="small">Garder ce qui améliorerait un héros</span><input type="checkbox" id="salvkeep" ${R.keep ? "checked" : ""}></label>`}
-      ${fut && !R.all ? `<p class="tiny dim">${fut} objet${fut > 1 ? "s" : ""} de palier supérieur ${fut > 1 ? "sont gardés" : "est gardé"} : vos héros pourront ${fut > 1 ? "les" : "le"} porter en montant de niveau.</p>` : ""}
+      ${R.all ? "" : `<label class="row sp" style="margin-top:4px"><span class="small">Garder ce qui est meilleur que l'équipement porté</span><input type="checkbox" id="salvkeep" ${R.keep ? "checked" : ""}></label>`}
+      <p class="tiny dim">Seuls les objets verrouillés, les objets uniques de gardien et${R.all || !R.keep ? "" : " ceux qui sont meilleurs que l'équipement porté par un héros capable de les porter"} sont gardés.</p>
       <div class="row sp" style="margin-top:10px"><span class="small">${list.length} objet${list.length > 1 ? "s" : ""} · +${tot.gold} or, +${tot.fer} fer${tot.essence ? `, +${tot.essence} ess.` : ""}${tot.cendre ? `, +${tot.cendre} cendre` : ""}</span><button class="btn main ${list.length ? "" : "off"}" data-a="salvGo">Recycler</button></div>`,
       { onClose: () => setTimeout(() => { if ($("#modal").hidden && UI.screen === "bastion") openBuilding("forge", "inv"); }, 0), mount: m => { m.querySelectorAll("[data-salvq]").forEach(c => c.onchange = () => { const q = +c.dataset.salvq; R.rars = c.checked ? [...new Set([...R.rars, q])] : R.rars.filter(x => x !== q); draw(); }); const k = m.querySelector("#salvkeep"); if (k) k.onchange = () => { R.keep = k.checked ? 1 : 0; draw(); }; const a = m.querySelector("#salvall"); if (a) a.onchange = () => { R.all = a.checked ? 1 : 0; draw(); }; } });
   };

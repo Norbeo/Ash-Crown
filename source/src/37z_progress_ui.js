@@ -63,10 +63,18 @@ function autoEquipAll(minRar, onlyIds) {
   while (changed && guard++ < 6) { changed = false;
     for (const h of S.heroes) { if (onlyIds && !onlyIds.includes(h.id)) continue;
       for (const kind of ["wpn", "arm", "tr"]) {
-        const cands = S.inv.filter(it => it.kind === kind && it.rar >= minRar && canEquip(h, it)); if (!cands.length) continue;
-        let best = null, bs = 1;
-        for (const it of cands) { if (kind === "tr") { const slot = !h.gear.tr1 ? "tr1" : !h.gear.tr2 ? "tr2" : null; if ([h.gear.tr1, h.gear.tr2].some(x => x && x.key === it.key)) continue; } const sc = bestScore(h, it); if (sc > bs) { bs = sc; best = it; } }
-        if (best) { const slot = kind === "tr" ? (!h.gear.tr1 ? "tr1" : !h.gear.tr2 ? "tr2" : (bestScore(h, h.gear.tr1) < bestScore(h, h.gear.tr2) ? "tr1" : "tr2")) : undefined; if (equip(h, best, slot)) { out.push({ h, it: best }); changed = true; } }
+        // emplacements verrouillés : l'objet porté et cadenassé n'est jamais remplacé
+        const lk = x => x && x.lock;
+        if (kind !== "tr" && lk(h.gear[kind])) continue;
+        const free = kind === "tr" ? ["tr1", "tr2"].filter(s => !lk(h.gear[s])) : null; if (free && !free.length) continue;
+        const all = S.inv.filter(it => it.kind === kind && canEquip(h, it)); if (!all.length) continue;
+        // qualité visée d'abord, puis les qualités en dessous si rien ne convient
+        let best = null;
+        for (let q = minRar; q >= 0 && !best; q--) {
+          const cands = all.filter(it => q === minRar ? it.rar >= minRar : it.rar === q); let bs = 1;
+          for (const it of cands) { if (kind === "tr" && [h.gear.tr1, h.gear.tr2].some(x => x && x.key === it.key)) continue; const sc = bestScore(h, it); if (sc > bs) { bs = sc; best = it; } }
+        }
+        if (best) { const slot = kind === "tr" ? (free.find(s => !h.gear[s]) || (free.length === 1 ? free[0] : (bestScore(h, h.gear.tr1) < bestScore(h, h.gear.tr2) ? "tr1" : "tr2"))) : undefined; if (equip(h, best, slot)) { out.push({ h, it: best }); changed = true; } }
       }
     }
   }
@@ -74,8 +82,8 @@ function autoEquipAll(minRar, onlyIds) {
 }
 ACT.autoEquip = () => {
   const draw = () => { const R = UI.aeq || (UI.aeq = { min: 0 }); const n = (() => { const snap = JSON.stringify(S.heroes.map(h => h.gear)); return snap; })();
-    modal(`<h2>${ico("armor", "#e8c878")} Optimiser l'équipement</h2><p class="small">Chaque héros prend dans l'inventaire l'objet qui l'améliore le plus selon son rôle (tank : survie, soigneur : survie et soins, dégâts : dégâts par tour). L'ancien objet retourne à l'inventaire.</p>
-      <div class="small" style="margin:6px 0">Qualité minimale :</div><div class="row" style="gap:4px;flex-wrap:wrap">${RARITY.map((Q, q) => `<button class="btn sm ${R.min === q ? "gold" : "ghost"}" data-a="aeqMin" data-v="${q}"><span class="rar${q}">${Q.n}</span></button>`).join("")}</div>
+    modal(`<h2>${ico("armor", "#e8c878")} Optimiser l'équipement</h2><p class="small">Chaque héros prend dans l'inventaire l'objet qui l'améliore le plus selon son rôle (tank : survie, soigneur : survie et soins, dégâts : dégâts par tour). L'ancien objet retourne à l'inventaire. Un objet porté et verrouillé n'est jamais remplacé.</p>
+      <div class="small" style="margin:6px 0">Qualité visée <span class="tiny dim">(et au-dessus ; à défaut, la meilleure qualité en dessous)</span> :</div><div class="row" style="gap:4px;flex-wrap:wrap">${RARITY.map((Q, q) => `<button class="btn sm ${R.min === q ? "gold" : "ghost"}" data-a="aeqMin" data-v="${q}"><span class="rar${q}">${Q.n}</span></button>`).join("")}</div>
       <div class="row" style="justify-content:flex-end;gap:6px;margin-top:12px"><button class="btn ghost" data-a="closeModal">Annuler</button><button class="btn main" data-a="aeqGo">Équiper toute la compagnie</button></div>`, { onClose: () => openBuilding("forge", "inv") }); };
   UI.aeqDraw = draw; draw();
 };

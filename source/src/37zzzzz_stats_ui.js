@@ -49,3 +49,6 @@ function heroStatsBlockHTML(h, st) {
   const src = heroBonusSources(h).map(s => `<div class="tiny" style="margin:2px 0"><b>${s.n}</b> : ${s.txt || pasText(s.pas)}</div>`).join("");
   return `<div class="statgrid" style="margin-top:8px">${grid}</div>${spec}<details style="margin-top:4px"><summary class="tiny gold" style="cursor:pointer">Détail des bonus par source</summary><div style="margin-top:4px">${src}</div></details>`;
 }
+
+// cadenas devant le nom d'un objet verrouillé (listes, fiches, comparaisons)
+{ const gn0 = gearName; gearName = function (it) { const n = gn0.apply(this, arguments); return it && it.lock ? "🔒 " + n : n; }; }

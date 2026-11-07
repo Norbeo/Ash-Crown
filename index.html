@@ -110,6 +110,7 @@ p{margin:6px 0;line-height:1.45}
 .slot img.itimg{width:100%;height:100%;object-fit:contain;padding:2px;pointer-events:none}
 .slot.r1{border-color:#4a7a3a;box-shadow:inset 0 0 12px #000,0 0 6px #5a9a4a55}.slot.r2{border-color:#3a6aaa;box-shadow:inset 0 0 12px #000,0 0 8px #3a6aaa55}.slot.r3{border-color:#8a4ac0;box-shadow:inset 0 0 12px #000,0 0 10px #8a4ac066}.slot.r4{border-color:#d0902a;box-shadow:inset 0 0 12px #000,0 0 14px #ffa03a88}
 .slot .tier{position:absolute;bottom:1px;right:3px;font-family:var(--f-head);font-size:10px;color:var(--gold2)}
+.slot .lk{position:absolute;top:0;right:2px;font-size:11px;line-height:1;filter:drop-shadow(0 0 2px #000)}
 .slot .up{position:absolute;top:1px;left:3px;font-size:10px;color:var(--good);font-weight:800}
 /* fenêtre modale */
 #modal{position:fixed;inset:0;z-index:20;display:flex;align-items:center;justify-content:center;background:#000b;backdrop-filter:blur(3px);-webkit-backdrop-filter:blur(3px);padding:12px;animation:fade .25s}
@@ -5621,7 +5622,7 @@ function itemLine(it) {
   const req = it.kind !== "tr" && TIER_LVL[it.tier] > 1 ? ` · <span class="tiny dim">niv ${TIER_LVL[it.tier]}+</span>` : "";
   return (gl(stats.filter(t => !/^\+0 %/.test(t)).join(" · ")) || "Équipement de base") + req;
 }
-function slotHTML(it, act, v, extra = "") { if (!it) return `<div class="slot" data-a="${act}" data-v="${v}">${ico("plus", "#5a4a3a")}</div>`; return `<div class="slot r${it.rar}" data-a="${act}" data-v="${v}" title="${esc(gearName(it))}">${(() => { const a = itemArt(it); if (a) return `<img class="itimg" src="${a}" alt="">`; const id = "w" + (++ITEM_WAIT.n); ITEM_WAIT.set(id, it); return `<span class="itw" data-iw="${id}">${ico(itemIcon(it), RARITY[it.rar].c)}</span>`; })()}${it.kind !== "tr" ? `<span class="tier">${TIER_ROM[it.tier]}</span>` : ""}${it.up ? `<span class="up">+${it.up}</span>` : ""}${extra}</div>`; }
+function slotHTML(it, act, v, extra = "") { if (!it) return `<div class="slot" data-a="${act}" data-v="${v}">${ico("plus", "#5a4a3a")}</div>`; return `<div class="slot r${it.rar}" data-a="${act}" data-v="${v}" title="${esc(gearName(it))}">${(() => { const a = itemArt(it); if (a) return `<img class="itimg" src="${a}" alt="">`; const id = "w" + (++ITEM_WAIT.n); ITEM_WAIT.set(id, it); return `<span class="itw" data-iw="${id}">${ico(itemIcon(it), RARITY[it.rar].c)}</span>`; })()}${it.kind !== "tr" ? `<span class="tier">${TIER_ROM[it.tier]}</span>` : ""}${it.up ? `<span class="up">+${it.up}</span>` : ""}${it.lock ? `<span class="lk" title="Verrouillé">🔒</span>` : ""}${extra}</div>`; }
 function invList(filter) {
   const items = S.inv.filter(filter || (() => true)).sort((a, b) => b.rar - a.rar || b.tier - a.tier);
   if (!items.length) return '<div class="empty">Inventaire vide. Explorez pour trouver du butin, ou forgez.</div>';
@@ -8260,6 +8261,9 @@ function heroStatsBlockHTML(h, st) {
   const src = heroBonusSources(h).map(s => `<div class="tiny" style="margin:2px 0"><b>${s.n}</b> : ${s.txt || pasText(s.pas)}</div>`).join("");
   return `<div class="statgrid" style="margin-top:8px">${grid}</div>${spec}<details style="margin-top:4px"><summary class="tiny gold" style="cursor:pointer">Détail des bonus par source</summary><div style="margin-top:4px">${src}</div></details>`;
 }
+
+// cadenas devant le nom d'un objet verrouillé (listes, fiches, comparaisons)
+{ const gn0 = gearName; gearName = function (it) { const n = gn0.apply(this, arguments); return it && it.lock ? "🔒 " + n : n; }; }
 /* ═══════════════════════ Démarrage ═══════════════════════ */
 if (HASWIN) {
   const boot = () => {

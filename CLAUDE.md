@@ -186,6 +186,8 @@ Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
 
 - 13 nov. (v0.208) : séries et carte auto débloquées seulement au cycle ≥ 1 (`37…(46 z)_series2_ui.js` : `seriesOpen`, « Série ×N » / « Série infinie », la carte auto ne force plus le combat auto) ; frise : portrait du compagnon seulement quand il agit (`CB.petOrd`), plus de « · fin » ; `monShort` retire l'adjectif de variante ; accord des variantes féminines (`/^La /`) ; Objectifs rafraîchis au retour (`MNAV_SAFE` + goals/carnet/resPanel/journal/trophies) ; plaques grises : `/tmp/claude-0/canva/solid2.py` (SRC=cut_bak|cut_bak_h, OUT=…) + `grey_scan.py` (84 images corrigées) ; Taverne/Forge niv 1 repeintes.
 
+- 13 nov. (soir) : ménage (250 fichiers inutilisés retirés : copies séparées pet_/hero voies/tr_/wpn_ à la racine, artref/, fx_*_3/4, bg_worldmap, bg_bastion_port_src) puis historique Git repris à zéro (un seul commit, .git 278 → 89 Mo ; ancien historique dans /tmp/claude-0/ash-crown-history.bundle tant que la session existe). Chapelle/Salle des maîtres niv 1 repeintes (ART10 L2), icônes Lame d'ombre, chasseur de sorcières I–V repeints (v0.209).
+
 ## Reste à faire (prochaine séance)
 0. Art en attente (quota Canva) : ART8.md (armures de voie VI–IX, refaites à partir du palier V ; V1 fait) ; puis illustration palier X par classe (VII–IX = VI). Republier ensuite (sw.js + assets).
 1. (Armures V : fait.) Gardiens de menace II–V : déjà présents (`THREAT_BOSS`) — à confirmer avec l'utilisateur s'il en veut d'autres.

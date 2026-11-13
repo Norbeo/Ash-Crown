@@ -1,0 +1,12 @@
+# Illustrations à retourner horizontalement.
+# Héros : listés ici s'ils regardent vers la gauche (ils doivent regarder à droite).
+# Monstres : listés ici s'ils regardent DÉJÀ vers la droite (les autres sont retournés, le combat les remet face à gauche).
+# Compagnons : listés s'ils regardent vers la gauche.
+mon_archer_os
+mon_moine_flagellant
+mon_spectre
+hero_ombre_assassin
+hero_ombre_ombre_sang
+mon_cardinal
+pet_chimere_evo
+mon_tortue_ossuaire

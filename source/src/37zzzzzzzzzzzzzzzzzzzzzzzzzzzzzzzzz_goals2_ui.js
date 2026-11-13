@@ -1,0 +1,57 @@
+/* Objectifs (refonte) : tout ce qu'il y a à faire dans le jeu, en onglets — Maintenant (récompenses prêtes), Aujourd'hui, Progression, Collection.
+   Chaque ligne : état (prête / en cours x/y / faite) et un raccourci vers le bon écran. */
+function g2Safe(f, d) { try { return f(); } catch (e) { return d; } }
+function goalsAll() {
+  const G = [], add = (cat, o) => G.push(Object.assign({ cat, st: "todo" }, o));
+  const regs = REGIONS.filter(r => r.id !== "abime"), best4 = S.heroes.slice().sort((a, b) => b.lvl - a.lvl).slice(0, 4), avg = best4.length ? Math.round(best4.reduce((a, h) => a + h.lvl, 0) / best4.length) : 1;
+  // ── Aujourd'hui ──
+  g2Safe(() => { const A = AD(); loginTick(); add("day", { ic: "daily", t: "Récompense de connexion", d: `Série de ${A.login.streak || 1} jour${(A.login.streak || 1) > 1 ? "s" : ""} (sur 7)`, st: A.login.claimed !== A.login.last ? "ready" : "done", a: "carnet", v: "login" }); });
+  g2Safe(() => { const A = AD(), lv = passLvl(), free = []; for (let l = 1; l <= Math.min(PASS_LV, lv); l++) if (!A.pass.got.includes(l)) free.push(l);
+    add("day", { ic: "star", t: "Passe de saison", d: `Palier ${Math.min(PASS_LV, lv)} / ${PASS_LV}${free.length ? ` — ${free.length} récompense${free.length > 1 ? "s" : ""} à prendre` : ""}`, st: free.length ? "ready" : lv >= PASS_LV ? "done" : "todo", a: "carnet", v: "pass", n: [Math.min(PASS_LV, lv), PASS_LV] }); });
+  g2Safe(() => { for (const [i, c] of (S.daily.contracts || []).entries()) add("day", { ic: "scroll", t: `Défi du jour : ${c.n}`, d: `${Math.min(c.p, c.goal)} / ${c.goal} · ${c.gold} or`, st: c.claimed ? "done" : c.p >= c.goal ? "ready" : "todo", a: "goalDaily", v: "", n: [Math.min(c.p, c.goal), c.goal] }); });
+  g2Safe(() => add("day", { ic: "map", t: "Expédition du jour", d: "Une expédition imposée, récompense bonus.", st: S.daily.done ? "done" : "todo", a: "dailyRun", v: "" }));
+  g2Safe(() => { const b = bountyOf(); if (b) add("day", { ic: "skull", t: `Prime : ${MONSTERS[b.key] ? MONSTERS[b.key].n : b.title}`, d: `${b.title} · ${b.gold} or, ${b.shards} éclats`, st: b.done ? "done" : "todo", a: "bounty", v: "" }); });
+  g2Safe(() => { tavContracts().list.forEach((C, i) => { const T = TAV_CONTRACTS.find(x => x.k === C.k) || {}; add("day", { ic: "tavern", t: `Contrat de la Taverne : ${T.d ? T.d(C.n) : T.n || C.k}`, d: `${Math.min(C.got, C.n)} / ${C.n} · ${C.gold} or`, st: C.done ? "done" : C.got >= C.n ? "ready" : "todo", a: "goalBld", v: "taverne:quest", n: [Math.min(C.got, C.n), C.n] }); }); });
+  g2Safe(() => { if (typeof chestReady === "function") add("day", { ic: "chest", t: "Coffre du gardien", d: chestReady() ? "Prêt à ouvrir" : `Prêt dans ${typeof hmTxt === "function" ? hmTxt(chestLeft()) : "quelques heures"}`, st: chestReady() ? "ready" : "todo", a: "chestOpen", v: "" }); });
+  g2Safe(() => { if (typeof wheelReady === "function") add("day", { ic: "dice", t: "Roue de la Taverne", d: "Un tirage gratuit par jour.", st: wheelReady() ? "ready" : "done", a: "goalBld", v: "taverne:rec" }); });
+  g2Safe(() => add("day", { ic: "furnace", t: "Dîme de la Fonderie", d: "Éclats, essence, fer et cendre, une fois par jour.", st: S.fondDay !== dayKey() ? "ready" : "done", a: "goalBld", v: "fonderie" }));
+  g2Safe(() => { const V = visitorToday(); if (V) add("day", { ic: "helm", t: `Visiteur : ${VISITORS[V.k] ? VISITORS[V.k].n : "inconnu"}`, d: "Des offres uniques, seulement aujourd'hui.", st: S.visitorSeen !== dayKey() ? "ready" : "done", a: "visitor", v: "" }); });
+  g2Safe(() => { const inv = invasionRegion(); if (inv) add("day", { ic: "skull", t: `Invasion : ${regionById(inv).n}`, d: "Ce week-end : ennemis +25 %, or ×2, expérience ×1,5.", a: "goalGo", v: inv }); });
+  g2Safe(() => { classWeek().list.forEach(Q => add("day", { ic: "crown", t: `Quête de la semaine : ${CLASSES[Q.cls].n}`, d: `Gardiens vaincus avec la classe : ${Math.min(Q.got, Q.n)} / ${Q.n} · ${Q.shards} éclats`, st: Q.done ? "done" : Q.got >= Q.n ? "ready" : "todo", a: "goalBld", v: "taverne:quest", n: [Math.min(Q.got, Q.n), Q.n] })); });
+  g2Safe(() => { const A = AD(); ordersTick(); A.orders.list.forEach(o => { const t = ORDER_T[o.i]; add("day", { ic: "anvil", t: `Commande : ${t.n || "commande du Bastion"}`, d: o.done ? "Livrée" : `${fmt(Math.min(orderHave(t), o.q))} / ${fmt(o.q)}`, st: o.done ? "done" : orderHave(t) >= o.q ? "ready" : "todo", a: "carnet", v: "orders" }); }); });
+  g2Safe(() => { huntTick(); const H = AD().hunt; if (H.list.length) add("day", { ic: "skull", t: "Contrat de chasse", d: H.list.map(c => `${Math.min(c.p, HUNT_T[c.i].g)}/${HUNT_T[c.i].g}`).join(" · "), st: H.chest ? "done" : huntDone() ? "ready" : "todo", a: "carnet", v: "hunt" }); });
+  // ── Progression ──
+  const next = regs.find(r => regionUnlocked(r.id) && !(S.prog[r.id] && S.prog[r.id].clears));
+  if (next) { const rl = recLevel(next.id, 0); add("prog", { ic: "crown", t: `Histoire : vaincre le gardien ${deNom(next.n)}`, d: `${next.sub} · niveau conseillé ${rl} · vos 4 meilleurs : ${avg}${avg >= rl ? " ✓" : ""}`, a: "goalGo", v: next.id, hot: 1 }); }
+  for (const r of regs.filter(r => S.prog[r.id] && S.prog[r.id].clears)) { const tm = threatMax(r.id), done = (S.prog[r.id].threat || 0) >= 4 && tm >= 4; if (done) continue;
+    add("prog", { ic: "skull", t: `${r.n} : menace ${roman(Math.min(4, tm) + 1)}`, d: `Niveau conseillé ${recLevel(r.id, Math.min(4, tm))} · débloque la menace suivante et un compagnon.`, a: "goalGo", v: r.id + ":" + Math.min(4, tm) }); }
+  const evo = S.heroes.filter(h => h.lvl >= EVO_LVL && !h.evo); if (evo.length) add("prog", { ic: "up", t: `Faire évoluer ${evo.length > 1 ? evo.length + " héros" : esc(evo[0].name)}`, d: "Choisissez une voie à la Salle des maîtres.", st: "ready", a: "goalBld", v: "academie" });
+  g2Safe(() => { const T = S.heroes.filter(h => talentPoints(h) > talentSpent(h)); for (const h of T.slice(0, 6)) add("prog", { ic: "star", t: `Talents à dépenser : ${esc(h.name)}`, d: `${talentPoints(h) - talentSpent(h)} point${talentPoints(h) - talentSpent(h) > 1 ? "s" : ""} · ${CLASSES[h.cls].n} niv ${h.lvl}`, st: "ready", a: "goalTalent", v: h.id }); });
+  const up = Object.keys(BUILDINGS).filter(k => { const c = bldCost(k); return c && canPay(c) && bldAdvOk(k); }); if (up.length) add("prog", { ic: "castle", t: `Améliorer ${up.length > 1 ? up.length + " bâtiments" : bldName(up[0])}`, d: up.map(k => bldName(k)).join(", "), st: "ready", a: "goalBld", v: up[0] });
+  const hurt = S.heroes.filter(h => typeof isInjured === "function" && isInjured(h)); if (hurt.length) add("prog", { ic: "heart", t: `${hurt.length} héros blessé${hurt.length > 1 ? "s" : ""}`, d: "La Chapelle les remet sur pied.", a: "goalBld", v: "chapelle" });
+  if (S.heroes.length < 4) add("prog", { ic: "helm", t: "Recruter des héros", d: "Une compagnie complète compte quatre héros.", st: "ready", a: "goalBld", v: "taverne:rec", hot: 1 });
+  g2Safe(() => { const L = legendPool().filter(l => !(S.legends || {})[l.id]); if (L.length) { const c = legendCost(L[0]); add("prog", { ic: "crown", t: `${L.length} légende${L.length > 1 ? "s" : ""} à la Taverne`, d: `À partir de ${fmt(c.gold)} or et ${c.shards} éclats.`, st: S.gold >= c.gold && (S.shards || 0) >= c.shards ? "ready" : "todo", a: "goalBld", v: "taverne:leg" }); } });
+  g2Safe(() => { const P = trFusePlan(); if (P.n) add("prog", { ic: "ring", t: `${P.n} fusion${P.n > 1 ? "s" : ""} de bibelots possible${P.n > 1 ? "s" : ""}`, d: "Trois bibelots d'une qualité → un de la qualité au-dessus.", st: "ready", a: "goalBld", v: "forge:tr" }); });
+  g2Safe(() => { const up2 = S.inv.filter(it => S.heroes.some(h => canEquip(h, it)) && typeof itemUseful === "function" && itemUseful(it)).length; if (up2 >= 2) add("prog", { ic: "chest", t: `${up2} objets meilleurs que l'équipement porté`, d: "« Optimiser l'équipement » à la Forge.", st: "ready", a: "goalBld", v: "forge:inv" }); });
+  // ── Collection ──
+  g2Safe(() => { const C = colCounts(); for (const c of Object.keys(COL_N)) { const [a, b] = C[c], cl = colClaimable(c); add("col", { ic: "star", t: COL_N[c], d: `${a} / ${b} (${colPct(c)} %)${cl.length ? ` — palier ${cl[0]} % à récupérer` : ""}`, st: cl.length ? "ready" : colPct(c) >= 100 ? "done" : "todo", a: "collect", v: "col", n: [a, b] }); } });
+  g2Safe(() => add("col", { ic: "trophy", t: "Records de gardiens", d: `${Object.keys(M5().rec).length} gardiens au tableau — battez vos records pour des éclats.`, a: "collect", v: "rec" }));
+  g2Safe(() => add("col", { ic: "crown", t: "Titres", d: `${titlesOwned().length} obtenu${titlesOwned().length > 1 ? "s" : ""} · actuel : « ${titleCur()} »`, a: "collect", v: "tit" }));
+  return G;
+}
+const G2_TABS = [["now", "Maintenant"], ["day", "Aujourd'hui"], ["prog", "Progression"], ["col", "Collection"]];
+function goalsList() { return goalsAll().filter(g => g.st === "ready" || g.hot).map(g => Object.assign({ p: g.st === "ready" ? 90 : 80, col: "#e8c878" }, g)); } // compatibilité (badge du rail, autres modules)
+ACT.goals = tab => { UI.g2 = tab || UI.g2 || "now"; const t = UI.g2, all = goalsAll();
+  const L = t === "now" ? all.filter(g => g.st === "ready" || g.hot) : all.filter(g => g.cat === t).sort((a, b) => ({ ready: 0, todo: 1, done: 2 })[a.st] - ({ ready: 0, todo: 1, done: 2 })[b.st]);
+  const cnt = k => k === "now" ? all.filter(g => g.st === "ready" || g.hot).length : all.filter(g => g.cat === k && g.st === "ready").length;
+  const tabs = `<div class="tabs" style="flex-wrap:wrap;gap:4px">${G2_TABS.map(([k, n]) => `<button class="btn sm ${t === k ? "on" : ""}" data-a="goals" data-v="${k}">${n}${cnt(k) ? ` <b class="gold">${cnt(k)}</b>` : ""}</button>`).join("")}</div>`;
+  const done = all.filter(g => g.st === "done").length;
+  const row = g => { const bar = g.n ? `<div style="height:4px;background:#ffffff14;border-radius:2px;margin-top:4px"><div style="height:4px;width:${Math.round(100 * g.n[0] / Math.max(1, g.n[1]))}%;background:${g.st === "done" ? "#6ac07a" : "#c8a050"};border-radius:2px"></div></div>` : "";
+    const badge = g.st === "ready" ? `<span class="tag" style="background:#e8c86033;border-color:#e8c860;color:#ffe9a8">Prêt</span>` : g.st === "done" ? `<span class="tag good">✓</span>` : "";
+    return `<div class="row card" style="gap:10px;cursor:pointer;${g.st === "done" ? "opacity:.55" : ""}" data-a="${g.a}" data-v="${g.v}">${ico(g.ic, g.st === "ready" ? "#ffd27a" : "#c8b890", 20)}<div style="flex:1;min-width:0"><b class="small">${g.t}</b><div class="tiny dim">${g.d}</div>${bar}</div>${badge}<span class="gold">›</span></div>`; };
+  modal(`<h2>${ico("star", "#e8c878")} Objectifs</h2><p class="tiny dim">Tout ce qui vous attend dans le jeu : ${all.filter(g => g.st === "ready").length} récompense${all.filter(g => g.st === "ready").length > 1 ? "s" : ""} prête${all.filter(g => g.st === "ready").length > 1 ? "s" : ""}, ${done} tâche${done > 1 ? "s" : ""} déjà faite${done > 1 ? "s" : ""} aujourd'hui ou terminée${done > 1 ? "s" : ""}.</p>${tabs}<div class="col" style="margin-top:6px">${L.map(row).join("") || `<div class="empty">Rien à faire ici pour l'instant.</div>`}</div>`);
+};
+ACT.goalBld = v => { closeModal(); const [k, tab] = String(v).split(":"); if (UI.screen !== "bastion") go("bastion"); if (k === "taverne" && tab) UI.tavTab = tab; openBuilding(k, tab || undefined); };
+ACT.goalHero = id => { closeModal(); const h = heroById(id); if (h) heroSheet(h); };
+
+ACT.goalTalent = id => { closeModal(); const h = heroById(id); if (!h) return; UI.heroPane = "talents"; go("hero", h.id); };

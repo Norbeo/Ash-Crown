@@ -1,0 +1,245 @@
+/* ═══════════════════════ État du jeu, héros, objets, sauvegarde ═══════════════════════ */
+let S = null;
+
+function newState(opts = {}) {
+  return {
+    v: 1, rarV: 2, created: Date.now(), gold: 150, shards: 0, mats: { fer: 6, essence: 2, cendre: 0 },
+    heroes: [], recruits: [], recruitSeed: 1,
+    pets: { owned: [], lvl: {}, xp: {}, evo: {} }, pet: null,
+    bld: { taverne: 1, forge: 1, chapelle: 1, academie: 1, menagerie: 1, fonderie: 1 },
+    prog: {}, story: 0, unlocked: ["bourg"],
+    inv: [], potions: 0,
+    stats: { wins: 0, kills: 0, runs: 0, deaths: 0, evos: 0, apex: 0, maxlvl: 0, roster: 0, classes: 0, tier5: 0, legend: 0, pets: 0, petEvo: 0, flawless: 0, oath: 0, daily: 0, goldMax: 0, abyss: 0, bossKills: 0, crafts: 0 },
+    seen: { classes: {}, monsters: {} }, ach: {},
+    daily: { key: 0, done: 0, contracts: [] },
+    abyss: { best: 0, oaths: [] },
+    lastSeen: Date.now(), bank: 0,
+    run: null, log: [],
+    flags: [],
+    opts: { sound: 1, music: 1, speed: 1, hardcore: !!opts.hardcore, auto: 0, diff: opts.diff || "normal" },
+    tuto: {},
+  };
+}
+
+// ── Héros ──
+const SKINS = ["#f0d2b4", "#e0b48c", "#c8946a", "#a87250", "#7a5034", "#e8c8a8"];
+const HAIRCOL = ["#1a1410", "#3a2414", "#6a3a1a", "#a06a30", "#c8a060", "#d8d0c0", "#7a2a14", "#2a2a30"];
+function makeHero(cls, opt = {}) {
+  const C = CLASSES[cls], female = CLASS_FEMALE.has(cls);
+  const name = opt.name || heroName(female);
+  const goods = Object.keys(TRAITS).filter(k => TRAITS[k].good && !TRAITS[k].unique), bads = Object.keys(TRAITS).filter(k => !TRAITS[k].good);
+  const traits = opt.traits || (() => { const t = [pick(goods)]; if (chance(.35)) { let g = pick(goods); if (!t.includes(g)) t.push(g); } if (chance(.4)) t.push(pick(bads)); return t; })();
+  const sk = Object.keys(C.skills);
+  const h = {
+    id: uid("h"), cls, name, female, lvl: opt.lvl || 1, xp: 0, evo: null, traits,
+    look: { skin: pick(SKINS), hair: rint(0, 5), hairCol: pick(HAIRCOL), beard: female ? -1 : rint(-1, 3), scar: chance(.3) ? rint(0, 2) : -1, eye: rint(0, 2) },
+    gear: { wpn: null, arm: null, tr1: null, tr2: null },
+    skills: sk.slice(0, 4), skr: {}, hp: null, injured: 0, kills: 0, runs: 0, born: Date.now(),
+  };
+  for (const k of sk) h.skr[k] = 1;
+  recruitGear(h);
+  return h;
+}
+// équipement de départ d'une recrue : palier de son niveau, qualité tirée (Commun à Épique selon la Taverne)
+function recruitGear(h) {
+  let t = 1; for (let i = 1; i < TIER_LVL.length; i++) if (h.lvl >= TIER_LVL[i]) t = i;
+  if (!h.evo) t = Math.min(t, 5);
+  const tv = (typeof S !== "undefined" && S && S.bld && S.bld.taverne) || 1, W = [Math.max(10, 60 - 8 * tv), 28, 9 + 3 * tv, 1 + 1.5 * tv];
+  const q = () => { if (h.lvl <= 1) return 0; let r = rnd() * W.reduce((a, b) => a + b, 0); for (let i = 0; i < 4; i++) { r -= W[i]; if (r < 0) return i; } return 0; };
+  h.gear.wpn = makeGear("wpn", h.cls, t, q()); h.gear.arm = makeGear("arm", h.cls, t, q(), null, t >= 6 ? h.evo : undefined);
+}
+const xpNeed = l => Math.round(110 + 75 * Math.pow(l - 1, 1.62));
+function heroSkillPool(h) {
+  const C = CLASSES[h.cls]; const pool = Object.keys(C.skills);
+  if (h.evo) pool.push(...Object.keys(C.evos[h.evo].skills));
+  return pool;
+}
+function skillDef(h, id) { const C = CLASSES[h.cls]; return C.skills[id] || (h.evo && C.evos[h.evo].skills[id]) || null; }
+function heroUlt(h) { const C = CLASSES[h.cls]; return h.evo ? C.evos[h.evo].ult : C.ult; }
+function heroTitle(h) { const C = CLASSES[h.cls]; if (h.evo) { const e = C.evos[h.evo]; return h.lvl >= APEX_LVL ? APEX[h.evo].n : e.n; } return C.n; }
+function heroPassives(h) {
+  const C = CLASSES[h.cls], out = [];
+  for (const t of h.traits) out.push(...TRAITS[t].pas);
+  if (h.evo) { out.push(...C.evos[h.evo].pas); if (h.lvl >= APEX_LVL) out.push(...APEX[h.evo].pas); }
+  for (const s of ["tr1", "tr2"]) { const it = h.gear[s]; if (it && TRINKETS[it.key]) { const m = 1 + .2 * Math.max(0, (it.rar || 0) - TRINKETS[it.key].r); out.push(...TRINKETS[it.key].pas.map(p => m === 1 || typeof p.v !== "number" || p.k === "cheatDeath" ? p : Object.assign({}, p, { v: p.v * m }))); } } // bibelot au-dessus de sa qualité de base : +20 % par cran
+  if (h.cursed > 0) out.push({ k: "stat", s: "dmg", v: -.12 }); // larme de l'idole (événement)
+  for (const s of ["wpn", "arm"]) { const it = h.gear[s]; if (it && it.mod && ITEM_MODS[it.mod]) out.push(...ITEM_MODS[it.mod].pas); } // effet unique d'équipement
+  if (h.mark && typeof GUARD_MARKS !== "undefined" && GUARD_MARKS[h.mark]) out.push(...GUARD_MARKS[h.mark].pas); // marque d'un gardien vaincu
+  if (h.affl && typeof AFFLICTIONS !== "undefined" && AFFLICTIONS[h.affl]) out.push(...AFFLICTIONS[h.affl].pas); // stress : affliction ou vertu
+  if (h.talents && typeof talentPas === "function") out.push(...talentPas(h));
+  if (typeof setPassives === "function") out.push(...setPassives(h), ...ascPassives(h)); // panoplies et ascension
+  if (typeof PAS_HOOKS !== "undefined") for (const f of PAS_HOOKS) out.push(...f(h)); // gemmes, prestige, maîtrise
+  if (h.vet && typeof VET_TITLES !== "undefined" && VET_TITLES[h.vet]) out.push(...VET_TITLES[h.vet].pas); // titre de vétéran // arbre de talents (après le niveau 15)
+  return out;
+}
+
+// ── Statistiques ──
+let PAS_SOFT = .8, PAS_SOFT_K = .5; // équilibrage du 12 nov. (fin de partie)
+function heroStats(h, relicH = {}) {
+  const C = CLASSES[h.cls], b = C.base, L = h.lvl - 1;
+  const st = { hp: b.hp * (1 + .11 * L), dmgLo: b.dmg[0] * (1 + .08 * L), dmgHi: b.dmg[1] * (1 + .08 * L), prot: b.prot, spd: b.spd + Math.floor(L / 4), crit: b.crit + L * .3, dodge: b.dodge + L * .5, acc: 95 + L * .6, res: 20 + L * 1.5, healPow: 1 + L * .04, leech: 0, hooks: {} };
+  let dmgP = 0, hpP = 0;
+  const w = h.gear.wpn, a = h.gear.arm;
+  if (w) { dmgP += WPN_DMG[w.tier] * (1 + .07 * w.up) + w.up * .03; }
+  if (a) { hpP += ARM_HP[a.tier] * (1 + .07 * a.up) + a.up * .025; st.prot += ARM_PROT[a.tier]; }
+  for (const it of [w, a, h.gear.tr1, h.gear.tr2]) if (it && it.aff) for (const f of it.aff) {
+    if (f.k === "dmg") dmgP += f.v; else if (f.k === "hp") hpP += f.v; else if (f.k === "healPow") st.healPow += f.v; else if (f.k === "critDmg") st.hooks.critDmg = (st.hooks.critDmg || 0) + f.v; else st[f.k] = (st[f.k] || 0) + f.v;
+  }
+  let pD = 0, pH = 0; // bonus passifs cumulés (traits, synergies, constellations, collections…) : rendement décroissant au-delà de PAS_SOFT
+  for (const p of heroPassives(h)) {
+    if (p.k === "stat") { if (p.s === "dmg") pD += p.v; else if (p.s === "hp") pH += p.v; else if (p.s === "healPow") st.healPow += p.v; else st[p.s] = (st[p.s] || 0) + p.v; }
+    else st.hooks[p.k] = (st.hooks[p.k] || 0) + p.v, p.tag && (st.hooks.vsTag = p.tag, st.hooks.vsTagV = (st.hooks.vsTagV || 0) + p.v);
+  }
+  const soft = x => x <= PAS_SOFT ? x : PAS_SOFT + (x - PAS_SOFT) * PAS_SOFT_K; dmgP += soft(pD); hpP += soft(pH);
+  if (relicH.dmg) dmgP += relicH.dmg; if (relicH.hp) hpP += relicH.hp; if (relicH.crit) st.crit += relicH.crit; if (relicH.spd) st.spd += relicH.spd; if (relicH.prot) st.prot += relicH.prot; if (relicH.leech) st.leech += relicH.leech; if (relicH.heal) st.healPow += relicH.heal;
+  st.hp = Math.round(st.hp * (1 + hpP)); st.dmgLo = Math.max(1, Math.round(st.dmgLo * (1 + dmgP))); st.dmgHi = Math.max(st.dmgLo + 1, Math.round(st.dmgHi * (1 + dmgP)));
+  if (st.crit > 100) { st.critOver = st.crit - 100; st.hooks.critDmg = (st.hooks.critDmg || 0) + st.critOver / 100; } // surplus de critique → dégâts critiques (1 pour 1 %)
+  st.prot = clamp(st.prot, 0, .75); st.crit = clamp(st.crit, 0, 100); st.dodge = clamp(st.dodge, 0, 60);
+  return st;
+}
+const heroPower = h => { const s = heroStats(h); return Math.round(s.hp * .6 + (s.dmgLo + s.dmgHi) * 2.2 + s.prot * 120 + s.crit * 1.2 + s.dodge * .8 + s.spd * 3); };
+
+// ── Équipement ──
+function makeGear(kind, cls, tier, rar, key, evo) {
+  const it = { id: uid("i"), kind, tier: clamp(tier, 1, TIER_MAX), rar: clamp(rar, 0, RARITY.length - 1), up: 0, aff: [] };
+  if (kind === "arm" && it.tier >= 6 && evo) it.evo = evo; // armure Ascendante : propre à une voie d'évolution
+  if (kind === "tr") {
+    const TK = Object.keys(TRINKETS).filter(k => !TRINKETS[k].uniq); let pool = []; for (let q = rar; !pool.length && q >= 0; q--) pool = TK.filter(k => TRINKETS[k].r === q); // chaque qualité a ses propres bibelots (nom et illustration) ; à défaut, la qualité la plus proche en dessous
+    it.key = key || pick(pool.length ? pool : Object.keys(TRINKETS)); it.rar = Math.max(clamp(rar, 0, RARITY.length - 1), TRINKETS[it.key].r); it.rarT = it.rar; it.tier = 1; // la qualité tirée est conservée
+  } else it.cls = cls;
+  const nAff = kind === "tr" ? 0 : RARITY[it.rar].aff;
+  const keys = Object.keys(AFFIXES).filter(k => !(kind === "wpn" && k === "prot")); RNG.shuffle(keys);
+  for (let i = 0; i < nAff; i++) { const A = AFFIXES[keys[i]], sc = 1 + (it.tier - 1) * .25; let v = lerp(A.v[0], A.v[1], rnd()) * sc; v = A.fmt === "pct" ? Math.round(v * 100) / 100 : Math.round(v); it.aff.push({ k: keys[i], v }); }
+  // effet unique (Épique 25 %, Légendaire 60 %, Mythique et Divin toujours) : change la façon de combattre
+  if (kind !== "tr" && it.rar >= 3 && chance([0, 0, 0, .25, .6, 1, 1, 1, 1][it.rar] || 1)) { const pool = Object.keys(ITEM_MODS).filter(k => ITEM_MODS[k].kind === kind); it.mod = pick(pool); }
+  if (typeof rollSet === "function") rollSet(it); // panoplie (Légendaire et plus)
+  return it;
+}
+// effets uniques d'équipement (crochets de combat existants)
+const ITEM_MODS = {
+  braise: { kind: "wpn", n: "Lame de braise", d: "Vos brûlures infligent 35 % de dégâts en plus.", pas: [{ k: "burnPow", v: .35 }] },
+  venin: { kind: "wpn", n: "Fil empoisonné", d: "Saignements, poisons et brûlures infligés : +25 % de dégâts.", pas: [{ k: "dotPow", v: .25 }] },
+  furie: { kind: "wpn", n: "Soif de gloire", d: "La jauge d'ultime se remplit 30 % plus vite.", pas: [{ k: "ultGain", v: .3 }] },
+  fleau: { kind: "wpn", n: "Fléau des foules", d: "Attaques de zone : +18 % de dégâts.", pas: [{ k: "aoeDmg", v: .18 }] },
+  bourreau: { kind: "wpn", n: "Marque du bourreau", d: "Chaque ennemi abattu redonne de la résolution au groupe.", pas: [{ k: "killMorale", v: 4 }] },
+  epines: { kind: "arm", n: "Cotte d'épines", d: "Renvoie 15 % des dégâts de mêlée subis.", pas: [{ k: "thornsP", v: .15 }] },
+  contre: { kind: "arm", n: "Garde de l'escrimeur", d: "Une esquive en mêlée déclenche une riposte (50 %).", pas: [{ k: "dodgeRiposte", v: .5 }] },
+  rempart: { kind: "arm", n: "Rempart béni", d: "Les boucliers que vous posez sont 30 % plus solides.", pas: [{ k: "shieldPow", v: .3 }] },
+  sursis: { kind: "arm", n: "Sursis du mort", d: "Une fois par combat, survit à un coup fatal à l'agonie.", pas: [{ k: "cheatDeath", v: 1 }] },
+  cendre: { kind: "arm", n: "Cape de cendre", d: "+20 % de soins reçus.", pas: [{ k: "healTaken", v: .2 }] },
+};
+function gearName(it) {
+  if (!it) return "—";
+  if (it.uniq && typeof UNIQ !== "undefined" && UNIQ[it.uniq]) return UNIQ[it.uniq].n; // objet unique de gardien
+  if (it.fav && typeof ELITE_INFO !== "undefined" && ELITE_INFO[it.fav]) return ELITE_INFO[it.fav][2]; // butin favori d'élite
+  if (it.kind === "tr") return TRINKETS[it.key].n;
+  const L = GEAR_NAMES[it.cls][it.kind === "wpn" ? "wpn" : "arm"], n = it.tier >= 6 ? (it.evo && CLASSES[it.cls].evos[it.evo] ? (it.tier > 6 ? "Armure " + TIER_PRE_F[it.tier] : "Armure ascendante") + " : " + CLASSES[it.cls].evos[it.evo].n : (TIER_PRE[it.tier] || "Ascendant") + " : " + L[4]) : L[it.tier - 1];
+  return n + (it.up ? " +" + it.up : "");
+}
+// tirage de qualité : poids RARITY[q].p ; la chance (0 à ~0,4) renforce les qualités hautes de façon progressive, le plancher retire les basses
+const cycleLuck = () => typeof cycleN === "function" ? Math.min(.5, cycleN() * .05) : 0; // nouveaux cycles : +5 % de chance de qualité par cycle (max +50 %)
+let rollRarity = (luck = 0, floor = 0) => { luck += cycleLuck(); const w = RARITY.map((R, q) => q < floor ? 0 : R.p * Math.pow(1 + Math.max(0, luck) * 6, q / 2)); let r = rnd() * w.reduce((a, b) => a + b, 0); for (let q = 0; q < w.length; q++) { r -= w[q]; if (r < 0) return q; } return floor; };
+function lootGear(lvl, luck = 0, cls, floor = 0) {
+  // le butin suit le niveau des héros de l'expédition s'il dépasse celui du chapitre : tous les paliers (I à X) et toutes les qualités peuvent tomber
+  const party = S && S.run && S.run.party ? S.run.party.map(id => S.heroes.find(h => h.id === id)).filter(Boolean) : [];
+  const hl = party.length ? Math.max(...party.map(h => h.lvl)) : 0, L = Math.max(lvl, hl);
+  const base = Math.max(1, TIER_LVL.filter(l => l <= L).length - 1); // palier que le niveau permet de porter
+  let tier = base + (chance(.25) ? 1 : 0) + (chance(.05) ? 1 : 0);
+  if (chance(.03)) tier = base + 1 + Math.floor(rnd() * Math.max(1, TIER_MAX - base)); // relique d'un autre âge : n'importe quel palier supérieur
+  tier = clamp(tier, 1, typeof lootTierCap === "function" ? lootTierCap() : TIER_MAX);
+  const r = rnd(), rar = rollRarity(luck, floor);
+  if (r < .3) return makeGear("tr", null, 1, rar);
+  const owned = S ? [...new Set(S.heroes.map(h => h.cls))] : [];
+  const c = cls || (owned.length && chance(.85) ? pick(owned) : pick(CLASS_IDS));
+  const kind = r < .65 ? "wpn" : "arm";
+  let evo = null; if (kind === "arm" && tier >= 6 && CLASSES[c].evos) { const mine = S ? S.heroes.filter(h => h.cls === c && h.evo).map(h => h.evo) : []; evo = mine.length && chance(.8) ? pick(mine) : pick(Object.keys(CLASSES[c].evos)); } // armure VI+ : propre à une voie
+  return makeGear(kind, c, tier, rar, null, evo);
+}
+const upCost = it => { const x = Math.max(0, it.up - 9); return { gold: Math.round(60 * it.tier * (1 + it.up * .7) * (1 + .15 * x * x) * (1 - Math.min(.3, .01 * advA()))), fer: 1 + Math.floor(it.up / 2) + (it.tier >= 3 ? 1 : 0), essence: it.up >= 3 ? 1 + (it.up >= 5 ? 1 : 0) + Math.floor(x / 2) : 0, cendre: x ? Math.ceil(x / 3) : 0 }; }; // au-delà de +10 : coût croissant (or ×(1 + 0,15·n²), essence et cendre)
+const craftCost = tier => ({ gold: [0, 80, 220, 520, 1100, 2200, 4500, 9000, 16000, 28000, 45000][tier], fer: [0, 3, 5, 8, 12, 16, 22, 30, 40, 52, 66][tier], essence: [0, 0, 1, 3, 5, 8, 12, 18, 26, 36, 48][tier], cendre: [0, 0, 0, 0, 1, 3, 6, 10, 15, 22, 30][tier] });
+const UP_REFUND = .6; // recyclage : 60 % de l'or (et la moitié de l'essence et de la cendre) investis dans les améliorations sont rendus
+function upInvested(it) { const t = { gold: 0, essence: 0, cendre: 0 }; if (!it || it.kind === "tr" || !it.up) return t; const u0 = it.up; for (let u = 0; u < u0; u++) { it.up = u; const c = upCost(it); t.gold += c.gold; t.essence += c.essence || 0; t.cendre += c.cendre || 0; } it.up = u0; return t; }
+const salvage = it => { const inv = upInvested(it); return { fer: it.kind === "tr" ? 1 : 1 + it.tier + it.up, essence: (it.rar >= 1 ? it.rar : 0) + Math.floor(inv.essence * .5), cendre: (it.rar >= 4 ? 1 : 0) + Math.floor(inv.cendre * .5), gold: 10 * it.tier * (1 + it.rar) + Math.round(inv.gold * UP_REFUND), refund: Math.round(inv.gold * UP_REFUND) }; };
+
+// ── Compagnons ──
+function petLvl(id) { return (S && S.pets.lvl[id]) || 1; }
+const petXpNeed = l => Math.round(60 + 40 * Math.pow(l - 1, 1.35));
+function petEvolved(id) { return !!(S && S.pets.evo[id]); }
+function petName(id) { return petEvolved(id) ? PETS[id].evo.n : PETS[id].n; }
+function petPower(id) { const l = petLvl(id), r = (PETS[id] && PETS[id].rank) || 1, m = typeof petMul === "function" ? petMul(id) : { dmg: 1 }; return { dmg: (3.2 + l * .95) * r * m.dmg, heal: 1 + l * .03 }; }
+
+// ── Sauvegarde ──
+function save() {
+  if (!HASWIN || !S) return;
+  try { S.lastSeen = Date.now(); localStorage.setItem(SAVE_KEY, JSON.stringify(S)); } catch (e) { }
+}
+function load() {
+  if (!HASWIN) return null;
+  try { const raw = localStorage.getItem(SAVE_KEY); if (!raw) return null; const s = JSON.parse(raw); return migrate(s); } catch (e) { return null; }
+}
+function fixHeroName(h) {
+  const f = CLASS_FEMALE.has(h.cls), [first, ...rest] = String(h.name).split(" "), sur = rest.join(" ");
+  const okFirst = (f ? NAMES_F : NAMES_M).includes(first) || !NAMES_F.concat(NAMES_M).includes(first);
+  const tail = x => x.replace(/^(le |la |l'|du |des )/, ""), pair = SURNAMES.find(p => p.some(x => tail(x) === tail(sur)));
+  const newFirst = okFirst ? first : (f ? NAMES_F : NAMES_M)[hashStr(h.id || first) % (f ? NAMES_F : NAMES_M).length];
+  const newSur = !sur ? "" : pair ? (f && pair[1] ? pair[1] : pair[0]) : sur.replace(/^(le|la) /, f ? "la " : "le ");
+  h.female = f; if (h.look && f) h.look.beard = -1;
+  h.name = newFirst + (newSur ? " " + newSur : "");
+}
+function migrate(s) {
+  // le gardien secret « Boucher Affamé » avait la clé de l'élite Le Boucher : on sépare les deux
+  if (!s.fixBoucher) { s.fixBoucher = 1; if (s.beaten && s.beaten.boucher) { s.beaten.boucher_affame = 1; delete s.beaten.boucher; } if (s.trophies && s.trophies.boucher) { s.trophies.boucher_affame = s.trophies.boucher; delete s.trophies.boucher; }
+    if (s.bossDeck) s.bossDeck = s.bossDeck.filter(k => k !== "boucher"); if (s.lastBoss) for (const r in s.lastBoss) if (s.lastBoss[r] === "boucher") delete s.lastBoss[r]; if (s.lastBossAny === "boucher") delete s.lastBossAny;
+    const fix = it => { if (it && it.uniq === "boucher") it.uniq = "boucher_affame"; }; (s.inv || []).forEach(fix); (s.heroes || []).forEach(h => h.gear && Object.values(h.gear).forEach(fix)); }
+  const base = newState();
+  for (const h of s.heroes || []) if (h.hp != null && !Number.isFinite(h.hp)) h.hp = null;
+  if (s.opts && s.opts.skMini == null && typeof matchMedia !== "undefined" && matchMedia("(pointer:coarse)").matches) s.opts.skMini = 1; // téléphone : descriptions compactes par défaut
+  if (s.opts && s.opts.fast == null && typeof matchMedia !== "undefined" && matchMedia("(pointer:coarse)").matches) s.opts.fast = 1; // téléphone : partie rapide par défaut // PV corrompus (bogue du compagnon) : soignés
+  for (const k in base) if (s[k] === undefined) s[k] = base[k];
+  for (const k in base.stats) if (s.stats[k] === undefined) s.stats[k] = 0;
+  for (const k in base.bld) if (!s.bld[k]) s.bld[k] = 1;
+  for (const k in base.opts) if (s.opts[k] === undefined) s.opts[k] = base.opts[k];
+  // le nom et le sexe suivent l'illustration de la classe (anciennes sauvegardes : héroïne dessinée en homme, surnom mal accordé…)
+  for (const h of (s.heroes || []).concat(s.recruits || [])) fixHeroName(h);
+  // qualité « Peu commun » insérée en 2e position : décale les anciennes qualités
+  if (!s.rarV) { const items = [...(s.inv || []), ...(s.run ? s.run.loot || [] : [])]; for (const h of s.heroes || []) for (const k in h.gear || {}) if (h.gear[k]) items.push(h.gear[k]); for (const it of new Set(items)) if (it.rar >= 1) it.rar++; s.rarV = 2; }
+  sanitizeItems(s);
+  return s;
+}
+// objets abîmés (qualité hors bornes, bibelot ou classe disparus) : réparés au chargement
+function sanitizeItems(s) {
+  const all = [...(s.inv || []), ...(s.run ? s.run.loot || [] : [])];
+  for (const h of s.heroes || []) for (const k in h.gear || {}) if (h.gear[k]) all.push(h.gear[k]);
+  if (s.daily && s.daily.merchant) for (const o of s.daily.merchant.items || []) if (o && o.it) all.push(o.it);
+  for (const it of all) {
+    if (!it || typeof it !== "object") continue;
+    if (!Number.isFinite(it.rar)) it.rar = 0; it.rar = clamp(Math.round(it.rar), 0, RARITY.length - 1);
+    if (!Number.isFinite(it.tier)) it.tier = 1;
+    if (!it.id) it.id = uid("i");
+    if (!Array.isArray(it.aff)) it.aff = [];
+    if (it.kind === "tr") { if (!TRINKETS[it.key]) it.key = pick(Object.keys(TRINKETS).filter(k => TRINKETS[k].r <= it.rar)) || Object.keys(TRINKETS)[0]; if (it.rarT != null) it.rar = Math.max(it.rar, it.rarT); }
+    else if (!CLASSES[it.cls]) it.cls = CLASS_IDS[0];
+    if (it.mod && !ITEM_MODS[it.mod]) delete it.mod;
+    if (it.set && typeof SETS !== "undefined" && !SETS[it.set]) delete it.set;
+  }
+}
+// difficulté : ennemis (PV, dégâts) et récompenses (or, expérience)
+const DIFFS = {
+  facile: { n: "Facile", d: "Ennemis affaiblis (−25 % PV, −20 % dégâts). Pour découvrir l'histoire.", hp: .75, dmg: .8, gold: .9, xp: 1, ic: "heal" },
+  normal: { n: "Normal", d: "L'expérience prévue.", hp: 1, dmg: 1, gold: 1, xp: 1, ic: "sword" },
+  cauchemar: { n: "Cauchemar", d: "Ennemis redoutables (+30 % PV, +25 % dégâts) mais +35 % d'or et +20 % d'expérience.", hp: 1.3, dmg: 1.25, gold: 1.35, xp: 1.2, ic: "skull" },
+};
+const diffOf = () => DIFFS[(S && S.opts && S.opts.diff) || "normal"] || DIFFS.normal;
+const advA = () => (typeof advLevel === "function" && typeof S !== "undefined" && S && S.stats ? advLevel() - 1 : 0); // niveau d'aventure au-delà du premier : renforce les bâtiments
+const potionMax = () => 2 + (S ? S.bld.chapelle : 1) + Math.floor(advA() / 12);
+const ROSTER_CAP = [0, 8, 16, 28, 44, Infinity]; // illimité au niveau maximal de la Taverne : chaque classe et chaque voie
+const rosterMax = () => ROSTER_CAP[Math.min(5, S.bld.taverne)] ?? Infinity;
+const skillRankMax = h => S.bld.academie + Math.floor(advA() / 15) + (h ? Math.floor(h.lvl / 10) : 0); // la Salle des maîtres, puis le niveau du héros : sans limite
+// or par heure : base par niveau de Fonderie × (1 + 8 %/niveau d'aventure) × (1 + niveau du meilleur héros / 10)
+const FOND_BASE = [0, 60, 150, 320, 600, 1000, 1600, 2400, 3500, 5000, 7000], FOND_CAP = [0, 8, 10, 12, 14, 16, 18, 20, 22, 24, 24];
+const fondHeroMul = () => 1 + Math.max(0, ...((typeof S !== "undefined" && S && S.heroes) || []).map(h => h.lvl || 0)) / 10;
+const fonderieRateAt = l => Math.round(FOND_BASE[Math.min(10, l)] * (1 + .08 * advA()) * fondHeroMul());
+const fonderieRate = () => fonderieRateAt(S.bld.fonderie);
+const fonderieCap = () => FOND_CAP[Math.min(10, S.bld.fonderie)] + Math.floor(advA() / 5); // heures, +1 h tous les 5 niveaux d'aventure
+// dîme quotidienne de la Fonderie (une fois par jour)
+const fondTithe = (l = S.bld.fonderie) => { const a = 1 + advA() / 10; return { shards: Math.round(l * a), essence: Math.round(4 * l * a), fer: Math.round(15 * l * a), cendre: Math.round((l / 2) * a) }; };

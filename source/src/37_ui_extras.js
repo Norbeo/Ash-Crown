@@ -35,7 +35,7 @@ ACT.cbPet = async () => {
   checkEnd(B); if (B.over) { const r = CB.resolve; CB.resolve = null; if (r) r({ pass: 1 }); return; }
   cbBar(u); const first = u.ultV >= 100 ? u.ult : u.skills.find(sk => canUse(B, u, sk)); if (first) selectSkill(first);
 };
-function petBurstBtn() { const B = CB.B; if (!B || !B.pet) return ""; return `<button class="sk sec ${B.petBurst ? "no" : "pet"}" data-a="cbPet" title="Une fois par combat, sans perdre son tour">${ico("paw", "#c8f0a0")}<span>${B.petBurst ? "Compagnon ✓" : "Ordre au compagnon"}</span></button>`; }
+function petBurstBtn() { const B = CB.B; if (!B || !B.pet) return ""; return `<button class="sk sec ${B.petBurst ? "no" : "pet"}" data-a="cbPet" title="Une fois par combat, sans perdre son tour">${(() => { const id = B.pet.id, ev = typeof petEvolved === "function" && petEvolved(id), p = petSkIc(id, ev ? 2 : 0); return p ? ico(p) : ico("paw", "#c8f0a0"); })()}<span>${B.petBurst ? "Compagnon ✓" : "Ordre au compagnon"}</span></button>`; }
 
 // ── Répliques des héros ──
 const BARKS = {

@@ -6797,6 +6797,34 @@ function skillIconsApply() {
       return `<span class="ic pic skic" style="background:url(assets/sk_${cls}.webp${v}) ${cx / (SK_COLS - 1) * 100}% ${cy / (SK_ROWS - 1) * 100}% / ${SK_COLS * 100}% ${SK_ROWS * 100}% no-repeat${size ? `;width:${size}px;height:${size}px` : ""}"></span>`; }
     return ico0.apply(this, arguments); }; }
 skillIconsApply();
+/* Icônes peintes propres aux compétences des compagnons (14 nov.) : planches 5×4 assets/psk_<n>.webp.
+   6 compagnons par planche (PET_START, PET_ORDER puis familiers légendaires), 3 cases chacun : compétence 1, compétence 2, compétence d'évolution ;
+   les 2 dernières cases de chaque planche restent vides. Tant qu'une planche n'est pas peinte, l'icône générique reste. */
+const PSK_PER = 6;
+function petSkOrder() {
+  const seen = new Set(), L = [];
+  const add = id => { if (id && PETS[id] && !seen.has(id)) { seen.add(id); L.push(id); } };
+  (typeof PET_START !== "undefined" ? PET_START : []).forEach(add);
+  (typeof PET_ORDER !== "undefined" ? PET_ORDER : []).forEach(add);
+  ["fenrir", "corbeau_fin", "ours_titan"].forEach(add);
+  Object.keys(PETS).forEach(add);
+  return L;
+}
+let PSK_IDX = null;
+// nom d'icône de la compétence i (0, 1 ; 2 = évolution) du compagnon id, ou null si la planche n'est pas peinte
+function petSkIc(id, i) {
+  if (!PSK_IDX) { PSK_IDX = {}; petSkOrder().forEach((k, n) => PSK_IDX[k] = n); }
+  const n = PSK_IDX[id]; if (n == null) return null;
+  const sheet = Math.floor(n / PSK_PER) + 1, cell = (n % PSK_PER) * 3 + i;
+  return artHas("psk_" + sheet) ? "psk/" + sheet + "/" + cell : null;
+}
+{ const ico1 = ico; ico = function (name, col, size) {
+    if (name && name.startsWith("psk/")) { const [, sh, i] = name.split("/"), n = +i, cx = n % SK_COLS, cy = Math.floor(n / SK_COLS);
+      const v = typeof window !== "undefined" && window.ART_V && window.ART_V["psk_" + sh] ? "?v=" + window.ART_V["psk_" + sh] : "";
+      return `<span class="ic pic skic" style="background:url(assets/psk_${sh}.webp${v}) ${cx / (SK_COLS - 1) * 100}% ${cy / (SK_ROWS - 1) * 100}% / ${SK_COLS * 100}% ${SK_ROWS * 100}% no-repeat${size ? `;width:${size}px;height:${size}px` : ""}"></span>`; }
+    return ico1.apply(this, arguments); }; }
+// icône d'une compétence de compagnon : peinte si disponible, sinon l'icône générique d'avant
+function petSkIco(id, i, s, col, size) { const p = petSkIc(id, i); if (p) return ico(p, col, size); s = s || {}; return ico(i === 2 ? "star" : s.m ? "claw" : s.heal ? "heal" : s.shield ? "shield" : "star", col, size); }
 /* ═══════════════════════ Glossaire : à quoi correspond chaque bonus ═══════════════════════
    GLOSS : définition de chaque terme du jeu. gl(texte) entoure les termes connus d'une étiquette
    (souligné pointillé) ; un toucher ou un survol affiche la bulle d'explication (tipShow).
@@ -7626,8 +7654,8 @@ function petSkillText(s, id) {
 function petSheet(id, foot = "") {
   const P = PETS[id];
   modal(`<div class="row" style="gap:12px;flex-wrap:wrap"><div style="margin:0 auto">${canvasSlot("pet", 200, 150)}</div><div style="flex:1;min-width:220px"><h2 style="margin:0">${P.n}</h2><div class="row" style="gap:4px;margin:4px 0">${roleTag(P.role)}${P.gold ? `<span class="tag gold">+${Math.round(P.gold * 100)} % d'or</span>` : ""}</div><p class="lore small">${P.d}</p><p class="tiny dim">Le compagnon agit seul à la fin de chaque tour. Il gagne des niveaux avec le groupe et évolue au niveau ${PET_EVO_LVL}.</p></div></div>
-    ${P.rank > 1.001 ? `<div class="tiny gold" style="margin-top:6px">${ico("star", "#e8c878", 11)} Puissance du rang : +${Math.round((P.rank - 1) * 100)} % sur toutes ses compétences</div>` : ""}${typeof petProgressHTML === "function" ? petProgressHTML(id) : ""}<h3 style="margin-top:10px">Compétences</h3><div class="col">${P.sk.map((s, i) => `<div class="skl" style="cursor:default">${ico(s.m ? "claw" : s.heal ? "heal" : s.shield ? "shield" : "star", "#e8c878")}<div><b>${s.n}</b><div class="tiny">${petSkillText(Object.assign(i === 1 && !s.every ? { every: 3 } : {}, petSkScaled(s, P.rank || 1), i === 0 && P.sk[1] ? { base: 1 } : {}), id)}</div></div></div>`).join("")}</div>
-    <h3 style="margin-top:10px">Évolution : ${P.evo.n}${S && typeof petEvolved === "function" && petEvolved(id) ? ' <span class="tag gold">atteinte</span>' : ""}</h3><div class="row" style="gap:10px;align-items:center">${canvasSlot("petevo", 120, 90)}<p class="tiny lore" style="flex:1">${P.evo.d}</p></div><div class="skl" style="cursor:default;border-color:#a05a2a">${ico("star", "#ff9a4a")}<div><b>${P.evo.sk.n}</b><div class="tiny">${petSkillText(Object.assign({ every: 2 }, petSkScaled(P.evo.sk, P.rank || 1)), id)}</div></div></div>${foot}`, { wide: 1, onClose: bldBack(), mount: m => fillCanvases(m, (c, k) => paintPet(c, id, k === "petevo" || (S && typeof petEvolved === "function" && petEvolved(id)) ? 1 : 0)) });
+    ${P.rank > 1.001 ? `<div class="tiny gold" style="margin-top:6px">${ico("star", "#e8c878", 11)} Puissance du rang : +${Math.round((P.rank - 1) * 100)} % sur toutes ses compétences</div>` : ""}${typeof petProgressHTML === "function" ? petProgressHTML(id) : ""}<h3 style="margin-top:10px">Compétences</h3><div class="col">${P.sk.map((s, i) => `<div class="skl" style="cursor:default">${petSkIco(id, i, s, "#e8c878")}<div><b>${s.n}</b><div class="tiny">${petSkillText(Object.assign(i === 1 && !s.every ? { every: 3 } : {}, petSkScaled(s, P.rank || 1), i === 0 && P.sk[1] ? { base: 1 } : {}), id)}</div></div></div>`).join("")}</div>
+    <h3 style="margin-top:10px">Évolution : ${P.evo.n}${S && typeof petEvolved === "function" && petEvolved(id) ? ' <span class="tag gold">atteinte</span>' : ""}</h3><div class="row" style="gap:10px;align-items:center">${canvasSlot("petevo", 120, 90)}<p class="tiny lore" style="flex:1">${P.evo.d}</p></div><div class="skl" style="cursor:default;border-color:#a05a2a">${petSkIco(id, 2, P.evo.sk, "#ff9a4a")}<div><b>${P.evo.sk.n}</b><div class="tiny">${petSkillText(Object.assign({ every: 2 }, petSkScaled(P.evo.sk, P.rank || 1)), id)}</div></div></div>${foot}`, { wide: 1, onClose: bldBack(), mount: m => fillCanvases(m, (c, k) => paintPet(c, id, k === "petevo" || (S && typeof petEvolved === "function" && petEvolved(id)) ? 1 : 0)) });
 }
 ACT.petInfo = (id, el, e) => { e && e.stopPropagation(); petSheet(id, `<div class="row" style="justify-content:flex-end;margin-top:10px"><button class="btn" data-a="bld" data-v="menagerie">Retour à la Ménagerie</button></div>`); };
 ACT.recruitInfo = (i, el, e) => { e && e.stopPropagation(); const h = S.recruits[+i]; if (!h) return; const c = recruitPrice(+i); heroSheet(h, `<div class="row" style="justify-content:flex-end;gap:6px;margin-top:12px"><button class="btn ghost" data-a="bld" data-v="taverne">Retour</button><button class="btn main" data-a="recruit" data-v="${i}">Recruter · ${c === 0 ? "gratuit" : c + " or"}</button></div>`); };
@@ -8627,7 +8655,7 @@ ACT.cbPet = async () => {
   checkEnd(B); if (B.over) { const r = CB.resolve; CB.resolve = null; if (r) r({ pass: 1 }); return; }
   cbBar(u); const first = u.ultV >= 100 ? u.ult : u.skills.find(sk => canUse(B, u, sk)); if (first) selectSkill(first);
 };
-function petBurstBtn() { const B = CB.B; if (!B || !B.pet) return ""; return `<button class="sk sec ${B.petBurst ? "no" : "pet"}" data-a="cbPet" title="Une fois par combat, sans perdre son tour">${ico("paw", "#c8f0a0")}<span>${B.petBurst ? "Compagnon ✓" : "Ordre au compagnon"}</span></button>`; }
+function petBurstBtn() { const B = CB.B; if (!B || !B.pet) return ""; return `<button class="sk sec ${B.petBurst ? "no" : "pet"}" data-a="cbPet" title="Une fois par combat, sans perdre son tour">${(() => { const id = B.pet.id, ev = typeof petEvolved === "function" && petEvolved(id), p = petSkIc(id, ev ? 2 : 0); return p ? ico(p) : ico("paw", "#c8f0a0"); })()}<span>${B.petBurst ? "Compagnon ✓" : "Ordre au compagnon"}</span></button>`; }
 
 // ── Répliques des héros ──
 const BARKS = {
@@ -11000,7 +11028,7 @@ function jackpot(it) { if (!it || typeof document === "undefined" || S.opts.quic
 { const qm = questMarkHTML; questMarkHTML = function (h) { let s = qm.apply(this, arguments); const D = (h.questsDone || []).filter(k => QUESTS[k]); if (D.length) { const line = `<div class="tiny" style="margin-top:6px">${ico("star", "#8fe07a", 12)} Quêtes accomplies : ${D.map(k => `<b>${QUESTS[k].n}</b>`).join(", ")}</div>`; s = s ? s.replace(/<\/div>$/, line + "</div>") : `<div class="panel" style="padding:10px;margin-top:10px">${line}</div>`; } return s; }; }
 // préparation d'expédition, onglet Compagnon : compétences détaillées du compagnon choisi + bouton Détails (régression corrigée)
 function petSkillsBlock(id) { const P = PETS[id]; if (!P) return ""; const ev = typeof petEvolved === "function" && petEvolved(id), sk = P.sk;
-  return `<div class="panel" style="padding:10px;margin-top:8px"><div class="row sp"><b>${petName(id)} <span class="tiny dim">niv ${petLvl(id)}${ev ? " · évolué" : ""}</span></b><button class="btn sm ghost" data-a="petInfo" data-v="${id}">${ico("info")}Détails</button></div><div class="col" style="margin-top:6px">${sk.map((s, i) => `<div class="skl" style="cursor:default">${ico(s.m ? "claw" : s.heal ? "heal" : s.shield ? "shield" : "star", "#e8c878")}<div><b>${s.n}</b><div class="tiny">${petSkillText(Object.assign(i === 1 && !s.every ? { every: 3 } : {}, petSkScaled(s, P.rank || 1), i === 0 && sk[1] ? { base: 1 } : {}), id)}</div></div></div>`).join("")}</div></div>`; }
+  return `<div class="panel" style="padding:10px;margin-top:8px"><div class="row sp"><b>${petName(id)} <span class="tiny dim">niv ${petLvl(id)}${ev ? " · évolué" : ""}</span></b><button class="btn sm ghost" data-a="petInfo" data-v="${id}">${ico("info")}Détails</button></div><div class="col" style="margin-top:6px">${sk.map((s, i) => `<div class="skl" style="cursor:default">${petSkIco(id, s === PETS[id].evo.sk ? 2 : i, s, "#e8c878")}<div><b>${s.n}</b><div class="tiny">${petSkillText(Object.assign(i === 1 && !s.every ? { every: 3 } : {}, petSkScaled(s, P.rank || 1), i === 0 && sk[1] ? { base: 1 } : {}), id)}</div></div></div>`).join("")}</div></div>`; }
 { const eh = SCREENS.expe.html; SCREENS.expe.html = (...a) => { const h = eh(...a); if (S.run || UI.expePane !== "pet" || !UI.expe.pet) return h; const i = h.indexOf('<div class="stickybar">'); return i < 0 ? h : h.slice(0, i) + petSkillsBlock(UI.expe.pet) + h.slice(i); }; }
 // combat : détail des compétences du compagnon (bouton ⓘ à côté de l'ordre)
 { const pb = petBurstBtn; petBurstBtn = function () { const h = pb.apply(this, arguments); const B = CB.B; if (!h || !B || !B.pet) return h; const id = B.pet.id || B.pet.k || (S.run && S.run.pet); if (!id || !PETS[id]) return h;

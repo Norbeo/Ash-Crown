@@ -15,7 +15,7 @@ const SCENES = {
   ] },
   foret: { t: "Chapitre II — La Forêt des Pendus", lines: [
     ["narr", "Le premier fragment repose sur l'autel de la chapelle. Il est froid comme une main morte, et il chuchote la nuit."],
-    ["anselme", "Je ne dors plus. Le fragment murmure un nom : « Mère ». Il appelle quelque chose, plus au nord, sous les arbres."],
+    ["anselme", "Je ne dors plus. Le fragment murmure un nom : « Mère ». Il appelle quelque chose, plus à l'est, sous les arbres."],
     ["ysolde", "La Forêt des Pendus. Les chasseurs disent que les arbres y portent des fruits humains, et qu'ils tournent quand on les regarde."],
     ["voix", "Vous avez pris ce qui m'appartient… Venez donc me le rendre, petits voleurs."],
     ["capitaine", "Tu l'as entendue aussi ?"],
@@ -48,7 +48,7 @@ const SCENES = {
   terres: { t: "Chapitre VI — Les Terres Brûlées", lines: [
     ["narr", "Au matin, l'autel de la chapelle est vide. Les cinq fragments ont disparu, et Frère Anselme a le crâne ouvert."],
     ["anselme", "Le Cardinal… Le confesseur d'Aldemar. Il est entré comme un pèlerin. Il a dit qu'il venait prier pour les morts."],
-    ["ysolde", "Les traces partent vers l'est, vers les Terres Brûlées. Là-bas, le sol fume depuis le couronnement."],
+    ["ysolde", "Les traces partent vers le sud-ouest, vers les Terres Brûlées. Là-bas, le sol fume depuis le couronnement."],
     ["maugrin", "S'il reforge la Couronne avec ces éclats, tout ce que vous avez fait n'aura servi à rien."],
     ["voix", "Un roi est mort, mes enfants. Vive le roi. Et cette fois, le roi sera un saint."],
     ["capitaine", "Alors on va lui apprendre ce que valent les saints, ici."],

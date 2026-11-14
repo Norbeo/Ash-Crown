@@ -1351,7 +1351,7 @@ const BOSS_SUMMON = { docteur_peste: ["Appel de la vermine", ["rat", "pestifere"
 for (const k in BOSS_SUMMON) if (MONSTERS[k]) MONSTERS[k].sk.push({ n: BOSS_SUMMON[k][0], t: "self", summon: BOSS_SUMMON[k][1].filter(m => MONSTERS[m]), cd: 3, w: .7 });
 /* ═══════════ Chapitres VII à X (contenu ×2) : chaque chapitre n'apparaît qu'une fois ses illustrations prêtes ═══════════ */
 const CH_MORE = [
-  { id: "cimes", n: "Les Cimes Gelées", sub: "Chapitre VII", lvl: 30, d: "Au nord du Bastion, la neige ne fond plus. Ceux qui y meurent continuent de marcher.", sky: ["#0a1220", "#2a3a52"], fog: "#a8c8e8", accent: "#8ad0ff",
+  { id: "cimes", n: "Les Cimes Gelées", sub: "Chapitre VII", lvl: 30, d: "Au sud-ouest du Bastion, sur les hauts sommets, la neige ne fond plus. Ceux qui y meurent continuent de marcher.", sky: ["#0a1220", "#2a3a52"], fog: "#a8c8e8", accent: "#8ad0ff",
     mons: {
       loup_givre: { n: "Loup de givre", tags: ["bete"], hp: 44, dmg: [8, 13], prot: .04, spd: 8, dodge: 12, rk: [1, 2], sk: [{ n: "Morsure gelée", m: 1, at: [1, 2], fx: [{ k: "spdDn", v: 2, t: 2, ch: .8 }] }, { n: "Hurlement", m: 0, t: "ae", at: [1, 2, 3, 4], fx: [{ k: "weak", t: 2, ch: .6 }], every: 3 }] },
       revenant_glace: { n: "Revenant de glace", tags: ["impie"], hp: 58, dmg: [8, 13], prot: .2, spd: 3, dodge: 2, res: 35, rk: [1, 2], sk: [{ n: "Lame gelée", m: 1.1, at: [1, 2], fx: [{ k: "bleed", v: .4, t: 2, ch: .7 }] }, { n: "Carapace de givre", t: "self", sfx: [{ k: "protUp", v: .15, t: 2 }], w: .4 }] },
@@ -1364,8 +1364,8 @@ const CH_MORE = [
       phase: { at: .5, n: "La Reine brise sa couronne de glace. Le froid devient absolu.", sfx: [{ k: "dmgUp", v: .4, t: 99 }, { k: "spdUp", v: 3, t: 99 }] } } },
     summon: ["Meute du blizzard", ["loup_givre", "spectre_blizzard"]],
     story: "La Reine de l'Hiver se fend comme un lac au dégel. Dans son cœur gelé, un sixième éclat que personne n'attendait : la Couronne avait plus de fragments qu'on ne le croyait.",
-    mark: { n: "Morsure du nord", d: "+15 de résistance, mais −1 de vitesse.", pas: [{ k: "stat", s: "res", v: 15 }, { k: "stat", s: "spd", v: -1 }] },
-    scene: [["narr", "Un éclaireur revient du nord, les doigts noirs de gel. Il ne parle plus. Il dessine une couronne dans la neige, puis meurt."], ["ysolde", "Une autre couronne ? Il n'y en avait qu'une…"], ["anselme", "Il y en avait une. Les chroniques parlent d'une reine qu'Aldemar aurait épousée avant son sacre. On dit qu'elle n'a jamais cessé d'attendre."], ["voix", "Ma sœur la Reine garde ce qui m'appartient. Allez donc lui demander. Elle a toujours aimé les visiteurs… congelés."], ["capitaine", "Des fourrures, des torches, et du feu dans les ventres. On part au nord."]],
+    mark: { n: "Morsure du givre", d: "+15 de résistance, mais −1 de vitesse.", pas: [{ k: "stat", s: "res", v: 15 }, { k: "stat", s: "spd", v: -1 }] },
+    scene: [["narr", "Un éclaireur revient des montagnes du sud-ouest, les doigts noirs de gel. Il ne parle plus. Il dessine une couronne dans la neige, puis meurt."], ["ysolde", "Une autre couronne ? Il n'y en avait qu'une…"], ["anselme", "Il y en avait une. Les chroniques parlent d'une reine qu'Aldemar aurait épousée avant son sacre. On dit qu'elle n'a jamais cessé d'attendre."], ["voix", "Ma sœur la Reine garde ce qui m'appartient. Allez donc lui demander. Elle a toujours aimé les visiteurs… congelés."], ["capitaine", "Des fourrures, des torches, et du feu dans les ventres. On part pour les montagnes."]],
     end: [["ysolde", "Un sixième fragment… La Couronne n'est pas brisée en cinq. Elle a été dispersée."], ["anselme", "Et quelqu'un, quelque part, rassemble les autres."]] },
   { id: "cite", n: "La Cité Engloutie", sub: "Chapitre VIII", lvl: 35, d: "Sous le lac de Morvaine dort une ville entière. Ses cloches sonnent encore sous l'eau.", sky: ["#04121a", "#0a3a44"], fog: "#5ab8b0", accent: "#4ad8c8",
     mons: {
@@ -1397,7 +1397,7 @@ const CH_MORE = [
     summon: ["La mine se réveille", ["mineur_possede", "chauve_souris"]],
     story: "Le Cœur de la Montagne cesse de battre. Dans la roche refroidie, le huitième éclat, et le moule de la Couronne : elle avait été forgée pour huit fragments… et une place vide au centre.",
     mark: { n: "Poussière de fer", d: "+8 % de protection, mais −8 % de dégâts critiques.", pas: [{ k: "stat", s: "prot", v: .08 }, { k: "critDmg", v: -.08 }] },
-    scene: [["narr", "Les forgerons de Maugrin rapportent la même chose : le fer hurle quand on le frappe. Un hurlement qui vient de l'est, des Mines du Hurlevent."], ["maugrin", "C'est là qu'on a forgé la Couronne. Mon arrière-grand-père y était. Il n'a jamais voulu en parler."], ["anselme", "La lettre du Roi Noyé dit qu'Aldemar a muré les forgerons vivants pour garder le secret."], ["voix", "Ils chantaient si bien en tapant sur le métal. Ils chantent encore. Écoutez."], ["capitaine", "On descend les chercher. Morts ou vifs, on les ramène."]],
+    scene: [["narr", "Les forgerons de Maugrin rapportent la même chose : le fer hurle quand on le frappe. Un hurlement qui vient du sud-est, des Mines du Hurlevent."], ["maugrin", "C'est là qu'on a forgé la Couronne. Mon arrière-grand-père y était. Il n'a jamais voulu en parler."], ["anselme", "La lettre du Roi Noyé dit qu'Aldemar a muré les forgerons vivants pour garder le secret."], ["voix", "Ils chantaient si bien en tapant sur le métal. Ils chantent encore. Écoutez."], ["capitaine", "On descend les chercher. Morts ou vifs, on les ramène."]],
     end: [["maugrin", "Une place vide au centre du moule. Il manque une pierre à la Couronne."], ["anselme", "Le cœur. La Couronne avait un cœur. Et il est resté là où tout a commencé : au Trône."]] },
   { id: "trone", n: "Le Trône Vide", sub: "Chapitre X", lvl: 45, d: "La salle du sacre, au sommet de la Citadelle. Le trône attend un roi qui ne viendra plus.", sky: ["#0a0610", "#2a1a3a"], fog: "#b08ad8", accent: "#e8c878",
     mons: {
@@ -1457,7 +1457,7 @@ const CH_XX = [
     hidden: ["noye_sec", "Le Noyé Sec", "Affronter la Reine de Sel lors d'une expédition de nuit.", run => !!run.night],
     story: "La Reine de Sel retombe en poussière blanche. Dans le sel, l'empreinte de la graine noire : elle est passée ici avant vous.",
     mark: { n: "Sel aux lèvres", d: "+12 de résistance, mais −3 % de soins reçus.", pas: [{ k: "stat", s: "res", v: 12 }, { k: "healTaken", v: -.03 }] },
-    scene: [["narr", "La graine a disparu de son coffret de plomb. Une traînée de sel mène vers l'est."], ["ysolde", "Quelqu'un l'a prise. Ou elle est partie seule."], ["voix", "Elle rentre chez elle. Vous voulez voir où elle est née ?"]],
+    scene: [["narr", "La graine a disparu de son coffret de plomb. Une traînée de sel mène vers l'ouest."], ["ysolde", "Quelqu'un l'a prise. Ou elle est partie seule."], ["voix", "Elle rentre chez elle. Vous voulez voir où elle est née ?"]],
     end: [["ysolde", "Elle marche vers quelque chose. Et nous la suivons comme des chiens."]] },
   { id: "pendus", n: "La Colline des Gibets", sub: "Chapitre XIII", lvl: 60, d: "Sur chaque potence, une corde neuve. Personne ne se souvient de les avoir nouées.", sky: ["#060a06", "#1a2a1a"], fog: "#6a8a6a", accent: "#9ae08a",
     mons: [["pendu_vif", "Pendu vif", "impie", "pendu", "#5a7a4a", "swift"], ["corbeau_geant", "Corbeau charognard", "bete", "charognard", "#2a2a3a", "caster"], ["bucheron_mort", "Bûcheron mort", "impie", "bourreau", "#4a5a3a", "brute"], ["sorciere_noeuds", "Sorcière des nœuds", "humain", "sorciere_marais", "#6a4a7a", "healer"], ["ecorce_vive", "Écorce vive", "bete", "golem", "#5a4a2a", "tank"]],
@@ -2497,7 +2497,7 @@ const SCENES = {
   ] },
   foret: { t: "Chapitre II — La Forêt des Pendus", lines: [
     ["narr", "Le premier fragment repose sur l'autel de la chapelle. Il est froid comme une main morte, et il chuchote la nuit."],
-    ["anselme", "Je ne dors plus. Le fragment murmure un nom : « Mère ». Il appelle quelque chose, plus au nord, sous les arbres."],
+    ["anselme", "Je ne dors plus. Le fragment murmure un nom : « Mère ». Il appelle quelque chose, plus à l'est, sous les arbres."],
     ["ysolde", "La Forêt des Pendus. Les chasseurs disent que les arbres y portent des fruits humains, et qu'ils tournent quand on les regarde."],
     ["voix", "Vous avez pris ce qui m'appartient… Venez donc me le rendre, petits voleurs."],
     ["capitaine", "Tu l'as entendue aussi ?"],
@@ -2530,7 +2530,7 @@ const SCENES = {
   terres: { t: "Chapitre VI — Les Terres Brûlées", lines: [
     ["narr", "Au matin, l'autel de la chapelle est vide. Les cinq fragments ont disparu, et Frère Anselme a le crâne ouvert."],
     ["anselme", "Le Cardinal… Le confesseur d'Aldemar. Il est entré comme un pèlerin. Il a dit qu'il venait prier pour les morts."],
-    ["ysolde", "Les traces partent vers l'est, vers les Terres Brûlées. Là-bas, le sol fume depuis le couronnement."],
+    ["ysolde", "Les traces partent vers le sud-ouest, vers les Terres Brûlées. Là-bas, le sol fume depuis le couronnement."],
     ["maugrin", "S'il reforge la Couronne avec ces éclats, tout ce que vous avez fait n'aura servi à rien."],
     ["voix", "Un roi est mort, mes enfants. Vive le roi. Et cette fois, le roi sera un saint."],
     ["capitaine", "Alors on va lui apprendre ce que valent les saints, ici."],
@@ -6037,7 +6037,7 @@ const STORY_MORE = {
     ["maugrin", "Les cloches se sont tues. Pour la première fois depuis cent ans, le Bourg dort."],
   ] },
   foret: { at: "voix", mid: [
-    ["narr", "La route du nord s'enfonce sous des chênes si vieux que leurs branches se rejoignent. Aux plus basses pendent des cordes, et aux cordes, des chasseurs qui avaient cru connaître le chemin."],
+    ["narr", "La route de l'est s'enfonce sous des chênes si vieux que leurs branches se rejoignent. Aux plus basses pendent des cordes, et aux cordes, des chasseurs qui avaient cru connaître le chemin."],
     ["ysolde", "Des brigands y ont établi un camp. Ils paient tribut à quelque chose au cœur des bois : un cerf par lune, et parfois un des leurs."],
     ["anselme", "Les dryades de ces bois veillaient jadis sur les pèlerins. Le fragment les a rendues jalouses de tout ce qui respire."],
   ], end: [
@@ -6065,7 +6065,7 @@ const STORY_MORE = {
     ["ysolde", "Le Roi de Cendres a dit un dernier mot avant de s'effondrer. Pas un nom. Juste « enfin »."],
   ] },
   terres: { at: "voix", repl: [["Au matin, l'autel", "Au matin, l'autel de la chapelle est vide. Les cinq fragments ont disparu, et Frère Anselme a le front en sang."]], mid: [
-    ["narr", "À l'est, la terre est fendue comme une croûte de pain trop cuit. Des pèlerins y marchent pieds nus sur la braise, en chantant."],
+    ["narr", "Au sud-ouest, la terre est fendue comme une croûte de pain trop cuit. Des pèlerins y marchent pieds nus sur la braise, en chantant."],
     ["maugrin", "Un colosse de braise garde la route. J'ai vu ses traces : des pas de trois coudées, et le sable fondu en verre dedans."],
     ["anselme", "Le Cardinal a toujours dit que la Couronne devait revenir à l'Église. Il a attendu cent ans que quelqu'un d'autre fasse le travail."],
   ], end: [
@@ -6120,7 +6120,7 @@ const STORY_MORE = {
   ] },
   sel: { at: "end", mid: [
     ["narr", "Les serrures n'ont pas été forcées : elles ont été rongées de l'intérieur, par le sel."],
-    ["anselme", "À l'est s'étendait jadis la mer de Saumure. Elle s'est retirée le jour du premier sacre, il y a mille ans. Ce qu'elle a laissé derrière elle n'a jamais pourri."],
+    ["anselme", "À l'ouest s'étendait jadis la mer de Saumure. Elle s'est retirée le jour du premier sacre, il y a mille ans. Ce qu'elle a laissé derrière elle n'a jamais pourri."],
     ["ysolde", "Des statues de sel jalonnent la piste. Ce ne sont pas des statues : elles ont des alliances aux doigts."],
     ["maugrin", "Prenez de l'eau. Beaucoup d'eau. Le sel boit tout ce qu'il touche, et il a soif depuis mille ans."],
     ["anselme", "Une reine règne sur ce désert. Elle n'a jamais voulu mourir, et le sel l'a exaucée."],
@@ -10641,7 +10641,7 @@ ACT.closeModal = () => navClose();
 /* Version du jeu et journal des nouveautés / correctifs (Archives › Nouveautés, écran-titre, Options). Version 0.x jusqu'à la sortie (1.0). */
 const GAME_VERSION = "0.213";
 const CHANGELOG = [
-  { v: "0.213", d: "14 nov. 2026", add: ["Bruitages de combat refaits à partir de vrais enregistrements (Kenney « RPG Audio » et « Impact Sounds », sorts de Lentikula, magical 1–7) : hauteur naturelle, écho court, plus aucun chœur ni cor de synthèse.", "Taille des monstres réaliste : rats, oiseaux et insectes un peu plus petits, grosses bêtes un peu plus grandes, élites et gardiens au-dessus."], fix: ["Icône de l'application : liens renouvelés pour que la nouvelle icône remplace l'ancienne.", "Le tableau du Bastion (couronne) n'affiche plus que le niveau d'aventure : défis du jour et défi de la semaine dans les Objectifs, expédition du jour et défi de la semaine dans l'onglet Destination."] },
+  { v: "0.213", d: "14 nov. 2026", add: ["Bruitages de combat refaits à partir de vrais enregistrements (Kenney « RPG Audio » et « Impact Sounds », sorts de Lentikula, magical 1–7) : hauteur naturelle, écho court, plus aucun chœur ni cor de synthèse.", "Taille des monstres réaliste : rats, oiseaux et insectes un peu plus petits, grosses bêtes un peu plus grandes, élites et gardiens au-dessus."], fix: ["Histoire : les directions correspondent maintenant à la carte du monde (la Forêt des Pendus à l'est, les Terres Brûlées et les Cimes au sud-ouest, les Mines au sud-est, le Désert de Sel à l'ouest).", "Icône de l'application : liens renouvelés pour que la nouvelle icône remplace l'ancienne.", "Le tableau du Bastion (couronne) n'affiche plus que le niveau d'aventure : défis du jour et défi de la semaine dans les Objectifs, expédition du jour et défi de la semaine dans l'onglet Destination."] },
   { v: "0.212", d: "14 nov. 2026", add: ["Combat sur téléphone en paysage : barre de compétences sur une seule ligne avec les 4 compétences principales (et l'ultime quand elle est prête) ; le reste s'ouvre avec « Plus ». Les personnages sont nettement plus grands."], fix: ["La fiche d'un compagnon n'affiche « Retour à la Ménagerie » que si on l'a ouverte depuis la Ménagerie."] },
   { v: "0.211", d: "14 nov. 2026", add: ["Expédition éclair : le bilan propose « Refaire l'expédition éclair » ou « Retour au Bastion ».", "Préparation : la compagnie et le compagnon choisis restent seuls visibles ; les autres héros et compagnons s'affichent par rôle, onglets fermés à l'ouverture.", "Tous les bâtiments changent de nom aux niveaux 3, 5, 8 et 10 (la Forge et la Fonderie aussi).", "Histoire relue de bout en bout : incohérences corrigées (nombre de fragments, fiancée d'Aldemar, la Voix qui emprunte la bouche des morts…), dialogues remis dans le bon ordre.", "Bruitages de combat refaits : plus secs et plus mats, sans tintements de cloche ni chœurs synthétiques, volume plus doux.", "Ménagerie et Fonderie de niveau 1 repeintes ; tutoriels des bâtiments mis à jour."], fix: ["Invasion du week-end et expédition éclair n'apparaissent plus que dans l'onglet Destination ; « Série ×N » devient « Série ».", "La Ménagerie s'ouvre sur « Mes compagnons ».", "Ouvrir un bâtiment depuis un autre ne fait plus revenir au premier avec Retour ; pas de tutoriel quand on arrive d'un objectif.", "Objectifs : plus de ligne « équipement à optimiser » ; la pastille disparaît à l'ouverture et revient après une expédition s'il y a du nouveau.", "Monstres ordinaires à une taille homogène (élites et gardiens restent plus grands).", "Compagnons : détourage corrigé (chèvre, anguille, chat d'ombre) ; le loup évolué s'appelle « Grand loup des cendres » et les familiers légendaires évolués ont leur propre nom (plus de doublon « Fenrir » ni « Corbeau d'Odin »)."] },
   { v: "0.210", d: "14 nov. 2026", add: ["Histoires du Bastion : une petite scène à chaque niveau de bâtiment (2 à 10) pour la Taverne, la Forge, la Chapelle, la Salle des maîtres, la Ménagerie et la Fonderie — relisibles dans Archives › Chroniques.", "Histoires des chapitres étoffées : plus de dialogues avant chaque chapitre (lieux, gardiens, enjeux) et des épilogues plus longs, surtout pour les chapitres XI à XX."] },

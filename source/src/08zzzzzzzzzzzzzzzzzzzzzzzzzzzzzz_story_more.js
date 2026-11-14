@@ -11,7 +11,7 @@ const STORY_MORE = {
     ["maugrin", "Les cloches se sont tues. Pour la première fois depuis cent ans, le Bourg dort."],
   ] },
   foret: { at: "voix", mid: [
-    ["narr", "La route du nord s'enfonce sous des chênes si vieux que leurs branches se rejoignent. Aux plus basses pendent des cordes, et aux cordes, des chasseurs qui avaient cru connaître le chemin."],
+    ["narr", "La route de l'est s'enfonce sous des chênes si vieux que leurs branches se rejoignent. Aux plus basses pendent des cordes, et aux cordes, des chasseurs qui avaient cru connaître le chemin."],
     ["ysolde", "Des brigands y ont établi un camp. Ils paient tribut à quelque chose au cœur des bois : un cerf par lune, et parfois un des leurs."],
     ["anselme", "Les dryades de ces bois veillaient jadis sur les pèlerins. Le fragment les a rendues jalouses de tout ce qui respire."],
   ], end: [
@@ -39,7 +39,7 @@ const STORY_MORE = {
     ["ysolde", "Le Roi de Cendres a dit un dernier mot avant de s'effondrer. Pas un nom. Juste « enfin »."],
   ] },
   terres: { at: "voix", repl: [["Au matin, l'autel", "Au matin, l'autel de la chapelle est vide. Les cinq fragments ont disparu, et Frère Anselme a le front en sang."]], mid: [
-    ["narr", "À l'est, la terre est fendue comme une croûte de pain trop cuit. Des pèlerins y marchent pieds nus sur la braise, en chantant."],
+    ["narr", "Au sud-ouest, la terre est fendue comme une croûte de pain trop cuit. Des pèlerins y marchent pieds nus sur la braise, en chantant."],
     ["maugrin", "Un colosse de braise garde la route. J'ai vu ses traces : des pas de trois coudées, et le sable fondu en verre dedans."],
     ["anselme", "Le Cardinal a toujours dit que la Couronne devait revenir à l'Église. Il a attendu cent ans que quelqu'un d'autre fasse le travail."],
   ], end: [
@@ -94,7 +94,7 @@ const STORY_MORE = {
   ] },
   sel: { at: "end", mid: [
     ["narr", "Les serrures n'ont pas été forcées : elles ont été rongées de l'intérieur, par le sel."],
-    ["anselme", "À l'est s'étendait jadis la mer de Saumure. Elle s'est retirée le jour du premier sacre, il y a mille ans. Ce qu'elle a laissé derrière elle n'a jamais pourri."],
+    ["anselme", "À l'ouest s'étendait jadis la mer de Saumure. Elle s'est retirée le jour du premier sacre, il y a mille ans. Ce qu'elle a laissé derrière elle n'a jamais pourri."],
     ["ysolde", "Des statues de sel jalonnent la piste. Ce ne sont pas des statues : elles ont des alliances aux doigts."],
     ["maugrin", "Prenez de l'eau. Beaucoup d'eau. Le sel boit tout ce qu'il touche, et il a soif depuis mille ans."],
     ["anselme", "Une reine règne sur ce désert. Elle n'a jamais voulu mourir, et le sel l'a exaucée."],

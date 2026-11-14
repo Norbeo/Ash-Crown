@@ -27,7 +27,7 @@ const CH_XX = [
     hidden: ["noye_sec", "Le Noyé Sec", "Affronter la Reine de Sel lors d'une expédition de nuit.", run => !!run.night],
     story: "La Reine de Sel retombe en poussière blanche. Dans le sel, l'empreinte de la graine noire : elle est passée ici avant vous.",
     mark: { n: "Sel aux lèvres", d: "+12 de résistance, mais −3 % de soins reçus.", pas: [{ k: "stat", s: "res", v: 12 }, { k: "healTaken", v: -.03 }] },
-    scene: [["narr", "La graine a disparu de son coffret de plomb. Une traînée de sel mène vers l'est."], ["ysolde", "Quelqu'un l'a prise. Ou elle est partie seule."], ["voix", "Elle rentre chez elle. Vous voulez voir où elle est née ?"]],
+    scene: [["narr", "La graine a disparu de son coffret de plomb. Une traînée de sel mène vers l'ouest."], ["ysolde", "Quelqu'un l'a prise. Ou elle est partie seule."], ["voix", "Elle rentre chez elle. Vous voulez voir où elle est née ?"]],
     end: [["ysolde", "Elle marche vers quelque chose. Et nous la suivons comme des chiens."]] },
   { id: "pendus", n: "La Colline des Gibets", sub: "Chapitre XIII", lvl: 60, d: "Sur chaque potence, une corde neuve. Personne ne se souvient de les avoir nouées.", sky: ["#060a06", "#1a2a1a"], fog: "#6a8a6a", accent: "#9ae08a",
     mons: [["pendu_vif", "Pendu vif", "impie", "pendu", "#5a7a4a", "swift"], ["corbeau_geant", "Corbeau charognard", "bete", "charognard", "#2a2a3a", "caster"], ["bucheron_mort", "Bûcheron mort", "impie", "bourreau", "#4a5a3a", "brute"], ["sorciere_noeuds", "Sorcière des nœuds", "humain", "sorciere_marais", "#6a4a7a", "healer"], ["ecorce_vive", "Écorce vive", "bete", "golem", "#5a4a2a", "tank"]],

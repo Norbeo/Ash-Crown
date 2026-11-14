@@ -48,3 +48,17 @@ function monImgSprite(key, pose, sc) {
   return imgSprite(im, { sc, cx: ART_CX[n], h, maxW, flip: !ART_FLIP.has(n),
     pose: { atk: pose.atk, lean: f.lean, hx: f.hx }, tint: f.lean < 0 ? "rgba(170,20,20,.16)" : null, hue: M.hue || null });
 }
+
+// ── Combat : barre compacte — 4 compétences principales (et l'ultime quand elle est prête), le reste derrière « Plus » ──
+{ const cbx = cbBar; cbBar = function (u) { cbx.apply(this, arguments);
+    try { const box = $("#cb-skills"); if (!box || !u || !box.children.length) return; let n = 0;
+      for (const b of [...box.children]) { const main = b.dataset.a === "cbSk" && !b.classList.contains("ult") && n < 4; if (main) n++; const ultReady = b.classList.contains("ult") && b.classList.contains("ready");
+        b.classList.toggle("skx", !main && !ultReady); }
+      const t = document.createElement("button"); t.className = "sk skmore"; t.dataset.a = "cbMore"; t.innerHTML = `${ico(CB.moreOpen ? "back" : "plus", "#e8c878")}<span>${CB.moreOpen ? "Moins" : "Plus"}</span>`; box.appendChild(t);
+      const bar = $("#cbar"); if (bar) { bar.classList.toggle("more", !!CB.moreOpen); CB.barH = bar.offsetHeight + 6; cbLayout(); }
+    } catch (e) { } }; }
+ACT.cbMore = () => { CB.moreOpen = !CB.moreOpen; const bar = $("#cbar"); if (bar) bar.classList.toggle("more", CB.moreOpen); const t = document.querySelector("#cb-skills .skmore"); if (t) t.innerHTML = `${ico(CB.moreOpen ? "back" : "plus", "#e8c878")}<span>${CB.moreOpen ? "Moins" : "Plus"}</span>`; try { if (bar) { CB.barH = bar.offsetHeight + 6; cbLayout(); } } catch (e) { } };
+
+// ── Fiche d'un compagnon : « Retour à la Ménagerie » seulement si on vient de la Ménagerie ──
+{ const pi = ACT.petInfo; ACT.petInfo = function (id, el, e) { const fromMen = UI.inBld && UI.bldOpen === "menagerie" && !$("#modal").hidden;
+    if (fromMen) return pi.apply(this, arguments); e && e.stopPropagation && e.stopPropagation(); petSheet(id, ""); }; }

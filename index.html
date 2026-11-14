@@ -365,6 +365,8 @@ input[type=checkbox]:checked::after{transform:translateX(18px);background:#ffd89
  .nggrid>.card .tag{font-size:10px;padding:1px 6px}
  .nggrid>.card .btn.sm{font-size:12px;padding:6px 4px}
 }
+#cbar .sk.skmore{display:none}
+@media (orientation:landscape) and (max-height:560px){#cbar .skills{flex-wrap:nowrap;gap:4px}#cbar .sk{width:62px;min-height:48px;padding:2px 1px;font-size:8px}#cbar .sk .ic,#cbar .sk img{width:22px;height:22px}#cbar .sk.skx{display:none}#cbar.more .skills{flex-wrap:wrap}#cbar.more .sk.skx{display:flex}#cbar .sk.skmore{display:flex}#cbar{gap:3px;padding-top:2px}#cbar .skdesc{font-size:11px;padding:3px 8px;max-width:80vw;min-height:2.5em;max-height:2.8em;overflow:hidden;line-height:1.25}#cbar .skdesc .tiny,#cbar .skdesc br{display:none}}
 </style>
 </head><body>
 <canvas id="scene"></canvas>
@@ -10637,8 +10639,9 @@ ACT.closeModal = () => navClose();
 { const cb0 = confirmBox; confirmBox = function (text, yes, o) { return cb0(text, () => { yes(); setTimeout(() => { if ($("#modal").hidden && MNAV.stack.length) navRestore(MNAV.stack.pop()); }, 30); }, o); }; }
 { const g0 = go; go = function () { MNAV.stack = []; MNAV.cur = null; MNAV.closed = null; return g0.apply(this, arguments); }; }
 /* Version du jeu et journal des nouveautés / correctifs (Archives › Nouveautés, écran-titre, Options). Version 0.x jusqu'à la sortie (1.0). */
-const GAME_VERSION = "0.211";
+const GAME_VERSION = "0.212";
 const CHANGELOG = [
+  { v: "0.212", d: "14 nov. 2026", add: ["Combat sur téléphone en paysage : barre de compétences sur une seule ligne avec les 4 compétences principales (et l'ultime quand elle est prête) ; le reste s'ouvre avec « Plus ». Les personnages sont nettement plus grands."], fix: ["La fiche d'un compagnon n'affiche « Retour à la Ménagerie » que si on l'a ouverte depuis la Ménagerie."] },
   { v: "0.211", d: "14 nov. 2026", add: ["Expédition éclair : le bilan propose « Refaire l'expédition éclair » ou « Retour au Bastion ».", "Préparation : la compagnie et le compagnon choisis restent seuls visibles ; les autres héros et compagnons s'affichent par rôle, onglets fermés à l'ouverture.", "Tous les bâtiments changent de nom aux niveaux 3, 5, 8 et 10 (la Forge et la Fonderie aussi).", "Histoire relue de bout en bout : incohérences corrigées (nombre de fragments, fiancée d'Aldemar, la Voix qui emprunte la bouche des morts…), dialogues remis dans le bon ordre.", "Bruitages de combat refaits : plus secs et plus mats, sans tintements de cloche ni chœurs synthétiques, volume plus doux.", "Ménagerie et Fonderie de niveau 1 repeintes ; tutoriels des bâtiments mis à jour."], fix: ["Invasion du week-end et expédition éclair n'apparaissent plus que dans l'onglet Destination ; « Série ×N » devient « Série ».", "La Ménagerie s'ouvre sur « Mes compagnons ».", "Ouvrir un bâtiment depuis un autre ne fait plus revenir au premier avec Retour ; pas de tutoriel quand on arrive d'un objectif.", "Objectifs : plus de ligne « équipement à optimiser » ; la pastille disparaît à l'ouverture et revient après une expédition s'il y a du nouveau.", "Monstres ordinaires à une taille homogène (élites et gardiens restent plus grands).", "Compagnons : détourage corrigé (chèvre, anguille, chat d'ombre) ; le loup évolué s'appelle « Grand loup des cendres » et les familiers légendaires évolués ont leur propre nom (plus de doublon « Fenrir » ni « Corbeau d'Odin »)."] },
   { v: "0.210", d: "14 nov. 2026", add: ["Histoires du Bastion : une petite scène à chaque niveau de bâtiment (2 à 10) pour la Taverne, la Forge, la Chapelle, la Salle des maîtres, la Ménagerie et la Fonderie — relisibles dans Archives › Chroniques.", "Histoires des chapitres étoffées : plus de dialogues avant chaque chapitre (lieux, gardiens, enjeux) et des épilogues plus longs, surtout pour les chapitres XI à XX."] },
   { v: "0.209", d: "13 nov. 2026", add: ["Chapelle et Salle des maîtres de niveau 1 repeintes plus en détail.", "Icônes peintes propres aux compétences de la Lame d'ombre et de l'Arbalétrière.", "Chasseur de sorcières : armures des paliers I à V repeintes dans la même pose que les paliers VI à X, pour une progression continue du palier I au X."] },
@@ -11968,6 +11971,20 @@ function monImgSprite(key, pose, sc) {
   return imgSprite(im, { sc, cx: ART_CX[n], h, maxW, flip: !ART_FLIP.has(n),
     pose: { atk: pose.atk, lean: f.lean, hx: f.hx }, tint: f.lean < 0 ? "rgba(170,20,20,.16)" : null, hue: M.hue || null });
 }
+
+// ── Combat : barre compacte — 4 compétences principales (et l'ultime quand elle est prête), le reste derrière « Plus » ──
+{ const cbx = cbBar; cbBar = function (u) { cbx.apply(this, arguments);
+    try { const box = $("#cb-skills"); if (!box || !u || !box.children.length) return; let n = 0;
+      for (const b of [...box.children]) { const main = b.dataset.a === "cbSk" && !b.classList.contains("ult") && n < 4; if (main) n++; const ultReady = b.classList.contains("ult") && b.classList.contains("ready");
+        b.classList.toggle("skx", !main && !ultReady); }
+      const t = document.createElement("button"); t.className = "sk skmore"; t.dataset.a = "cbMore"; t.innerHTML = `${ico(CB.moreOpen ? "back" : "plus", "#e8c878")}<span>${CB.moreOpen ? "Moins" : "Plus"}</span>`; box.appendChild(t);
+      const bar = $("#cbar"); if (bar) { bar.classList.toggle("more", !!CB.moreOpen); CB.barH = bar.offsetHeight + 6; cbLayout(); }
+    } catch (e) { } }; }
+ACT.cbMore = () => { CB.moreOpen = !CB.moreOpen; const bar = $("#cbar"); if (bar) bar.classList.toggle("more", CB.moreOpen); const t = document.querySelector("#cb-skills .skmore"); if (t) t.innerHTML = `${ico(CB.moreOpen ? "back" : "plus", "#e8c878")}<span>${CB.moreOpen ? "Moins" : "Plus"}</span>`; try { if (bar) { CB.barH = bar.offsetHeight + 6; cbLayout(); } } catch (e) { } };
+
+// ── Fiche d'un compagnon : « Retour à la Ménagerie » seulement si on vient de la Ménagerie ──
+{ const pi = ACT.petInfo; ACT.petInfo = function (id, el, e) { const fromMen = UI.inBld && UI.bldOpen === "menagerie" && !$("#modal").hidden;
+    if (fromMen) return pi.apply(this, arguments); e && e.stopPropagation && e.stopPropagation(); petSheet(id, ""); }; }
 /* PlayDrop : actif seulement dans la version publiée sur PlayDrop (window.CC_PD, posé par pd/mkpd.sh, qui charge aussi le SDK).
    – sauvegarde en ligne : la partie suit le joueur d'un appareil à l'autre (sdk.me.appData, code compressé CC1) ;
    – classements : profondeur de l'Abîme, niveau d'aventure, chapitres vaincus ;

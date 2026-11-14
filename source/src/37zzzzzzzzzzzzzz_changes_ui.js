@@ -1,6 +1,7 @@
 /* Version du jeu et journal des nouveautés / correctifs (Archives › Nouveautés, écran-titre, Options). Version 0.x jusqu'à la sortie (1.0). */
-const GAME_VERSION = "0.237";
+const GAME_VERSION = "0.238";
 const CHANGELOG = [
+  { v: "0.238", d: "14 nov. 2026", fix: ["Combat en portrait sur téléphone : seules les 4 compétences principales restent visibles, le reste (potion, déplacements, compagnon…) derrière « Plus » — les PV du groupe ne sont plus cachés.", "Combat en paysage sur téléphone : la description de la compétence s'affiche en entier à côté des boutons, plus besoin de « détails »."] },
   { v: "0.237", d: "14 nov. 2026", add: ["Premières icônes peintes de compétences de compagnons : rat, belette, vipère, loup, chèvre et molosse (fiche, Carnet, ordre au compagnon)."] },
   { v: "0.236", d: "14 nov. 2026", fix: ["Combat : en tournant le téléphone (paysage ↔ portrait), les personnages se replacent correctement au lieu de rester trop bas.", "Combat en portrait : un grand monstre (le Boucher…) est légèrement réduit au lieu de passer sous la frise ou les boutons du haut.", "Barre de combat : le bouton « Moins » a une vraie icône de fermeture."] },
   { v: "0.235", d: "14 nov. 2026", add: ["Évolutions repeintes de la 5e série de compagnons (Reine-tisseuse, Chacal d'Anubis, Bouc des tempêtes, Mante-prêtresse, Anguille-tonnerre, Gargouille de cathédrale, Séraphin déchu, Griffon royal, Chimère adulte)."] },

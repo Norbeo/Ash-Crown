@@ -367,6 +367,10 @@ input[type=checkbox]:checked::after{transform:translateX(18px);background:#ffd89
 }
 #cbar .sk.skmore{display:none}
 @media (orientation:landscape) and (max-height:560px){#cbar .skills{flex-wrap:nowrap;gap:4px}#cbar .sk{width:62px;min-height:48px;padding:2px 1px;font-size:8px}#cbar .sk .ic,#cbar .sk img{width:22px;height:22px}#cbar .sk.skx{display:none}#cbar.more .skills{flex-wrap:wrap}#cbar.more .sk.skx{display:flex}#cbar .sk.skmore{display:flex}#cbar{gap:3px;padding-top:2px}#cbar .skdesc{font-size:11px;padding:3px 8px;max-width:80vw;min-height:2.5em;max-height:2.8em;overflow:hidden;line-height:1.25}#cbar .skdesc .tiny,#cbar .skdesc br{display:none}}
+
+/* 14 nov. : barre de combat compacte aussi en portrait sur téléphone ; en paysage bas, description à côté des boutons */
+@media (orientation:portrait) and (max-width:700px){#cbar .sk.skx{display:none}#cbar .sk.skmore{display:flex}#cbar.more .sk.skx{display:flex}#cbar:not(.more) .skdesc .tiny{display:none}#cbar:not(.more) .skdesc br:last-of-type{display:none}}
+@media (orientation:landscape) and (max-height:560px){#cbar{flex-direction:row;align-items:center;justify-content:center;gap:8px;padding-left:max(8px,env(safe-area-inset-left));padding-right:max(8px,env(safe-area-inset-right))}#cbar .skdesc{flex:1 1 0;max-width:42vw;min-width:180px;max-height:58px;overflow-y:auto;min-height:0;align-self:stretch}#cbar .skills{flex:0 1 auto;max-width:56vw}#cbar.more .skills{max-width:56vw}#cb-desc.mini::after{display:none}#cb-desc.mini{padding-right:8px;cursor:default}#cb-desc.mini .one{display:inline;-webkit-line-clamp:unset}}
 </style>
 </head><body>
 <canvas id="scene"></canvas>
@@ -10669,8 +10673,9 @@ ACT.closeModal = () => navClose();
 { const cb0 = confirmBox; confirmBox = function (text, yes, o) { return cb0(text, () => { yes(); setTimeout(() => { if ($("#modal").hidden && MNAV.stack.length) navRestore(MNAV.stack.pop()); }, 30); }, o); }; }
 { const g0 = go; go = function () { MNAV.stack = []; MNAV.cur = null; MNAV.closed = null; return g0.apply(this, arguments); }; }
 /* Version du jeu et journal des nouveautés / correctifs (Archives › Nouveautés, écran-titre, Options). Version 0.x jusqu'à la sortie (1.0). */
-const GAME_VERSION = "0.237";
+const GAME_VERSION = "0.238";
 const CHANGELOG = [
+  { v: "0.238", d: "14 nov. 2026", fix: ["Combat en portrait sur téléphone : seules les 4 compétences principales restent visibles, le reste (potion, déplacements, compagnon…) derrière « Plus » — les PV du groupe ne sont plus cachés.", "Combat en paysage sur téléphone : la description de la compétence s'affiche en entier à côté des boutons, plus besoin de « détails »."] },
   { v: "0.237", d: "14 nov. 2026", add: ["Premières icônes peintes de compétences de compagnons : rat, belette, vipère, loup, chèvre et molosse (fiche, Carnet, ordre au compagnon)."] },
   { v: "0.236", d: "14 nov. 2026", fix: ["Combat : en tournant le téléphone (paysage ↔ portrait), les personnages se replacent correctement au lieu de rester trop bas.", "Combat en portrait : un grand monstre (le Boucher…) est légèrement réduit au lieu de passer sous la frise ou les boutons du haut.", "Barre de combat : le bouton « Moins » a une vraie icône de fermeture."] },
   { v: "0.235", d: "14 nov. 2026", add: ["Évolutions repeintes de la 5e série de compagnons (Reine-tisseuse, Chacal d'Anubis, Bouc des tempêtes, Mante-prêtresse, Anguille-tonnerre, Gargouille de cathédrale, Séraphin déchu, Griffon royal, Chimère adulte)."] },

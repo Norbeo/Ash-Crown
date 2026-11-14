@@ -73,3 +73,12 @@ ACT.cbMore = () => { CB.moreOpen = !CB.moreOpen; const bar = $("#cbar"); if (bar
 { const ga2 = goalsAll; goalsAll = function () { const G = ga2.apply(this, arguments);
     try { if (!S.week && typeof weekCheck === "function") weekCheck(); const W = weekRule(); if (W && S.week) G.push({ cat: "day", st: S.week.done ? "done" : "todo", ic: "trophy", t: `Défi de la semaine : ${W.n}`, d: `${regionById(S.week.region).n} — ${W.d}`, a: "weekRun", v: "" }); } catch (e) { }
     return G; }; }
+
+// ── Fiche d'un gardien : la marque qu'il laisse sur les héros (bonus et contrepartie), purifiable à la Chapelle ──
+function bossMarkOf(k) { try { const M = MONSTERS[k]; if (!M || !M.boss) return null; const base = typeof bossBase === "function" ? bossBase(k) : k;
+    if (GUARD_MARKS["b:" + base]) return GUARD_MARKS["b:" + base]; const R = REGIONS.find(r => r.boss === base || r.boss2 === base); return R && GUARD_MARKS[R.id] ? GUARD_MARKS[R.id] : null; } catch (e) { return null; } }
+{ const ms = ACT.monSheet; ACT.monSheet = function (k) { const r = ms.apply(this, arguments);
+    try { const G = bossMarkOf(k); const box = document.querySelector("#modal .box") || document.querySelector("#modal"); if (G && box) { const h3 = [...box.querySelectorAll("h3")].find(e => /Compétences/.test(e.textContent));
+        const html = `<div class="panel" style="padding:8px 10px;margin-top:10px;border-color:#b08aff66">${ico("curse", "#c8a0ff", 15)} <b>Marque laissée : ${G.n}</b><div class="small" style="margin-top:2px">${G.d}</div><div class="tiny dim">Chaque héros présent à la victoire porte cette marque. Elle se purifie à la Chapelle (le bonus part avec la contrepartie).</div></div>`;
+        if (h3) h3.insertAdjacentHTML("beforebegin", html); else box.insertAdjacentHTML("beforeend", html); } } catch (e) { }
+    return r; }; }

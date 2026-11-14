@@ -1,6 +1,7 @@
 /* Version du jeu et journal des nouveautés / correctifs (Archives › Nouveautés, écran-titre, Options). Version 0.x jusqu'à la sortie (1.0). */
-const GAME_VERSION = "0.232";
+const GAME_VERSION = "0.233";
 const CHANGELOG = [
+  { v: "0.233", d: "14 nov. 2026", add: ["Porte du Bastion : étape 4 repeinte — les 7 étapes de la porte forment désormais une seule progression, du portail délabré à la porte légendaire."] },
   { v: "0.232", d: "14 nov. 2026", add: ["Porte du Bastion : étapes 2 (restauration, échafaudage) et 3 (corps de garde fortifié) repeintes dans le style des nouvelles portes."] },
   { v: "0.231", d: "14 nov. 2026", add: ["Compagnons repeints (5e série) : tisseuse, chacal, bouc des sommets, mante, anguille, gargouillon, chérubin déchu, griffonneau et chimérot."] },
   { v: "0.230", d: "14 nov. 2026", add: ["Évolutions repeintes de la 4e série de compagnons (Phalène lunaire, Frelon-reine, Scarabée sacré, Âme-lanterne, Lynx spectral, Élan-roi, Paon aux cent yeux, Nuée de la nuit, Destrier de brume)."] },

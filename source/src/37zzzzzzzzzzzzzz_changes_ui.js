@@ -1,6 +1,7 @@
 /* Version du jeu et journal des nouveautés / correctifs (Archives › Nouveautés, écran-titre, Options). Version 0.x jusqu'à la sortie (1.0). */
-const GAME_VERSION = "0.227";
+const GAME_VERSION = "0.228";
 const CHANGELOG = [
+  { v: "0.228", d: "14 nov. 2026", add: ["Évolutions repeintes de la 3e série de compagnons (Corneille du destin, Blaireau cuirassé, Bélier des cendres, Chat des sorcières, Tortue-forteresse, Cygne de deuil, Mère-sangsue, Sanglier titan, Salamandre de lave)."] },
   { v: "0.227", d: "14 nov. 2026", add: ["Compagnons repeints (3e série) : corneille, blaireau, agneau noir, chat noir, tortue, cygne noir, sangsue, sanglier et salamandre."] },
   { v: "0.226", d: "14 nov. 2026", add: ["Évolutions repeintes de la 2e série de compagnons (Constellation vivante, Pie des gibets, Corbeau d'Odin, Grand hibou des glas, Grand-duc de l'Aube, Renard à neuf queues, Ours des cavernes, Cerf-roi, Hydre des douves)."] },
   { v: "0.225", d: "14 nov. 2026", add: ["Compagnons repeints (2e série) : lucioles, pie, corbeau, hibou, chouette, renard, ourson, faon et couleuvre."] },

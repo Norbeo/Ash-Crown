@@ -241,14 +241,100 @@ def fx_ult():  # ultime : montée, chœur, impact colossal
     put(B, membrane(48, 1.4, 1.2), 1.1); put(B, body(.6, 45, 1.4), 1.1); put(B, blade(260, 2.2, .7), 1.1); put(B, rumble(1.6, 1.1), 1.1); put(B, chain(.5, 240, .5), 1.12)
     put(B, horn(73.4, 1.8, .4), 1.15); return verb(B, .4, "crypt")
 
+# ══ Refonte du 14 nov. : plus sec, plus organique, moins « synthé » ══
+# Les tintements longs (lames qui sonnent comme des cloches), les chœurs et le cor de synthèse sonnaient faux :
+# impacts courts et mats, souffles de tissu, sons magiques faits de bruit filtré et de quelques harmoniques douces.
+def blade_tick(f0=900, v=1.):  # contact d'acier bref, sans « cloche »
+    d = .12; t = T(d); x = np.zeros_like(t)
+    for i, r in enumerate(BAR[:4]):
+        x += (.8 ** i) * np.sin(2 * np.pi * f0 * r * (1 + (rng.random() - .5) * .02) * t + rng.random() * 6) * np.exp(-t * (38 + i * 30))
+    return (x * .5 + hp(noise(d), 2500) * ad(len(t), .0002, .01, 3) * .6) * v
+def cloth(d=.25, v=1.):  # froissement de cuir / tissu
+    x = bp(noise(d), 600, 3500) * np.sin(np.pi * np.minimum(1, T(d) / d)) ** 1.5; return x * v
+def thud(f=80, d=.25, v=1.):  # coup mat, grave et court
+    t = T(d); s = np.sin(2 * np.pi * np.cumsum(f * (1 - .5 * t / d)) / SR) * np.exp(-t * 18)
+    return (s + lp(noise(d), 900) * ad(len(t), .0005, .03, 4) * .8) * v
+def air(d=1.2, lo=1200, hi=6000, v=1.):  # souffle magique
+    t = T(d); return bp(noise(d), lo, hi) * np.sin(np.pi * np.minimum(1, t / d)) ** 2 * v
+def chime(f=880, d=1.2, v=1.):  # petite clochette douce (3 partiels, attaque feutrée)
+    t = T(d); x = sum(a * np.sin(2 * np.pi * f * r * t + rng.random()) * np.exp(-t * dc) for r, a, dc in [(1, 1, 3), (2.01, .35, 5), (3.02, .12, 8)])
+    return x * np.minimum(1, t / .01) * v
+
+def fx_slash():
+    B = buf(.45); p = rng.uniform(-.3, .3)
+    put(B, whoosh(rng.uniform(.18, .26), rng.uniform(300, 500), rng.uniform(1400, 2400), .9, 1.1), 0, 1, p); put(B, cloth(.2, .25), 0, 1, -p)
+    return verb(B, .08, "small")
+def fx_hit():
+    B = buf(.7); k = rng.integers(0, 3)
+    put(B, thud(rng.uniform(70, 100), .22, 1.), 0); put(B, cloth(.15, .35), 0)
+    if k == 0: put(B, blade_tick(rng.uniform(800, 1200), .35), 0)
+    elif k == 1: put(B, flesh_cut(.6), 0)
+    else: put(B, chain(.15, 120, .2), .005)
+    return verb(B, .1, "small")
+def fx_heavy():
+    B = buf(1.4); put(B, whoosh(.32, 140, 700, .7, 1.), 0)
+    put(B, thud(rng.uniform(45, 58), .45, 1.3), .26); put(B, body(.35, 55, .8), .26); put(B, rumble(.7, .6), .26); put(B, bone(.3), .27)
+    return verb(B, .14, "small")
+def fx_crit():
+    B = buf(1.4); p = rng.uniform(-.3, .3)
+    put(B, whoosh(.2, 280, 2600, .9, 1.2), 0, 1, p); put(B, thud(60, .35, 1.3), .17); put(B, body(.3, 70, .9), .17); put(B, bone(.8), .175)
+    put(B, blade_tick(rng.uniform(700, 1000), .4), .17, 1, -p); put(B, rumble(.5, .4), .17); return verb(B, .16, "small")
+def fx_shoot():
+    B = buf(.9); put(B, string_pluck(rng.uniform(100, 140), .3) * .9, 0); put(B, whoosh(.24, 1600, 4200, .45, 3.), .03, 1, .5)
+    put(B, thud(rng.uniform(120, 170), .15, .7), .28, 1, .6); put(B, wood(rng.uniform(150, 200), .12, .4), .28, 1, .6); return verb(B, .08, "small")
+def fx_miss():
+    B = buf(.5); put(B, whoosh(.28, 500, 2200, .7, 1.4), 0, 1, rng.uniform(-.6, .6)); return verb(B, .06, "small")
+def fx_block():
+    B = buf(.7); put(B, wood(rng.uniform(110, 150), .25, 1.), 0); put(B, thud(110, .15, .6), 0); put(B, blade_tick(rng.uniform(900, 1300), .3), 0, 1, .3)
+    return verb(B, .1, "small")
+def fx_fire():
+    B = buf(1.5); d = 1.2; t = T(d)
+    roar = lp(noise(d), 600, 3) * (1 + .4 * np.sin(2 * np.pi * 6 * t)) * np.minimum(1, t / .06) * np.exp(-t * 2.2)
+    put(B, whoosh(.3, 150, 1000, .6, 1.), 0); put(B, roar * .9, .04); put(B, crackle(1., 60, .35), .1, 1, .3); return verb(B, .12, "small")
+def fx_holy():
+    B = buf(2.2); f = rng.choice([523.3, 587.3, 659.3])
+    put(B, air(1.6, 1500, 7000, .18), 0); put(B, chime(f, 1.6, .22), .05, 1, -.2); put(B, chime(f * 1.5, 1.4, .14), .18, 1, .2)
+    put(B, lp(noise(1.2), 400) * np.sin(np.pi * T(1.2) / 1.2) * .2, 0); return verb(B, .3, "hall")
+def fx_heal():
+    B = buf(2.); f = rng.choice([659.3, 698.5, 784.])
+    put(B, air(1.3, 900, 4000, .15), 0); put(B, chime(f, 1.3, .16), .08, 1, .3); put(B, chime(f * 1.25, 1.2, .1), .22, 1, -.3)
+    return verb(B, .3, "hall")
+def fx_buff():
+    B = buf(1.6); put(B, membrane(rng.uniform(58, 68), .8, .9), 0, 1, -.2); put(B, membrane(rng.uniform(58, 68), .8, .75), .22, 1, .2)
+    put(B, cloth(.3, .4), .05); put(B, chain(.25, 120, .18), .06); return verb(B, .14, "small")
+def fx_debuff():
+    B = buf(1.6); d = 1.2; t = T(d)
+    x = lp(noise(d), 500) * (1 + .5 * np.sin(2 * np.pi * 7 * t)) * np.minimum(1, t / .15) * np.exp(-t * 2)
+    put(B, x * .6, 0); put(B, whisper(1.1, .25), .05, 1, .4); return verb(B, .25, "hall")
+def fx_dark():
+    B = buf(2.); put(B, reverse_swell(.5, .45), 0); d = 1.3; t = T(d)
+    sub = np.sin(2 * np.pi * np.cumsum(50 * (1 - .25 * t / d)) / SR) * np.minimum(1, t / .02) * np.exp(-t * 2.2)
+    put(B, (lp(noise(d), 300) * np.exp(-t * 2.5) * .7 + sub * .8), .5); put(B, whisper(1., .3), .45, 1, -.4); return verb(B, .25, "hall")
+def fx_poison():
+    B = buf(1.); put(B, bubbles(.7, 12, .45), 0, 1, -.2); put(B, air(.6, 2500, 7000, .08), .05, 1, .3); return verb(B, .1, "small")
+def fx_bleed():
+    B = buf(.6); put(B, flesh_cut(.6), 0); put(B, cloth(.15, .2), 0); return verb(B, .08, "small")
+def fx_die():
+    B = buf(1.4); put(B, thud(52, .5, 1.2), 0); put(B, body(.4, 60, .7), .02)
+    for k in range(rng.integers(2, 4)): put(B, chain(.18, 100, .2), .08 + k * rng.uniform(.06, .12), 1, rng.uniform(-.5, .5))
+    put(B, lp(noise(.5), 500) * ad(N(.5), .04, .25, 3) * .3, .25); return verb(B, .14, "small")
+def fx_fall():
+    B = buf(2.4); put(B, thud(50, .5, 1.1), 0); put(B, chain(.3, 120, .25), .03); put(B, chime(196, 2., .12), .4); return verb(B, .3, "hall")
+def fx_stun():
+    B = buf(1.); put(B, thud(90, .2, .9), 0); put(B, blade_tick(1100, .35), 0); t = T(.8)
+    put(B, np.sin(2 * np.pi * 2600 * t) * np.minimum(1, t / .1) * np.exp(-t * 4) * .025, .05); return verb(B, .12, "small")
+def fx_ult():
+    B = buf(2.4); put(B, reverse_swell(.8, .5), 0); put(B, membrane(50, 1.1, 1.1), .8); put(B, thud(45, .6, 1.3), .8)
+    put(B, rumble(1.2, .8), .8); put(B, air(.9, 600, 3000, .12), .8); return verb(B, .22, "hall")
+
 FX = ["slash", "hit", "heavy", "crit", "shoot", "miss", "block", "fire", "holy", "heal", "buff", "debuff", "dark", "poison", "bleed", "die", "fall", "stun", "ult"]
-VAR = {"hit": 4, "slash": 3, "miss": 2, "crit": 2, "shoot": 2, "block": 2, "heavy": 2, "die": 2}
+VAR = {k: 2 for k in ["hit", "slash", "miss", "crit", "shoot", "block", "heavy", "die", "bleed", "fire", "dark", "poison", "debuff", "heal", "holy"]}
 
 def save(name, B):
     m = np.abs(B).max() or 1; B = B / m * .92
     tmp = os.path.join(OUT, "_t.wav")
     with wave.open(tmp, "wb") as w: w.setnchannels(2); w.setsampwidth(2); w.setframerate(SR); w.writeframes((np.clip(B, -1, 1) * 32767).astype(np.int16).tobytes())
-    subprocess.run(["ffmpeg", "-y", "-loglevel", "error", "-i", tmp, "-af", "loudnorm=I=-16:TP=-1.0:LRA=11", "-ar", "44100", "-b:a", "96k", os.path.join(OUT, name + ".mp3")], check=True); os.remove(tmp)
+    subprocess.run(["ffmpeg", "-y", "-loglevel", "error", "-i", tmp, "-af", "loudnorm=I=-21:TP=-2.0:LRA=11", "-ar", "44100", "-b:a", "96k", os.path.join(OUT, name + ".mp3")], check=True); os.remove(tmp)
     print(name, round(len(B) / SR, 2), "s")
 
 if __name__ == "__main__":

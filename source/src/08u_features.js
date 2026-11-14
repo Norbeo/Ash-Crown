@@ -82,6 +82,8 @@ const LEGEND_PETS = [
 ];
 for (const [id, base, n, hue, need] of LEGEND_PETS) { const B = PETS[base]; if (!B || PETS[id]) continue;
   PETS[id] = Object.assign(JSON.parse(JSON.stringify(B)), { n, artOf: base, hue, legend: need, starter: 0, pool0: 0, cost: 20000 + need * 1000, rank: 1.8, d: (B.d || "") + " Version légendaire : plus puissante en tout.", unl: null }); if (!PET_IDS.includes(id)) PET_IDS.push(id); }
+// noms propres des formes évoluées (sans doublon avec le loup ou le corbeau ordinaires)
+{ const EVN = { fenrir: "Fenrir, Dévoreur de Soleils", corbeau_fin: "Héraut de la Fin", ours_titan: "Ours-Titan ancestral" }; for (const id in EVN) if (PETS[id] && PETS[id].evo) PETS[id].evo.n = EVN[id]; }
 const wanderBeaten = () => typeof WANDER_BOSSES === "undefined" ? [] : Object.keys(WANDER_BOSSES).filter(k => (S.beaten || {})[k]);
 const wanderVariantsBeaten = () => typeof WANDER_BOSSES === "undefined" ? 0 : Object.keys(S.beaten || {}).filter(k => MONSTERS[k] && MONSTERS[k].variantOf && WANDER_BOSSES[MONSTERS[k].variantOf]).length;
 const legendPetOpen = id => { const P = PETS[id]; return !!(P && P.legend && wanderBeaten().length >= P.legend); };

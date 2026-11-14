@@ -11,7 +11,7 @@ function series2HTML(E) {
   return `<div class="panel" style="padding:10px;margin-top:8px"><b class="small">${ico("auto", "#e8c878", 14)} Série</b>
     <div class="row" style="gap:6px;flex-wrap:wrap;margin-top:6px">
       <button class="btn sm ${mode === "off" ? "gold" : "ghost"}" data-a="ser2" data-v="off">Aucune</button>
-      <button class="btn sm ${mode === "n" ? "gold" : "ghost"}" data-a="ser2" data-v="n">Série ×N</button>
+      <button class="btn sm ${mode === "n" ? "gold" : "ghost"}" data-a="ser2" data-v="n">Série</button>
       <button class="btn sm ${mode === "inf" ? "gold" : "ghost"}" data-a="ser2" data-v="inf">Série infinie</button></div>
     ${mode === "n" ? `<div class="row" style="gap:6px;align-items:center;margin-top:8px"><button class="btn sm ghost" data-a="ser2Step" data-v="-1">−</button><input type="number" min="1" max="998" class="invf" data-ser2n="1" value="${n}" style="width:70px;text-align:center"><button class="btn sm ghost" data-a="ser2Step" data-v="1">+</button><span class="small">fois</span></div>` : ""}
     <div class="tiny dim" style="margin-top:6px">${mode === "off" ? "Une seule expédition." : mode === "n" ? `Refait ${n} fois la même expédition, en automatique.` : "Enchaîne les expéditions sans fin : chaque gardien vaincu fait monter d'une menace, puis passer au chapitre suivant."} S'arrête sur une défaite ; arrêt possible à tout moment depuis la carte.</div></div>`;

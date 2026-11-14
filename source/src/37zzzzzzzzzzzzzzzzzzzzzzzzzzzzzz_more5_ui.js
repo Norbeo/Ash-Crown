@@ -23,7 +23,7 @@ ACT.wheel = () => { if (!wheelReady()) return toast("Déjà tournée aujourd'hui
 { const hr = hubRailHTML; hubRailHTML = function () { const ok = chestReady(); return hr.apply(this, arguments).replace(/<\/div>\s*$/, `<button class="hrail" data-a="chestOpen" title="Coffre du gardien">${ico("chest", ok ? "#ffd27a" : "#8a7a6a", 22)}<span>${ok ? "Coffre" : hmTxt(chestLeft())}</span>${ok ? "<i>!</i>" : ""}</button></div>`); }; }
 
 // Invasion : bandeau à la préparation d'expédition + destination marquée
-{ const eh = SCREENS.expe.html; SCREENS.expe.html = function () { let h = eh.apply(this, arguments); const inv = invasionRegion(); if (!inv) return h; const R = regionById(inv);
+{ const eh = SCREENS.expe.html; SCREENS.expe.html = function () { let h = eh.apply(this, arguments); const inv = invasionRegion(); if (!inv || S.run || (UI.expePane || "dest") !== "dest") return h; const R = regionById(inv);
   const b = `<div class="card" style="cursor:pointer;border-color:#e0707088;background:#3a101088;margin:6px 0" data-a="pickReg" data-v="${inv}">${ico("skull", "#ff7a6a", 16)} <b>Invasion du week-end : ${R.n}</b> <span class="tiny">— ennemis +25 %, <b>or ×2, expérience ×1,5</b>. ${UI.expe && UI.expe.region === inv ? '<span class="good">Destination choisie ✓</span>' : "Toucher pour y aller."}</span></div>`;
   const i = h.indexOf('<div class="stickybar">'); return i >= 0 ? h.slice(0, i) + b + h.slice(i) : h + b; }; }
 

@@ -7,10 +7,13 @@ for (const k of ["taverne", "chapelle", "academie", "menagerie"]) {
   B.shards = B.shards.slice(0, 5).concat([s5 + 2, s5 + 5, s5 + 9, s5 + 14, s5 + 20]);
 }
 // noms de bâtiments aux niveaux 8 et 10
-BUILDINGS.taverne.nl = [[10, "Salle des Héros"], [8, "Auberge fortifiée"]].concat(BUILDINGS.taverne.nl || []);
-BUILDINGS.chapelle.nl = [[10, "Cathédrale de l'Ordre"], [8, "Église fortifiée"]].concat(BUILDINGS.chapelle.nl || []);
-BUILDINGS.academie.nl = [[10, "Citadelle des Grands Maîtres"], [8, "Haute Salle des maîtres"]].concat(BUILDINGS.academie.nl || []);
-BUILDINGS.menagerie.nl = [[10, "Donjon des Bêtes"], [8, "Grande Ménagerie"]].concat(BUILDINGS.menagerie.nl || []);
+// noms des bâtiments selon leur niveau (3, 5, 8, 10) — tous les bâtiments, dans le même esprit
+BUILDINGS.taverne.nl = [[10, "Salle des Héros"], [8, "Auberge fortifiée"], [5, "Relais des Braves"], [3, "Auberge du Pendu"]];
+BUILDINGS.forge.nl = [[10, "Grande Forge"], [8, "Forge de siège"], [5, "Forge de guerre"], [3, "Forge ardente"]];
+BUILDINGS.chapelle.nl = [[10, "Cathédrale de l'Ordre"], [8, "Église fortifiée"], [5, "Église de l'Aube"], [3, "Chapelle restaurée"]];
+BUILDINGS.academie.nl = [[10, "Citadelle des Grands Maîtres"], [8, "Haute Salle des maîtres"], [5, "École des maîtres"], [3, "Salle d'armes"]];
+BUILDINGS.menagerie.nl = [[10, "Donjon des Bêtes"], [8, "Grande Ménagerie"], [5, "Ménagerie des Ombres"], [3, "Chenil fortifié"]];
+BUILDINGS.fonderie.nl = [[10, "Cité des Fourneaux"], [8, "Fourneaux des Âmes"], [5, "Haut Fourneau"], [3, "Fonderie rallumée"]];
 
 // bonus par niveau de bâtiment (niveau 1 = rien, puis par niveau au-delà)
 const BLD_BONUS = {

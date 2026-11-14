@@ -4,7 +4,7 @@
 const PETS = {
   loup: { n: "Loup des cendres", role: "dps", starter: 1, cost: 400, d: "Fidèle et féroce, il traque ce qui saigne.", col: "#5a5550",
     sk: [{ n: "Morsure", m: .9, t: "e", at: [1, 2], fx: [{ k: "bleed", v: .4, t: 3, ch: .8 }] }, { n: "Hurlement de meute", t: "aa", afx: [{ k: "dmgUp", v: .12, t: 2 }], every: 3 }],
-    evo: { n: "Fenrir des cendres", d: "Un loup géant aux yeux de braise.", sk: { n: "Curée de Fenrir", m: 1.3, t: "ae", at: [1, 2], fx: [{ k: "bleed", v: .5, t: 3, ch: 1 }] } } },
+    evo: { n: "Grand loup des cendres", d: "Un loup géant aux yeux de braise.", sk: { n: "Curée de Fenrir", m: 1.3, t: "ae", at: [1, 2], fx: [{ k: "bleed", v: .5, t: 3, ch: 1 }] } } },
   corbeau: { n: "Corbeau de mauvais augure", role: "soutien", starter: 1, cost: 400, d: "Il désigne les condamnés. Ses présages ne mentent jamais.", col: "#1c1c22",
     sk: [{ n: "Œil arraché", m: .5, t: "e", at: [1, 2, 3, 4], fx: [{ k: "mark", t: 2, ch: 1 }, { k: "accDn", v: 10, t: 2, ch: 1 }] }, { n: "Funeste présage", t: "ae", at: [1, 2, 3, 4], fx: [{ k: "vuln", t: 2, ch: .7 }], every: 3 }],
     evo: { n: "Corbeau d'Odin", d: "Il voit le passé et l'avenir. Surtout la fin.", sk: { n: "Nuée de présages", m: .5, t: "ae", at: [1, 2, 3, 4], fx: [{ k: "mark", t: 2, ch: 1 }, { k: "vuln", t: 2, ch: 1 }] } } },

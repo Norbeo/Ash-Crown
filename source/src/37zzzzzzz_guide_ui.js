@@ -28,29 +28,35 @@ ACT.expePane = v => { UI.expePane = v; refresh(); };
 // ── tutoriel des bâtiments : à la première entrée, passable, retrouvable dans les Archives › Guide ──
 const GUIDE = {
   porte: { n: "La Porte — expéditions", ic: "map", p: [
-    "La Porte mène aux expéditions. Les onglets de la préparation : <b>Destination</b> (chapitre et menace), <b>Compagnie</b> (ordre de marche : le rang 1 est en première ligne), <b>Compagnon</b>, <b>Options</b> (nuit, mode Hardi, formation, seconde compagnie) et <b>Spécial</b> (panoplie, raid, arène, séries, boss rush).",
-    "Vaincre le gardien d'un chapitre ouvre le suivant et la menace supérieure (I à V) : ennemis plus forts, meilleur butin.",
-    "L'Abîme sans fin s'ouvre après le chapitre 5 ; les séries d'expéditions automatiques après un premier cycle complet." ] },
+    "La Porte mène aux expéditions. Les onglets de la préparation : <b>Destination</b> (chapitre, menace, invasion du week-end, expédition éclair), <b>Compagnie</b> (ordre de marche : le rang 1 est en première ligne ; ajoutez des héros par rôle), <b>Compagnon</b>, <b>Options</b> (nuit, mode Hardi, déroulement) et <b>Spécial</b> (panoplie, raid, arène, boss rush).",
+    "Vaincre le gardien d'un chapitre ouvre le suivant et la menace supérieure (I à V) : ennemis plus forts, meilleur butin. Un chapitre déjà vaincu à cette menace peut se refaire en <b>expédition éclair</b> : tout est résolu d'un coup, et le bilan propose de recommencer.",
+    "L'Abîme sans fin s'ouvre après le chapitre V. Après toute l'histoire et le début d'un nouveau cycle : la <b>carte automatique</b> et les <b>séries</b> (le même niveau N fois, ou une série infinie qui monte seule de menace en menace et de chapitre en chapitre)." ] },
   taverne: { n: "La Taverne", ic: "tavern", p: [
     "Recrutez de nouveaux héros (la liste se renouvelle) et gérez la caserne : sa capacité grandit avec le niveau du bâtiment.",
-    "Les héros stressés s'y apaisent. Les quêtes de classe de la semaine et les contrats donnent éclats et gemmes.",
-    "Les légendes — héros rares aux dons uniques — y apparaissent parfois." ] },
+    "Les héros stressés s'y apaisent. La roue tourne une fois par jour ; les quêtes de classe de la semaine et les contrats donnent éclats et gemmes.",
+    "Les légendes — héros rares aux dons uniques — y apparaissent parfois.",
+    "Tous les bâtiments montent jusqu'au niveau 10 : chaque niveau donne un bonus permanent (ici : plus d'expérience) et une petite histoire, relisible dans les Archives." ] },
   forge: { n: "La Forge", ic: "anvil", p: [
     "<b>Forger</b> : armes et armures du palier choisi (chaque palier demande un niveau de héros). <b>Inventaire</b> : améliorer (+N à l'or), recycler (une partie de l'or investi est rendue), verrouiller 🔒, comparer (appui long sur un objet).",
     "<b>Optimiser l'équipement</b> équipe toute la compagnie ; <b>Tout améliorer</b> dépense un budget d'or ; le <b>recyclage rapide</b> vide l'inventaire par qualité.",
-    "Enchantement (effet unique), gravure de panoplie, gemmes (objets Mythiques et mieux) et fusion de trois bibelots : choisissez l'objet par héros, par qualité ou dans l'inventaire. À +15, une arme ou une armure se spécialise." ] },
+    "Onglets <b>Panoplies</b>, <b>Bibelots</b> (fusion de trois bibelots en un meilleur) et <b>Gemmes</b>. Enchantement, gravure de panoplie et sertissage se font par héros, par qualité ou dans l'inventaire. À +15, une arme ou une armure se spécialise.",
+    "Chaque niveau de Forge ajoute +1 % de dégâts à tous les héros." ] },
   chapelle: { n: "La Chapelle", ic: "heal", p: [
-    "Soignez les blessures entre deux expéditions et remplissez vos potions.",
-    "Purifiez les marques laissées par les gardiens et levez les malédictions." ] },
+    "Soignez les blessures entre deux expéditions (ou toute la compagnie d'un coup) et remplissez vos potions.",
+    "Purifiez les marques laissées par les gardiens et levez les malédictions.",
+    "Chaque niveau de Chapelle ajoute +1 % de PV à tous les héros et rend les soins moins chers." ] },
   academie: { n: "La Salle des maîtres", ic: "book", p: [
-    "Montez le rang des compétences de vos héros (le rang maximal dépend du bâtiment et du niveau du héros).",
-    "L'arbre du Bastion y donne des bonus permanents : un point par niveau d'aventure." ] },
+    "Un héros débute avec 4 compétences ; les autres s'apprennent en montant de niveau (toutes celles de la classe au niveau 13), puis celles de sa voie après l'évolution (niveau 15).",
+    "Montez ici le rang des compétences (le rang maximal dépend du bâtiment et du niveau du héros), choisissez la voie d'évolution, et dépensez les talents.",
+    "L'arbre du Bastion y donne des bonus permanents : un point par niveau d'aventure. Chaque niveau de la Salle ajoute +0,5 % de critique." ] },
   menagerie: { n: "La Ménagerie", ic: "paw", p: [
-    "Achetez et choisissez le compagnon qui suit la compagnie : il agit seul en combat et peut recevoir un ordre une fois par combat.",
-    "Colliers, traits et spécialisations le renforcent ; il évolue au niveau 10. Les compagnons puissants se débloquent en battant les gardiens des chapitres à chaque menace." ] },
+    "Achetez et choisissez le compagnon qui suit la compagnie : il agit seul en combat (son portrait apparaît dans la frise quand il joue) et peut recevoir un ordre une fois par combat.",
+    "Colliers, traits et spécialisations le renforcent ; il évolue au niveau 10. Les compagnons puissants se débloquent en battant les gardiens des chapitres à chaque menace ; trois familiers légendaires récompensent les gardiens errants.",
+    "Vos compagnons sont rangés par rôle ; chaque niveau de Ménagerie ajoute +3 % de puissance aux compagnons." ] },
   fonderie: { n: "La Fonderie", ic: "gold", p: [
     "Produit de l'or même quand vous ne jouez pas, jusqu'à sa réserve maximale : passez le récolter.",
-    "La dîme quotidienne donne des ressources ; le Marché des éclats vend gemmes et cendre." ] },
+    "La dîme quotidienne donne des ressources ; le Marché des éclats vend gemmes et cendre.",
+    "Chaque niveau de Fonderie ajoute +2 % d'or gagné en expédition." ] },
 };
 function guideHTML(k, foot) { const G = GUIDE[k]; return `<h2>${ico(G.ic, "#e8c878")} ${G.n}</h2>${G.p.map(t => `<p class="small">${t}</p>`).join("")}${foot || ""}`; }
 function guideShow(k, then) { S.guideSeen = S.guideSeen || {}; if (S.opts.noGuide || S.guideSeen[k] || !GUIDE[k]) return false; S.guideSeen[k] = 1; save(); UI.guideThen = then;

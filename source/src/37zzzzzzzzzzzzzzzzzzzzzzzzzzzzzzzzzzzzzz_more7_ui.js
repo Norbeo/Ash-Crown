@@ -117,7 +117,7 @@ function counterHTML(E) { const C = counterParty(E); if (!C || C.pick.length < 2
     try { const i = h.indexOf('<div class="stickybar">'); if (i < 0) return h;
       let add = "";
       if ((UI.expePane || "dest") === "team") add += counterHTML(E);
-      if (flashOk(E)) add += `<div class="card" style="cursor:default;margin:8px 0"><div class="row sp" style="gap:8px;flex-wrap:wrap"><div class="small">${ico("speed", "#9ad0ff", 15)} <b>Expédition éclair</b><div class="tiny dim">Gardien déjà vaincu à cette menace : carte et combats résolus d'un coup, bilan direct.</div></div><button class="btn sm" data-a="flashRun">${ico("speed")} Éclair</button></div></div>`;
+      if (flashOk(E) && (UI.expePane || "dest") === "dest") add += `<div class="card" style="cursor:default;margin:8px 0"><div class="row sp" style="gap:8px;flex-wrap:wrap"><div class="small">${ico("speed", "#9ad0ff", 15)} <b>Expédition éclair</b><div class="tiny dim">Gardien déjà vaincu à cette menace : carte et combats résolus d'un coup, bilan direct.</div></div><button class="btn sm" data-a="flashRun">${ico("speed")} Éclair</button></div></div>`;
       return add ? h.slice(0, i) + add + h.slice(i) : h; } catch (e) { return h; } }; }
 
 // ── J · Comparateur de héros ──

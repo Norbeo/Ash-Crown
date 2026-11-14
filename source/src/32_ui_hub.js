@@ -92,7 +92,7 @@ function bldFooter(k) {
 ACT.upBld = k => { const r = upgradeBld(k); if (r.err) return toast(r.err, "bad"); sfx("forge"); toast(`${bldName(k)} : niveau ${S.bld[k]} !`, "good"); save(); renderHud(); if (UI.screen === "bastion") refresh(); /* étiquettes du Bastion à jour */ const L = (BLD_SCENES[k] || {})[S.bld[k]]; if (L) showLines(`${typeof bldName === "function" ? bldName(k) : BUILDINGS[k].n} — niveau ${S.bld[k]}`, L, () => openBuilding(k)); else openBuilding(k); };
 function openBuilding(k, tab) {
   const B = BUILDINGS[k]; let body = "";
-  UI.bldTab = tab || UI.bldTab || "";
+  UI.bldTab = tab || (UI._bldLast === k ? UI.bldTab : "") || ""; UI._bldLast = k; // un autre bâtiment repart sur son onglet par défaut
   if (k === "taverne") {
     const tb = ["rec", "leg", "quest"].includes(UI.bldTab) ? UI.bldTab : "rec"; UI.tavTab = tb;
     const head = `<div class="tabs"><button class="btn sm ${tb === "rec" ? "on" : ""}" data-a="bldTab" data-v="taverne:rec">${ico("helm")}Recrues (${S.recruits.length})</button><button class="btn sm ${tb === "leg" ? "on" : ""}" data-a="bldTab" data-v="taverne:leg">${ico("crown")}Légendes</button><button class="btn sm ${tb === "quest" ? "on" : ""}" data-a="bldTab" data-v="taverne:quest">${ico("scroll")}Contrats & quêtes</button></div>`;

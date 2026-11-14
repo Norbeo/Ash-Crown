@@ -1,6 +1,7 @@
 /* Version du jeu et journal des nouveautés / correctifs (Archives › Nouveautés, écran-titre, Options). Version 0.x jusqu'à la sortie (1.0). */
-const GAME_VERSION = "0.229";
+const GAME_VERSION = "0.230";
 const CHANGELOG = [
+  { v: "0.230", d: "14 nov. 2026", add: ["Évolutions repeintes de la 4e série de compagnons (Phalène lunaire, Frelon-reine, Scarabée sacré, Âme-lanterne, Lynx spectral, Élan-roi, Paon aux cent yeux, Nuée de la nuit, Destrier de brume)."] },
   { v: "0.229", d: "14 nov. 2026", add: ["Compagnons repeints (4e série) : phalène, frelon, scarabée, feu follet, lynx, élan, paon, chauves-souris et poulain de brume."] },
   { v: "0.228", d: "14 nov. 2026", add: ["Évolutions repeintes de la 3e série de compagnons (Corneille du destin, Blaireau cuirassé, Bélier des cendres, Chat des sorcières, Tortue-forteresse, Cygne de deuil, Mère-sangsue, Sanglier titan, Salamandre de lave)."] },
   { v: "0.227", d: "14 nov. 2026", add: ["Compagnons repeints (3e série) : corneille, blaireau, agneau noir, chat noir, tortue, cygne noir, sangsue, sanglier et salamandre."] },

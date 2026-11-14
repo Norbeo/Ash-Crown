@@ -84,16 +84,6 @@
   0.2,
   0.3
  ],
- "pet_chauve_souris_evo": [
-  0.5,
-  0.4,
-  0.4
- ],
- "pet_feu_follet_evo": [
-  0.45,
-  0.52,
-  0.25
- ],
  "pet_gargouille": [
   0.75,
   0.32,
@@ -208,26 +198,6 @@
   0.82,
   0.5,
   0.55
- ],
- "pet_phalene_evo": [
-  0.86,
-  0.38,
-  0.35
- ],
- "pet_frelon_evo": [
-  0.77,
-  0.38,
-  0.32
- ],
- "pet_scarabee_evo": [
-  0.78,
-  0.62,
-  0.32
- ],
- "pet_paon_evo": [
-  0.92,
-  0.45,
-  0.25
  ],
  "pet_bouc_sacre_evo": [
   0.88,

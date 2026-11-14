@@ -1,6 +1,7 @@
 /* Version du jeu et journal des nouveautés / correctifs (Archives › Nouveautés, écran-titre, Options). Version 0.x jusqu'à la sortie (1.0). */
-const GAME_VERSION = "0.222";
+const GAME_VERSION = "0.223";
 const CHANGELOG = [
+  { v: "0.223", d: "14 nov. 2026", add: ["Compagnons repeints (1re série) : rat des égouts, belette, vipère, loup, chèvre, molosse, chien de berger, lièvre et crapaud."] },
   { v: "0.222", d: "14 nov. 2026", add: ["Icônes peintes propres aux compétences de l'Exorciste : les 15 classes ont désormais toutes leurs icônes."] },
   { v: "0.221", d: "14 nov. 2026", add: ["Icônes peintes propres aux compétences du Hallebardier."] },
   { v: "0.220", d: "14 nov. 2026", add: ["Icônes peintes propres aux compétences du Chasseur de sorcières."] },

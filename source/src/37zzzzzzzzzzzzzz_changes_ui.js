@@ -1,6 +1,7 @@
 /* Version du jeu et journal des nouveautés / correctifs (Archives › Nouveautés, écran-titre, Options). Version 0.x jusqu'à la sortie (1.0). */
-const GAME_VERSION = "0.233";
+const GAME_VERSION = "0.234";
 const CHANGELOG = [
+  { v: "0.234", d: "14 nov. 2026", add: ["Compagnons : emplacement prévu pour des icônes peintes propres à chacune de leurs compétences (fiche, Carnet, ordre au compagnon en combat) — elles arrivent au fil des planches."], fix: ["La pastille du bouton « Plus » du Bastion disparaît dès qu'on l'ouvre ; elle ne revient que pour une vraie nouveauté (ou le lendemain)."] },
   { v: "0.233", d: "14 nov. 2026", add: ["Porte du Bastion : étape 4 repeinte — les 7 étapes de la porte forment désormais une seule progression, du portail délabré à la porte légendaire."] },
   { v: "0.232", d: "14 nov. 2026", add: ["Porte du Bastion : étapes 2 (restauration, échafaudage) et 3 (corps de garde fortifié) repeintes dans le style des nouvelles portes."] },
   { v: "0.231", d: "14 nov. 2026", add: ["Compagnons repeints (5e série) : tisseuse, chacal, bouc des sommets, mante, anguille, gargouillon, chérubin déchu, griffonneau et chimérot."] },

@@ -94,6 +94,12 @@ function bossMarkOf(k) { try { const M = MONSTERS[k]; if (!M || !M.boss) return 
     try { const btns = full.match(/<button class="hrail[^"]*"[\s\S]*?<\/button>/g) || [];
       const more = btns.filter(b => { const a = (b.match(/data-a="([^"]*)"/) || [])[1]; return a !== "railMore" && !RAIL_KEEP.includes(a); });
       if (!more.length) return h.replace(/<button class="hrail[^"]*" data-a="railMore"[\s\S]*?<\/button>/, "");
-      let badge = 0; for (const b of more) { const m = b.match(/<i>(\d+)<\/i>/); if (m) badge += +m[1]; else if (/<i>/.test(b)) badge++; }
+      // une pastille déjà vue en ouvrant « Plus » (même bouton, même valeur, même jour) ne compte plus
+      const seen = S.railSeen || {}, cur = {}; let badge = 0;
+      for (const b of more) { const a = (b.match(/data-a="([^"]*)"/) || [])[1], m = b.match(/<i>([^<]*)<\/i>/); if (!m) continue; const sig = dayKey() + ":" + m[1]; cur[a] = sig; if (seen[a] === sig) continue; badge += /^\d+$/.test(m[1]) ? +m[1] : 1; }
+      UI._railCur = cur;
       return h.replace(/(<button class="hrail[^"]*" data-a="railMore"[\s\S]*?<\/span>)(<i>\d+<\/i>)?(<\/button>)/, (m0, a, _b, c) => a + (badge && !was ? `<i>${badge}</i>` : "") + c);
     } catch (e) { return h; } }; }
+
+// ouvrir « Plus » marque comme vues les pastilles des boutons qui s'y trouvent
+{ const rm = ACT.railMore; ACT.railMore = function () { if (!UI.railMore && UI._railCur) { S.railSeen = Object.assign(S.railSeen || {}, UI._railCur); save(); } return rm.apply(this, arguments); }; }

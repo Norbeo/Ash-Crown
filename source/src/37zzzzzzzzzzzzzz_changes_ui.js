@@ -1,6 +1,7 @@
 /* Version du jeu et journal des nouveautés / correctifs (Archives › Nouveautés, écran-titre, Options). Version 0.x jusqu'à la sortie (1.0). */
-const GAME_VERSION = "0.239";
+const GAME_VERSION = "0.240";
 const CHANGELOG = [
+  { v: "0.240", d: "14 nov. 2026", add: ["Compagnons repeints (6e série) : scorpion, golem d'os, grue, vautour, panthère, cerbère, renarde, raie et faucon."] },
   { v: "0.239", d: "14 nov. 2026", add: ["Combat : nouvelles icônes peintes pour toutes les actions — potion, reculer, avancer, retarder, passer, ordre au compagnon, détail, rejouer, postures, plus/moins, fuir, auto, vitesse, journal, Bastion, duo, relève."] },
   { v: "0.238", d: "14 nov. 2026", fix: ["Combat en portrait sur téléphone : seules les 4 compétences principales restent visibles, le reste (potion, déplacements, compagnon…) derrière « Plus » — les PV du groupe ne sont plus cachés.", "Combat en paysage sur téléphone : la description de la compétence s'affiche en entier à côté des boutons, plus besoin de « détails »."] },
   { v: "0.237", d: "14 nov. 2026", add: ["Premières icônes peintes de compétences de compagnons : rat, belette, vipère, loup, chèvre et molosse (fiche, Carnet, ordre au compagnon)."] },

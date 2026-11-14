@@ -1,6 +1,7 @@
 /* Version du jeu et journal des nouveautés / correctifs (Archives › Nouveautés, écran-titre, Options). Version 0.x jusqu'à la sortie (1.0). */
-const GAME_VERSION = "0.217";
+const GAME_VERSION = "0.218";
 const CHANGELOG = [
+  { v: "0.218", d: "14 nov. 2026", add: ["Icônes peintes propres aux compétences du Gardien des runes."] },
   { v: "0.217", d: "14 nov. 2026", add: ["Icônes peintes propres aux compétences du Nécromancien."] },
   { v: "0.216", d: "14 nov. 2026", add: ["Porte du Bastion : étape finale peinte après 20 chapitres (couronne brisée au sommet), et porte d'origine repeinte, délabrée et plus détaillée."] },
   { v: "0.215", d: "14 nov. 2026", add: ["Porte du Bastion : deux nouvelles étapes peintes, après 10 et 15 chapitres libérés (remparts, statues de gardiens, bannières)."] },

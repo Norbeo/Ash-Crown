@@ -1,6 +1,7 @@
 /* Version du jeu et journal des nouveautés / correctifs (Archives › Nouveautés, écran-titre, Options). Version 0.x jusqu'à la sortie (1.0). */
-const GAME_VERSION = "0.219";
+const GAME_VERSION = "0.220";
 const CHANGELOG = [
+  { v: "0.220", d: "14 nov. 2026", add: ["Icônes peintes propres aux compétences du Chasseur de sorcières."] },
   { v: "0.219", d: "14 nov. 2026", add: ["Icônes peintes propres aux compétences du Médecin de peste."] },
   { v: "0.218", d: "14 nov. 2026", add: ["Icônes peintes propres aux compétences du Gardien des runes."] },
   { v: "0.217", d: "14 nov. 2026", add: ["Icônes peintes propres aux compétences du Nécromancien."] },

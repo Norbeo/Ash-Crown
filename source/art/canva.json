@@ -195,7 +195,8 @@
   "gargouille": "MAHY2ecu2YI"
  },
  "bld": {
-  "taverne": "MAHY2qEwQ7I"
+  "taverne": "MAHY2qEwQ7I",
+  "porte_5_6": "MAHa2fkgsYo"
  },
  "heroevo": {
   "templier": "MAHY37YJXnE",
@@ -230,5 +231,6 @@
   "chasseur_sorcieres": "MAHaJNtFn68",
   "hallebardier": "MAHaJKCkd8c",
   "exorciste": "MAHaQhG20mg"
- }
+ },
+ "export_doc": "DAHa2RggGxc"
 }

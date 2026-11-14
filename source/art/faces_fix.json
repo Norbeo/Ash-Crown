@@ -84,20 +84,10 @@
   0.2,
   0.3
  ],
- "pet_chauve_souris": [
-  0.55,
-  0.55,
-  0.4
- ],
  "pet_chauve_souris_evo": [
   0.5,
   0.4,
   0.4
- ],
- "pet_feu_follet": [
-  0.45,
-  0.52,
-  0.3
  ],
  "pet_feu_follet_evo": [
   0.45,
@@ -139,26 +129,6 @@
   0.12,
   0.18
  ],
- "pet_frelon": [
-  0.86,
-  0.52,
-  0.38
- ],
- "pet_scarabee": [
-  0.84,
-  0.42,
-  0.45
- ],
- "pet_paon": [
-  0.86,
-  0.3,
-  0.25
- ],
- "pet_phalene": [
-  0.62,
-  0.4,
-  0.4
- ],
  "pet_anguille": [
   0.86,
   0.82,
@@ -172,11 +142,6 @@
  "pet_bouc_sacre": [
   0.86,
   0.25,
-  0.3
- ],
- "pet_kirin": [
-  0.83,
-  0.18,
   0.3
  ],
  "pet_scorpion": [

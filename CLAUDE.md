@@ -188,6 +188,8 @@ Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
 
 - 13 nov. (soir) : ménage (250 fichiers inutilisés retirés : copies séparées pet_/hero voies/tr_/wpn_ à la racine, artref/, fx_*_3/4, bg_worldmap, bg_bastion_port_src) puis historique Git repris à zéro (un seul commit, .git 278 → 89 Mo ; ancien historique dans /tmp/claude-0/ash-crown-history.bundle tant que la session existe). Chapelle/Salle des maîtres niv 1 repeintes (ART10 L2), icônes Lame d'ombre, chasseur de sorcières I–V repeints (v0.209).
 
+- 14 nov. (v0.210–0.211) : histoires du Bastion à chaque niveau (`BLD_STORY` dans `08…(30 z)_story_more.js`, Archives › Chroniques › Histoires du Bastion via `bldStoryCodexHTML`) ; histoire relue et étoffée (`STORY_MORE` : `at` "voix"/"end"/index, `repl`, épilogues) ; noms de niveau 3/5/8/10 pour tous les bâtiments (bldmax) ; `37…(48 z)_fix14_ui.js` : éclair enchaînable (`ACT.flashAgain`), listes repliées par rôle en préparation (`UI.expeTab`/`UI.petTab`), changement de bâtiment vide la pile du retour, pas de tuto depuis un objectif (`UI._noGuideOnce`), pastille des objectifs (`S.goalMute`, `S.goalSeen`, `goalKey`), taille homogène des monstres (`monImgSprite` redéfini) ; bruitages refaits (gen_combat.py, section « Refonte du 14 nov. », loudnorm −21) ; familiers légendaires évolués renommés ; raw/bg_worldmap.png déplacé dans raw_unused (sinon mkassets la recrée).
+
 ## Reste à faire (prochaine séance)
 0. Art en attente (quota Canva) : ART8.md (armures de voie VI–IX, refaites à partir du palier V ; V1 fait) ; puis illustration palier X par classe (VII–IX = VI). Republier ensuite (sw.js + assets).
 1. (Armures V : fait.) Gardiens de menace II–V : déjà présents (`THREAT_BOSS`) — à confirmer avec l'utilisateur s'il en veut d'autres.

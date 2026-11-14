@@ -10639,8 +10639,9 @@ ACT.closeModal = () => navClose();
 { const cb0 = confirmBox; confirmBox = function (text, yes, o) { return cb0(text, () => { yes(); setTimeout(() => { if ($("#modal").hidden && MNAV.stack.length) navRestore(MNAV.stack.pop()); }, 30); }, o); }; }
 { const g0 = go; go = function () { MNAV.stack = []; MNAV.cur = null; MNAV.closed = null; return g0.apply(this, arguments); }; }
 /* Version du jeu et journal des nouveautés / correctifs (Archives › Nouveautés, écran-titre, Options). Version 0.x jusqu'à la sortie (1.0). */
-const GAME_VERSION = "0.213";
+const GAME_VERSION = "0.214";
 const CHANGELOG = [
+  { v: "0.214", d: "14 nov. 2026", add: ["Icônes peintes propres aux compétences du Pyromancien."], fix: ["Plus de tutoriel qui surgit après être passé par un objectif (roue de la Taverne…) ni en revenant en arrière : on ne ferme plus deux fois.", "La pastille du bouton « Plus » du Bastion ne compte que ce qui s'y trouve vraiment ; le bouton disparaît s'il n'y a rien derrière."] },
   { v: "0.213", d: "14 nov. 2026", add: ["Bestiaire : la fiche de chaque gardien indique la marque qu'il laisse sur les héros (bonus et contrepartie), purifiable à la Chapelle.", "Bruitages de combat refaits à partir de vrais enregistrements (Kenney « RPG Audio » et « Impact Sounds », sorts de Lentikula, magical 1–7) : hauteur naturelle, écho court, plus aucun chœur ni cor de synthèse.", "Taille des monstres réaliste : rats, oiseaux et insectes un peu plus petits, grosses bêtes un peu plus grandes, élites et gardiens au-dessus."], fix: ["Histoire : les directions correspondent maintenant à la carte du monde (la Forêt des Pendus à l'est, les Terres Brûlées et les Cimes au sud-ouest, les Mines au sud-est, le Désert de Sel à l'ouest).", "Icône de l'application : liens renouvelés pour que la nouvelle icône remplace l'ancienne.", "Le tableau du Bastion (couronne) n'affiche plus que le niveau d'aventure : défis du jour et défi de la semaine dans les Objectifs, expédition du jour et défi de la semaine dans l'onglet Destination."] },
   { v: "0.212", d: "14 nov. 2026", add: ["Combat sur téléphone en paysage : barre de compétences sur une seule ligne avec les 4 compétences principales (et l'ultime quand elle est prête) ; le reste s'ouvre avec « Plus ». Les personnages sont nettement plus grands."], fix: ["La fiche d'un compagnon n'affiche « Retour à la Ménagerie » que si on l'a ouverte depuis la Ménagerie."] },
   { v: "0.211", d: "14 nov. 2026", add: ["Expédition éclair : le bilan propose « Refaire l'expédition éclair » ou « Retour au Bastion ».", "Préparation : la compagnie et le compagnon choisis restent seuls visibles ; les autres héros et compagnons s'affichent par rôle, onglets fermés à l'ouverture.", "Tous les bâtiments changent de nom aux niveaux 3, 5, 8 et 10 (la Forge et la Fonderie aussi).", "Histoire relue de bout en bout : incohérences corrigées (nombre de fragments, fiancée d'Aldemar, la Voix qui emprunte la bouche des morts…), dialogues remis dans le bon ordre.", "Bruitages de combat refaits : plus secs et plus mats, sans tintements de cloche ni chœurs synthétiques, volume plus doux.", "Ménagerie et Fonderie de niveau 1 repeintes ; tutoriels des bâtiments mis à jour."], fix: ["Invasion du week-end et expédition éclair n'apparaissent plus que dans l'onglet Destination ; « Série ×N » devient « Série ».", "La Ménagerie s'ouvre sur « Mes compagnons ».", "Ouvrir un bâtiment depuis un autre ne fait plus revenir au premier avec Retour ; pas de tutoriel quand on arrive d'un objectif.", "Objectifs : plus de ligne « équipement à optimiser » ; la pastille disparaît à l'ouverture et revient après une expédition s'il y a du nouveau.", "Monstres ordinaires à une taille homogène (élites et gardiens restent plus grands).", "Compagnons : détourage corrigé (chèvre, anguille, chat d'ombre) ; le loup évolué s'appelle « Grand loup des cendres » et les familiers légendaires évolués ont leur propre nom (plus de doublon « Fenrir » ni « Corbeau d'Odin »)."] },
@@ -11950,7 +11951,11 @@ ACT.flashAgain = () => {
     try { if (typeof MNAV !== "undefined" && !MNAV.restoring && !$("#modal").hidden && UI.inBld && UI.bldOpen && UI.bldOpen !== k) { MNAV.stack = []; MNAV.cur = null; MNAV.closed = null; } } catch (e) { }
     return ob.apply(this, arguments); }; }
 // arrivée depuis un objectif : pas de tutoriel (il restera proposé à la prochaine visite)
-{ const gs = guideShow; guideShow = function () { if (UI._noGuideOnce) { UI._noGuideOnce = 0; return false; } return gs.apply(this, arguments); }; }
+{ const gs = guideShow; guideShow = function (k) {
+    UI._guideSkip = UI._guideSkip || {};
+    if (UI._noGuideOnce) { UI._noGuideOnce = 0; UI._guideSkip[k] = 1; return false; } // arrivée par un objectif : pas de tutoriel pendant cette séance
+    if (UI._guideSkip[k] || (typeof MNAV !== "undefined" && MNAV.restoring) || (UI.inBld && UI.bldOpen === k && !$("#modal").hidden)) return false; // retour arrière, réouverture : jamais de tutoriel en travers
+    return gs.apply(this, arguments); }; }
 { const gb = ACT.goalBld; ACT.goalBld = function () { UI._noGuideOnce = 1; try { return gb.apply(this, arguments); } finally { UI._noGuideOnce = 0; } }; }
 
 // ── Objectifs ──
@@ -12006,6 +12011,17 @@ function bossMarkOf(k) { try { const M = MONSTERS[k]; if (!M || !M.boss) return 
         const html = `<div class="panel" style="padding:8px 10px;margin-top:10px;border-color:#b08aff66">${ico("curse", "#c8a0ff", 15)} <b>Marque laissée : ${G.n}</b><div class="small" style="margin-top:2px">${G.d}</div><div class="tiny dim">Chaque héros présent à la victoire porte cette marque. Elle se purifie à la Chapelle (le bonus part avec la contrepartie).</div></div>`;
         if (h3) h3.insertAdjacentHTML("beforebegin", html); else box.insertAdjacentHTML("beforeend", html); } } catch (e) { }
     return r; }; }
+
+// ── Barre du Bastion : la pastille de « Plus » ne compte que ce qui s'affiche vraiment derrière (déblocages compris) ; pas de « Plus » vide ──
+{ const hr2 = hubRailHTML; hubRailHTML = function () {
+    const was = UI.railMore; let full = ""; try { UI.railMore = true; full = hr2.apply(this, arguments); } finally { UI.railMore = was; }
+    const h = was ? full : hr2.apply(this, arguments);
+    try { const btns = full.match(/<button class="hrail[^"]*"[\s\S]*?<\/button>/g) || [];
+      const more = btns.filter(b => { const a = (b.match(/data-a="([^"]*)"/) || [])[1]; return a !== "railMore" && !RAIL_KEEP.includes(a); });
+      if (!more.length) return h.replace(/<button class="hrail[^"]*" data-a="railMore"[\s\S]*?<\/button>/, "");
+      let badge = 0; for (const b of more) { const m = b.match(/<i>(\d+)<\/i>/); if (m) badge += +m[1]; else if (/<i>/.test(b)) badge++; }
+      return h.replace(/(<button class="hrail[^"]*" data-a="railMore"[\s\S]*?<\/span>)(<i>\d+<\/i>)?(<\/button>)/, (m0, a, _b, c) => a + (badge && !was ? `<i>${badge}</i>` : "") + c);
+    } catch (e) { return h; } }; }
 /* PlayDrop : actif seulement dans la version publiée sur PlayDrop (window.CC_PD, posé par pd/mkpd.sh, qui charge aussi le SDK).
    – sauvegarde en ligne : la partie suit le joueur d'un appareil à l'autre (sdk.me.appData, code compressé CC1) ;
    – classements : profondeur de l'Abîme, niveau d'aventure, chapitres vaincus ;

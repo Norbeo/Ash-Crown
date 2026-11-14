@@ -26,7 +26,11 @@ ACT.flashAgain = () => {
     try { if (typeof MNAV !== "undefined" && !MNAV.restoring && !$("#modal").hidden && UI.inBld && UI.bldOpen && UI.bldOpen !== k) { MNAV.stack = []; MNAV.cur = null; MNAV.closed = null; } } catch (e) { }
     return ob.apply(this, arguments); }; }
 // arrivée depuis un objectif : pas de tutoriel (il restera proposé à la prochaine visite)
-{ const gs = guideShow; guideShow = function () { if (UI._noGuideOnce) { UI._noGuideOnce = 0; return false; } return gs.apply(this, arguments); }; }
+{ const gs = guideShow; guideShow = function (k) {
+    UI._guideSkip = UI._guideSkip || {};
+    if (UI._noGuideOnce) { UI._noGuideOnce = 0; UI._guideSkip[k] = 1; return false; } // arrivée par un objectif : pas de tutoriel pendant cette séance
+    if (UI._guideSkip[k] || (typeof MNAV !== "undefined" && MNAV.restoring) || (UI.inBld && UI.bldOpen === k && !$("#modal").hidden)) return false; // retour arrière, réouverture : jamais de tutoriel en travers
+    return gs.apply(this, arguments); }; }
 { const gb = ACT.goalBld; ACT.goalBld = function () { UI._noGuideOnce = 1; try { return gb.apply(this, arguments); } finally { UI._noGuideOnce = 0; } }; }
 
 // ── Objectifs ──
@@ -82,3 +86,14 @@ function bossMarkOf(k) { try { const M = MONSTERS[k]; if (!M || !M.boss) return 
         const html = `<div class="panel" style="padding:8px 10px;margin-top:10px;border-color:#b08aff66">${ico("curse", "#c8a0ff", 15)} <b>Marque laissée : ${G.n}</b><div class="small" style="margin-top:2px">${G.d}</div><div class="tiny dim">Chaque héros présent à la victoire porte cette marque. Elle se purifie à la Chapelle (le bonus part avec la contrepartie).</div></div>`;
         if (h3) h3.insertAdjacentHTML("beforebegin", html); else box.insertAdjacentHTML("beforeend", html); } } catch (e) { }
     return r; }; }
+
+// ── Barre du Bastion : la pastille de « Plus » ne compte que ce qui s'affiche vraiment derrière (déblocages compris) ; pas de « Plus » vide ──
+{ const hr2 = hubRailHTML; hubRailHTML = function () {
+    const was = UI.railMore; let full = ""; try { UI.railMore = true; full = hr2.apply(this, arguments); } finally { UI.railMore = was; }
+    const h = was ? full : hr2.apply(this, arguments);
+    try { const btns = full.match(/<button class="hrail[^"]*"[\s\S]*?<\/button>/g) || [];
+      const more = btns.filter(b => { const a = (b.match(/data-a="([^"]*)"/) || [])[1]; return a !== "railMore" && !RAIL_KEEP.includes(a); });
+      if (!more.length) return h.replace(/<button class="hrail[^"]*" data-a="railMore"[\s\S]*?<\/button>/, "");
+      let badge = 0; for (const b of more) { const m = b.match(/<i>(\d+)<\/i>/); if (m) badge += +m[1]; else if (/<i>/.test(b)) badge++; }
+      return h.replace(/(<button class="hrail[^"]*" data-a="railMore"[\s\S]*?<\/span>)(<i>\d+<\/i>)?(<\/button>)/, (m0, a, _b, c) => a + (badge && !was ? `<i>${badge}</i>` : "") + c);
+    } catch (e) { return h; } }; }

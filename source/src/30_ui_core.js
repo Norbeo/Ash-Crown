@@ -7,7 +7,7 @@ const ACT = {}; // actions déclenchées par data-a
 function sceneInit() {
   SC.cv = $("#scene"); SC.x = SC.cv.getContext("2d");
   const rs = () => { SC.dpr = Math.min(2, window.devicePixelRatio || 1); SC.w = innerWidth; SC.h = innerHeight; SC.cv.width = Math.round(SC.w * SC.dpr); SC.cv.height = Math.round(SC.h * SC.dpr); SC.amb = null; if (UI.screen && SCREENS[UI.screen] && SCREENS[UI.screen].resize) SCREENS[UI.screen].resize(); };
-  addEventListener("resize", rs); rs();
+  addEventListener("resize", rs); addEventListener("orientationchange", () => { setTimeout(rs, 250); setTimeout(rs, 700); }); rs();
   SC.cv.addEventListener("pointerdown", e => { if (SC.click) SC.click(e.clientX, e.clientY, e); });
   SC.cv.addEventListener("pointermove", e => { if (SC.hover) SC.hover(e.clientX, e.clientY); });
   const loop = now => {

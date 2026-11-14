@@ -14,7 +14,7 @@ const HPOSE = {
 function whiteOf(sp) { if (sp.white) return sp.white; const c = mkCanvas(sp.width, sp.height), x = c.getContext("2d"); x.drawImage(sp, 0, 0); x.globalCompositeOperation = "source-in"; x.fillStyle = "#fff6e8"; x.fillRect(0, 0, c.width, c.height); return sp.white = c; }
 function heroPoseFor(u, key) { const C = CLASSES[u.cls]; const st = STANCE[C.wpn] || STANCE.masse; return (HPOSE[key] || HPOSE.idle)(st); }
 function unitSprite(u, key) {
-  const V = CB.vis[u.uid]; const sc = u.side === "h" && CB.port && CB.hScale ? CB.hScale : CB.port && (u.sz || 1) > 1 ? CB.scale * .74 : CB.scale; // portrait : gardiens réduits pour tenir dans le cadre
+  const V = CB.vis[u.uid]; const sc = u.side === "h" && CB.port && CB.hScale ? CB.hScale : CB.port && (u.sz || 1) > 1 ? CB.scale * .74 * (V.fit || 1) : CB.scale * (u.side === "e" ? V.fit || 1 : 1); // portrait : gardiens réduits pour tenir dans le cadre ; V.fit = réduction pour ne pas passer sous les panneaux du haut
   const R = (typeof SC !== "undefined" && SC.dpr) || 1; // dessinés à la résolution réelle de l'écran puis réduits : illustrations nettes
   const ck = key + ":" + sc.toFixed(3) + ":" + R + (u.side === "h" ? ":" + V.lookKey : "");
   V.cache = V.cache || {};
@@ -28,6 +28,7 @@ function unitSprite(u, key) {
 function cbLayout() {
   const B = CB.B; if (!B) return; const W = SC.w, H = SC.h - CB.barH, port = W < SC.h * .85;
   CB.port = port; CB.stageH = H;
+  { const lk = W + "x" + H; if (CB._lk !== lk) { CB._lk = lk; for (const id in CB.vis) { const v = CB.vis[id]; if (v.fit) { v.fit = 1; v.cache = {}; v.top = null; } } CB.hudR = null; } }
   const pos = {};
   if (!port) {
     const mid = W / 2, gap = Math.min(W / 10, H * .27), gy = H * .86;
@@ -54,7 +55,7 @@ SCREENS.combat = {
   html: () => `<div class="ctop l" id="cb-tl"></div><div id="cb-hud"><div id="cb-ord"></div><div id="cb-mlog"></div></div><div id="cb-boss"></div><div class="ctop" id="cb-tr"><button class="btn ghost sm" data-a="cbSpeed" title="Vitesse">${ico("speed")}<span id="cb-spd">×${S.opts.speed ? (S.opts.speed === 3 ? 4 : S.opts.speed) : S.opts.fast ? 4 : 1}</span></button><button class="btn ghost sm ${S.opts.auto ? "on" : ""}" data-a="cbAuto" title="Combat automatique">${ico("auto")}<span id="cb-auto">${S.opts.auto ? "Auto" : "Manuel"}</span></button><button class="btn ghost sm" data-a="cbLogShow" title="Journal du combat">${ico("scroll")}</button><button class="btn ghost sm" data-a="cbFlee" id="cb-flee" title="Fuir">${ico("flee")}</button><button class="btn ghost sm" data-a="cbHub" title="Retour au Bastion (expédition en pause)">${ico("castle")}</button></div><div id="cbar"><div class="skdesc" id="cb-desc" data-a="cbDesc"></div><div class="skills" id="cb-skills"></div></div>`,
   mount: arg => startCombat(arg.node),
   leave: () => { CB.B = null; CB.resolve = null; { const ci = $("#cbinfo"); if (ci) ci.remove(); } const c = $("#coach"); if (c) c.remove(); UI.coach = null; document.querySelectorAll(".coachon").forEach(e => e.classList.remove("coachon")); },
-  resize: () => { if (CB.B) { CB.barH = $("#cbar") ? $("#cbar").offsetHeight + 6 : 150; cbLayout(); } },
+  resize: () => { if (CB.B) { const re = () => { if (!CB.B) return; CB.barH = $("#cbar") ? $("#cbar").offsetHeight + 6 : 150; CB.hudR = null; cbLayout(); }; re(); setTimeout(re, 120); setTimeout(re, 450); setTimeout(re, 900); } }, // la rotation du téléphone change la barre du bas après coup
 };
 async function startCombat(node) {
   const run = S.run;
@@ -406,6 +407,7 @@ function drawCombat(x, t, dt) {
     let pose = v.pose || "idle"; if (u.side === "h" && u.agony && pose === "idle") pose = "agony";
     const sp = unitSprite(u, pose);
     if (pose === "idle" || v.top == null) { const bb = spriteBox(sp); if (bb) v.top = py - (sp.ay - bb.y) / (sp.hd || 1); } // haut réel de l'illustration (intentions, cible)
+    if (CB.port && u.side === "e" && pose === "idle" && v.top != null && !v.dying) { const lim = hudFloor(v.x, 30 * CB.scale) + 8; if (v.top < lim && (v.fit || 1) > .72 && py - v.top > 20) { v.fit = Math.max(.72, (v.fit || 1) * Math.max(.6, (py - lim) / (py - v.top))); v.cache = {}; v.top = null; } }
     x.save(); x.globalAlpha = v.a;
     const br = pose === "idle" ? 1 + Math.sin(t * 2.2 + (u.uid.length * 1.7)) * .012 : 1;
     x.translate(px, py); if (u.side === "e") x.scale(-1, 1); if (sp.hd && sp.hd !== 1) x.scale(1 / sp.hd, 1 / sp.hd);

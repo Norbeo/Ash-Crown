@@ -1,6 +1,7 @@
 /* Version du jeu et journal des nouveautés / correctifs (Archives › Nouveautés, écran-titre, Options). Version 0.x jusqu'à la sortie (1.0). */
-const GAME_VERSION = "0.235";
+const GAME_VERSION = "0.236";
 const CHANGELOG = [
+  { v: "0.236", d: "14 nov. 2026", fix: ["Combat : en tournant le téléphone (paysage ↔ portrait), les personnages se replacent correctement au lieu de rester trop bas.", "Combat en portrait : un grand monstre (le Boucher…) est légèrement réduit au lieu de passer sous la frise ou les boutons du haut.", "Barre de combat : le bouton « Moins » a une vraie icône de fermeture."] },
   { v: "0.235", d: "14 nov. 2026", add: ["Évolutions repeintes de la 5e série de compagnons (Reine-tisseuse, Chacal d'Anubis, Bouc des tempêtes, Mante-prêtresse, Anguille-tonnerre, Gargouille de cathédrale, Séraphin déchu, Griffon royal, Chimère adulte)."] },
   { v: "0.234", d: "14 nov. 2026", add: ["Compagnons : emplacement prévu pour des icônes peintes propres à chacune de leurs compétences (fiche, Carnet, ordre au compagnon en combat) — elles arrivent au fil des planches."], fix: ["La pastille du bouton « Plus » du Bastion disparaît dès qu'on l'ouvre ; elle ne revient que pour une vraie nouveauté (ou le lendemain)."] },
   { v: "0.233", d: "14 nov. 2026", add: ["Porte du Bastion : étape 4 repeinte — les 7 étapes de la porte forment désormais une seule progression, du portail délabré à la porte légendaire."] },

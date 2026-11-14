@@ -1,6 +1,7 @@
 /* Version du jeu et journal des nouveautés / correctifs (Archives › Nouveautés, écran-titre, Options). Version 0.x jusqu'à la sortie (1.0). */
-const GAME_VERSION = "0.224";
+const GAME_VERSION = "0.225";
 const CHANGELOG = [
+  { v: "0.225", d: "14 nov. 2026", add: ["Compagnons repeints (2e série) : lucioles, pie, corbeau, hibou, chouette, renard, ourson, faon et couleuvre."] },
   { v: "0.224", d: "14 nov. 2026", add: ["Évolutions repeintes de la 1re série de compagnons (Roi des rats, Hermine funèbre, Basilic, Grand loup des cendres, Bouc du sabbat, Cerbère pâle, Gardien des bergeries, Lièvre de lune, Crapaud-roi) ; détourage des pelages sombres plus net."] },
   { v: "0.223", d: "14 nov. 2026", add: ["Compagnons repeints (1re série) : rat des égouts, belette, vipère, loup, chèvre, molosse, chien de berger, lièvre et crapaud."] },
   { v: "0.222", d: "14 nov. 2026", add: ["Icônes peintes propres aux compétences de l'Exorciste : les 15 classes ont désormais toutes leurs icônes."] },

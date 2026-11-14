@@ -427,7 +427,7 @@ function hubRailHTML() {
   const dl = S.daily && !S.daily.done;
   const it = (a, ic, col, lbl, badge, extra = "") => `<button class="hrail" data-a="${a}" ${extra} title="${lbl}">${ico(ic, col, 22)}<span>${lbl}</span>${badge ? `<i>${badge}</i>` : ""}</button>`;
   return `<div class="hubrail">
-    ${it("hubPanel", "crown", "#e8c878", "Niv. " + A.l, ready || "", 'data-tipn="Tableau du Bastion" data-tipd="Défis du jour, expédition du jour, défi de la semaine."')}
+    ${it("hubPanel", "crown", "#e8c878", "Niv. " + A.l, ready || "", 'data-tipn="Niveau d’aventure" data-tipd="Monte avec les combats, les expéditions et les gardiens vaincus."')}
     ${it("merchant", "coin", "#e8c060", "Marchand", "")}
     ${it("bounty", "skull", b && !b.done ? "#e05050" : "#7a6a5a", "Prime", b && !b.done && !S.daily.bountySeen ? "!" : "")}
     ${it("trophies", "trophy", "#e8c878", "Trophées", "")}

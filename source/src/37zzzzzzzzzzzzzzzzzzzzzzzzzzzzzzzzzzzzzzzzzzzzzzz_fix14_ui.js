@@ -44,7 +44,7 @@ function monImgSprite(key, pose, sc) {
   const M = MONSTERS[key] || {}, n = "mon_" + (M.art || key), im = artImg(n); if (!im) return null;
   const big = (M.sz || 1) > 1, f = pose.fig || {}, boss = M.boss || big, elite = M.elite;
   const h0 = MON_H[M.art || key] || (boss ? 335 : elite ? 240 : 190);
-  const h = boss || elite ? h0 : Math.max(175, Math.min(205, h0)), maxW = boss ? 320 : elite ? 210 : 175;
+  const h = boss || elite ? h0 : Math.max(140, Math.min(225, 190 + (h0 - 190) * .5)), maxW = boss ? 320 : elite ? 210 : Math.round(185 * h / 190);
   return imgSprite(im, { sc, cx: ART_CX[n], h, maxW, flip: !ART_FLIP.has(n),
     pose: { atk: pose.atk, lean: f.lean, hx: f.hx }, tint: f.lean < 0 ? "rgba(170,20,20,.16)" : null, hue: M.hue || null });
 }
@@ -62,3 +62,14 @@ ACT.cbMore = () => { CB.moreOpen = !CB.moreOpen; const bar = $("#cbar"); if (bar
 // ── Fiche d'un compagnon : « Retour à la Ménagerie » seulement si on vient de la Ménagerie ──
 { const pi = ACT.petInfo; ACT.petInfo = function (id, el, e) { const fromMen = UI.inBld && UI.bldOpen === "menagerie" && !$("#modal").hidden;
     if (fromMen) return pi.apply(this, arguments); e && e.stopPropagation && e.stopPropagation(); petSheet(id, ""); }; }
+
+// ── Tableau du Bastion réduit au niveau d'aventure : expédition du jour et défi de la semaine dans l'onglet Destination, défis du jour dans les Objectifs ──
+{ const eh = SCREENS.expe.html; SCREENS.expe.html = function () { let h = eh.apply(this, arguments); if (S.run || (UI.expePane || "dest") !== "dest") return h;
+    try { const i = h.indexOf('<div class="stickybar">'); if (i < 0) return h; let add = "";
+      if (S.daily && UI.expe && !UI.expe.daily) add += `<div class="card" style="cursor:default;margin:8px 0"><div class="row sp" style="gap:8px;flex-wrap:wrap"><div class="small">${ico("star", "#e8c878", 15)} <b>Expédition du jour</b><div class="tiny dim">Destination et règles imposées, récompenses en plus.</div></div><button class="btn sm ${S.daily.done ? "ghost off" : "main"}" data-a="dailyRun">${S.daily.done ? "Accomplie ✓" : "Partir"}</button></div></div>`;
+      if (!S.week && typeof weekCheck === "function") weekCheck(); const W = typeof weekRule === "function" ? weekRule() : null;
+      if (W && S.week && UI.expe && !UI.expe.week) { const R = weekReward(); add += `<div class="card" style="cursor:default;margin:8px 0"><div class="row sp" style="gap:8px;flex-wrap:wrap"><div class="small">${ico("trophy", "#e8c878", 15)} <b>Défi de la semaine : ${W.n}</b><div class="tiny dim">${gl(W.d)} — ${regionById(S.week.region).n}. Victoire : +${R.gold} or, +${R.shards} éclats, +${R.essence} essence.</div></div><button class="btn sm ${S.week.done ? "ghost off" : "gold"}" data-a="weekRun">${S.week.done ? "Relevé ✓" : "Relever"}</button></div></div>`; }
+      return add ? h.slice(0, i) + add + h.slice(i) : h; } catch (e) { return h; } }; }
+{ const ga2 = goalsAll; goalsAll = function () { const G = ga2.apply(this, arguments);
+    try { if (!S.week && typeof weekCheck === "function") weekCheck(); const W = weekRule(); if (W && S.week) G.push({ cat: "day", st: S.week.done ? "done" : "todo", ic: "trophy", t: `Défi de la semaine : ${W.n}`, d: `${regionById(S.week.region).n} — ${W.d}`, a: "weekRun", v: "" }); } catch (e) { }
+    return G; }; }

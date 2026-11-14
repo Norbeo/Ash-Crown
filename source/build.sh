@@ -17,9 +17,9 @@ PWAHEAD='<meta name="theme-color" content="#07060a">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Royaume des Cendres">
-<link rel="manifest" href="manifest.webmanifest">
-<link rel="apple-touch-icon" href="apple-touch-icon.png">
-<link rel="icon" type="image/png" href="favicon-64.png">'
+<link rel="manifest" href="manifest.webmanifest?v=3">
+<link rel="apple-touch-icon" href="apple-touch-icon.png?v=3">
+<link rel="icon" type="image/png" href="favicon-64.png?v=3">'
 { echo "$PWAHEAD"; cat src/head.html src/body.html; echo "<script>"; cat $OUT; echo "</script>"; } > index.html
 VER=$(md5sum $OUT src/head.html | md5sum | cut -c1-10)
 rm -rf dist && mkdir -p dist

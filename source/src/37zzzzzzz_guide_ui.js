@@ -51,7 +51,7 @@ const GUIDE = {
     "L'arbre du Bastion y donne des bonus permanents : un point par niveau d'aventure. Chaque niveau de la Salle ajoute +0,5 % de critique." ] },
   menagerie: { n: "La Ménagerie", ic: "paw", p: [
     "Achetez et choisissez le compagnon qui suit la compagnie : il agit seul en combat (son portrait apparaît dans la frise quand il joue) et peut recevoir un ordre une fois par combat.",
-    "Colliers, traits et spécialisations le renforcent ; il évolue au niveau 10. Les compagnons puissants se débloquent en battant les gardiens des chapitres à chaque menace ; trois familiers légendaires récompensent les gardiens errants.",
+    "Colliers, traits et spécialisations le renforcent ; il évolue au niveau 10. Quatre familiers légendaires (un par rôle) se débloquent en fin de partie par des succès, et évoluent de même. Les compagnons puissants se débloquent en battant les gardiens des chapitres à chaque menace ; trois familiers légendaires récompensent les gardiens errants.",
     "Vos compagnons sont rangés par rôle ; chaque niveau de Ménagerie ajoute +3 % de puissance aux compagnons." ] },
   fonderie: { n: "La Fonderie", ic: "gold", p: [
     "Produit de l'or même quand vous ne jouez pas, jusqu'à sa réserve maximale : passez le récolter.",

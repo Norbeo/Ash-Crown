@@ -7,7 +7,7 @@ function petSkOrder() {
   const add = id => { if (id && PETS[id] && !seen.has(id)) { seen.add(id); L.push(id); } };
   (typeof PET_START !== "undefined" ? PET_START : []).forEach(add);
   (typeof PET_ORDER !== "undefined" ? PET_ORDER : []).forEach(add);
-  ["fenrir", "corbeau_fin", "ours_titan"].forEach(add);
+  (typeof LEGEND_PET_IDS !== "undefined" ? LEGEND_PET_IDS : []).forEach(add);
   Object.keys(PETS).forEach(add);
   return L;
 }

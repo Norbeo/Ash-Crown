@@ -14,7 +14,7 @@ const lpAch = () => S && S.ach ? Object.keys(S.ach).length : 0;
 const LEGEND_PET_DEF = {
   behemoth: { role: "tank", n: "Béhémoth, Bête de la Terre", col: "#6a4a2a", d: "La première des bêtes, que les anciens textes disent impossible à abattre. Ses cornes sont des troncs de cèdre, son cuir des plaques de bronze. Rien ne passe tant qu'il se tient debout.",
     sk: [{ n: "Cuir de bronze", t: "low", shield: .22 }, { n: "Piétinement de la Terre", m: 1, t: "ae", at: [1, 2], fx: [{ k: "stun", v: 0, t: 1, ch: .35 }], every: 2 }],
-    evo: { n: "Béhémoth du Jugement", d: "Quand il marche, la terre se souvient d'avoir été un champ de bataille.", sk: { n: "Bête invincible", t: "aa", shield: .16, afx: [{ k: "protUp", v: .15, t: 2 }] } },
+    evo: { n: "Béhémoth du Jugement", d: "Couvert des cicatrices d'anciennes batailles et des lances brisées de ceux qui ont tenté de l'abattre.", sk: { n: "Bête invincible", t: "aa", shield: .16, afx: [{ k: "protUp", v: .15, t: 2 }] } },
     unl: () => [["Achever l'histoire (premier cycle)", lpCycle(), 1], ["Débloquer la menace V dans 5 chapitres", lpThreatV(), 5], ["Vaincre 100 gardiens", lpBoss(), 100]],
     ev: () => [["Débloquer la menace V dans 10 chapitres", lpThreatV(), 10], ["Atteindre la profondeur 30 de l'Abîme", lpAbyss(), 30]] },
   seraphe: { role: "soin", n: "Simurgh, l'Oiseau-Mère", col: "#c8c0a0", d: "L'oiseau immense des légendes, plus vieux que les royaumes. On dit qu'une seule de ses plumes guérit toutes les blessures.",

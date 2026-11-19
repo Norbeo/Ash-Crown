@@ -53,6 +53,7 @@ RPG tactique dark fantasy médiéval, vanilla JS + Canvas 2D, PWA installable (m
 - Sauvegarde : localStorage `couronne-de-cendres-v1`.
 
 ## Publication
+- 19 nov. 2026 (22 h 34) : publication automatique réautorisée par l'utilisateur — après chaque lot testé : cp dist à la racine, commit, push, artefact (3TpnX8Uvf8GysDsHdz82PU, lire les fichiers publiés avant si refus).
 - Depuis le 30 oct. 2026 (0 h 21) : publier de nouveau au fur et à mesure (cp dist à la racine, push, artefact) après chaque lot testé.
 
 ## Commits

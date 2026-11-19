@@ -1,6 +1,6 @@
 /* Tenues = chromas : le tissu (couleurs saturées) prend une nouvelle teinte, le métal (gris, doré) une nouvelle couleur,
    la peau et les ombres restent intactes. Calculé une fois par illustration et par tenue, puis mis en cache. */
-const CHROMA_CACHE = new Map();
+const CHROMA_CACHE = new Map(), DARK_K = .82;
 function chromaArt(im, name, key) {
   const O = (typeof OUTFITS !== "undefined" ? OUTFITS : []).find(o => o.k === key); if (!O || !O.ch || !im) return im;
   const id = name + "|" + key; if (CHROMA_CACHE.has(id)) return CHROMA_CACHE.get(id);
@@ -17,6 +17,7 @@ function chromaArt(im, name, key) {
     const skin = h > 4 && h < 32 && s > .22 && s < .6 && v > .35, gold = h >= 32 && h < 60 && s > .3 && v > .35, metal = (s < .25 && v > .22) || gold, cloth = s >= .25 && !skin && !gold && v > .08;
     let o = [r, g, b];
     if (cloth) o = hsv(ch, Math.min(1, cs * (.6 + .4 * s)), Math.min(1, v * cv));
+    else if (!skin && !metal && v > .03) { const t = hsv(ch, Math.min(1, cs * .85), Math.min(1, v * Math.max(cv, .85) * 1.4)); o = o.map((z, k) => z * (1 - DARK_K) + t[k] * DARK_K); } // armures sombres : teintées aussi (sinon la tenue ne change rien)
     if (metal) { const t = [0, 1, 2].map(k => Math.min(1, lum * mc[k] / Math.max(ml, 1e-3))); o = o.map((z, k) => z * (1 - mk) + t[k] * mk); }
     if (gl && v > .75 && s > .4) o = o.map((z, k) => z * .4 + gl[k] * .6 * v);
     d[i] = o[0] * 255; d[i + 1] = o[1] * 255; d[i + 2] = o[2] * 255;

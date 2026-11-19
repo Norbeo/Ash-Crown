@@ -45,13 +45,13 @@ function merchantBuy(i) { const M = merchantStock(), o = M.items[i]; if (!o || o
 
 // ── Tenues alternatives : une teinte d'armure, débloquée par les défis de classe ──
 const OUTFITS = [{ k: "", n: "Tenue d'origine", need: 0 },
-  { k: "deuil", n: "Tenue délavée", need: 3, ch: { cloth: [30, .18, .85], metal: [120, 112, 100], mk: .45 } },
+  { k: "deuil", n: "Tenue des bois", need: 3, ch: { cloth: [105, .5, .8], metal: [120, 112, 100], mk: .45 } },
   { k: "sang", n: "Tenue écarlate", need: 10, ch: { cloth: [355, .75, .8], metal: [105, 105, 115], mk: .35 } },
   { k: "nuit", n: "Tenue de nuit", need: 18, ch: { cloth: [222, .55, .62], metal: [150, 110, 70], mk: .5 } },
-  { k: "cendre", n: "Cendre et braise", need: 25, ch: { cloth: [20, .1, .7], metal: [200, 195, 185], mk: .5, glow: [255, 120, 40] } },
-  { k: "ivoire", n: "Tenue d'ivoire", need: 35, ch: { cloth: [40, .15, 1.25], metal: [165, 120, 70], mk: .55 } },
+  { k: "cendre", n: "Cendre et braise", need: 25, ch: { cloth: [24, .7, .75], metal: [70, 66, 62], mk: .6, glow: [255, 120, 40] } },
+  { k: "ivoire", n: "Tenue d'ivoire", need: 35, ch: { cloth: [42, .12, 1.9], metal: [235, 225, 200], mk: .6 } },
   { k: "maitre", n: "Pourpre royal (maître)", need: 50, ch: { cloth: [278, .6, .7], metal: [205, 210, 220], mk: .6 } },
-  { k: "epreuve", n: "Noir et or (Épreuve)", need: 0, trial: 1, ch: { cloth: [0, 0, .32], metal: [230, 175, 60], mk: .75 } }];
+  { k: "epreuve", n: "Noir et or (Épreuve)", need: 0, trial: 1, ch: { cloth: [0, 0, .32], metal: [240, 180, 50], mk: .85 } }];
 const outfitOk = (h, k) => { const O = OUTFITS.find(o => o.k === k); return O && (O.trial ? !!((S.classTrial || {})[h.cls]) : ((S.classWins || {})[h.cls] || 0) >= O.need); };
 
 // ── Compagnons en duo : bonus quand le compagnon s'entend avec une classe du groupe ──

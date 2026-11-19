@@ -11,7 +11,7 @@ const SKILLS_MORE = {
       bouclier_brise: { n: "Coup de bouclier", ic: "shield", use: [1, 2], t: "e", at: [1, 2], m: .8, push: 1, fx: [{ k: "stun", t: 1, ch: .7 }, { k: "protDn", v: .15, t: 2, ch: 1 }] },
     },
     inquisiteur: {
-      question: { n: "La Question", ic: "chain", use: [1, 2], t: "e", at: [1, 2, 3], m: 1, fx: [{ k: "vuln", v: .2, t: 3, ch: 1 }, { k: "spdDn", v: 3, t: 2, ch: .8 }] },
+      question: { n: "Pénitence forcée", ic: "chain", use: [1, 2], t: "e", at: [1, 2, 3], m: 1, fx: [{ k: "vuln", v: .2, t: 3, ch: 1 }, { k: "spdDn", v: 3, t: 2, ch: .8 }] },
       cendres_saintes: { n: "Cendres saintes", ic: "fire", use: [1, 2, 3], t: "ae", at: [1, 2, 3], m: .55, fx: [{ k: "burn", v: .3, t: 3, ch: .8 }], tags: ["feu", "sacré"], cd: 2 },
     },
   },

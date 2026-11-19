@@ -1,7 +1,7 @@
 // ── Familiers légendaires (14 nov.) : 4 compagnons propres, un par rôle, plus puissants que tous les autres ──
 //   Déblocage par des succès de fin de partie ; évolution débloquée par d'autres succès (et non par le niveau 10).
 //   Remplacent les anciens familiers recoloriés (fenrir, corbeau_fin, ours_titan), convertis à la reprise d'une sauvegarde.
-const LP_RANK = 2, LP_AURA = .08; // puissance ×2 ; aura : +8 % de dégâts et de PV pour toute la compagnie quand il accompagne l'expédition
+const LP_RANK = 2.5, LP_AURA = .10; // puissance ×2,5 ; aura : +10 % de dégâts et de PV pour toute la compagnie quand il accompagne l'expédition
 const lpThreatV = () => (typeof REGIONS === "undefined" || !S || !S.prog) ? 0 : REGIONS.filter(r => S.prog[r.id] && (S.prog[r.id].threat || 0) >= 4).length;
 const lpWander = () => typeof wanderBeaten === "function" ? wanderBeaten().length : 0;
 const lpCycle = () => typeof cycleN === "function" ? cycleN() : 0;
@@ -12,24 +12,24 @@ const lpBoss = () => (S && S.stats && S.stats.bossKills) || 0;
 const lpAch = () => S && S.ach ? Object.keys(S.ach).length : 0;
 // chaque objectif : [texte, valeur actuelle, cible]
 const LEGEND_PET_DEF = {
-  behemoth: { role: "tank", n: "Béhémoth des Cendres", col: "#6a4a2a", d: "Une montagne de chair et de pierre brûlée, née sous le Trône. Rien ne passe tant qu'il se tient debout.",
-    sk: [{ n: "Rempart de cendre", t: "low", shield: .22 }, { n: "Piétinement", m: 1, t: "ae", at: [1, 2], fx: [{ k: "stun", v: 0, t: 1, ch: .35 }], every: 2 }],
-    evo: { n: "Béhémoth de la Couronne brisée", d: "Il porte sur son dos les ruines de l'ancien royaume.", sk: { n: "Muraille vivante", t: "aa", shield: .16, afx: [{ k: "protUp", v: .15, t: 2 }] } },
+  behemoth: { role: "tank", n: "Béhémoth, Bête de la Terre", col: "#6a4a2a", d: "La première des bêtes, que les anciens textes disent impossible à abattre. Ses cornes sont des troncs de cèdre, son cuir des plaques de bronze. Rien ne passe tant qu'il se tient debout.",
+    sk: [{ n: "Cuir de bronze", t: "low", shield: .22 }, { n: "Piétinement de la Terre", m: 1, t: "ae", at: [1, 2], fx: [{ k: "stun", v: 0, t: 1, ch: .35 }], every: 2 }],
+    evo: { n: "Béhémoth du Jugement", d: "Quand il marche, la terre se souvient d'avoir été un champ de bataille.", sk: { n: "Bête invincible", t: "aa", shield: .16, afx: [{ k: "protUp", v: .15, t: 2 }] } },
     unl: () => [["Achever l'histoire (premier cycle)", lpCycle(), 1], ["Débloquer la menace V dans 5 chapitres", lpThreatV(), 5], ["Vaincre 100 gardiens", lpBoss(), 100]],
     ev: () => [["Débloquer la menace V dans 10 chapitres", lpThreatV(), 10], ["Atteindre la profondeur 30 de l'Abîme", lpAbyss(), 30]] },
-  seraphe: { role: "soin", n: "Cerf-Séraphin", col: "#c8c0a0", d: "Un cerf aux bois de lumière pâle, dernier témoin des sanctuaires d'avant la Chute.",
-    sk: [{ n: "Lumière des bois", t: "aa", heal: .08, afx: [{ k: "regen", v: .05, t: 2 }] }, { n: "Miracle", t: "low", heal: .45, every: 4 }],
-    evo: { n: "Cerf de l'Aube Éternelle", d: "Là où il passe, les morts se taisent et les vivants se relèvent.", sk: { n: "Aube éternelle", t: "aa", heal: .16, afx: [{ k: "regen", v: .07, t: 3 }] } },
+  seraphe: { role: "soin", n: "Simurgh, l'Oiseau-Mère", col: "#c8c0a0", d: "L'oiseau immense des légendes, plus vieux que les royaumes. On dit qu'une seule de ses plumes guérit toutes les blessures.",
+    sk: [{ n: "Plume guérisseuse", t: "aa", heal: .08, afx: [{ k: "regen", v: .05, t: 2 }] }, { n: "Chant de l'Oiseau-Mère", t: "low", heal: .45, every: 4 }],
+    evo: { n: "Simurgh des Mille Aubes", d: "Ses ailes de lumière dorée ramènent le jour sur les champs des morts.", sk: { n: "Mille aubes", t: "aa", heal: .16, afx: [{ k: "regen", v: .07, t: 3 }] } },
     unl: () => [["Achever l'histoire (premier cycle)", lpCycle(), 1], ["Faire évoluer 15 compagnons", lpPetEvo(), 15], ["Débloquer la menace V dans 3 chapitres", lpThreatV(), 3]],
     ev: () => [["Recruter 8 héros légendaires", lpLegends(), 8], ["Faire évoluer 30 compagnons", lpPetEvo(), 30]] },
-  devoreur: { role: "dps", n: "Dévoreur d'Étoiles", col: "#3a2050", d: "Un loup immense au pelage de nuit, dont la gueule retient encore la lueur d'astres avalés.",
-    sk: [{ n: "Croc d'étoile", m: 1.25, t: "e", at: [1, 2, 3], fx: [{ k: "bleed", v: .5, t: 3, ch: 1 }] }, { n: "Avaler la lumière", m: .7, t: "ae", at: [1, 2, 3, 4], fx: [{ k: "vuln", t: 2, ch: .6 }], every: 3 }],
-    evo: { n: "Dévoreur de Soleils", d: "Quand il ouvre la gueule, le ciel s'éteint un instant.", sk: { n: "Éclipse", m: 1.6, t: "ae", at: [1, 2, 3, 4], fx: [{ k: "burn", v: .6, t: 3, ch: 1 }] } },
+  devoreur: { role: "dps", n: "Nidhögg, le Ronge-Racines", col: "#3a3020", d: "Le dragon noir qui ronge les racines du monde depuis l'aube des temps. Ses cornes sont de bois mort, ses yeux de feu pâle.",
+    sk: [{ n: "Crocs de racine", m: 1.25, t: "e", at: [1, 2, 3], fx: [{ k: "bleed", v: .5, t: 3, ch: 1 }] }, { n: "Souffle de flétrissure", m: .7, t: "ae", at: [1, 2, 3, 4], fx: [{ k: "vuln", t: 2, ch: .6 }], every: 3 }],
+    evo: { n: "Nidhögg, Fléau du Monde", d: "Couronné de racines, environné de flammes noires : là où il passe, rien ne repousse.", sk: { n: "Flammes noires", m: 1.6, t: "ae", at: [1, 2, 3, 4], fx: [{ k: "burn", v: .6, t: 3, ch: 1 }] } },
     unl: () => [["Achever l'histoire (premier cycle)", lpCycle(), 1], ["Vaincre 10 gardiens errants différents", lpWander(), 10], ["Atteindre la profondeur 20 de l'Abîme", lpAbyss(), 20]],
     ev: () => [["Vaincre les 20 gardiens errants", lpWander(), 20], ["Vaincre 250 gardiens", lpBoss(), 250]] },
-  heraut: { role: "soutien", n: "Héraut de la Fin", col: "#4a3a6a", d: "Un corbeau à quatre ailes qui annonce la chute des rois. Ses cris brisent la volonté des monstres.",
-    sk: [{ n: "Présage funeste", t: "ae", at: [1, 2, 3, 4], fx: [{ k: "vuln", t: 2, ch: .8 }, { k: "accDn", v: 12, t: 2, ch: .8 }] }, { n: "Ailes de la fin", t: "aa", afx: [{ k: "dmgUp", v: .18, t: 2 }], every: 3 }],
-    evo: { n: "Héraut du Dernier Jour", d: "Son ombre suffit à faire plier les gardiens.", sk: { n: "Dernier jour", t: "ae", at: [1, 2, 3, 4], fx: [{ k: "stun", v: 0, t: 1, ch: .45 }, { k: "vuln", t: 2, ch: 1 }] } },
+  heraut: { role: "soutien", n: "Ophanim, la Roue aux Mille Yeux", col: "#b09040", d: "Des anneaux d'or entrelacés, couverts d'yeux et d'ailes, qui tournent sans fin. Rien ne lui échappe : ni la faiblesse d'un monstre, ni le courage d'un allié.",
+    sk: [{ n: "Regard des mille yeux", t: "ae", at: [1, 2, 3, 4], fx: [{ k: "vuln", t: 2, ch: .8 }, { k: "accDn", v: 12, t: 2, ch: .8 }] }, { n: "Roue de lumière", t: "aa", afx: [{ k: "dmgUp", v: .18, t: 2 }], every: 3 }],
+    evo: { n: "Trône d'Ophanim", d: "Ses mille yeux s'ouvrent à la fois : les gardiens eux-mêmes baissent le regard.", sk: { n: "Jugement des Trônes", t: "ae", at: [1, 2, 3, 4], fx: [{ k: "stun", v: 0, t: 1, ch: .45 }, { k: "vuln", t: 2, ch: 1 }] } },
     unl: () => [["Achever l'histoire (premier cycle)", lpCycle(), 1], ["Obtenir 60 succès", lpAch(), 60], ["Vaincre 5 gardiens errants différents", lpWander(), 5]],
     ev: () => [["Commencer un troisième cycle", lpCycle(), 2], ["Obtenir 100 succès", lpAch(), 100]] },
 };
@@ -38,7 +38,7 @@ const LEGEND_PET_IDS = Object.keys(LEGEND_PET_DEF);
 for (const id of ["fenrir", "corbeau_fin", "ours_titan"]) { delete PETS[id]; const i = PET_IDS.indexOf(id); if (i >= 0) PET_IDS.splice(i, 1); }
 if (typeof LEGEND_PETS !== "undefined") LEGEND_PETS.length = 0;
 for (const id of LEGEND_PET_IDS) { const D = LEGEND_PET_DEF[id];
-  PETS[id] = { n: D.n, role: D.role, d: D.d + " Familier légendaire : bien plus puissant que les autres compagnons, et sa présence renforce toute la compagnie (+8 % de dégâts et de PV).", col: D.col, sk: D.sk, evo: D.evo,
+  PETS[id] = { n: D.n, role: D.role, d: D.d + " Familier légendaire : bien plus puissant que les autres compagnons, et sa présence renforce toute la compagnie (+10 % de dégâts et de PV).", col: D.col, sk: D.sk, evo: D.evo,
     legendary: 1, legend: 1, starter: 0, pool0: 0, cost: 30000, rank: LP_RANK, unl: null };
   if (!PET_IDS.includes(id)) PET_IDS.push(id); }
 const lpDone = L => L.every(([, v, t]) => v >= t);
@@ -69,6 +69,6 @@ function legendPetsMigrate(G) { if (!G || !G.pets) return; let ch = 0;
 function legendPetGoalsHTML(id) { if (!LEGEND_PET_DEF[id] || !S) return "";
   const row = ([t, v, c]) => `<div class="tiny" style="margin:2px 0">${v >= c ? "✔" : "◦"} ${t} <span class="${v >= c ? "good" : "dim"}">(${Math.min(v, c)}/${c})</span></div>`;
   const own = S.pets.owned.includes(id), ev = petEvolved(id);
-  return `<div class="panel" style="padding:8px;margin-top:8px;border-color:#a08040"><b class="gold">Familier légendaire</b> <span class="tiny dim">— puissance ×2 et +8 % de dégâts et de PV pour toute la compagnie</span>
+  return `<div class="panel" style="padding:8px;margin-top:8px;border-color:#a08040"><b class="gold">Familier légendaire</b> <span class="tiny dim">— puissance ×2,5 et +10 % de dégâts et de PV pour toute la compagnie</span>
     ${own ? "" : `<div class="small" style="margin-top:4px">Déblocage :</div>${legendPetUnlockGoals(id).map(row).join("")}`}
     ${ev ? "" : `<div class="small" style="margin-top:4px">Évolution (au lieu du niveau 10) :</div>${legendPetEvoGoals(id).map(row).join("")}`}</div>`; }

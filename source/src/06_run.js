@@ -274,7 +274,7 @@ function endRun(outcome) {
     best: L.best, foes: L.foes, crits: L.crits, kills: run.kills, combats: run.combats, rooms: run.map.flat().filter(n => n.visited).length, relics: run.relics.slice(), light: Math.round(run.light), mins: Math.max(1, Math.round((Date.now() - run.startedAt) / 60000)) };
   if (outcome === "wipe") { res.gold = Math.round(run.gold * .5); res.loot = []; res.shards = 0;
     for (const w of (run.swaps || []).slice().reverse()) { const h = heroById(w.hid); if (!h || !h.gear[w.slot] || h.gear[w.slot].id !== w.nu) continue; h.gear[w.slot] = w.old ? run.loot.find(x => x.id === w.old) || h.gear[w.slot] : null; } }
-  const before = regionsCleared(), petsBefore = new Set(PET_IDS.filter(petUnlocked));
+  const before = regionsCleared(), petsBefore = new Set(PET_IDS.filter(petUnlocked)), clsBefore = new Set(CLASS_IDS.filter(classUnlocked)), regBefore = new Set(REGIONS.map(r => r.id).concat("abime").filter(regionUnlocked));
   if (outcome === "victory" && run.region !== "abime" && !run.rush) {
     const p = S.prog[run.region] = S.prog[run.region] || { clears: 0, best: 0 };
     if (!p.clears) res.story = STORY[run.region];
@@ -289,11 +289,9 @@ function endRun(outcome) {
   if (run.region === "abime") { const depth = run.floor - (outcome === "victory" ? 0 : 1); S.abyss.best = Math.max(S.abyss.best, depth); S.stats.abyss = Math.max(S.stats.abyss, S.abyss.best); if (outcome === "victory" || outcome === "retreat") S.stats.oath = Math.max(S.stats.oath, run.oaths.length); }
   const after = regionsCleared();
   for (const p of PET_IDS) if (!petsBefore.has(p) && petUnlocked(p)) res.unlocks.push({ k: "pet", id: p }); // compagnon débloqué (chapitre ou menace)
-  if (after > before) {
-    for (const c of CLASS_IDS) if (CLASSES[c].unlock === after) res.unlocks.push({ k: "class", id: c });
-    // compagnons : ceux débloqués par cette victoire (chapitre et menace)
-    const nx = REGIONS[after]; if (nx) res.unlocks.push({ k: "region", id: nx.id }); if (after === 1) res.unlocks.push({ k: "region", id: "abime" });
-  }
+  // seulement ce qui n'était PAS déjà accessible avant cette expédition (classes déjà recrutées ou vues, régions déjà ouvertes : rien à annoncer)
+  for (const c of CLASS_IDS) if (!clsBefore.has(c) && classUnlocked(c)) res.unlocks.push({ k: "class", id: c });
+  for (const id of REGIONS.map(r => r.id).concat("abime")) if (!regBefore.has(id) && regionUnlocked(id)) res.unlocks.push({ k: "region", id });
   S.gold += res.gold; for (const m in res.mats) S.mats[m] += res.mats[m]; S.shards += res.shards;
   for (const it of res.loot) { S.inv.push(it); if (it.rar >= 4) S.stats.legend++; }
   // retour au Bastion : soins, blessures

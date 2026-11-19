@@ -37,8 +37,10 @@ function goalsAll() {
   g2Safe(() => { const C = colCounts(); for (const c of Object.keys(COL_N)) { const [a, b] = C[c], cl = colClaimable(c); add("col", { ic: "star", t: COL_N[c], d: `${a} / ${b} (${colPct(c)} %)${cl.length ? ` — palier ${cl[0]} % à récupérer` : ""}`, st: cl.length ? "ready" : colPct(c) >= 100 ? "done" : "todo", a: "collect", v: "col", n: [a, b] }); } });
   g2Safe(() => add("col", { ic: "trophy", t: "Records de gardiens", d: `${Object.keys(M5().rec).length} gardiens au tableau — battez vos records pour des éclats.`, a: "collect", v: "rec" }));
   g2Safe(() => add("col", { ic: "crown", t: "Titres", d: `${titlesOwned().length} obtenu${titlesOwned().length > 1 ? "s" : ""} · actuel : « ${titleCur()} »`, a: "collect", v: "tit" }));
-  return G;
+  return G.filter(goalGateOk);
 }
+// un objectif ne montre jamais une fonction encore verrouillée (déblocage progressif)
+function goalGateOk(g) { if (typeof GATE_BY === "undefined" || typeof gateOpen !== "function" || !g.a) return true; const v = g.v == null ? "" : String(g.v); const G = GATE_BY[g.a + ":" + v] || GATE_BY[g.a] || GATE_BY["bldTab:" + v]; return !G || gateOpen(G); }
 const G2_TABS = [["now", "Maintenant"], ["day", "Aujourd'hui"], ["prog", "Progression"], ["col", "Collection"]];
 function goalsList() { return goalsAll().filter(g => g.st === "ready" || g.hot).map(g => Object.assign({ p: g.st === "ready" ? 90 : 80, col: "#e8c878" }, g)); } // compatibilité (badge du rail, autres modules)
 ACT.goals = tab => { UI.g2 = tab || UI.g2 || "now"; const t = UI.g2, all = goalsAll();

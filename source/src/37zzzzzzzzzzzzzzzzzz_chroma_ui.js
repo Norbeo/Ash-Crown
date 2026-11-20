@@ -14,7 +14,7 @@ function chromaHue(d) { // teinte dominante des pixels saturés (hors peau)
 }
 /* Peau protégée (20 nov.) : pixels couleur chair au sens large (y compris visages pâles ou dans l'ombre), gardés s'ils
    forment la tête (haut de la silhouette) ou de petites zones (mains) — jamais une grande surface de cuir brun. */
-function chromaSkinMask(d, W, H, nat) {
+function chromaSkinMask(d, W, H, nat, nm) {
   const n = W * H, cand = new Uint8Array(n); let y0 = H, y1 = 0, nO = 0;
   for (let p = 0; p < n; p++) { const i = p * 4; if (d[i + 3] < 120) continue; nO++; const y = (p / W) | 0; if (y < y0) y0 = y; if (y > y1) y1 = y;
     const r = d[i] / 255, g = d[i + 1] / 255, b = d[i + 2] / 255, mx = Math.max(r, g, b), mn = Math.min(r, g, b), s = mx > 0 ? (mx - mn) / mx : 0;
@@ -25,12 +25,16 @@ function chromaSkinMask(d, W, H, nat) {
     for (let p = 0; p < n; p++) { if (cand[p] !== 2 || (p / W | 0) > hy) continue; const i = p * 4, r = d[i] / 255, g = d[i + 1] / 255, b = d[i + 2] / 255, mx = Math.max(r, g, b), mn = Math.min(r, g, b); sh += 60 * ((g - b) / Math.max(mx - mn, 1e-6)); ss += (mx - mn) / mx; nn++; }
     if (nn > 30) { const H0 = sh / nn, S0 = ss / nn;
       for (let p = 0; p < n; p++) { const i = p * 4; if (d[i + 3] < 120 || cand[p] === 2) continue; const r = d[i] / 255, g = d[i + 1] / 255, b = d[i + 2] / 255, mx = Math.max(r, g, b), mn = Math.min(r, g, b); if (mx < .09 || mx !== r || g < b) continue; const sv = (mx - mn) / mx, h = 60 * ((g - b) / Math.max(mx - mn, 1e-6)); if (Math.abs(h - H0) < 8 && Math.abs(sv - S0) < .13) cand[p] = 2; } } }
+  // zones de peau marquées à la main (art/skin.json : visage, mains) — toujours gardées
+  const ZS = typeof window !== "undefined" && window.ART_SKIN && nm ? window.ART_SKIN[nm] : null;
+  if (ZS) for (const [cx, cy, rx, ry] of ZS) { const x0 = Math.max(0, (cx - rx) * W | 0), x1 = Math.min(W - 1, (cx + rx) * W | 0), y0e = Math.max(0, (cy - ry) * H | 0), y1e = Math.min(H - 1, (cy + ry) * H | 0);
+    for (let y = y0e; y <= y1e; y++) for (let x = x0; x <= x1; x++) { const u = (x / W - cx) / rx, v = (y / H - cy) / ry; if (u * u + v * v <= 1 && d[(y * W + x) * 4 + 3] > 60) cand[y * W + x] = 3; } }
   const lab = new Int32Array(n), keep = new Uint8Array(n), headY = y0 + (y1 - y0) * .38, small = Math.max(40, nO * .006), st = new Int32Array(n);
   let id = 0;
   for (let p = 0; p < n; p++) { if (!cand[p] || lab[p]) continue; id++; let top = 0, sp = 0, cnt = 0, sy = 0; st[sp++] = p; lab[p] = id; const mem = [];
     while (sp) { const q = st[--sp]; mem.push(q); cnt++; sy += (q / W) | 0; const x = q % W;
       for (const nb of [q - 1, q + 1, q - W, q + W]) { if (nb < 0 || nb >= n || (nb === q - 1 && x === 0) || (nb === q + 1 && x === W - 1)) continue; if (cand[nb] && !lab[nb]) { lab[nb] = id; st[sp++] = nb; } } }
-    const all = sy / cnt < headY || cnt < small; for (const q of mem) if (all || cand[q] === 2) keep[q] = 1; }
+    const all = sy / cnt < headY || cnt < small; for (const q of mem) if (all || cand[q] >= 2) keep[q] = 1; }
   // masque élargi et adouci : le visage reste d'un seul tenant (plus de taches sombres entre peau et tenue)
   const R = Math.max(2, Math.round(Math.min(W, H) / 90)), tmp = new Float32Array(n), soft = new Float32Array(n);
   for (let y = 0; y < H; y++) { let acc = 0; for (let x = -R; x < W; x++) { const xa = x + R; if (xa < W) acc += keep[y * W + xa]; if (x - R - 1 >= 0) acc -= keep[y * W + x - R - 1]; if (x >= 0) tmp[y * W + x] = acc; } }
@@ -48,7 +52,7 @@ function chromaArt(im, name, key) {
   const W = im.naturalWidth || im.width, H = im.naturalHeight || im.height; if (!W || !H) return im;
   const c = document.createElement("canvas"); c.width = W; c.height = H; const x = c.getContext("2d"); x.drawImage(im, 0, 0);
   let D; try { D = x.getImageData(0, 0, W, H); } catch (e) { return im; }
-  const d = D.data, P = O.pal, dom = chromaHue(d), SK = chromaSkinMask(d, W, H, /berserker/.test(name));
+  const d = D.data, P = O.pal, dom = chromaHue(d), SK = chromaSkinMask(d, W, H, /berserker/.test(name), name);
   // illustration sombre (armure noire) : on mesure la clarté pour appliquer un dégradé de couleurs franc (sinon la tenue ne se voit pas)
   let nO = 0, nD = 0; const Lh = new Uint32Array(64);
   for (let i = 0; i < d.length; i += 16) { if (d[i + 3] < 160) continue; nO++; const m = Math.max(d[i], d[i + 1], d[i + 2]); if (m < 60) nD++; Lh[m >> 2]++; }

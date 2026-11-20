@@ -363,18 +363,22 @@ input[type=checkbox]:checked::after{transform:translateX(18px);background:#ffd89
 </style>
 <style>
 /* 20 nov. : refonte de l'interface (planche Canva U1) — cadre de fenêtre, boutons et séparateurs peints. body:not(.ukoff) */
-body:not(.ukoff) #modal .box.frame{border-style:solid;border-color:transparent;border-width:18px 10px 16px;border-image:url(assets/uk_frame.webp) 150 / 34px / 10px round;padding:6px 12px 10px;border-radius:0;background:linear-gradient(#120d0b,#0a0706) padding-box;box-shadow:0 14px 50px #000c}
+body:not(.ukoff) #modal .box.frame{border-style:solid;border-color:transparent;border-width:18px 10px 16px;border-image:url(assets/uk_frame.webp) 150 / 34px / 10px round;padding:6px 12px 10px;border-radius:0;background:linear-gradient(#120d0b,#0a0706) padding-box;box-shadow:none}
 body:not(.ukoff) #modal .box.frame>.corner{display:none}
 body:not(.ukoff) #modal .box.frame>.btn[data-a="closeModal"]{top:0!important;right:0!important;background:#0b0807cc;border-radius:50%;border-color:#6a4a2a}
 body:not(.ukoff) #modal .box>h2:first-of-type{padding-bottom:20px;background:url(assets/uk_div_l.webp) left bottom/auto 18px no-repeat,url(assets/uk_div_r.webp) right bottom/auto 18px no-repeat,url(assets/uk_div_c.webp) center bottom/auto 18px no-repeat,url(assets/uk_div_m.webp) left bottom/auto 18px repeat-x;background-origin:padding-box;justify-content:center;text-align:center}
 body:not(.ukoff) #modal .box>h2:first-of-type::after{display:none}
 body:not(.ukoff) .sep{height:18px;background:url(assets/uk_div_l.webp) left center/auto 18px no-repeat,url(assets/uk_div_r.webp) right center/auto 18px no-repeat,url(assets/uk_div_c.webp) center/auto 18px no-repeat,url(assets/uk_div_m.webp) left center/auto 18px repeat-x;margin:10px 0}
 body:not(.ukoff) .btn:not(.ghost):not(.choice):not(.sk):not(.hrail){border-style:solid;border-color:transparent;border-width:12px 21px;border-image:url(assets/uk_btn.webp) 43 75 fill / 12px 21px stretch;background:none;border-radius:0;box-shadow:none;padding:3px 4px;min-height:40px;text-shadow:0 1px 2px #000,0 0 6px #000}
-body:not(.ukoff) .btn.gold:not(.ghost){border-image-source:url(assets/uk_btn_gold.webp);color:#ffe9b8}
-body:not(.ukoff) .btn.main:not(.ghost){border-image-source:url(assets/uk_btn_red.webp);color:#ffe8d0}
+body:not(.ukoff) .btn.gold:not(.ghost){border-image-source:url(assets/uk_btn_gold.webp)!important;color:#ffe9b8}
+body:not(.ukoff) .btn.main:not(.ghost){border-image-source:url(assets/uk_btn_red.webp)!important;color:#ffe8d0}
 body:not(.ukoff) .btn.sm:not(.ghost):not(.choice){border-width:10px 17px;border-image-width:10px 17px;padding:1px 2px;min-height:34px}
 body:not(.ukoff) .btn:not(.ghost):not(.choice):hover{filter:brightness(1.18) drop-shadow(0 0 6px #ff8a3a55);box-shadow:none}
-body:not(.ukoff) .btn.on:not(.ghost),body:not(.ukoff) .btn.chip-on:not(.ghost){border-image-source:url(assets/uk_btn_gold.webp)}
+body:not(.ukoff) .btn.on:not(.ghost),body:not(.ukoff) .btn.chip-on:not(.ghost){border-image-source:url(assets/uk_btn_gold.webp)!important}
+/* lueur des boutons peints : suit la silhouette (drop-shadow), jamais de rectangle noir derrière */
+body:not(.ukoff) .btn:not(.ghost):not(.choice):not(.sk):not(.hrail){box-shadow:none!important;outline:none}
+body:not(.ukoff) .btn.glow:not(.ghost):not(.choice):not(.sk){animation:ukglow 1.8s infinite}
+@keyframes ukglow{0%,100%{filter:drop-shadow(0 0 0 #ff7a2a00)}50%{filter:drop-shadow(0 0 10px #ff7a2acc) brightness(1.12)}}
 body:not(.ukoff) .chips>.btn.ghost{border-style:solid;border-color:transparent;border-image:url(assets/uk_btn.webp) 43 75 fill / 9px 15px stretch;background:none;border-radius:0;box-shadow:none;filter:brightness(.72) saturate(.8);color:#cdb998}
 body:not(.ukoff) .chips>.btn.ghost:hover{filter:brightness(.95)}
 body:not(.ukoff) .chips>.btn{border-width:9px 15px;border-image-width:9px 15px;padding:0 2px;min-height:30px;font-size:12.5px}

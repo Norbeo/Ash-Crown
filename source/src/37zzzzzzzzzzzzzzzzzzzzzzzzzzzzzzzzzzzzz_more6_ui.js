@@ -34,13 +34,14 @@ function bldNote(k) {
     return h; }; }
 
 // ── Options : texte agrandi, lettres de rareté ──
-function applyLookOpts() { if (typeof document === "undefined" || !document.body) return; document.body.classList.toggle("bigtxt", !!S.opts.bigTxt); document.body.classList.toggle("rarlbl", !!S.opts.rarLbl); document.body.classList.toggle("ukoff", !!S.opts.ukOff); }
+function applyLookOpts() { if (typeof document === "undefined" || !document.body) return; document.body.classList.toggle("bigtxt", !!S.opts.bigTxt); document.body.classList.toggle("rarlbl", !!S.opts.rarLbl); document.body.classList.toggle("ukoff", !!S.opts.ukOff); document.body.classList.toggle("darkold", !!S.opts.darkOld); }
 { const oh = SCREENS.options.html; SCREENS.options.html = function () { const s = oh.apply(this, arguments);
     const rows = `<label class="row sp"><span>${ico("eye")} Texte agrandi <span class="tiny dim">— fenêtres et menus plus lisibles</span></span><input type="checkbox" data-opt="bigTxt" ${S.opts.bigTxt ? "checked" : ""}></label>
       <label class="row sp"><span>${ico("gem")} Lettres de rareté <span class="tiny dim">— une lettre sur chaque objet en plus de la couleur (C, PC, R, É, L…)</span></span><input type="checkbox" data-opt="rarLbl" ${S.opts.rarLbl ? "checked" : ""}></label>
-      <label class="row sp"><span>${ico("anvil")} Interface classique <span class="tiny dim">— retire les cadres et boutons peints</span></span><input type="checkbox" data-opt="ukOff" ${S.opts.ukOff ? "checked" : ""}></label>`;
+      <label class="row sp"><span>${ico("anvil")} Interface classique <span class="tiny dim">— retire les cadres et boutons peints</span></span><input type="checkbox" data-opt="ukOff" ${S.opts.ukOff ? "checked" : ""}></label>
+      <label class="row sp"><span>${ico("eye")} Ambiance très sombre <span class="tiny dim">— l'ancien éclairage, plus sombre</span></span><input type="checkbox" data-opt="darkOld" ${S.opts.darkOld ? "checked" : ""}></label>`;
     const i = s.indexOf('<label class="row sp"><span>' + ico("speed")); return i >= 0 ? s.slice(0, i) + rows + s.slice(i) : s.replace(/(<label class="row sp">)/, rows + "$1"); };
-  const om = SCREENS.options.mount; SCREENS.options.mount = function () { const r = om && om.apply(this, arguments); document.querySelectorAll('[data-opt="bigTxt"],[data-opt="rarLbl"],[data-opt="ukOff"]').forEach(i => i.addEventListener("change", () => setTimeout(applyLookOpts, 0))); return r; }; }
+  const om = SCREENS.options.mount; SCREENS.options.mount = function () { const r = om && om.apply(this, arguments); document.querySelectorAll('[data-opt="bigTxt"],[data-opt="rarLbl"],[data-opt="ukOff"],[data-opt="darkOld"]').forEach(i => i.addEventListener("change", () => setTimeout(applyLookOpts, 0))); return r; }; }
 setTimeout(() => { try { applyLookOpts(); } catch (e) { } }, 0);
 { const ld = typeof load === "function" ? load : null; if (ld) load = function () { const r = ld.apply(this, arguments); try { applyLookOpts(); } catch (e) { } return r; }; }
 

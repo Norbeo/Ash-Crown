@@ -13,12 +13,14 @@ function sceneInit() {
   const loop = now => {
     const dt = Math.min(.05, (now - (SC.last || now)) / 1000); SC.last = now; SC.t += dt;
     const x = SC.x; x.setTransform(SC.dpr, 0, 0, SC.dpr, 0, 0);
-    try { if (SC.draw) SC.draw(x, SC.t, dt); else { x.fillStyle = "#07060a"; x.fillRect(0, 0, SC.w, SC.h); } } catch (e) { console.error(e); if (x.reset) x.reset(); SC.errN = (SC.errN || 0) + 1; if (SC.errN > 120) SC.draw = null; } // une erreur de dessin ne doit plus noircir l'écran
+    try { if (SC.draw) SC.draw(x, SC.t, dt); else { x.fillStyle = "#07060a"; x.fillRect(0, 0, SC.w, SC.h); } sceneLift(x); } catch (e) { console.error(e); if (x.reset) x.reset(); SC.errN = (SC.errN || 0) + 1; if (SC.errN > 120) SC.draw = null; } // une erreur de dessin ne doit plus noircir l'écran
     requestAnimationFrame(loop);
   };
   requestAnimationFrame(loop);
 }
 // fond peint + particules (utilisé par la plupart des écrans)
+// éclairage (20 nov.) : remonte les ombres de toute la scène (décors, personnages, bâtiments) sans délaver — couche « écran » chaude
+function sceneLift(x) { if (typeof S !== "undefined" && S && S.opts && S.opts.darkOld) return; x.save(); x.setTransform(1, 0, 0, 1, 0, 0); x.globalCompositeOperation = "screen"; x.fillStyle = "rgba(60,46,36,.16)"; x.fillRect(0, 0, x.canvas.width, x.canvas.height); x.globalCompositeOperation = "soft-light"; x.fillStyle = "rgba(255,225,190,.1)"; x.fillRect(0, 0, x.canvas.width, x.canvas.height); x.restore(); }
 function backdrop(id, opts = {}) {
   return (x, t, dt) => {
     const w = SC.w, h = SC.h;
@@ -33,7 +35,7 @@ function backdrop(id, opts = {}) {
     }
     if (!SC.amb || SC.ambKind !== id) { SC.amb = makeAmbient(REGION_AMB[id] || "braises", w < 700 ? 28 : 50, w, h); SC.ambKind = id; }
     drawAmbient(x, SC.amb, t, dt);
-    if (opts.dark) { x.fillStyle = rgba("#000000", opts.dark); x.fillRect(0, 0, w, h); }
+    if (opts.dark) { x.fillStyle = rgba("#000000", opts.dark * (typeof S !== "undefined" && S && S.opts && S.opts.darkOld ? 1 : .5)); x.fillRect(0, 0, w, h); }
     if (opts.after) opts.after(x, t, dt);
   };
 }

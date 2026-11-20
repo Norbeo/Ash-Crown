@@ -469,7 +469,7 @@ function drawCombat(x, t, dt) {
     if (b.sub) { x.shadowBlur = 0; x.font = `600 14px Cinzel, serif`; x.fillStyle = b.col; x.fillText(b.sub.toUpperCase(), W / 2, cy + 28); }
     x.restore(); } }
   // vignette
-  const vg = x.createRadialGradient(W / 2, stH * .6, stH * .3, W / 2, stH * .6, Math.max(W, stH)); vg.addColorStop(0, "rgba(0,0,0,0)"); vg.addColorStop(1, "rgba(0,0,0,.55)"); x.fillStyle = vg; x.fillRect(0, 0, W, stH);
+  const vg = x.createRadialGradient(W / 2, stH * .6, stH * .3, W / 2, stH * .6, Math.max(W, stH)); vg.addColorStop(0, "rgba(0,0,0,0)"); vg.addColorStop(1, `rgba(0,0,0,${S.opts && S.opts.darkOld ? .55 : .3})`); x.fillStyle = vg; x.fillRect(0, 0, W, stH);
 }
 function drawIcon(x, name, cx, cy, s, col, lw = 2) {
   const im = artImg("ui_" + name); if (im) { const d = 26 * s; x.drawImage(im, cx - d / 2, cy - d / 2, d, d); return; } // icône peinte

@@ -25,6 +25,13 @@ function chromaSkinMask(d, W, H) {
     while (sp) { const q = st[--sp]; mem.push(q); cnt++; sy += (q / W) | 0; const x = q % W;
       for (const nb of [q - 1, q + 1, q - W, q + W]) { if (nb < 0 || nb >= n || (nb === q - 1 && x === 0) || (nb === q + 1 && x === W - 1)) continue; if (cand[nb] && !lab[nb]) { lab[nb] = id; st[sp++] = nb; } } }
     const all = sy / cnt < headY || cnt < small; for (const q of mem) if (all || cand[q] === 2) keep[q] = 1; }
+  // masque élargi et adouci : le visage reste d'un seul tenant (plus de taches sombres entre peau et tenue)
+  const R = Math.max(2, Math.round(Math.min(W, H) / 90)), tmp = new Float32Array(n), soft = new Float32Array(n);
+  for (let y = 0; y < H; y++) { let acc = 0; for (let x = -R; x < W; x++) { const xa = x + R; if (xa < W) acc += keep[y * W + xa]; if (x - R - 1 >= 0) acc -= keep[y * W + x - R - 1]; if (x >= 0) tmp[y * W + x] = acc; } }
+  for (let x = 0; x < W; x++) { let acc = 0; for (let y = -R; y < H; y++) { const ya = y + R; if (ya < H) acc += tmp[ya * W + x]; if (y - R - 1 >= 0) acc -= tmp[(y - R - 1) * W + x]; if (y >= 0) soft[y * W + x] = acc; } }
+  const k2 = 1 / ((2 * R + 1) * (2 * R + 1));
+  for (let p = 0; p < n; p++) { const v = soft[p] * k2; const y = (p / W) | 0; if (keep[p]) soft[p] = 1; else soft[p] = y < headY ? Math.min(1, v * 2.2) : Math.min(1, v * 1.2); }
+  return soft;
   const out = new Float32Array(n); // bord adouci (1 px)
   for (let p = 0; p < n; p++) { if (keep[p]) { out[p] = 1; continue; } const x = p % W; let k = 0; if (x > 0 && keep[p - 1]) k++; if (x < W - 1 && keep[p + 1]) k++; if (p >= W && keep[p - W]) k++; if (p + W < n && keep[p + W]) k++; if (k >= 2) out[p] = .5; }
   return out;
@@ -49,7 +56,7 @@ function chromaArt(im, name, key) {
     const r = d[i] / 255, g = d[i + 1] / 255, b = d[i + 2] / 255, mx = Math.max(r, g, b), mn = Math.min(r, g, b), v = mx, s = mx > 0 ? (mx - mn) / mx : 0, dd = Math.max(mx - mn, 1e-6);
     let h = mx === r ? ((g - b) / dd) % 6 : mx === g ? (b - r) / dd + 2 : (r - g) / dd + 4; h *= 60; if (h < 0) h += 360;
     const lum = r * .3 + g * .59 + b * .11;
-    const sk = SK[i >> 2], skin = sk >= 1, gold = h >= 32 && h < 62 && s > .3 && v > .3, grey = s < .25 && v > .24;
+    const sk = SK[i >> 2], skin = sk >= .999, gold = h >= 32 && h < 62 && s > .3 && v > .3, grey = s < .25 && v > .24;
     let o = [r, g, b];
     if (skin) { /* peau intacte */ }
     else if (gold || grey) { const t = [0, 1, 2].map(k => Math.min(1, lum * mc[k] / ml)); o = o.map((z, k) => z * (1 - mk) + t[k] * mk); }
@@ -60,7 +67,7 @@ function chromaArt(im, name, key) {
       else o = hsv(ah + off * .15, Math.min(1, as * (.55 + .45 * s)), Math.min(1, v * av));
     } else if (darkArt && v > .015) { // armure noire : dégradé ombre → principale → accent selon la clarté relative (couleurs franches, sans éclaircir le bruit)
       const u = Math.min(1, v / vTop), w = al < 200 ? al / 200 * .9 : .9;
-      const c1 = hsv(dh, Math.min(.7, ds + .25), .06 + .1 * u), c2 = hsv(ph, Math.min(.62, ps), .1 + .3 * u * pv), c3 = hsv(ah, Math.min(.6, as), .2 + .45 * u * Math.min(1.2, av));
+      const c1 = hsv(dh, Math.min(.65, ds + .22), .1 + .14 * u), c2 = hsv(ph, Math.min(.6, ps), .18 + .4 * u * pv), c3 = hsv(ah, Math.min(.58, as), .32 + .52 * u * Math.min(1.2, av));
       const t = u < .55 ? c1.map((z, k) => z + (c2[k] - z) * (u / .55)) : c2.map((z, k) => z + (c3[k] - z) * ((u - .55) / .45));
       o = o.map((z, k) => z * (1 - w) + t[k] * w);
     } else { // ombres et armure sombre : teinte légère, luminosité gardée (gamma doux), jamais sur les bords du détourage

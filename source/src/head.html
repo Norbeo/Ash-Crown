@@ -418,3 +418,16 @@ body:not(.darkold) .ofcard{opacity:1!important}
 body:not(.darkold) #view canvas,body:not(.darkold) #modal canvas{filter:brightness(1.35) contrast(1.05)}
 body:not(.darkold) .card{--pan2:rgba(48,38,35,.95)}
 </style>
+
+<style>.cmech{margin:6px 0;padding:6px 9px;border-left:3px solid #c9a24a;background:linear-gradient(90deg,#c9a24a22,transparent);border-radius:2px;line-height:1.4}.cmech b{color:#ffd27a}</style>
+<style>
+.nextgoal{position:absolute;left:50%;bottom:58px;transform:translateX(-50%);z-index:2;display:flex;align-items:center;gap:10px;width:min(460px,calc(100% - 24px));text-align:left;cursor:pointer;color:var(--txt);font-family:var(--f-body);
+ border-style:solid;border-color:transparent;border-width:9px 16px;border-image:url(assets/uk_fold.webp) 40 70 fill / 9px 16px stretch;background:none;padding:2px 2px;filter:drop-shadow(0 4px 10px #000c);animation:ngpulse 2.6s ease-in-out infinite}
+.nextgoal .ngt{flex:1;min-width:0;display:flex;flex-direction:column;line-height:1.2}
+.nextgoal i{font-style:normal;font-size:10.5px;letter-spacing:.12em;text-transform:uppercase;color:#d8b060}
+.nextgoal b{font-family:var(--f-head);font-size:14px;color:#ffe9c0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.nextgoal small{font-size:11.5px;color:#c8b898;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.nextgoal .nga{font-size:26px;color:#ffd27a;padding-right:2px}
+@keyframes ngpulse{0%,100%{filter:drop-shadow(0 4px 10px #000c)}50%{filter:drop-shadow(0 0 10px #ffb84866) drop-shadow(0 4px 10px #000c)}}
+</style>
+<style>.nextgoal{bottom:6px}#view:has(.nextgoal) .quickgo2{bottom:66px}@media (max-width:700px){.nextgoal small{display:none}.nextgoal{border-width:7px 13px}.nextgoal b{font-size:13px}}</style>

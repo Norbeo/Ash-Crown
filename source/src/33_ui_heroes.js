@@ -30,7 +30,7 @@ SCREENS.hero = {
         <h1 style="margin-bottom:2px">${esc(h.name)} <button class="btn ghost sm" data-a="rename" data-v="${h.id}">✎</button></h1>
         <div class="row">${roleTag(C.role)}<span class="tag gold">${heroTitle(h)}</span><span class="tag">Niveau ${h.lvl}</span>${h.asc ? `<span class="tag" style="color:${ASC_COL[(h.asc - 1) % ASC_COL.length]}">${"✦".repeat(Math.min(5, h.asc))} Ascension ${roman(h.asc)}</span>` : ""}${isInjured(h) ? '<span class="tag bad">Blessé</span>' : ""}</div>
         <div class="bar xp" style="margin:8px 0 2px"><i style="width:${h.lvl >= MAX_LVL ? 100 : 100 * h.xp / xpNeed(h.lvl)}%"></i></div><div class="tiny dim">${h.lvl >= MAX_LVL ? "Niveau maximal" : `${h.xp} / ${xpNeed(h.lvl)} XP`}</div>
-        <p class="lore small">${C.lore}</p>
+        <p class="lore small">${C.lore}</p>${typeof classMech === "function" && classMech(h.cls) ? `<div class="cmech small"><b>${ico("star", "#ffd27a", 14)} ${classMech(h.cls).n}</b> — ${classMech(h.cls).d}</div>` : ""}
         <div class="row small">${h.traits.map(t => `<span class="tag ${TRAITS[t].good ? "good" : "bad"}" ${tipAttr(TRAITS[t].n, TRAITS[t].d)}>${TRAITS[t].n}</span>`).join("")}</div>
         ${heroStatsBlockHTML(h, st)}
         <p class="tiny dim" style="margin-top:6px">Rangs préférés : ${C.rk.join(", ")} · Armure ${C.armor} · Puissance ${heroPower(h)}</p>
@@ -73,7 +73,7 @@ function heroSheetHTML(h, foot = "") {
     <div style="flex:1;min-width:220px">
       <h2 style="margin:0">${esc(h.name)}</h2>
       <div class="row" style="gap:4px;margin:4px 0">${roleTag(C.role)}<span class="tag gold">${heroTitle(h)}</span><span class="tag">Niveau ${h.lvl}</span></div>
-      <p class="lore small" style="margin:4px 0">${C.lore}</p>
+      <p class="lore small" style="margin:4px 0">${C.lore}</p>${typeof classMech === "function" && classMech(h.cls) ? `<div class="cmech small"><b>${ico("star", "#ffd27a", 14)} ${classMech(h.cls).n}</b> — ${classMech(h.cls).d}</div>` : ""}
       ${typeof heroProgressHTML === "function" ? heroProgressHTML(h) : ""}
       <div class="col" style="gap:2px">${h.traits.map(t => `<div class="tiny"><b class="${TRAITS[t].good ? "good" : "bad"}">${TRAITS[t].n}</b> — ${gl(TRAITS[t].d)}</div>`).join("")}</div>
       ${heroStatsBlockHTML(h, st)}

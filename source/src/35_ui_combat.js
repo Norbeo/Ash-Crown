@@ -295,6 +295,7 @@ async function playEvents(ev) {
       case "resist": popText(e.u, "Résiste", "#d8d0c0"); await wait(60); break;
       case "rit": popText(e.u, e.txt, e.c || "#7ad0ff", true); CB.flash = .45; CB.shake = .4; sfx("crit"); await wait(500); break;
       case "combo": popText(e.u, "Combo +" + Math.round(e.v * 100) + " %", "#ffd27a"); break;
+      case "cls": popText(e.u, e.txt, e.c || "#ffd27a", true); await wait(S.opts.quick ? 60 : 220); break;
       case "stunned": popText(e.u, "Étourdi", "#ffd84a"); await wait(320); break;
       case "cleanse": popText(e.u, "Purifié", "#e8f0ff"); break;
       case "guard": popText(e.u, "Protège !", "#c0d0e0"); await wait(120); break;

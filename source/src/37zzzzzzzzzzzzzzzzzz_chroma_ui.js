@@ -61,6 +61,15 @@ function chromaArt(im, name, key) {
   const [ph, ps, pv] = P.p, [ah, as, av] = P.a, mc = P.m.map(v => v / 255), ml = Math.max(.05, mc[0] * .3 + mc[1] * .59 + mc[2] * .11), mk = P.mk, [dh, ds, dg] = P.dk, gl = P.glow ? P.glow.map(v => v / 255) : null;
   const hsv = (h, s, v) => { h = ((h % 360) + 360) % 360; const i = Math.floor(h / 60) % 6, f = h / 60 - Math.floor(h / 60), p = v * (1 - s), q = v * (1 - s * f), t = v * (1 - s * (1 - f)); return [[v, t, p], [q, v, p], [p, v, t], [p, q, v], [t, p, v], [v, p, q]][i]; };
   const adist = (a, b) => { const z = Math.abs(a - b) % 360; return z > 180 ? 360 - z : z; };
+  // matières (20 nov.) : sur les armures sombres, tissu lisse (cape, tabard) ≠ métal ciselé — carte de « lissé » par variance locale
+  let SM = null, CX = W / 2, HW = W / 2;
+  { let x0 = W, x1 = 0; for (let y = 0; y < H; y += 3) for (let xx = 0; xx < W; xx += 3) if (d[(y * W + xx) * 4 + 3] > 120) { if (xx < x0) x0 = xx; if (xx > x1) x1 = xx; } if (x1 > x0) { CX = (x0 + x1) / 2; HW = (x1 - x0) / 2; } }
+  if (darkArt) { const n = W * H, L = new Float32Array(n), L2 = new Float32Array(n); for (let p = 0; p < n; p++) { const q = p * 4, v = (d[q] * .3 + d[q + 1] * .59 + d[q + 2] * .11) / 255; L[p] = v; L2[p] = v * v; }
+    const R = Math.max(2, Math.round(Math.min(W, H) / 110)), box = A => { const T = new Float32Array(n), O = new Float32Array(n);
+      for (let y = 0; y < H; y++) { let s = 0; for (let x = -R; x < W; x++) { if (x + R < W) s += A[y * W + x + R]; if (x - R - 1 >= 0) s -= A[y * W + x - R - 1]; if (x >= 0) T[y * W + x] = s; } }
+      for (let x = 0; x < W; x++) { let s = 0; for (let y = -R; y < H; y++) { if (y + R < H) s += T[(y + R) * W + x]; if (y - R - 1 >= 0) s -= T[(y - R - 1) * W + x]; if (y >= 0) O[y * W + x] = s; } } return O; };
+    const M1 = box(L), M2 = box(L2), k = 1 / ((2 * R + 1) * (2 * R + 1)); SM = new Float32Array(n);
+    for (let p = 0; p < n; p++) { const m = M1[p] * k, sd = Math.sqrt(Math.max(0, M2[p] * k - m * m)), cv = sd / Math.max(.03, m); SM[p] = Math.max(0, Math.min(1, (.62 - cv) / .32)); } const S2 = box(SM); for (let p = 0; p < n; p++) SM[p] = S2[p] * k; }
   for (let i = 0; i < d.length; i += 4) {
     const al = d[i + 3]; if (al < 8) continue;
     const r = d[i] / 255, g = d[i + 1] / 255, b = d[i + 2] / 255, mx = Math.max(r, g, b), mn = Math.min(r, g, b), v = mx, s = mx > 0 ? (mx - mn) / mx : 0, dd = Math.max(mx - mn, 1e-6);
@@ -75,10 +84,14 @@ function chromaArt(im, name, key) {
       if (near) { const k2 = Math.max(0, Math.min(1, (.42 - v) / .25)) * .55, hd = ((((ah - ph) % 360) + 540) % 360) - 180; // replis sombres du tissu tirés vers l'accent
         o = hsv(ph + off * .35 + hd * k2, Math.min(1, (ps + (as - ps) * k2) * (.55 + .45 * s)), Math.min(1, v * (pv + (av - pv) * k2))); }
       else o = hsv(ah + off * .15, Math.min(1, as * (.55 + .45 * s)), Math.min(1, v * av));
-    } else if (darkArt && v > .015) { // armure noire : dégradé ombre → principale → accent selon la clarté relative (couleurs franches, sans éclaircir le bruit)
-      const u = Math.min(1, v / vTop), w = al < 200 ? al / 200 * .9 : .9;
-      const c1 = hsv(dh, Math.min(.65, ds + .22), .1 + .14 * u), c2 = hsv(ph, Math.min(.6, ps), .18 + .4 * u * pv), c3 = hsv(ah, Math.min(.58, as), .32 + .52 * u * Math.min(1.2, av));
-      const t = u < .55 ? c1.map((z, k) => z + (c2[k] - z) * (u / .55)) : c2.map((z, k) => z + (c3[k] - z) * ((u - .55) / .45));
+    } else if (darkArt && v > .015) { // armure sombre : tissu lisse → couleurs de la tenue, métal ciselé → teinte de métal (or, argent…), comme les tenues claires
+      const u = Math.min(1, v / vTop), w = al < 200 ? al / 200 * .92 : .92, cl = Math.max(0, Math.min(1, (SM ? SM[i >> 2] : .5) * 1.4 + (.42 - u) * 1.6));
+      const k2 = Math.max(0, Math.min(1, (.45 - u) / .35)); // replis profonds du tissu → couleur d'accent
+      const hd = ((((ah - ph) % 360) + 540) % 360) - 180;
+      const px = (i >> 2) % W, side = Math.max(0, Math.min(1, (Math.abs(px - CX) / HW - .22) / .2)); // cape et pans extérieurs → couleur principale ; vêtements du corps → accent
+      const kk = Math.max(k2 * .5, 1 - side) * .85, cloth = hsv(ph + hd * kk, Math.min(.8, (ps + (as - ps) * kk) * .95 + .14), Math.min(1, (.16 + .62 * u) * (pv + (av - pv) * kk)));
+      const ml2 = .1 + .78 * Math.pow(u, .9), metal = [0, 1, 2].map(z => Math.min(1, ml2 * mc[z] / ml));
+      const t = cloth.map((z, k) => z * cl + metal[k] * (1 - cl));
       o = o.map((z, k) => z * (1 - w) + t[k] * w);
     } else { // ombres et armure sombre : teinte légère, luminosité gardée (gamma doux), jamais sur les bords du détourage
       const w = al < 200 ? 0 : Math.min(1, v * 6), vv = Math.pow(v, dg), q = Math.min(1, Math.max(0, (v - .07) / .22)), qq = q * q * (3 - 2 * q);

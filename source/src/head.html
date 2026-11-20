@@ -366,7 +366,7 @@ input[type=checkbox]:checked::after{transform:translateX(18px);background:#ffd89
 body:not(.ukoff) #modal .box.frame{border-style:solid;border-color:transparent;border-width:18px 10px 16px;border-image:url(assets/uk_frame.webp) 150 / 34px / 10px round;padding:6px 12px 10px;border-radius:0;background:linear-gradient(#120d0b,#0a0706) padding-box;box-shadow:none}
 body:not(.ukoff) #modal .box.frame>.corner{display:none}
 body:not(.ukoff) #modal .box.frame>.btn[data-a="closeModal"]{top:0!important;right:0!important;background:#0b0807cc;border-radius:50%;border-color:#6a4a2a}
-body:not(.ukoff) #modal .box>h2:first-of-type{padding-bottom:20px;background:url(assets/uk_div_l.webp) left bottom/auto 18px no-repeat,url(assets/uk_div_r.webp) right bottom/auto 18px no-repeat,url(assets/uk_div_c.webp) center bottom/auto 18px no-repeat,url(assets/uk_div_m.webp) left bottom/auto 18px repeat-x;background-origin:padding-box;justify-content:center;text-align:center}
+body:not(.ukoff) #modal .box>h2:first-of-type{padding-bottom:20px;padding-left:38px;padding-right:38px;background:url(assets/uk_div_l.webp) left bottom/auto 18px no-repeat,url(assets/uk_div_r.webp) right bottom/auto 18px no-repeat,url(assets/uk_div_c.webp) center bottom/auto 18px no-repeat,url(assets/uk_div_m.webp) left bottom/auto 18px repeat-x;background-origin:padding-box;justify-content:center;text-align:center}
 body:not(.ukoff) #modal .box>h2:first-of-type::after{display:none}
 body:not(.ukoff) .sep{height:18px;background:url(assets/uk_div_l.webp) left center/auto 18px no-repeat,url(assets/uk_div_r.webp) right center/auto 18px no-repeat,url(assets/uk_div_c.webp) center/auto 18px no-repeat,url(assets/uk_div_m.webp) left center/auto 18px repeat-x;margin:10px 0}
 body:not(.ukoff) .btn:not(.ghost):not(.choice):not(.sk):not(.hrail){border-style:solid;border-color:transparent;border-width:12px 21px;border-image:url(assets/uk_btn.webp) 43 75 fill / 12px 21px stretch;background:none;border-radius:0;box-shadow:none;padding:3px 4px;min-height:40px;text-shadow:0 1px 2px #000,0 0 6px #000}
@@ -382,7 +382,11 @@ body:not(.ukoff) .btn.glow:not(.ghost):not(.choice):not(.sk){animation:ukglow 1.
 /* onglets et filtres : plaques peintes sans ornement (planche U2), étirables */
 body:not(.ukoff) .chips>.btn{border-style:solid;border-color:transparent;border-width:8px 13px;border-image:url(assets/uk_tab.webp) 26 40 fill / 8px 13px stretch!important;background:none!important;border-radius:0;box-shadow:none!important;padding:0 2px;min-height:32px;font-size:12.5px;color:#bba98a;filter:none}
 body:not(.ukoff) .chips>.btn:hover{filter:brightness(1.2)}
-body:not(.ukoff) .chips>.btn.chip-on,body:not(.ukoff) .chips>.btn.on,body:not(.ukoff) .chips>.btn:not(.ghost){border-image-source:url(assets/uk_tab_on.webp)!important;color:#ffe2a8;filter:none}
+@media (max-width:700px){body:not(.ukoff) .row.card:has(>.btn:last-child){flex-wrap:wrap!important}body:not(.ukoff) .row.card:has(>.btn:last-child)>div[style*="flex:1"]{flex:1 1 170px!important}body:not(.ukoff) .row.card>.btn:last-child{margin-left:auto}}
+@media (max-width:700px){body:not(.ukoff) .chips:not(:has(>.btn:nth-child(7))){flex-wrap:wrap!important;overflow:visible;-webkit-mask-image:none;mask-image:none;row-gap:5px}}
+body:not(.ukoff) .chips>.btn.chip-on,body:not(.ukoff) .chips>.btn.on,body:not(.ukoff) .chips:has(>.btn.ghost)>.btn:not(.ghost){border-image-source:url(assets/uk_tab_on.webp)!important;color:#ffe2a8;filter:none}
 body:not(.ukoff) .btn.ghost.sm:not([data-a="closeModal"]):not(.choice){border-style:solid;border-color:transparent;border-width:7px 12px;border-image:url(assets/uk_pill.webp) 38 38 fill / 7px 12px stretch;background:none;border-radius:0;box-shadow:none;padding:0 2px;min-height:30px}
+body:not(.ukoff) .btn.icob:not([data-a="closeModal"]):not(.sk):not(.hrail){border-style:solid!important;border-color:transparent!important;border-width:7px 12px!important;border-image:url(assets/uk_pill.webp) 38 38 fill / 7px 12px stretch!important;background:none!important;border-radius:0;min-height:30px;padding:0 4px!important;filter:none}
+body:not(.ukoff) .btn.icob.gold,body:not(.ukoff) .btn.icob.on{border-image-source:url(assets/uk_pill_on.webp)!important}
 body:not(.ukoff) .btn.ghost.sm.on:not([data-a="closeModal"]){border-image-source:url(assets/uk_pill_on.webp)}
 </style>

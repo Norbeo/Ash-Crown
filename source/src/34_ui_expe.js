@@ -90,7 +90,7 @@ SCREENS.map = {
   html: () => {
     const run = S.run; if (!run) return "";
     const port = SC.w < SC.h, cols = run.map.length, av = availableNodes(run);
-    const W = port ? Math.min(SC.w - 20, 440) : Math.min(SC.w - 30, 980), H = port ? Math.max(460, SC.h - 300) : Math.min(SC.h - 230, 420);
+    const W = port ? Math.min(SC.w - 20, 440) : Math.min(SC.w - 30, 980), H = port ? Math.max(460, SC.h - 300, (cols - 1) * 76 + 92) : Math.max(Math.min(SC.h - 230, 420), Math.max(...run.map.map(c => c.length)) * 64 + 36);
     const pos = n => port ? [24 + n.x * (W - 48), 52 + n.c * (H - 92) / (cols - 1)] /* portrait : départ en haut, le gardien en bas */ : [46 + n.c * (W - 98) / (cols - 1), 18 + n.x * (H - 36)];
     UI.mapPos = pos; UI.mapWH = [W, H];
     const nodes = run.map.flat().map(n => { const [x, y] = pos(n), T = NODE_T[n.type], isAv = av.includes(n), cur = run.pos && run.pos.c === n.c && run.pos.i === n.i, art = mapToken(n.type); return `<div class="node ${n.type === "boss" ? "boss" : ""} ${isAv ? "av" : ""} ${n.visited && !cur ? "done" : ""} ${cur ? "cur" : ""}" style="left:${x}px;top:${y}px;--nc:${T.c}" ${isAv ? `data-a="node" data-v="${n.c}:${n.i}"` : ""} title="${n.champ ? "Champion" : T.n}">${art ? `<img src="${art}" alt="${T.n}">` : ico(T.ic, T.c)}${isAv ? `<span class="nlab">${n.champ ? "Champion" : T.n}</span>` : ""}</div>`; }).join("");

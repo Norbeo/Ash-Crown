@@ -38,7 +38,7 @@ function backdrop(id, opts = {}) {
   };
 }
 const SCREENS = {};
-function go(name, arg) {
+function go(name, arg) { { const tb = document.getElementById("toasts"); if (tb) for (const t of tb.querySelectorAll(".toast.hint")) t.remove(); }
   if (UI.screen && SCREENS[UI.screen] && SCREENS[UI.screen].leave) SCREENS[UI.screen].leave();
   UI.screen = name; UI.arg = arg; SC.click = null; SC.hover = null;
   const Sx = SCREENS[name];
@@ -76,7 +76,7 @@ function navBadges() {
   if (S.run) b.expe = "!";
   return b;
 }
-function toast(msg, kind = "") { const t = document.createElement("div"); t.className = "toast " + kind; t.innerHTML = msg; const box = $("#toasts"); box.classList.toggle("top", typeof UI !== "undefined" && (UI.screen === "combat" || UI.screen === "map")); t.onclick = () => t.remove(); box.appendChild(t); setTimeout(() => t.remove(), 3400); } // en bas (au-dessus de la barre), en haut en combat et sur la carte ; un toucher la ferme
+function toast(msg, kind = "") { const t = document.createElement("div"); t.className = "toast " + kind; t.innerHTML = msg; const box = $("#toasts"); box.classList.toggle("top", typeof UI !== "undefined" && UI.screen === "combat"); t.onclick = () => t.remove(); box.appendChild(t); setTimeout(() => t.remove(), 3400); } // en bas (au-dessus de la barre), en haut en combat et sur la carte ; un toucher la ferme
 function modal(html, o = {}) {
   const m = $("#modal");
   // on quitte la fenêtre d'un bâtiment pour une fiche : on retient où l'on en était dans la liste

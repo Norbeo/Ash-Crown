@@ -34,14 +34,19 @@ function bldNote(k) {
     return h; }; }
 
 // ── Options : texte agrandi, lettres de rareté ──
-function applyLookOpts() { if (typeof document === "undefined" || !document.body) return; document.body.classList.toggle("bigtxt", !!S.opts.bigTxt); document.body.classList.toggle("rarlbl", !!S.opts.rarLbl); document.body.classList.toggle("ukoff", !!S.opts.ukOff); document.body.classList.toggle("darkold", !!S.opts.darkOld); }
+// Luminosité réglable (20 nov.) : 100 % = éclairage par défaut ; 60 % ≈ l'ancienne ambiance très sombre
+function lumVal() { const o = (typeof S !== "undefined" && S && S.opts) || {}; return o.lum != null ? o.lum : o.darkOld ? .7 : 1; }
+function lumApply() { if (typeof document === "undefined") return; const L = lumVal(); let st = document.getElementById("lumStyle"); if (!st) { st = document.createElement("style"); st.id = "lumStyle"; document.head.appendChild(st); }
+  st.textContent = `body #scene{filter:brightness(${(1.42 * L).toFixed(3)}) contrast(1.07) saturate(1.06)!important}body #view canvas,body #modal canvas{filter:brightness(${Math.max(.6, 1 + .35 * (L - .3) / .7).toFixed(3)}) contrast(1.05)!important}`; }
+function applyLookOpts() { if (typeof document === "undefined" || !document.body) return; document.body.classList.toggle("bigtxt", !!S.opts.bigTxt); document.body.classList.toggle("rarlbl", !!S.opts.rarLbl); document.body.classList.toggle("ukoff", !!S.opts.ukOff); document.body.classList.toggle("darkold", !!S.opts.darkOld); lumApply(); }
 { const oh = SCREENS.options.html; SCREENS.options.html = function () { const s = oh.apply(this, arguments);
     const rows = `<label class="row sp"><span>${ico("eye")} Texte agrandi <span class="tiny dim">— fenêtres et menus plus lisibles</span></span><input type="checkbox" data-opt="bigTxt" ${S.opts.bigTxt ? "checked" : ""}></label>
       <label class="row sp"><span>${ico("gem")} Lettres de rareté <span class="tiny dim">— une lettre sur chaque objet en plus de la couleur (C, PC, R, É, L…)</span></span><input type="checkbox" data-opt="rarLbl" ${S.opts.rarLbl ? "checked" : ""}></label>
       <label class="row sp"><span>${ico("anvil")} Interface classique <span class="tiny dim">— retire les cadres et boutons peints</span></span><input type="checkbox" data-opt="ukOff" ${S.opts.ukOff ? "checked" : ""}></label>
-      <label class="row sp"><span>${ico("eye")} Ambiance très sombre <span class="tiny dim">— l'ancien éclairage, plus sombre</span></span><input type="checkbox" data-opt="darkOld" ${S.opts.darkOld ? "checked" : ""}></label>`;
+      <label class="row sp" style="flex-wrap:wrap;gap:6px"><span style="flex:1 1 100%">${ico("eye")} Luminosité <span class="tiny dim">— éclaire ou assombrit tout le jeu</span></span><span class="row" style="gap:8px;flex:1 1 100%;justify-content:flex-end"><span class="tiny dim">sombre</span><input type="range" id="lumR" min="60" max="160" step="5" value="${Math.round(lumVal() * 100)}" style="flex:1;max-width:220px;accent-color:#c9a24a"><span class="tiny dim">clair</span><b id="lumV" class="small" style="min-width:42px;text-align:right">${Math.round(lumVal() * 100)} %</b></span></label>`;
     const i = s.indexOf('<label class="row sp"><span>' + ico("speed")); return i >= 0 ? s.slice(0, i) + rows + s.slice(i) : s.replace(/(<label class="row sp">)/, rows + "$1"); };
-  const om = SCREENS.options.mount; SCREENS.options.mount = function () { const r = om && om.apply(this, arguments); document.querySelectorAll('[data-opt="bigTxt"],[data-opt="rarLbl"],[data-opt="ukOff"],[data-opt="darkOld"]').forEach(i => i.addEventListener("change", () => setTimeout(applyLookOpts, 0))); return r; }; }
+  const om = SCREENS.options.mount; SCREENS.options.mount = function () { const r = om && om.apply(this, arguments); document.querySelectorAll('[data-opt="bigTxt"],[data-opt="rarLbl"],[data-opt="ukOff"]').forEach(i => i.addEventListener("change", () => setTimeout(applyLookOpts, 0)));
+    const lr = document.getElementById("lumR"); if (lr) lr.addEventListener("input", () => { S.opts.lum = +lr.value / 100; S.opts.darkOld = 0; const v = document.getElementById("lumV"); if (v) v.textContent = lr.value + " %"; applyLookOpts(); }), lr.addEventListener("change", () => { try { save(); } catch (e) {} }); return r; }; }
 setTimeout(() => { try { applyLookOpts(); } catch (e) { } }, 0);
 { const ld = typeof load === "function" ? load : null; if (ld) load = function () { const r = ld.apply(this, arguments); try { applyLookOpts(); } catch (e) { } return r; }; }
 

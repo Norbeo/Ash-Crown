@@ -14,12 +14,18 @@ function chromaHue(d) { // teinte dominante des pixels saturés (hors peau)
 }
 /* Peau protégée (20 nov.) : pixels couleur chair au sens large (y compris visages pâles ou dans l'ombre), gardés s'ils
    forment la tête (haut de la silhouette) ou de petites zones (mains) — jamais une grande surface de cuir brun. */
-function chromaSkinMask(d, W, H) {
+function chromaSkinMask(d, W, H, nat) {
   const n = W * H, cand = new Uint8Array(n); let y0 = H, y1 = 0, nO = 0;
   for (let p = 0; p < n; p++) { const i = p * 4; if (d[i + 3] < 120) continue; nO++; const y = (p / W) | 0; if (y < y0) y0 = y; if (y > y1) y1 = y;
     const r = d[i] / 255, g = d[i + 1] / 255, b = d[i + 2] / 255, mx = Math.max(r, g, b), mn = Math.min(r, g, b), s = mx > 0 ? (mx - mn) / mx : 0;
-    if (mx < .2 || mx !== r || s < .1 || s > .62 || g < b * .92) continue; const h = 60 * ((g - b) / Math.max(mx - mn, 1e-6)); if (h < 2 || h > 42) continue; cand[p] = h > 6 && h < 30 && s > .24 && s < .58 && mx > .3 && g > b * 1.12 ? 2 : 1; }
-  const lab = new Int32Array(n), keep = new Uint8Array(n), headY = y0 + (y1 - y0) * .3, small = Math.max(40, nO * .006), st = new Int32Array(n);
+    if (nat && mx === r && mx > .045 && s > .18 && g >= b) { const hh = 60 * ((g - b) / Math.max(mx - mn, 1e-6)); if (hh > 4 && hh < 42) { cand[p] = 2; continue; } } // torse nu (berserker) : peau et fourrure gardent leur couleur naturelle
+    if (mx < .1 || mx !== r || s < .1 || s > .62 || g < b * .92) continue; const h = 60 * ((g - b) / Math.max(mx - mn, 1e-6)); if (h < 2 || h > 42) continue; cand[p] = h > 6 && h < 30 && s > .24 && s < .58 && mx > .3 && g > b * 1.12 ? 2 : 1; }
+  // teinte de peau du visage (haut de la silhouette) → toute la peau du corps qui a la même teinte, même dans l'ombre
+  { const hy = y0 + (y1 - y0) * .3; let sh = 0, ss = 0, nn = 0;
+    for (let p = 0; p < n; p++) { if (cand[p] !== 2 || (p / W | 0) > hy) continue; const i = p * 4, r = d[i] / 255, g = d[i + 1] / 255, b = d[i + 2] / 255, mx = Math.max(r, g, b), mn = Math.min(r, g, b); sh += 60 * ((g - b) / Math.max(mx - mn, 1e-6)); ss += (mx - mn) / mx; nn++; }
+    if (nn > 30) { const H0 = sh / nn, S0 = ss / nn;
+      for (let p = 0; p < n; p++) { const i = p * 4; if (d[i + 3] < 120 || cand[p] === 2) continue; const r = d[i] / 255, g = d[i + 1] / 255, b = d[i + 2] / 255, mx = Math.max(r, g, b), mn = Math.min(r, g, b); if (mx < .09 || mx !== r || g < b) continue; const sv = (mx - mn) / mx, h = 60 * ((g - b) / Math.max(mx - mn, 1e-6)); if (Math.abs(h - H0) < 8 && Math.abs(sv - S0) < .13) cand[p] = 2; } } }
+  const lab = new Int32Array(n), keep = new Uint8Array(n), headY = y0 + (y1 - y0) * .38, small = Math.max(40, nO * .006), st = new Int32Array(n);
   let id = 0;
   for (let p = 0; p < n; p++) { if (!cand[p] || lab[p]) continue; id++; let top = 0, sp = 0, cnt = 0, sy = 0; st[sp++] = p; lab[p] = id; const mem = [];
     while (sp) { const q = st[--sp]; mem.push(q); cnt++; sy += (q / W) | 0; const x = q % W;
@@ -42,7 +48,7 @@ function chromaArt(im, name, key) {
   const W = im.naturalWidth || im.width, H = im.naturalHeight || im.height; if (!W || !H) return im;
   const c = document.createElement("canvas"); c.width = W; c.height = H; const x = c.getContext("2d"); x.drawImage(im, 0, 0);
   let D; try { D = x.getImageData(0, 0, W, H); } catch (e) { return im; }
-  const d = D.data, P = O.pal, dom = chromaHue(d), SK = chromaSkinMask(d, W, H);
+  const d = D.data, P = O.pal, dom = chromaHue(d), SK = chromaSkinMask(d, W, H, /berserker/.test(name));
   // illustration sombre (armure noire) : on mesure la clarté pour appliquer un dégradé de couleurs franc (sinon la tenue ne se voit pas)
   let nO = 0, nD = 0; const Lh = new Uint32Array(64);
   for (let i = 0; i < d.length; i += 16) { if (d[i + 3] < 160) continue; nO++; const m = Math.max(d[i], d[i + 1], d[i + 2]); if (m < 60) nD++; Lh[m >> 2]++; }

@@ -128,7 +128,7 @@ console.log("Gardiens (victoires/essais) :", Object.keys(T.bossTry).map(k => k +
 for (let i = 0; i < 5; i++) { const xs = careers.filter(c => c.cleared[i]).map(c => c.cleared[i]); console.log(`Chapitre ${i + 1} terminé par ${xs.length}/${careers.length} carrières, à l'expédition ${xs.length ? avg(xs, x => x).toFixed(1) : "—"}`); }
 console.log(`Niveau moyen : à 10 exp ${avg(careers, c => c.lvlAt10).toFixed(1)} · à 20 ${avg(careers, c => c.lvlAt20).toFixed(1)} · final ${avg(careers, c => c.final).toFixed(1)}`);
 console.log(`Abîme record moyen ${avg(careers, c => c.abyss).toFixed(1)} · or final ${avg(careers, c => c.gold).toFixed(0)} · héros ${avg(careers, c => c.heroes).toFixed(1)} · succès ${avg(careers, c => c.ach).toFixed(1)} · compagnons ${avg(careers, c => c.pets).toFixed(1)}`);
-console.log("Chutes par classe (chutes / participations) :", Object.keys(T.perClassUse).map(k => k + " " + ((T.perClassFall[k] || 0) / T.perClassUse[k]).toFixed(2)).join(" · "));
+console.log("Chutes par classe (chutes / participations) :", Object.keys(T.perClassUse).map(k => k + " " + ((T.perClassFall[k] || 0) / T.perClassUse[k]).toFixed(2) + " (" + T.perClassUse[k] + ")").join(" · "));
 console.log("Défaites par salle :", JSON.stringify(T.nodeDeaths));
 console.log(`Objets équipés en expédition : ${T.runEq || 0}`);
 console.log("Erreurs :", T.errors.length ? "\n" + T.errors.slice(0, 8).join("\n") : "aucune");

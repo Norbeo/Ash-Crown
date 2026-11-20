@@ -31,7 +31,7 @@ SCREENS.hero = {
         <div class="row">${roleTag(C.role)}<span class="tag gold">${heroTitle(h)}</span><span class="tag">Niveau ${h.lvl}</span>${h.asc ? `<span class="tag" style="color:${ASC_COL[(h.asc - 1) % ASC_COL.length]}">${"✦".repeat(Math.min(5, h.asc))} Ascension ${roman(h.asc)}</span>` : ""}${isInjured(h) ? '<span class="tag bad">Blessé</span>' : ""}</div>
         <div class="bar xp" style="margin:8px 0 2px"><i style="width:${h.lvl >= MAX_LVL ? 100 : 100 * h.xp / xpNeed(h.lvl)}%"></i></div><div class="tiny dim">${h.lvl >= MAX_LVL ? "Niveau maximal" : `${h.xp} / ${xpNeed(h.lvl)} XP`}</div>
         <p class="lore small">${C.lore}</p>${typeof classMech === "function" && classMech(h.cls) ? `<div class="cmech small"><b>${ico("star", "#ffd27a", 14)} ${classMech(h.cls).n}</b> — ${classMech(h.cls).d}</div>` : ""}
-        <div class="row small">${h.traits.map(t => `<span class="tag ${TRAITS[t].good ? "good" : "bad"}" ${tipAttr(TRAITS[t].n, TRAITS[t].d)}>${TRAITS[t].n}</span>`).join("")}</div>
+        <div class="row small">${typeof scarsOf === "function" ? scarsOf(h).map(z => `<span class="tag scar" ${tipAttr(z.n, "Cicatrice : " + z.d)}>✠ ${z.n}</span>`).join("") : ""}${h.traits.map(t => `<span class="tag ${TRAITS[t].good ? "good" : "bad"}" ${tipAttr(TRAITS[t].n, TRAITS[t].d)}>${TRAITS[t].n}</span>`).join("")}</div>
         ${heroStatsBlockHTML(h, st)}
         <p class="tiny dim" style="margin-top:6px">Rangs préférés : ${C.rk.join(", ")} · Armure ${C.armor} · Puissance ${heroPower(h)}</p>
       </div>

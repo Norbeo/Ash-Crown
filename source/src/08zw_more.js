@@ -32,7 +32,7 @@ const CHALLENGES = {
     const B = bf0.apply(this, arguments);
     giveWeakPoints(B);
     if (node && node.type === "boss" && run.order && ORDERS[run.order]) { B.tactic = run.order; ORDERS[run.order].apply(B); run.order = null; }
-    if (node && (node.type === "combat" || node.type === "elite") && !node.chal) node.chal = RNG.chance(.33) ? RNG.pick(Object.keys(CHALLENGES)) : "none";
+    if (node && (node.type === "combat" || node.type === "elite") && !node.chal) node.chal = RNG.chance(.5) ? RNG.pick(Object.keys(CHALLENGES)) : "none";
     if (node && node.chal && node.chal !== "none") B.chal = node.chal;
     if (node && node.champ) for (const e of B.enemies) if (e.elite) { e.hpMax = Math.round(e.hpMax * 1.3); e.hp = e.hpMax; e.name = "Champion : " + e.name; }
     return B; }; }

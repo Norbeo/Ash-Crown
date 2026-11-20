@@ -442,6 +442,17 @@ body:not(.darkold) .card{--pan2:rgba(48,38,35,.95)}
 @keyframes ngpulse{0%,100%{filter:drop-shadow(0 4px 10px #000c)}50%{filter:drop-shadow(0 0 10px #ffb84866) drop-shadow(0 4px 10px #000c)}}
 </style>
 <style>.nextgoal{bottom:6px}#view:has(.nextgoal) .quickgo2{bottom:66px}@media (max-width:700px){.nextgoal small{display:none}.nextgoal{border-width:7px 13px}.nextgoal b{font-size:13px}}</style>
+<style>
+.cevt{position:fixed;left:50%;top:22%;transform:translateX(-50%);z-index:60;width:min(440px,calc(100% - 24px));padding:12px 14px;border-style:solid;border-color:transparent;border-width:16px;border-image:url(assets/uk_card.webp) 65 fill / 16px stretch;background:none;filter:drop-shadow(0 8px 24px #000e);animation:cevtIn .35s ease-out}
+.cevt-t{font-family:var(--f-head);font-size:17px;color:#ffe2a8;text-align:center;margin-bottom:8px}
+.cevt-c{display:flex;gap:8px}.cevt-c .btn{flex:1;flex-direction:column;gap:2px;text-transform:none;letter-spacing:0;min-height:64px}.cevt-c .btn b{font-size:14px}.cevt-c .btn small{font-family:var(--f-body);font-weight:400;font-size:11.5px;line-height:1.25;color:#e8dcc4}
+.cevt-k{text-align:center;font-size:11px;color:var(--dim);margin-top:6px}
+@keyframes cevtIn{from{opacity:0;transform:translate(-50%,-14px)}to{opacity:1;transform:translate(-50%,0)}}
+.cbchal{position:fixed;right:8px;top:calc(env(safe-area-inset-top) + 92px);z-index:30;max-width:min(300px,60vw);font-size:11.5px;line-height:1.3;padding:5px 9px;background:#140e0bd8;border:1px solid #6a4a2a;border-radius:3px;color:#e8dcc4;pointer-events:none}
+.cbchal b{color:#ffd27a}.cbchal span{color:#bcae98}.cbchal i{font-style:normal;color:#8fd07a;margin-left:4px}.cbchal.ko{opacity:.6}.cbchal.ko i{color:#ff7a6a}
+@media (max-width:700px){.cbchal span{display:none}}
+.tag.scar{color:#ff9a8a}
+</style>
 </head><body>
 <canvas id="scene"></canvas>
 <div id="app">
@@ -5035,7 +5046,7 @@ const CHALLENGES = {
     const B = bf0.apply(this, arguments);
     giveWeakPoints(B);
     if (node && node.type === "boss" && run.order && ORDERS[run.order]) { B.tactic = run.order; ORDERS[run.order].apply(B); run.order = null; }
-    if (node && (node.type === "combat" || node.type === "elite") && !node.chal) node.chal = RNG.chance(.33) ? RNG.pick(Object.keys(CHALLENGES)) : "none";
+    if (node && (node.type === "combat" || node.type === "elite") && !node.chal) node.chal = RNG.chance(.5) ? RNG.pick(Object.keys(CHALLENGES)) : "none";
     if (node && node.chal && node.chal !== "none") B.chal = node.chal;
     if (node && node.champ) for (const e of B.enemies) if (e.elite) { e.hpMax = Math.round(e.hpMax * 1.3); e.hp = e.hpMax; e.name = "Champion : " + e.name; }
     return B; }; }
@@ -6549,6 +6560,143 @@ if (typeof DIFF_TAB !== "undefined") DIFF_TAB[3] = 1.4;
   try { const run = S && S.run; if (run && run.region && run.region !== "abime" && typeof recLevel === "function") { let rl = recLevel(run.region, run.threat || 0) || 0; for (const R of REGIONS) if (regionUnlocked(R.id)) rl = Math.max(rl, Math.max(4, R.lvl)); /* front de progression : le chapitre ouvert le plus avancé */ if (rl && h.lvl < rl) v = Math.round(v * (1 + Math.min(1.2, .3 * (rl - h.lvl)))); } } catch (e) { }
   return gx.call(this, h, v);
 }; }
+// ── 20 nov. (soir) : duos de mécaniques, compétences signatures, rivaux, défis de combat, cicatrices, événements de combat ──
+
+// 1 · Duos de mécaniques : deux classes dont les mécaniques se répondent (affichés avec les synergies)
+const MECH_DUOS = {
+  duo_peste_maudite: { n: "Peste maudite", need: [["sorciere"], ["medecin_peste"]], d: "Chaque poison du Médecin de peste maudit aussi la cible (Malédiction de la Sorcière)." },
+  duo_bucher: { n: "Bûcher des sorcières", need: [["pyromancien"], ["chasseur_sorcieres"]], d: "Tout le groupe inflige +15 % de dégâts aux ennemis qui brûlent." },
+  duo_hymne: { n: "Hymne de la foi", need: [["menestrel"], ["pretresse"]], d: "Le Refrain du Ménestrel soigne aussi tout le groupe de 4 % de ses PV max." },
+  duo_rempart: { n: "Rempart d'acier", need: [["templier"], ["hallebardier"]], d: "Bouclier de foi à 15 % des PV max, Garde d'allonge à 40 % de chance." },
+  duo_ombres: { n: "Ombres jumelles", need: [["ombre"], ["arbaletriere"]], d: "Le premier tir de l'Arbalétrière est aussi un critique garanti ; Visée posée passe à +40 %." },
+  duo_moisson: { n: "Moisson sanglante", need: [["necromancien"], ["berserker"]], d: "Chaque âme du Nécromancien donne aussi +3 % de dégâts au Berserker." },
+  duo_rune_benie: { n: "Rune bénie", need: [["gardien_runes"], ["exorciste"]], d: "La Rune gravée étourdit à coup sûr et rend la cible vulnérable." },
+  duo_faucheuse: { n: "Le spectre et la faucheuse", need: [["revenant"], ["necromancien"]], d: "Quand le Revenant refuse de mourir, le Nécromancien gagne 2 âmes ; chaque âme donne +4 % de dégâts au Revenant." }
+};
+for (const k in MECH_DUOS) SYNERGIES[k] = Object.assign({ h: {}, duo: 1 }, MECH_DUOS[k]); // listés, comptés et affichés comme les autres synergies
+const duoOn = (B, k) => { if (!B || !B.heroes) return false; if (!B._dz) B._dz = new Set(activeSynergies(B.heroes.map(h => h.cls)).filter(x => MECH_DUOS[x])); return B._dz.has(k); };
+
+{ const sm = strikeMul; strikeMul = function (B, u, x, sk, ev) {
+  let d = sm.apply(this, arguments);
+  if (!u || u.side !== "h" || u.uid === "PET" || !x) return d;
+  if (duoOn(B, "duo_bucher") && hasSt(x, "burn")) d *= 1.15;
+  if (u.cls === "arbaletriere" && !u.hitSince && duoOn(B, "duo_ombres")) d *= 1.4 / 1.25;
+  if (u.cls === "berserker" && duoOn(B, "duo_moisson")) { const n = B.heroes.find(h => h.cls === "necromancien"); if (n && n._souls) d *= 1 + .03 * n._souls; }
+  if (u.cls === "revenant" && duoOn(B, "duo_faucheuse")) { const n = B.heroes.find(h => h.cls === "necromancien"); if (n && n._souls) d *= 1 + .04 * n._souls; }
+  return d;
+}; }
+{ const st0 = strike; strike = function (B, u, x, sk, mult, ev) {
+  let c0 = null; if (u && u.cls === "arbaletriere" && u.side === "h" && !u._amb2 && duoOn(B, "duo_ombres")) { u._amb2 = 1; c0 = u.crit; u.crit = 999; cmPop(ev, u, "Ombres jumelles !"); }
+  const runeArmed = u && u.cls === "gardien_runes" && u._rune && duoOn(B, "duo_rune_benie");
+  const r = st0.apply(this, arguments);
+  if (c0 != null) u.crit = c0;
+  if (runeArmed && r && x && alive(x)) { if (!hasSt(x, "stun")) addSt(B, u, x, { k: "stun", t: 1 }, ev); addSt(B, u, x, { k: "vuln", t: 2 }, ev); }
+  return r;
+}; }
+{ const bt = beginTurn; beginTurn = function (B, u) {
+  const ev = bt.apply(this, arguments);
+  if (u && u.side === "h" && alive(u) && !u.skip) {
+    if (u.cls === "menestrel" && duoOn(B, "duo_hymne")) for (const h of B.heroes.filter(alive)) healUnit(B, null, h, h.hpMax * .04, ev, { regen: 1 });
+    if (u.cls === "templier" && duoOn(B, "duo_rempart")) { const s = B.heroes.flatMap(h => h.st).filter(s => s.k === "shield").pop(); if (s) s.v = Math.round(s.v * 1.5); }
+  }
+  return ev;
+}; }
+{ const as = addSt0; addSt0 = function (B, u, x, f, ev, rk) {
+  const r = as.apply(this, arguments);
+  if (u && u.cls === "medecin_peste" && u.side === "h" && x && x.side === "e" && f && f.k === "poison" && duoOn(B, "duo_peste_maudite") && (x._curse || 0) < 3) { x._curse = (x._curse || 0) + 1; cmPop(ev, x, "Peste maudite ×" + x._curse, "#a0e070"); }
+  return r;
+}; }
+{ const ad = applyDamage; applyDamage = function (B, src, x, d, ev, o = {}) {
+  const und0 = x && x._und; if (B) B._lastSrc = src;
+  const r = ad.apply(this, arguments);
+  if (x && x.cls === "revenant" && !und0 && x._und && duoOn(B, "duo_faucheuse")) { const n = B.heroes.find(h => h.cls === "necromancien" && alive(h)); if (n) { n._souls = Math.min(5, (n._souls || 0) + 2); cmPop(ev, n, "Âmes +2", "#b48aff"); } }
+  // garde d'allonge renforcée (rempart d'acier) : seconde chance de riposte
+  if (x && x.side === "h" && src && src.side === "e" && !o.dot && alive(src) && r > 0 && duoOn(B, "duo_rempart")) { const hb = B.heroes.find(h => h.cls === "hallebardier" && alive(h) && !h.agony && h._hg !== B.round + ":" + B.turn); if (hb && chance(.2)) { hb._hg = B.round + ":" + B.turn; cmPop(ev, hb, "Garde d'allonge", "#e0d0a0"); counter(B, hb, src, .5, ev); } }
+  // rivaux : l'ennemi juré meurt → vengeance
+  if (x && x.nem && x.dead && !x._nemDone) { x._nemDone = 1; const N = S.nemesis; if (ev) ev.push({ k: "phase", u: x.uid, text: "Vengeance ! " + (N ? N.victim + " est vengé." : "") }); if (S.run) { S.run.gold += N ? N.gold : 200; S.run.nemKill = 1; } S.nemesisLog = (S.nemesisLog || 0) + 1; S.nemesis = null; }
+  return r;
+}; }
+
+// 2 · Compétences signatures : les attaques « simples » prennent la marque de leur classe
+const SIG_FX = {
+  berserker: { fendoir: { fx: [{ k: "bleed", v: .3, t: 2, ch: .6 }] }, tourbillon: { sfx: [{ k: "dmgUp", v: .1, t: 2 }] } },
+  ombre: { dague: { bonus: { st: "mark", x: 1.4 } }, couteaux: { fx: [{ k: "poison", v: .25, t: 2, ch: .5 }] }, lame_cachee: { cr: 15, fx: [{ k: "bleed", v: .35, t: 2, ch: .7 }] }, saigner_ombre: { fx: [{ k: "dodgeDn", v: 10, t: 2, ch: .8 }] } },
+  arbaletriere: { carreau: { fx: [{ k: "mark", t: 2, ch: .5 }] }, pluie: { fx: [{ k: "spdDn", v: 2, t: 2, ch: .4 }] }, tir_tete: { bonus: { low: .4, x: 1.5 } }, meute: { fx: [{ k: "vuln", t: 2, ch: .4 }] } },
+  hallebardier: { taille: { fx: [{ k: "bleed", v: .3, t: 2, ch: .5 }] }, estoc_long: { fx: [{ k: "protDn", v: .1, t: 2, ch: .7 }] }, moulinet: { fx: [{ k: "weak", t: 2, ch: .4 }] }, coup_boucher: { bonus: { low: .35, x: 1.6 } } },
+  sorciere: { putrefaction: { fx: [{ k: "poison", v: .4, t: 3, ch: .9 }] } },
+  necromancien: { nuee_os: { fx: [{ k: "vuln", t: 2, ch: .3 }] } },
+  medecin_peste: { elixir: { fx: [{ k: "poison", v: .45, t: 3, ch: 1 }] } }
+};
+for (const c in SIG_FX) { const C = CLASSES[c]; if (!C) continue; const pools = [C.skills].concat(Object.values(C.evos || {}).map(e => e.skills || {}));
+  for (const id in SIG_FX[c]) for (const P of pools) if (P[id]) { const s = P[id], g = SIG_FX[c][id]; if (g.fx) s.fx = (s.fx || []).concat(g.fx); if (g.sfx) s.sfx = (s.sfx || []).concat(g.sfx); if (g.bonus && !s.bonus) s.bonus = g.bonus; if (g.cr) s.cr = (s.cr || 0) + g.cr; s.sig = 1; } }
+
+// 3 · Rivaux : l'ennemi qui achève un héros revient plus tard, nommé, plus fort — l'abattre venge le héros (gros butin)
+const NEM_TITLES = ["le Fossoyeur", "l'Égorgeur", "le Charognard", "la Mauvaise Étoile", "le Rancunier", "le Dévoreur", "l'Implacable", "le Boucher"];
+{ const fh = fallHero; fallHero = function (B, x, ev, worn) {
+  const r = fh.apply(this, arguments);
+  try { const s = B && B._lastSrc; if (s && s.side === "e" && !s.boss && !s.nem && S && S.run && S.run.region !== "abime" && !B.opt.sim0 && MONSTERS[s.key]) {
+    const t = NEM_TITLES[Math.floor(rnd() * NEM_TITLES.length)], lvl = s.lvl || 1;
+    S.nemesis = { key: s.key, n: (MONSTERS[s.key].n || s.name) + " " + t, victim: x.name, region: S.run.region, lvl, gold: Math.round(120 + lvl * 25) };
+    if (ev) ev.push({ k: "phase", u: s.uid, text: `${s.name} devient votre ennemi juré` }); } } catch (e) { }
+  return r;
+}; }
+{ const nb = newBattle; newBattle = function (heroes, enemyKeys, opt = {}) {
+  const B = nb.apply(this, arguments);
+  try { const N = S && S.nemesis, run = S && S.run; if (N && run && run.region === N.region && !B.enemies.some(e => e.boss) && B.enemies.length && rnd() < .3 && MONSTERS[N.key]) {
+    const m = monUnit(N.key, N.lvl + 2, B.mods || {}); m.hpMax = m.hp = Math.round(m.hpMax * 1.4); m.dmgLo *= 1.2; m.dmgHi *= 1.2; m.name = N.n; m.nem = 1; m.elite = true;
+    B.enemies[0] = m; B.nemesisIn = 1; } } catch (e) { }
+  return B;
+}; }
+
+// 4 · Défis de combat plus fréquents et plus variés
+Object.assign(CHALLENGES, {
+  blitz: { n: "Éclair", d: "Gagner en 4 tours ou moins.", ok: B => B.round <= 4 },
+  noult: { n: "Sans ultime", d: "Gagner sans utiliser d'ultime.", ok: B => !B.ults && !B.ultUsed },
+  allhit: { n: "Tous au combat", d: "Chaque héros inflige des dégâts.", ok: B => { const T = B.tally && B.tally.dmg || {}; return B.heroes.every(h => (T[h.hid] || 0) > 0); } },
+  full: { n: "Indemnes", d: "Finir le combat avec tous les héros au-dessus de 50 % de PV.", ok: B => B.heroes.every(h => alive(h) && h.hp / h.hpMax > .5) }
+});
+{ const a0 = act; act = function (B, u, sk) { if (sk && sk.isUlt && u && u.side === "h") B.ultUsed = 1; return a0.apply(this, arguments); }; }
+
+// 5 · Cicatrices : survivre à l'agonie marque un héros pour toujours (petit bonus, et une histoire)
+const SCARS = [
+  { k: "sc_gorge", n: "Gorge balafrée", d: "+4 de résistance", st: "res", v: 4 },
+  { k: "sc_oeil", n: "Œil crevé", d: "+4 % de chance critique", st: "crit", v: 4 },
+  { k: "sc_cotes", n: "Côtes brisées", d: "+5 % de PV max", st: "hp", v: .05 },
+  { k: "sc_main", n: "Main mutilée", d: "+5 d'esquive", st: "dodge", v: 5 },
+  { k: "sc_brule", n: "Grand brûlé", d: "+3 % de protection", st: "prot", v: .03 },
+  { k: "sc_survivant", n: "Revenu d'entre les morts", d: "+5 % de dégâts", st: "dmg", v: .05 }
+];
+function scarsOf(h) { return (h && h.scars || []).map(k => SCARS.find(s => s.k === k)).filter(Boolean); }
+if (typeof PAS_HOOKS !== "undefined") PAS_HOOKS.push(h => scarsOf(h).map(s => ({ k: "stat", s: s.st, v: s.v })));
+{ const sb = typeof stressAfterBattle === "function" ? stressAfterBattle : null;
+  const scarCheck = B => { if (!B || B.over !== "win" || !S) return; for (const u of B.heroes) { if (!u.agonyN || !alive(u)) continue; const h = heroById(u.hid); if (!h) continue; h.scars = h.scars || []; if (h.scars.length >= 3 || rnd() > .4) continue;
+    const free = SCARS.filter(s => !h.scars.includes(s.k)); if (!free.length) continue; const s = free[Math.floor(rnd() * free.length)]; h.scars.push(s.k); (B.newScars = B.newScars || []).push({ name: h.name, n: s.n, d: s.d }); } };
+  if (sb) stressAfterBattle = function (run, B) { const r = sb.apply(this, arguments); try { scarCheck(B); } catch (e) { } return r; };
+  else if (typeof afterBattle === "function") { const ab = afterBattle; afterBattle = function (run, B) { const r = ab.apply(this, arguments); try { scarCheck(B); } catch (e) { } return r; }; } }
+
+// 6 · Événements de combat : un choix au milieu du combat (interface seulement ; les bots ne les voient pas)
+const COMBAT_EVENTS = [
+  { k: "autel", t: "Un autel oublié s'allume", c: [
+    { n: "Prier", d: "Soigne le groupe de 15 %", f: B => { for (const h of B.heroes.filter(alive)) healUnit(B, null, h, h.hpMax * .15, []); } },
+    { n: "Profaner", d: "+20 % de dégâts 3 tours, −5 résolution", f: B => { for (const h of B.heroes.filter(alive)) h.st.push({ k: "dmgUp", v: .2, t: 3 }); changeMorale(B, -5, []); } }] },
+  { k: "breche", t: "Une brèche dans leur garde", c: [
+    { n: "Viser le chef", d: "L'ennemi le plus solide devient vulnérable 3 tours", f: B => { const e = B.enemies.filter(alive).sort((a, b) => b.hp - a.hp)[0]; if (e) addSt(B, null, e, { k: "vuln", t: 3 }, []); } },
+    { n: "Achever les faibles", d: "Les ennemis sous 40 % de PV perdent 15 % de leurs PV max", f: B => { for (const e of B.enemies.filter(alive)) if (e.hp / e.hpMax < .4) applyDamage(B, null, e, e.hpMax * .15, [], { dot: 1 }); } }] },
+  { k: "renfort", t: "Des pas lourds approchent", c: [
+    { n: "Tenir la ligne", d: "+15 % de protection 3 tours", f: B => { for (const h of B.heroes.filter(alive)) h.st.push({ k: "protUp", v: .15, t: 3 }); } },
+    { n: "Frapper vite", d: "+3 de vitesse et +10 % de dégâts 2 tours", f: B => { for (const h of B.heroes.filter(alive)) h.st.push({ k: "spdUp", v: 3, t: 2 }, { k: "dmgUp", v: .1, t: 2 }); } }] },
+  { k: "lueur", t: "Une lueur d'espoir", c: [
+    { n: "Rassembler les forces", d: "+25 de jauge d'ultime pour tous", f: B => { for (const h of B.heroes.filter(alive)) gainUlt(h, 25); } },
+    { n: "Chanter", d: "+12 de résolution", f: B => changeMorale(B, 12, []) }] },
+  { k: "sol", t: "Le sol se fend sous leurs pieds", c: [
+    { n: "Pousser", d: "Étourdit l'ennemi de tête (70 %)", f: B => { const e = B.enemies.filter(alive)[0]; if (e && chance(.7)) addSt(B, null, e, { k: "stun", t: 1 }, []); } },
+    { n: "Reculer", d: "Soigne le groupe de 8 % et +10 d'esquive 2 tours", f: B => { for (const h of B.heroes.filter(alive)) { healUnit(B, null, h, h.hpMax * .08, []); h.st.push({ k: "dodgeUp", v: 10, t: 2 }); } } }] }
+];
+{ const sr = startRound; startRound = function (B) {
+  const r = sr.apply(this, arguments);
+  if (B && B.round === 3 && !B.cevtDone && typeof document !== "undefined" && typeof cevtShow === "function" && !B.enemies.some(e => e.boss) && rnd() < .35) { B.cevtDone = 1; try { cevtShow(B, COMBAT_EVENTS[Math.floor(rnd() * COMBAT_EVENTS.length)]); } catch (e) { } }
+  return r;
+}; }
 /* ═══════════════════════ Outils de dessin (effets de combat, lueurs, dégradés) ═══════════════════════
    Tout l'art du jeu est peint (assets/) ; il ne reste ici que les utilitaires des effets. */
 function hexRgb(h) { h = h.replace("#", ""); if (h.length === 3) h = h.split("").map(c => c + c).join(""); const n = parseInt(h, 16); return [n >> 16 & 255, n >> 8 & 255, n & 255]; }
@@ -7838,7 +7986,7 @@ SCREENS.hero = {
         <div class="row">${roleTag(C.role)}<span class="tag gold">${heroTitle(h)}</span><span class="tag">Niveau ${h.lvl}</span>${h.asc ? `<span class="tag" style="color:${ASC_COL[(h.asc - 1) % ASC_COL.length]}">${"✦".repeat(Math.min(5, h.asc))} Ascension ${roman(h.asc)}</span>` : ""}${isInjured(h) ? '<span class="tag bad">Blessé</span>' : ""}</div>
         <div class="bar xp" style="margin:8px 0 2px"><i style="width:${h.lvl >= MAX_LVL ? 100 : 100 * h.xp / xpNeed(h.lvl)}%"></i></div><div class="tiny dim">${h.lvl >= MAX_LVL ? "Niveau maximal" : `${h.xp} / ${xpNeed(h.lvl)} XP`}</div>
         <p class="lore small">${C.lore}</p>${typeof classMech === "function" && classMech(h.cls) ? `<div class="cmech small"><b>${ico("star", "#ffd27a", 14)} ${classMech(h.cls).n}</b> — ${classMech(h.cls).d}</div>` : ""}
-        <div class="row small">${h.traits.map(t => `<span class="tag ${TRAITS[t].good ? "good" : "bad"}" ${tipAttr(TRAITS[t].n, TRAITS[t].d)}>${TRAITS[t].n}</span>`).join("")}</div>
+        <div class="row small">${typeof scarsOf === "function" ? scarsOf(h).map(z => `<span class="tag scar" ${tipAttr(z.n, "Cicatrice : " + z.d)}>✠ ${z.n}</span>`).join("") : ""}${h.traits.map(t => `<span class="tag ${TRAITS[t].good ? "good" : "bad"}" ${tipAttr(TRAITS[t].n, TRAITS[t].d)}>${TRAITS[t].n}</span>`).join("")}</div>
         ${heroStatsBlockHTML(h, st)}
         <p class="tiny dim" style="margin-top:6px">Rangs préférés : ${C.rk.join(", ")} · Armure ${C.armor} · Puissance ${heroPower(h)}</p>
       </div>
@@ -10939,7 +11087,7 @@ ACT.closeModal = () => navClose();
 /* Version du jeu et journal des nouveautés / correctifs (Archives › Nouveautés, écran-titre, Options). Version 0.x jusqu'à la sortie (1.0). */
 const GAME_VERSION = "0.244";
 const CHANGELOG = [
-  { v: "0.244", d: "20 nov. 2026", add: ["Icônes peintes de compétences pour Ophanim : tous les compagnons ont désormais leurs propres icônes.", "Icônes peintes de compétences pour le phénix, le drake et la licorne, et pour trois familiers légendaires : Béhémoth, Simurgh et Nidhögg.", "Icônes peintes de compétences pour le destrier noir, la wyvernette, le sphinxelet, le mammouthon, le basilic et le chat d'ombre.", "Icônes peintes de compétences pour le vautour, la panthère de cendre, le cerbère, la renarde aux lanternes, la raie des brumes et le faucon de sang.", "Icônes peintes de compétences pour le chérubin déchu, le griffonneau, le chimérot, le scorpion des cendres, le golem d'os et la grue d'argent.", "Icônes peintes de compétences pour la tisseuse, le chacal, le bouc, la mante, l'anguille et le gargouillon.", "Tenues refaites en vraies palettes : couleur principale, couleur d'accent, métal et cuir teintés séparément (les armures sombres changent aussi de couleur, sans grain ni halo autour du personnage).", "3 nouvelles tenues : Tenue de givre (22 victoires), Tenue de la peste (30) et Émeraude et or (42)."], fix: ["Éclairage : tout le jeu est plus lumineux (décors, combats, portraits, textes plus clairs et un peu plus grands), toujours dans une ambiance dark fantasy ; réglage « Luminosité » dans les Options (60 à 160 %).", "Classes : chaque classe a désormais une mécanique de combat unique, visible en combat et décrite sur la fiche du héros et dans les Archives (Bouclier de foi, Refus de mourir, Grâce, Malédiction, Refrain, Soif de sang, Embuscade, Visée posée, Embrasement, Moisson d'âmes, Rune gravée, Contagion, Traque, Garde d'allonge, Bannissement).", "Compagnons 40 % moins chers, et un compagnon offert à la première victoire contre chaque gardien d'histoire.", "Rythme : le chapitre IV n'est plus un mur ; les héros en retard sur le chapitre le plus avancé gagnent une expérience de rattrapage (jusqu'à +120 %).", "Bastion : bandeau « Prochain objectif » — une action conseillée, toujours visible, à toucher pour y aller.", "Tenues : visage et mains marqués à la main sur les 225 illustrations de héros — la peau ne change plus jamais de couleur, quelle que soit la tenue.", "Tenues : plus lumineuses et lisibles ; le visage, les mains et la peau nue (torse du berserker, décolleté de la sorcière…) gardent leur couleur naturelle, sans taches sombres.", "Interface : cadres peints en fer forgé pour toutes les cartes (héros, compagnons, recrues, classes, objets…), plaques peintes pour les noms des bâtiments du Bastion et la barre d'icônes, étiquettes, replis et champs de recherche assortis.", "Revue complète de l'interface (téléphone et PC, ~950 écrans et onglets parcourus) : onglets sur plusieurs lignes au lieu d'être coupés hors de l'écran, marchand ambulant lisible sur téléphone, cartes d'expédition plus hautes (salles qui se chevauchaient), boutons à icône seule en pastilles, titres de fenêtre jamais sous la croix, astuces qui ne recouvrent plus la carte ni le combat, un seul onglet doré à la fois.", "Interface : onglets et filtres en plaques peintes sans ornement (l'onglet actif en cuir doré), petits boutons secondaires en pastilles peintes.", "Tenues : teintes sombres façon dark fantasy (sapin, sang séché, bleu nuit, os et pourpre…) ; la peau (visage, mains, bras nus) n'est plus jamais recolorée.", "Boutons peints : la lueur suit la forme du bouton (plus de rectangle noir qui clignote derrière « Continuer ») ; boutons rouges et dorés bien affichés.", "Détourage : fonds noirs retirés sous les pieds de plusieurs héros (nécromancien, berserker, ombre, revenant…).", "Tenues : couleurs franches aussi sur les armures noires (ménestrel, revenant, chasseur de sorcières, nécromancien, médecin de peste, exorciste…) — les 15 classes reprises une à une.", "Fiche du héros et aperçu des tenues : illustrations en haute définition (plus de flou ni de grain sur les écrans de téléphone).", "Ménagerie : les familiers légendaires sont rangés en bas de la liste.", "Aperçu des tenues : plus de fond visible autour des personnages."] },
+  { v: "0.244", d: "20 nov. 2026", add: ["Icônes peintes de compétences pour Ophanim : tous les compagnons ont désormais leurs propres icônes.", "Icônes peintes de compétences pour le phénix, le drake et la licorne, et pour trois familiers légendaires : Béhémoth, Simurgh et Nidhögg.", "Icônes peintes de compétences pour le destrier noir, la wyvernette, le sphinxelet, le mammouthon, le basilic et le chat d'ombre.", "Icônes peintes de compétences pour le vautour, la panthère de cendre, le cerbère, la renarde aux lanternes, la raie des brumes et le faucon de sang.", "Icônes peintes de compétences pour le chérubin déchu, le griffonneau, le chimérot, le scorpion des cendres, le golem d'os et la grue d'argent.", "Icônes peintes de compétences pour la tisseuse, le chacal, le bouc, la mante, l'anguille et le gargouillon.", "Tenues refaites en vraies palettes : couleur principale, couleur d'accent, métal et cuir teintés séparément (les armures sombres changent aussi de couleur, sans grain ni halo autour du personnage).", "3 nouvelles tenues : Tenue de givre (22 victoires), Tenue de la peste (30) et Émeraude et or (42)."], fix: ["Éclairage : tout le jeu est plus lumineux (décors, combats, portraits, textes plus clairs et un peu plus grands), toujours dans une ambiance dark fantasy ; réglage « Luminosité » dans les Options (60 à 160 %).", "Duos de mécaniques : 8 paires de classes qui se renforcent (Peste maudite, Bûcher des sorcières, Hymne de la foi, Rempart d'acier, Ombres jumelles, Moisson sanglante, Rune bénie, Le spectre et la faucheuse), affichées avec les synergies.", "Compétences signatures : les attaques simples (berserker, ombre, arbalétrière, hallebardier…) portent maintenant la marque de leur classe (saignement, marque, exécution, armure percée…).", "Rivaux : l'ennemi qui achève un héros devient votre ennemi juré, revient plus fort dans la même région ; l'abattre venge le héros (or en plus).", "Défis de combat : un combat sur deux, 7 défis différents, avec leur état affiché en direct.", "Cicatrices : un héros qui survit à l'agonie peut garder une cicatrice permanente (petit bonus), visible sur sa fiche.", "Événements de combat : au 3e tour, un choix peut se présenter (autel, brèche, renforts, lueur d'espoir, sol qui se fend).", "Classes : chaque classe a désormais une mécanique de combat unique, visible en combat et décrite sur la fiche du héros et dans les Archives (Bouclier de foi, Refus de mourir, Grâce, Malédiction, Refrain, Soif de sang, Embuscade, Visée posée, Embrasement, Moisson d'âmes, Rune gravée, Contagion, Traque, Garde d'allonge, Bannissement).", "Compagnons 40 % moins chers, et un compagnon offert à la première victoire contre chaque gardien d'histoire.", "Rythme : le chapitre IV n'est plus un mur ; les héros en retard sur le chapitre le plus avancé gagnent une expérience de rattrapage (jusqu'à +120 %).", "Bastion : bandeau « Prochain objectif » — une action conseillée, toujours visible, à toucher pour y aller.", "Tenues : visage et mains marqués à la main sur les 225 illustrations de héros — la peau ne change plus jamais de couleur, quelle que soit la tenue.", "Tenues : plus lumineuses et lisibles ; le visage, les mains et la peau nue (torse du berserker, décolleté de la sorcière…) gardent leur couleur naturelle, sans taches sombres.", "Interface : cadres peints en fer forgé pour toutes les cartes (héros, compagnons, recrues, classes, objets…), plaques peintes pour les noms des bâtiments du Bastion et la barre d'icônes, étiquettes, replis et champs de recherche assortis.", "Revue complète de l'interface (téléphone et PC, ~950 écrans et onglets parcourus) : onglets sur plusieurs lignes au lieu d'être coupés hors de l'écran, marchand ambulant lisible sur téléphone, cartes d'expédition plus hautes (salles qui se chevauchaient), boutons à icône seule en pastilles, titres de fenêtre jamais sous la croix, astuces qui ne recouvrent plus la carte ni le combat, un seul onglet doré à la fois.", "Interface : onglets et filtres en plaques peintes sans ornement (l'onglet actif en cuir doré), petits boutons secondaires en pastilles peintes.", "Tenues : teintes sombres façon dark fantasy (sapin, sang séché, bleu nuit, os et pourpre…) ; la peau (visage, mains, bras nus) n'est plus jamais recolorée.", "Boutons peints : la lueur suit la forme du bouton (plus de rectangle noir qui clignote derrière « Continuer ») ; boutons rouges et dorés bien affichés.", "Détourage : fonds noirs retirés sous les pieds de plusieurs héros (nécromancien, berserker, ombre, revenant…).", "Tenues : couleurs franches aussi sur les armures noires (ménestrel, revenant, chasseur de sorcières, nécromancien, médecin de peste, exorciste…) — les 15 classes reprises une à une.", "Fiche du héros et aperçu des tenues : illustrations en haute définition (plus de flou ni de grain sur les écrans de téléphone).", "Ménagerie : les familiers légendaires sont rangés en bas de la liste.", "Aperçu des tenues : plus de fond visible autour des personnages."] },
   { v: "0.243", d: "19 nov. 2026", add: ["Icônes peintes de compétences pour le feu follet, le lynx, l'élan, le paon, la nuée de chauves-souris et le poulain de brume.", "Icônes peintes de compétences pour la sangsue, le sanglier, la salamandre, la phalène, le frelon et le scarabée.", "Icônes peintes de compétences pour la corneille, le blaireau, l'agneau noir, le chat noir, la tortue et le cygne noir.", "Compagnons repeints : wyverne (vert acide), pie (détourage net), hibou gris (sans clocher) et corbeau évolué (même pose que sa forme de base, reflets violets et runes)."] },
   { v: "0.242", d: "19 nov. 2026", add: ["Familiers légendaires refondus en créatures mythiques : Béhémoth (tank), Simurgh (soin), Nidhögg (dégâts) et Ophanim (soutien) — puissance ×2,5, aura de compagnie +10 %.", "Illustrations peintes : Nidhögg (Ronge-Racines / Fléau du Monde), Simurgh (Oiseau-Mère / des Mille Aubes) Béhémoth (Bête de la Terre / du Jugement) et Ophanim (Roue aux Mille Yeux / Trône d'Ophanim).", "Tenues : couleurs bien distinctes pour toutes les classes, y compris les armures sombres (chasseur de sorcières, revenant, médecin de peste…) ; « Tenue délavée » devient « Tenue des bois » (vert).", "Inquisiteur : « La Question » devient « Pénitence forcée »."],
     fix: ["Fin d'expédition : seules les classes et destinations réellement nouvelles sont annoncées (plus d'Abîme annoncé avant le chapitre 5, plus de classe déjà recrutable).", "Fiche du héros : bouton « Équiper » sur chaque objet, et toucher l'illustration de l'objet l'équipe aussi.", "Objectifs : les fonctions encore verrouillées (fusion de bibelots…) n'y apparaissent plus.", "Détourages : vides noirs supprimés sur une cinquantaine de monstres et d'armures (entre les jambes, sous les bras, sous l'arbalète…), bas des gardiens coupés adouci (Bourreau de Morvaine…), anneaux et boucle sans fond noir, Grand loup des cendres avec ses quatre pattes."] },
@@ -12470,6 +12618,27 @@ function nextGoalHTML() {
   return `<button id="nextgoal" class="nextgoal" data-a="${g.a || "goals"}" data-v="${esc(String(g.v == null ? "" : g.v))}"><span class="ngk">${ico(g.ic || "star", "#ffd27a", 20)}</span><span class="ngt"><i>Prochain objectif</i><b>${g.t}</b>${g.d ? `<small>${g.d}</small>` : ""}</span><span class="nga">›</span></button>`;
 }
 { const bh = SCREENS.bastion.html; SCREENS.bastion.html = (...a) => bh(...a) + nextGoalHTML(); }
+// 20 nov. (soir) : interface des événements de combat, du défi en direct, des cicatrices et des rivaux
+function cevtShow(B, E) {
+  if (!E || UI.screen !== "combat") return; const old = $("#cevt"); if (old) old.remove();
+  const d = document.createElement("div"); d.id = "cevt"; d.className = "cevt";
+  d.innerHTML = `<div class="cevt-t">${ico("star", "#ffd27a", 16)} ${E.t}</div><div class="cevt-c">${E.c.map((c, i) => `<button class="btn ${i ? "" : "gold"}" data-i="${i}"><b>${c.n}</b><small>${c.d}</small></button>`).join("")}</div><div class="cevt-k">Choix automatique dans <span>10</span> s</div>`;
+  document.body.appendChild(d);
+  let left = 10; const pick = i => { if (!d.isConnected) return; clearInterval(tm); d.remove(); if (CB.B !== B || B.over) return; try { E.c[i].f(B); } catch (e) { console.error(e); } toast(`${E.t} — ${E.c[i].n} : ${E.c[i].d}`); try { sfx("crit"); } catch (e) { } };
+  d.querySelectorAll("button").forEach(b => b.addEventListener("click", ev => { ev.stopPropagation(); pick(+b.dataset.i); }));
+  const tm = setInterval(() => { if (!d.isConnected || CB.B !== B || B.over) { clearInterval(tm); d.remove(); return; } left--; const s = d.querySelector(".cevt-k span"); if (s) s.textContent = left; if (left <= 0) pick(0); }, 1000);
+}
+// défi du combat, visible en permanence, avec son état
+function chalBadge() { const B = CB.B; let el = $("#cbchal"); if (UI.screen !== "combat" || !B || !B.chal || !CHALLENGES[B.chal]) { if (el) el.remove(); return; }
+  const C = CHALLENGES[B.chal]; let st = "…";
+  try { if (B.chal === "fast") st = B.round <= 8 ? "en cours" : "raté"; else if (B.chal === "blitz") st = B.round <= 4 ? "en cours" : "raté"; else if (B.chal === "nopot") st = B.potUsed ? "raté" : "tenu"; else if (B.chal === "clean") st = B.agonies ? "raté" : "tenu"; else if (B.chal === "noult") st = B.ultUsed || B.ults ? "raté" : "tenu"; else if (B.chal === "full") st = C.ok(B) ? "tenu" : "en danger"; else if (B.chal === "allhit") { const T = B.tally && B.tally.dmg || {}; st = B.heroes.filter(h => (T[h.hid] || 0) > 0).length + " / " + B.heroes.length; } } catch (e) { }
+  if (!el) { el = document.createElement("div"); el.id = "cbchal"; document.body.appendChild(el); }
+  el.className = "cbchal " + (st === "raté" ? "ko" : "");
+  el.innerHTML = `${ico("trophy", st === "raté" ? "#9a8c7a" : "#e8c878", 14)} <b>${C.n}</b> <span>${C.d}</span> <i>${st}</i>`; }
+if (typeof window !== "undefined") setInterval(() => { try { chalBadge(); } catch (e) { } }, 700);
+// cicatrices et rivaux annoncés
+{ const sb = stressAfterBattle; stressAfterBattle = function (run, B) { const r = sb.apply(this, arguments); try { for (const z of (B && B.newScars) || []) toast(`✠ ${esc(z.name)} garde une cicatrice : <b>${z.n}</b> (${z.d})`); } catch (e) { } return r; }; }
+{ const fh = fallHero; fallHero = function (B) { const n0 = S.nemesis; const r = fh.apply(this, arguments); try { if (S.nemesis && S.nemesis !== n0) setTimeout(() => toast(`☠ <b>${esc(S.nemesis.n)}</b> a tué ${esc(S.nemesis.victim)}. Il rôde maintenant dans cette région…`), 900); } catch (e) { } return r; }; }
 /* PlayDrop : actif seulement dans la version publiée sur PlayDrop (window.CC_PD, posé par pd/mkpd.sh, qui charge aussi le SDK).
    – sauvegarde en ligne : la partie suit le joueur d'un appareil à l'autre (sdk.me.appData, code compressé CC1) ;
    – classements : profondeur de l'Abîme, niveau d'aventure, chapitres vaincus ;

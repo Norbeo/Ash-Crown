@@ -38,7 +38,7 @@ function cbLayout() {
   } else {
     const colW = W / 4.1, colH = B.pet ? W / 5.05 : colW, eY = H * .47, hY = H * .89; // avec un compagnon, les héros se resserrent pour lui laisser la place à gauche
     CB.scale = Math.min((hY - eY) * .68 / 200, colW / 82); CB.hScale = Math.min(CB.scale, colH / 70); CB.ground = hY; CB.petX = W - colH * 4.5 - W * .012;
-    const cx = rk => W - colW * (rk - .5) - W * .012, hx = rk => W - colH * (rk - .5) - W * .012;
+    const cx = rk => colW * (rk - .5) + W * .012 /* portrait : rang 1 ennemi (tank) à gauche, distance à droite */, hx = rk => W - colH * (rk - .5) - W * .012;
     let r = 1; for (const u of B.heroes) { pos[u.uid] = [hx(r), hY]; r++; }
     r = 1; for (const u of B.enemies) { const s = u.sz || 1; pos[u.uid] = [cx(r + (s - 1) / 2), eY]; r += s; }
   }

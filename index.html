@@ -4721,13 +4721,17 @@ function merchantBuy(i) { const M = merchantStock(), o = M.items[i]; if (!o || o
 
 // ── Tenues alternatives : une teinte d'armure, débloquée par les défis de classe ──
 const OUTFITS = [{ k: "", n: "Tenue d'origine", need: 0 },
-  { k: "deuil", n: "Tenue des bois", need: 3, ch: { cloth: [105, .5, .8], metal: [120, 112, 100], mk: .45 } },
-  { k: "sang", n: "Tenue écarlate", need: 10, ch: { cloth: [355, .75, .8], metal: [105, 105, 115], mk: .35 } },
-  { k: "nuit", n: "Tenue de nuit", need: 18, ch: { cloth: [222, .55, .62], metal: [150, 110, 70], mk: .5 } },
-  { k: "cendre", n: "Cendre et braise", need: 25, ch: { cloth: [24, .7, .75], metal: [70, 66, 62], mk: .6, glow: [255, 120, 40] } },
-  { k: "ivoire", n: "Tenue d'ivoire", need: 35, ch: { cloth: [42, .12, 1.9], metal: [235, 225, 200], mk: .6 } },
-  { k: "maitre", n: "Pourpre royal (maître)", need: 50, ch: { cloth: [278, .6, .7], metal: [205, 210, 220], mk: .6 } },
-  { k: "epreuve", n: "Noir et or (Épreuve)", need: 0, trial: 1, ch: { cloth: [0, 0, .32], metal: [240, 180, 50], mk: .85 } }];
+  // pal : p = principale [teinte, saturation, luminosité], a = accent, m = métal (rgb), mk = force du métal, dk = ombres [teinte, saturation, gamma]
+  { k: "deuil", n: "Tenue des bois", need: 3, pal: { p: [110, .6, 1], a: [32, .6, 1], m: [160, 125, 80], mk: .55, dk: [105, 0.37, 0.88] } },
+  { k: "sang", n: "Tenue écarlate", need: 10, pal: { p: [356, .85, 1.05], a: [44, .75, 1.1], m: [215, 180, 95], mk: .6, dk: [355, 0.51, 0.88] } },
+  { k: "nuit", n: "Tenue de nuit", need: 18, pal: { p: [220, .7, 1], a: [275, .55, 1], m: [195, 205, 220], mk: .6, dk: [225, 0.54, 0.88] } },
+  { k: "givre", n: "Tenue de givre", need: 22, pal: { p: [195, .55, 1.25], a: [262, .4, 1.3], m: [220, 235, 245], mk: .65, dk: [200, 0.42, 0.85] } },
+  { k: "cendre", n: "Cendre et braise", need: 25, pal: { p: [22, .85, 1.05], a: [348, .8, .95], m: [85, 78, 72], mk: .6, dk: [12, 0.48, 0.88], glow: [255, 120, 40] } },
+  { k: "peste", n: "Tenue de la peste", need: 30, pal: { p: [78, .7, .95], a: [290, .5, .9], m: [120, 130, 95], mk: .55, dk: [85, 0.42, 0.88] } },
+  { k: "ivoire", n: "Tenue d'ivoire", need: 35, pal: { p: [40, .22, 1.7], a: [205, .3, 1.4], m: [235, 205, 130], mk: .65, dk: [38, 0.12, 0.72] } },
+  { k: "emeraude", n: "Émeraude et or", need: 42, pal: { p: [150, .75, 1.05], a: [45, .8, 1.15], m: [235, 190, 80], mk: .7, dk: [155, 0.51, 0.88] } },
+  { k: "maitre", n: "Pourpre royal (maître)", need: 50, pal: { p: [280, .7, 1.05], a: [45, .75, 1.1], m: [210, 215, 228], mk: .6, dk: [282, 0.51, 0.88] } },
+  { k: "epreuve", n: "Noir et or (Épreuve)", need: 0, trial: 1, pal: { p: [0, 0, .45], a: [44, .85, 1.15], m: [245, 185, 55], mk: .85, dk: [40, 0.08, 0.88] } }];
 const outfitOk = (h, k) => { const O = OUTFITS.find(o => o.k === k); return O && (O.trial ? !!((S.classTrial || {})[h.cls]) : ((S.classWins || {})[h.cls] || 0) >= O.need); };
 
 // ── Compagnons en duo : bonus quand le compagnon s'entend avec une classe du groupe ──
@@ -7318,7 +7322,8 @@ function hubLayout(w, h) {
 // ménagerie : d'abord les compagnons possédés (l'actif en tête), puis ceux qu'on peut acheter, enfin ceux à débloquer plus tard
 function petOrder() {
   const rank = id => id === S.pet ? 0 : S.pets.owned.includes(id) ? 1 : petUnlocked(id) ? 2 : 3;
-  return PET_IDS.slice().sort((a, b) => rank(a) - rank(b) || ((PETS[a].unl || [0, 0])[0] * 5 + (PETS[a].unl || [0, 0])[1]) - ((PETS[b].unl || [0, 0])[0] * 5 + (PETS[b].unl || [0, 0])[1]) || (PETS[a].cost || 0) - (PETS[b].cost || 0));
+  const uk = id => PETS[id].legendary ? 1e6 : (PETS[id].unl || [0, 0])[0] * 5 + (PETS[id].unl || [0, 0])[1]; // familiers légendaires : toujours en bas de leur groupe
+  return PET_IDS.slice().sort((a, b) => rank(a) - rank(b) || uk(a) - uk(b) || (PETS[a].cost || 0) - (PETS[b].cost || 0));
 }
 const BLD_CACHE = {};
 // nom selon le niveau (la Chapelle en ruine devient Chapelle restaurée puis Cathédrale)
@@ -10745,8 +10750,9 @@ ACT.closeModal = () => navClose();
 { const cb0 = confirmBox; confirmBox = function (text, yes, o) { return cb0(text, () => { yes(); setTimeout(() => { if ($("#modal").hidden && MNAV.stack.length) navRestore(MNAV.stack.pop()); }, 30); }, o); }; }
 { const g0 = go; go = function () { MNAV.stack = []; MNAV.cur = null; MNAV.closed = null; return g0.apply(this, arguments); }; }
 /* Version du jeu et journal des nouveautés / correctifs (Archives › Nouveautés, écran-titre, Options). Version 0.x jusqu'à la sortie (1.0). */
-const GAME_VERSION = "0.243";
+const GAME_VERSION = "0.244";
 const CHANGELOG = [
+  { v: "0.244", d: "20 nov. 2026", add: ["Tenues refaites en vraies palettes : couleur principale, couleur d'accent, métal et cuir teintés séparément (les armures sombres changent aussi de couleur, sans grain ni halo autour du personnage).", "3 nouvelles tenues : Tenue de givre (22 victoires), Tenue de la peste (30) et Émeraude et or (42)."], fix: ["Ménagerie : les familiers légendaires sont rangés en bas de la liste.", "Aperçu des tenues : plus de fond visible autour des personnages."] },
   { v: "0.243", d: "19 nov. 2026", add: ["Icônes peintes de compétences pour le feu follet, le lynx, l'élan, le paon, la nuée de chauves-souris et le poulain de brume.", "Icônes peintes de compétences pour la sangsue, le sanglier, la salamandre, la phalène, le frelon et le scarabée.", "Icônes peintes de compétences pour la corneille, le blaireau, l'agneau noir, le chat noir, la tortue et le cygne noir.", "Compagnons repeints : wyverne (vert acide), pie (détourage net), hibou gris (sans clocher) et corbeau évolué (même pose que sa forme de base, reflets violets et runes)."] },
   { v: "0.242", d: "19 nov. 2026", add: ["Familiers légendaires refondus en créatures mythiques : Béhémoth (tank), Simurgh (soin), Nidhögg (dégâts) et Ophanim (soutien) — puissance ×2,5, aura de compagnie +10 %.", "Illustrations peintes : Nidhögg (Ronge-Racines / Fléau du Monde), Simurgh (Oiseau-Mère / des Mille Aubes) Béhémoth (Bête de la Terre / du Jugement) et Ophanim (Roue aux Mille Yeux / Trône d'Ophanim).", "Tenues : couleurs bien distinctes pour toutes les classes, y compris les armures sombres (chasseur de sorcières, revenant, médecin de peste…) ; « Tenue délavée » devient « Tenue des bois » (vert).", "Inquisiteur : « La Question » devient « Pénitence forcée »."],
     fix: ["Fin d'expédition : seules les classes et destinations réellement nouvelles sont annoncées (plus d'Abîme annoncé avant le chapitre 5, plus de classe déjà recrutable).", "Fiche du héros : bouton « Équiper » sur chaque objet, et toucher l'illustration de l'objet l'équipe aussi.", "Objectifs : les fonctions encore verrouillées (fusion de bibelots…) n'y apparaissent plus.", "Détourages : vides noirs supprimés sur une cinquantaine de monstres et d'armures (entre les jambes, sous les bras, sous l'arbalète…), bas des gardiens coupés adouci (Bourreau de Morvaine…), anneaux et boucle sans fond noir, Grand loup des cendres avec ses quatre pattes."] },
@@ -10970,28 +10976,50 @@ document.addEventListener("input", e => { const el = e.target; if (!el.dataset |
     return s.replace(/<span class="row" style="gap:4px"><button class="btn sm [^"]*" data-a="readTome"[\s\S]*?<\/span>|<button class="btn sm [^"]*" data-a="readTome" data-v="[^"]*">Lire<\/button>/, tomeQtyHTML("h", h.id, mx)); }; }
 { const pt = petTomeHTML; petTomeHTML = function (id) { const s = pt.apply(this, arguments); if (!s) return s; const mx = tomeMax("p", id); if (mx < 1) return s;
     return s.replace(/<span class="row" style="gap:4px"><button class="btn sm [^"]*" data-a="readPetTome"[\s\S]*?<\/span>/, tomeQtyHTML("p", id, mx)); }; }
-/* Tenues = chromas : le tissu (couleurs saturées) prend une nouvelle teinte, le métal (gris, doré) une nouvelle couleur,
-   la peau et les ombres restent intactes. Calculé une fois par illustration et par tenue, puis mis en cache. */
-const CHROMA_CACHE = new Map(), DARK_K = .82;
+/* Tenues = palettes (refonte 20 nov.) : chaque tenue a une couleur principale, une couleur d'accent, une teinte de métal
+   et une teinte de cuir/armure sombre. La couleur dominante de l'illustration devient la principale, les autres teintes
+   deviennent l'accent (la tenue reste multicolore) ; la peau ne change pas ; les zones sombres sont teintées sans être
+   éclaircies (pas de grain ni de halo autour du détourage). Calculé une fois par illustration et par tenue. */
+const CHROMA_CACHE = new Map();
+function chromaHue(d) { // teinte dominante des pixels saturés (hors peau)
+  const H = new Float32Array(36);
+  for (let i = 0; i < d.length; i += 16) { if (d[i + 3] < 160) continue;
+    const r = d[i] / 255, g = d[i + 1] / 255, b = d[i + 2] / 255, mx = Math.max(r, g, b), mn = Math.min(r, g, b), s = mx > 0 ? (mx - mn) / mx : 0;
+    if (s < .28 || mx < .12) continue; const dd = mx - mn; let h = mx === r ? ((g - b) / dd) % 6 : mx === g ? (b - r) / dd + 2 : (r - g) / dd + 4; h *= 60; if (h < 0) h += 360;
+    if (h > 4 && h < 32 && s < .6 && mx > .35) continue; H[Math.floor(h / 10) % 36] += s * mx; }
+  let best = 0; for (let k = 1; k < 36; k++) if (H[k] + H[(k + 35) % 36] + H[(k + 1) % 36] > H[best] + H[(best + 35) % 36] + H[(best + 1) % 36]) best = k;
+  return best * 10 + 5;
+}
 function chromaArt(im, name, key) {
-  const O = (typeof OUTFITS !== "undefined" ? OUTFITS : []).find(o => o.k === key); if (!O || !O.ch || !im) return im;
+  const O = (typeof OUTFITS !== "undefined" ? OUTFITS : []).find(o => o.k === key); if (!O || !O.pal || !im) return im;
   const id = name + "|" + key; if (CHROMA_CACHE.has(id)) return CHROMA_CACHE.get(id);
   const W = im.naturalWidth || im.width, H = im.naturalHeight || im.height; if (!W || !H) return im;
   const c = document.createElement("canvas"); c.width = W; c.height = H; const x = c.getContext("2d"); x.drawImage(im, 0, 0);
   let D; try { D = x.getImageData(0, 0, W, H); } catch (e) { return im; }
-  const d = D.data, P = O.ch, [ch, cs, cv] = P.cloth, mc = P.metal.map(v => v / 255), ml = mc[0] * .3 + mc[1] * .59 + mc[2] * .11, mk = P.mk, gl = P.glow ? P.glow.map(v => v / 255) : null;
-  const hsv = (h, s, v) => { const i = Math.floor(h / 60) % 6, f = h / 60 - Math.floor(h / 60), p = v * (1 - s), q = v * (1 - s * f), t = v * (1 - s * (1 - f)); return [[v, t, p], [q, v, p], [p, v, t], [p, q, v], [t, p, v], [v, p, q]][i]; };
+  const d = D.data, P = O.pal, dom = chromaHue(d);
+  const [ph, ps, pv] = P.p, [ah, as, av] = P.a, mc = P.m.map(v => v / 255), ml = Math.max(.05, mc[0] * .3 + mc[1] * .59 + mc[2] * .11), mk = P.mk, [dh, ds, dg] = P.dk, gl = P.glow ? P.glow.map(v => v / 255) : null;
+  const hsv = (h, s, v) => { h = ((h % 360) + 360) % 360; const i = Math.floor(h / 60) % 6, f = h / 60 - Math.floor(h / 60), p = v * (1 - s), q = v * (1 - s * f), t = v * (1 - s * (1 - f)); return [[v, t, p], [q, v, p], [p, v, t], [p, q, v], [t, p, v], [v, p, q]][i]; };
+  const adist = (a, b) => { const z = Math.abs(a - b) % 360; return z > 180 ? 360 - z : z; };
   for (let i = 0; i < d.length; i += 4) {
-    if (d[i + 3] < 8) continue;
+    const al = d[i + 3]; if (al < 8) continue;
     const r = d[i] / 255, g = d[i + 1] / 255, b = d[i + 2] / 255, mx = Math.max(r, g, b), mn = Math.min(r, g, b), v = mx, s = mx > 0 ? (mx - mn) / mx : 0, dd = Math.max(mx - mn, 1e-6);
     let h = mx === r ? ((g - b) / dd) % 6 : mx === g ? (b - r) / dd + 2 : (r - g) / dd + 4; h *= 60; if (h < 0) h += 360;
     const lum = r * .3 + g * .59 + b * .11;
-    const skin = h > 4 && h < 32 && s > .22 && s < .6 && v > .35, gold = h >= 32 && h < 60 && s > .3 && v > .35, metal = (s < .25 && v > .22) || gold, cloth = s >= .25 && !skin && !gold && v > .08;
+    const skin = h > 4 && h < 32 && s > .22 && s < .6 && v > .35, gold = h >= 32 && h < 62 && s > .3 && v > .3, grey = s < .25 && v > .24;
     let o = [r, g, b];
-    if (cloth) o = hsv(ch, Math.min(1, cs * (.6 + .4 * s)), Math.min(1, v * cv));
-    else if (!skin && !metal && v > .03) { const t = hsv(ch, Math.min(1, cs * .85), Math.min(1, v * Math.max(cv, .85) * 1.4)); o = o.map((z, k) => z * (1 - DARK_K) + t[k] * DARK_K); } // armures sombres : teintées aussi (sinon la tenue ne change rien)
-    if (metal) { const t = [0, 1, 2].map(k => Math.min(1, lum * mc[k] / Math.max(ml, 1e-3))); o = o.map((z, k) => z * (1 - mk) + t[k] * mk); }
-    if (gl && v > .75 && s > .4) o = o.map((z, k) => z * .4 + gl[k] * .6 * v);
+    if (skin) { /* peau intacte */ }
+    else if (gold || grey) { const t = [0, 1, 2].map(k => Math.min(1, lum * mc[k] / ml)); o = o.map((z, k) => z * (1 - mk) + t[k] * mk); }
+    else if (s >= .25 && v > .1) { // tissu, cuir coloré, gemmes : principale si proche de la teinte dominante, sinon accent
+      const near = adist(h, dom) < 50, off = ((h - dom + 540) % 360) - 180;
+      if (near) { const k2 = Math.max(0, Math.min(1, (.42 - v) / .25)) * .55, hd = ((((ah - ph) % 360) + 540) % 360) - 180; // replis sombres du tissu tirés vers l'accent
+        o = hsv(ph + off * .35 + hd * k2, Math.min(1, (ps + (as - ps) * k2) * (.55 + .45 * s)), Math.min(1, v * (pv + (av - pv) * k2))); }
+      else o = hsv(ah + off * .15, Math.min(1, as * (.55 + .45 * s)), Math.min(1, v * av));
+    } else { // ombres et armure sombre : teinte légère, luminosité gardée (gamma doux), jamais sur les bords du détourage
+      const w = al < 200 ? 0 : Math.min(1, v * 6), vv = Math.pow(v, dg), q = Math.min(1, Math.max(0, (v - .07) / .22)), qq = q * q * (3 - 2 * q);
+      // dégradé : ombres profondes → teinte sombre de la tenue, plaques et reliefs → couleur d'accent (armure bicolore)
+      const t = hsv(dh + ((((ah - dh) % 360) + 540) % 360 - 180) * qq, ds + (Math.min(.8, as) - ds) * qq, Math.min(1, vv * (1 + .7 * qq))); o = o.map((z, k) => z * (1 - w) + t[k] * w);
+    }
+    if (gl && v > .7 && s > .45 && !skin) o = o.map((z, k) => z * .45 + gl[k] * .55 * v);
     d[i] = o[0] * 255; d[i + 1] = o[1] * 255; d[i + 2] = o[2] * 255;
   }
   x.putImageData(D, 0, 0); c.naturalWidth = W; c.naturalHeight = H; CHROMA_CACHE.set(id, c); return c;

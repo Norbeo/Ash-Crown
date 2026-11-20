@@ -9,7 +9,8 @@ function hubLayout(w, h) {
 // ménagerie : d'abord les compagnons possédés (l'actif en tête), puis ceux qu'on peut acheter, enfin ceux à débloquer plus tard
 function petOrder() {
   const rank = id => id === S.pet ? 0 : S.pets.owned.includes(id) ? 1 : petUnlocked(id) ? 2 : 3;
-  return PET_IDS.slice().sort((a, b) => rank(a) - rank(b) || ((PETS[a].unl || [0, 0])[0] * 5 + (PETS[a].unl || [0, 0])[1]) - ((PETS[b].unl || [0, 0])[0] * 5 + (PETS[b].unl || [0, 0])[1]) || (PETS[a].cost || 0) - (PETS[b].cost || 0));
+  const uk = id => PETS[id].legendary ? 1e6 : (PETS[id].unl || [0, 0])[0] * 5 + (PETS[id].unl || [0, 0])[1]; // familiers légendaires : toujours en bas de leur groupe
+  return PET_IDS.slice().sort((a, b) => rank(a) - rank(b) || uk(a) - uk(b) || (PETS[a].cost || 0) - (PETS[b].cost || 0));
 }
 const BLD_CACHE = {};
 // nom selon le niveau (la Chapelle en ruine devient Chapelle restaurée puis Cathédrale)

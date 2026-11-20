@@ -451,7 +451,7 @@ function drawCombat(x, t, dt) {
   for (const tx2 of CB.txt) {
     tx2.t += dt; const k = tx2.t / tx2.life; if (k >= 1) { tx2.done = 1; continue; }
     const sc = tx2.big ? 1.4 : 1, yy = tx2.y - easeOut(k) * (tx2.bark ? 18 : 50), a = k < .8 ? 1 : (1 - k) * 5;
-    x.save(); x.globalAlpha = a; x.font = tx2.bark ? `italic 600 ${Math.round(15 * Math.max(.85, Math.min(1.2, CB.scale * 1.5)))}px Alegreya, Georgia, serif` : `${tx2.big ? 900 : 700} ${Math.round((16 + (/^\d+$/.test(tx2.text) ? 6 : 0)) * sc * Math.max(.8, Math.min(1.3, CB.scale * 1.5)))}px Cinzel, serif`; x.textAlign = "center";
+    x.save(); x.globalAlpha = a; x.font = tx2.bark ? `italic 600 ${Math.round(15 * Math.max(.85, Math.min(1.2, CB.scale * 1.5)))}px Alegreya, Georgia, serif` : `${tx2.big ? 900 : 700} ${Math.round((16 + (/^\d+$/.test(tx2.text) ? 6 : 0)) * sc * Math.max(.8, Math.min(1.3, CB.scale * 1.5)))}px 'Grenze Gotisch', Cinzel, serif`; x.textAlign = "center";
     const hw = x.measureText(tx2.text).width / 2 + 6, tx = clamp(tx2.x, hw, SC.w - hw), ty = Math.max(CB.port ? 96 : 70, yy); // jamais hors de l'écran ni sous le bandeau
     x.lineWidth = 4; x.strokeStyle = "#000"; x.strokeText(tx2.text, tx, ty); x.fillStyle = tx2.col; x.fillText(tx2.text, tx, ty); x.restore();
   }
@@ -466,8 +466,8 @@ function drawCombat(x, t, dt) {
     const a = k < .15 ? k / .15 : k > .85 ? (1 - k) / .15 : 1; const cy = stH * .32;
     x.save(); x.globalAlpha = a; x.fillStyle = lgrad(x, 0, cy - 50, 0, cy + 50, [[0, "rgba(0,0,0,0)"], [.3, "rgba(0,0,0,.82)"], [.7, "rgba(0,0,0,.82)"], [1, "rgba(0,0,0,0)"]]); x.fillRect(0, cy - 50, W, 100);
     x.fillStyle = lgrad(x, 0, 0, W, 0, [[0, rgba(b.col, 0)], [.5, rgba(b.col, .9)], [1, rgba(b.col, 0)]]); x.fillRect(0, cy - 34, W, 1.5); x.fillRect(0, cy + 32, W, 1.5);
-    x.textAlign = "center"; x.font = `900 ${Math.min(42, W / 14)}px "Cinzel Decorative", Cinzel, serif`; x.shadowColor = b.col; x.shadowBlur = 20; x.fillStyle = "#f8ecd0"; x.fillText(b.title, W / 2 + (1 - easeOut(Math.min(1, k * 4))) * 60, cy + 10);
-    if (b.sub) { x.shadowBlur = 0; x.font = `600 14px Cinzel, serif`; x.fillStyle = b.col; x.fillText(b.sub.toUpperCase(), W / 2, cy + 28); }
+    x.textAlign = "center"; x.font = `900 ${Math.min(42, W / 14)}px "Grenze Gotisch", "Cinzel Decorative", serif`; x.shadowColor = b.col; x.shadowBlur = 20; x.fillStyle = "#f8ecd0"; x.fillText(b.title, W / 2 + (1 - easeOut(Math.min(1, k * 4))) * 60, cy + 10);
+    if (b.sub) { x.shadowBlur = 0; x.font = `600 14px 'Grenze Gotisch', Cinzel, serif`; x.fillStyle = b.col; x.fillText(b.sub.toUpperCase(), W / 2, cy + 28); }
     x.restore(); } }
   // vignette
   const vg = x.createRadialGradient(W / 2, stH * .6, stH * .3, W / 2, stH * .6, Math.max(W, stH)); vg.addColorStop(0, "rgba(0,0,0,0)"); vg.addColorStop(1, `rgba(0,0,0,${S.opts && S.opts.darkOld ? .55 : .3})`); x.fillStyle = vg; x.fillRect(0, 0, W, stH);
@@ -493,16 +493,24 @@ function dmgPreview(B, u, x, sk) {
 function drawUnitUI(x, u, v, t) {
   const B = CB.B, us = u.side === "h" && CB.port && CB.hScale ? CB.hScale : CB.scale, s = Math.max(.7, Math.min(1.25, us * 1.6)), w = Math.min(64 * s, CB.port && u.side === "h" ? SC.w / 5.4 : 1e9) * (u.sz > 1 ? 1.5 : 1), bx = v.x - w / 2, by = v.y + 8 * s;
   // barre de PV
-  x.fillStyle = "rgba(0,0,0,.75)"; x.fillRect(bx - 1, by - 1, w + 2, 8 * s + 2);
   const hpk = clamp(u.hp / u.hpMax, 0, 1); v.hp = v.hp == null ? hpk : v.hp + (hpk - v.hp) * .12;
+  const HF = typeof artImg === "function" && artImg("cb_hpframe"), HL = typeof artImg === "function" && artImg("cb_hpfill");
+  if (HF && HL && !S.opts.ukOff) { // barre de PV peinte (planche U4) : canal de fer forgé, sang épais
+    x.fillStyle = "rgba(8,4,4,.92)"; x.fillRect(bx, by, w, 8 * s);
+    x.globalAlpha = .45; x.drawImage(HL, 0, 0, HL.width * v.hp, HL.height, bx, by, w * v.hp, 8 * s); x.globalAlpha = 1;
+    x.drawImage(HL, 0, 0, Math.max(1, HL.width * hpk), HL.height, bx, by, w * hpk, 8 * s);
+    if (u.side === "h") { x.fillStyle = "rgba(255,190,150,.12)"; x.fillRect(bx, by, w * hpk, 2.5 * s); }
+    const fw = w * 1.17, fh = 8 * s * 1.92; x.drawImage(HF, bx - (fw - w) / 2, by - fh * .3, fw, fh);
+  } else {
+  x.fillStyle = "rgba(0,0,0,.75)"; x.fillRect(bx - 1, by - 1, w + 2, 8 * s + 2);
   x.fillStyle = "#5a1410"; x.fillRect(bx, by, w * v.hp, 8 * s);
-  x.fillStyle = u.side === "h" ? lgrad(x, 0, by, 0, by + 8 * s, [[0, "#e04a3a"], [1, "#8a1a10"]]) : lgrad(x, 0, by, 0, by + 8 * s, [[0, "#c03a3a"], [1, "#6a1010"]]); x.fillRect(bx, by, w * hpk, 8 * s);
+  x.fillStyle = u.side === "h" ? lgrad(x, 0, by, 0, by + 8 * s, [[0, "#e04a3a"], [1, "#8a1a10"]]) : lgrad(x, 0, by, 0, by + 8 * s, [[0, "#c03a3a"], [1, "#6a1010"]]); x.fillRect(bx, by, w * hpk, 8 * s); }
   const sh = stSum(u, "shield"); if (sh > 0) { x.fillStyle = "rgba(140,190,255,.7)"; x.fillRect(bx, by, w * clamp(sh / u.hpMax, 0, 1), 3 * s); }
   // aperçu des dégâts : la part de PV que la compétence choisie devrait retirer (et la chance de tuer)
   if (CB.sel && CB.sel.sk && CB.actor && u.side === "e" && CB.sel.tg.includes(u) && CB.sel.sk.m > 0 && !u.agony) { const P = dmgPreview(B, CB.actor, u, CB.sel.sk); if (P) {
     const a = clamp((u.hp - P.avg) / u.hpMax, 0, 1); x.fillStyle = `rgba(255,230,180,${.45 + Math.sin(t * 6) * .25})`; x.fillRect(bx + w * a, by, w * (hpk - a), 8 * s);
-    const lab = P.kill >= .05 ? `☠ ${Math.round(P.kill * 100)} %` : `−${P.lo === P.hi ? P.lo : P.lo + "–" + P.hi}`; x.font = `700 ${Math.round(10 * s)}px Alegreya, serif`; x.lineWidth = 3; x.strokeStyle = "#000"; x.strokeText(lab, v.x, by - 3 * s); x.fillStyle = P.kill >= .05 ? "#ffd27a" : P.aff > 1.01 ? "#8ae07a" : P.aff < .99 ? "#c0a090" : "#f0e0c8"; x.fillText(lab, v.x, by - 3 * s); } }
-  x.font = `700 ${Math.round(9.5 * s)}px Alegreya, serif`; x.textAlign = "center"; x.fillStyle = "#fff"; x.lineWidth = 3; x.strokeStyle = "#000"; const ht = u.agony ? "AGONIE" : Math.ceil(u.hp) + "/" + u.hpMax; x.strokeText(ht, v.x, by + 7.5 * s); x.fillStyle = u.agony ? "#ff6a5a" : "#f0e8e0"; x.fillText(ht, v.x, by + 7.5 * s);
+    const lab = P.kill >= .05 ? `☠ ${Math.round(P.kill * 100)} %` : `−${P.lo === P.hi ? P.lo : P.lo + "–" + P.hi}`; x.font = `700 ${Math.round(10 * s)}px 'Crimson Pro', Alegreya, serif`; x.lineWidth = 3; x.strokeStyle = "#000"; x.strokeText(lab, v.x, by - 3 * s); x.fillStyle = P.kill >= .05 ? "#ffd27a" : P.aff > 1.01 ? "#8ae07a" : P.aff < .99 ? "#c0a090" : "#f0e0c8"; x.fillText(lab, v.x, by - 3 * s); } }
+  x.font = `700 ${Math.round(9.5 * s)}px 'Crimson Pro', Alegreya, serif`; x.textAlign = "center"; x.fillStyle = "#fff"; x.lineWidth = 3; x.strokeStyle = "#000"; const ht = u.agony ? "AGONIE" : Math.ceil(u.hp) + "/" + u.hpMax; x.strokeText(ht, v.x, by + 7.5 * s); x.fillStyle = u.agony ? "#ff6a5a" : "#f0e8e0"; x.fillText(ht, v.x, by + 7.5 * s);
   if (u.corrupt) glow(x, v.x, v.y - 60 * CB.scale, 80 * CB.scale, "#9a3aff", .14 + Math.sin(t * 3) * .04); // créature corrompue
   if (u.agony) { const pk = .5 + Math.sin(t * 5) * .5; glow(x, v.x, v.y - 60 * CB.scale, 60 * CB.scale, "#ff2a1a", .2 + pk * .2); }
   // ultime (héros)
@@ -512,17 +520,19 @@ function drawUnitUI(x, u, v, t) {
     (CB.zones = CB.zones || []).push({ x0: ix - 7 * s, x1: ix + 7 * s, y0: iy - 7 * s, y1: iy + 7 * s, u, k: "bond" }); }
   // altérations
   const sts = []; const seen = {}; for (const st of u.st) if (!seen[st.k]) { seen[st.k] = 1; sts.push(st.k); }
-  if (sts.length) (CB.zones = CB.zones || []).push({ x0: bx - 4, x1: bx + Math.min(7, sts.length) * 12 * s + 10 * s, y0: by + 10 * s, y1: by + 26 * s, u, k: "st" });
-  sts.slice(0, 7).forEach((k, i) => { const ix = bx + i * 12 * s + 5 * s, iy = by + 18 * s; x.fillStyle = "rgba(0,0,0,.8)"; x.beginPath(); x.arc(ix, iy, 5.6 * s, 0, 7); x.fill(); drawIcon(x, ST_IC[k] || "star", ix, iy, .38 * s, ST_INFO[k].c, 1.8); });
+  if (sts.length) (CB.zones = CB.zones || []).push({ x0: bx - 4, x1: bx + Math.min(7, sts.length) * 14 * s + 12 * s, y0: by + 10 * s, y1: by + 28 * s, u, k: "st" });
+  { const BD = typeof artImg === "function" && !S.opts.ukOff && artImg("cb_badge"); sts.slice(0, 7).forEach((k, i) => { const ix = bx + i * 14 * s + 6 * s, iy = by + 19 * s; x.fillStyle = "rgba(10,6,6,.9)"; x.beginPath(); x.arc(ix, iy, 6.4 * s, 0, 7); x.fill();
+    const sti = typeof artImg === "function" && artImg("st_" + k); if (sti) x.drawImage(sti, ix - 5.6 * s, iy - 5.6 * s, 11.2 * s, 11.2 * s); else drawIcon(x, ST_IC[k] || "star", ix, iy, .4 * s, ST_INFO[k].c, 1.8);
+    if (BD) x.drawImage(BD, ix - 8.4 * s, iy - 8.4 * s, 16.8 * s, 16.8 * s); }); }
   // rang
-  x.font = `700 ${Math.round(9 * s)}px Cinzel, serif`; x.fillStyle = "rgba(232,200,120,.6)"; x.fillText(String(rankOf(B, u)), bx - 6 * s, by + 7 * s);
+  x.font = `700 ${Math.round(9 * s)}px 'Grenze Gotisch', Cinzel, serif`; x.fillStyle = "rgba(232,200,120,.6)"; x.fillText(String(rankOf(B, u)), bx - 6 * s, by + 7 * s);
   // intention ennemie
   if (u.side === "e" && u.intent && u.intent.sk && !B.over) {
     const sk = u.intent.sk, tt = sk.t || "e";
     const kind = sk.heal || tt === "allies" ? ["heart", "#8fe07a"] : tt === "self" ? ["shield", "#a0c8ff"] : !sk.m ? ["curse", "#c090ff"] : tt === "ae" ? ["flames", "#ff8a4a"] : ["swords", "#ff5a4a"];
     const iy = Math.max(14 * s, hudFloor(v.x, 16 * s) + 13 * s, (v.top != null ? v.top - 16 * s : v.y - 200 * CB.scale * (u.sz > 1 ? 1.5 : 1) - 8)) + Math.sin(t * 3) * 2; // au-dessus de la tête, jamais sur le corps ni sous les panneaux du haut
-    x.fillStyle = "rgba(0,0,0,.75)"; x.beginPath(); x.arc(v.x, iy, 11 * s, 0, 7); x.fill(); x.strokeStyle = rgba(kind[1], .8); x.lineWidth = 1.5; x.stroke();
-    drawIcon(x, kind[0], v.x, iy, .62 * s, kind[1], 2);
+    { const BD = typeof artImg === "function" && !S.opts.ukOff && artImg("cb_badge"); x.fillStyle = "rgba(10,6,6,.88)"; x.beginPath(); x.arc(v.x, iy, 11 * s, 0, 7); x.fill(); if (!BD) { x.strokeStyle = rgba(kind[1], .8); x.lineWidth = 1.5; x.stroke(); }
+    glow(x, v.x, iy, 16 * s, kind[1], .18); drawIcon(x, kind[0], v.x, iy, .62 * s, kind[1], 2); if (BD) x.drawImage(BD, v.x - 15 * s, iy - 15 * s, 30 * s, 30 * s); }
     (CB.zones = CB.zones || []).push({ x0: v.x - 16 * s, x1: v.x + 16 * s, y0: iy - 16 * s, y1: iy + 16 * s, u, k: "intent" });
     if (u.intent.tgt) { const tv = CB.vis[u.intent.tgt], tu = unitById(B, u.intent.tgt); if (tv && tu && alive(tu)) { x.fillStyle = rgba("#ff3a2a", .85); const ty = tv.top != null ? tv.top - 8 : tv.y - 192 * CB.scale - 6; x.beginPath(); x.moveTo(tv.x - 5, ty); x.lineTo(tv.x + 5, ty); x.lineTo(tv.x, ty + 7); x.fill(); } }
   }
@@ -536,5 +546,5 @@ function drawPetInCombat(x, t, dt) {
   let atk = 0, lunge = 0; if (CB.petAct) { CB.petAct.t += dt * (CB.speed || 1); atk = CB.petAct.t < .5 ? 1 : 0; lunge = CB.petAct.t < .6 ? Math.sin(Math.PI * CB.petAct.t / .6) : 0; if (CB.petAct.t > 1) CB.petAct = null; }
   const cv = atk ? CB.petCache.cva : CB.petCache.cv;
   x.save(); x.translate(px + lunge * 150 * CB.scale, py + Math.sin(t * 2.5) * 1.5 - lunge * 18 * CB.scale); x.fillStyle = "rgba(0,0,0,.4)"; x.beginPath(); x.ellipse(0, 0, 34 * CB.scale, 6 * CB.scale, 0, 0, 7); x.fill(); x.drawImage(cv, -cv.ax, -cv.ay); x.restore();
-  if (CB.petAct && CB.petAct.t < .9) { x.save(); x.font = "700 13px Cinzel, serif"; x.textAlign = "center"; x.lineWidth = 3; x.strokeStyle = "#000"; x.strokeText(CB.petAct.name, px, py - 90 * CB.scale); x.fillStyle = "#c8f0a0"; x.fillText(CB.petAct.name, px, py - 90 * CB.scale); x.restore(); }
+  if (CB.petAct && CB.petAct.t < .9) { x.save(); x.font = "700 13px 'Grenze Gotisch', Cinzel, serif"; x.textAlign = "center"; x.lineWidth = 3; x.strokeStyle = "#000"; x.strokeText(CB.petAct.name, px, py - 90 * CB.scale); x.fillStyle = "#c8f0a0"; x.fillText(CB.petAct.name, px, py - 90 * CB.scale); x.restore(); }
 }

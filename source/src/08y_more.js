@@ -46,16 +46,16 @@ function merchantBuy(i) { const M = merchantStock(), o = M.items[i]; if (!o || o
 // ── Tenues alternatives : une teinte d'armure, débloquée par les défis de classe ──
 const OUTFITS = [{ k: "", n: "Tenue d'origine", need: 0 },
   // pal : p = principale [teinte, saturation, luminosité], a = accent, m = métal (rgb), mk = force du métal, dk = ombres [teinte, saturation, gamma]
-  { k: "deuil", n: "Tenue des bois", need: 3, pal: { p: [150, .42, .9], a: [28, .5, .9], m: [150, 125, 90], mk: .5, dk: [150, 0.3, 0.88] } },
-  { k: "sang", n: "Tenue écarlate", need: 10, pal: { p: [354, .68, .92], a: [40, .55, 1], m: [200, 165, 95], mk: .55, dk: [355, 0.42, 0.88] } },
-  { k: "nuit", n: "Tenue de nuit", need: 18, pal: { p: [225, .55, .9], a: [270, .38, .95], m: [180, 190, 210], mk: .55, dk: [228, 0.42, 0.88] } },
-  { k: "givre", n: "Tenue de givre", need: 22, pal: { p: [205, .36, 1.12], a: [240, .26, 1.15], m: [210, 225, 240], mk: .6, dk: [210, 0.3, 0.85] } },
-  { k: "cendre", n: "Cendre et braise", need: 25, pal: { p: [18, .68, .92], a: [0, .55, .82], m: [80, 72, 68], mk: .6, dk: [10, 0.38, 0.88], glow: [235, 110, 40] } },
-  { k: "peste", n: "Tenue de la peste", need: 30, pal: { p: [40, .16, 1.05], a: [285, .38, .82], m: [140, 135, 125], mk: .55, dk: [282, 0.26, 0.85] } },
-  { k: "ivoire", n: "Tenue d'ivoire", need: 35, pal: { p: [40, .16, 1.45], a: [210, .2, 1.2], m: [220, 195, 130], mk: .6, dk: [38, 0.1, 0.72] } },
-  { k: "emeraude", n: "Émeraude et or", need: 42, pal: { p: [160, .5, .88], a: [44, .62, 1.02], m: [215, 175, 85], mk: .65, dk: [162, 0.38, 0.88] } },
-  { k: "maitre", n: "Pourpre royal (maître)", need: 50, pal: { p: [282, .52, .9], a: [44, .62, 1.02], m: [200, 205, 218], mk: .55, dk: [282, 0.38, 0.88] } },
-  { k: "epreuve", n: "Noir et or (Épreuve)", need: 0, trial: 1, pal: { p: [0, 0, .45], a: [44, .85, 1.15], m: [245, 185, 55], mk: .85, dk: [40, 0.08, 0.88] } }];
+  { k: "deuil", n: "Tenue des bois", need: 3, pal: { alt: [110, .6, 1], p: [150, .42, .9], a: [28, .5, .9], m: [150, 125, 90], mk: .5, dk: [150, 0.3, 0.88] } },
+  { k: "sang", n: "Tenue écarlate", need: 10, pal: { alt: [0, 0, .34], p: [354, .68, .92], a: [40, .55, 1], m: [200, 165, 95], mk: .55, dk: [355, 0.42, 0.88] } },
+  { k: "nuit", n: "Tenue de nuit", need: 18, pal: { alt: [222, .7, 1], p: [225, .55, .9], a: [270, .38, .95], m: [180, 190, 210], mk: .55, dk: [228, 0.42, 0.88] } },
+  { k: "givre", n: "Tenue de givre", need: 22, pal: { alt: [195, .55, 1.25], p: [205, .36, 1.12], a: [240, .26, 1.15], m: [210, 225, 240], mk: .6, dk: [210, 0.3, 0.85] } },
+  { k: "cendre", n: "Cendre et braise", need: 25, pal: { alt: [28, .07, 1], p: [18, .68, .92], a: [0, .55, .82], m: [80, 72, 68], mk: .6, dk: [10, 0.38, 0.88], glow: [235, 110, 40] } },
+  { k: "peste", n: "Tenue de la peste", need: 30, pal: { alt: [285, .45, .9], p: [40, .16, 1.05], a: [285, .38, .82], m: [140, 135, 125], mk: .55, dk: [282, 0.26, 0.85] } },
+  { k: "ivoire", n: "Tenue d'ivoire", need: 35, pal: { alt: [40, .1, 1.6], p: [40, .16, 1.45], a: [210, .2, 1.2], m: [220, 195, 130], mk: .6, dk: [38, 0.1, 0.72] } },
+  { k: "emeraude", n: "Émeraude et or", need: 42, pal: { alt: [150, .7, 1], p: [160, .5, .88], a: [44, .62, 1.02], m: [215, 175, 85], mk: .65, dk: [162, 0.38, 0.88] } },
+  { k: "maitre", n: "Pourpre royal (maître)", need: 50, pal: { alt: [280, .7, 1], p: [282, .52, .9], a: [44, .62, 1.02], m: [200, 205, 218], mk: .55, dk: [282, 0.38, 0.88] } },
+  { k: "epreuve", n: "Noir et or (Épreuve)", need: 0, trial: 1, pal: { p: [0, 0, .3], a: [44, .85, 1.15], m: [92, 84, 74], mk: .8, dk: [40, 0.04, 0.88], goldHi: 1 } }];
 const outfitOk = (h, k) => { const O = OUTFITS.find(o => o.k === k); return O && (O.trial ? !!((S.classTrial || {})[h.cls]) : ((S.classWins || {})[h.cls] || 0) >= O.need); };
 
 // ── Compagnons en duo : bonus quand le compagnon s'entend avec une classe du groupe ──

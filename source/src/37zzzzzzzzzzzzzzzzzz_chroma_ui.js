@@ -15,10 +15,13 @@ function chromaHue(d) { // teinte dominante des pixels saturés (hors peau)
 /* Peau protégée (20 nov.) : pixels couleur chair au sens large (y compris visages pâles ou dans l'ombre), gardés s'ils
    forment la tête (haut de la silhouette) ou de petites zones (mains) — jamais une grande surface de cuir brun. */
 function chromaSkinMask(d, W, H, nat, nm) {
+  let NS = null; if (nat) { const n0 = W * H, L = new Float32Array(n0), L2 = new Float32Array(n0); for (let p = 0; p < n0; p++) { const q = p * 4, v = (d[q] * .3 + d[q + 1] * .59 + d[q + 2] * .11) / 255; L[p] = v; L2[p] = v * v; }
+    const R = Math.max(2, Math.round(Math.min(W, H) / 120)), box = A => { const T = new Float32Array(n0), O = new Float32Array(n0); for (let y = 0; y < H; y++) { let s2 = 0; for (let x = -R; x < W; x++) { if (x + R < W) s2 += A[y * W + x + R]; if (x - R - 1 >= 0) s2 -= A[y * W + x - R - 1]; if (x >= 0) T[y * W + x] = s2; } } for (let x = 0; x < W; x++) { let s2 = 0; for (let y = -R; y < H; y++) { if (y + R < H) s2 += T[(y + R) * W + x]; if (y - R - 1 >= 0) s2 -= T[(y - R - 1) * W + x]; if (y >= 0) O[y * W + x] = s2; } } return O; };
+    const M1 = box(L), M2 = box(L2), kk = 1 / ((2 * R + 1) * (2 * R + 1)); NS = new Uint8Array(n0); for (let p = 0; p < n0; p++) { const m = M1[p] * kk, sd = Math.sqrt(Math.max(0, M2[p] * kk - m * m)); NS[p] = m > .13 && sd / m < .3 ? 1 : 0; } }
   const n = W * H, cand = new Uint8Array(n); let y0 = H, y1 = 0, nO = 0;
   for (let p = 0; p < n; p++) { const i = p * 4; if (d[i + 3] < 120) continue; nO++; const y = (p / W) | 0; if (y < y0) y0 = y; if (y > y1) y1 = y;
     const r = d[i] / 255, g = d[i + 1] / 255, b = d[i + 2] / 255, mx = Math.max(r, g, b), mn = Math.min(r, g, b), s = mx > 0 ? (mx - mn) / mx : 0;
-    if (nat && mx === r && mx > .045 && s > .18 && g >= b) { const hh = 60 * ((g - b) / Math.max(mx - mn, 1e-6)); if (hh > 4 && hh < 42) { cand[p] = 2; continue; } } // torse nu (berserker) : peau et fourrure gardent leur couleur naturelle
+    if (nat && NS && NS[p] && mx === r && mx > .1 && s > .18 && g >= b) { const hh = 60 * ((g - b) / Math.max(mx - mn, 1e-6)); if (hh > 4 && hh < 40) { cand[p] = 2; continue; } } // torse nu (berserker) : peau et fourrure gardent leur couleur naturelle
     if (mx < .1 || mx !== r || s < .1 || s > .62 || g < b * .92) continue; const h = 60 * ((g - b) / Math.max(mx - mn, 1e-6)); if (h < 2 || h > 42) continue; cand[p] = h > 6 && h < 30 && s > .24 && s < .58 && mx > .3 && g > b * 1.12 ? 2 : 1; }
   // teinte de peau du visage (haut de la silhouette) → toute la peau du corps qui a la même teinte, même dans l'ombre
   { const hy = y0 + (y1 - y0) * .3; let sh = 0, ss = 0, nn = 0;
@@ -58,13 +61,17 @@ function chromaArt(im, name, key) {
   for (let i = 0; i < d.length; i += 16) { if (d[i + 3] < 160) continue; nO++; const m = Math.max(d[i], d[i + 1], d[i + 2]); if (m < 60) nD++; Lh[m >> 2]++; }
   let acc = 0, p95 = 255; for (let k = 0; k < 64; k++) { acc += Lh[k]; if (acc >= nO * .95) { p95 = (k + 1) * 4; break; } }
   const darkArt = nO > 0 && nD / nO > .55, vTop = Math.max(.12, p95 / 255);
-  const [ph, ps, pv] = P.p, [ah, as, av] = P.a, mc = P.m.map(v => v / 255), ml = Math.max(.05, mc[0] * .3 + mc[1] * .59 + mc[2] * .11), mk = P.mk, [dh, ds, dg] = P.dk, gl = P.glow ? P.glow.map(v => v / 255) : null;
+  let P0 = P; { const ad = (u, v) => { const z = Math.abs(u - v) % 360; return z > 180 ? 360 - z : z; };
+    let sS = 0, nS = 0; for (let q = 0; q < d.length; q += 64) { if (d[q + 3] < 160) continue; const mx = Math.max(d[q], d[q + 1], d[q + 2]), mn = Math.min(d[q], d[q + 1], d[q + 2]); if (mx > 40) { sS += (mx - mn) / mx; nS++; } } const domSat = nS ? sS / nS : 0;
+    if (P.p[1] > .2 && domSat > .4 && ad(P.p[0], dom) < 38) { // ex. tenue écarlate sur le pyromancien (déjà rouge) : l'accent devient la couleur principale, ou un noir de suie
+      const alt = P.alt || (P.a[1] > .2 && ad(P.a[0], dom) >= 38 ? P.a : [P.p[0], .12, .55]); P0 = Object.assign({}, P, { p: alt, a: [P.p[0], Math.min(.85, P.p[1] + .1), P.p[2]] }); } }
+  const [ph, ps, pv] = P0.p, [ah, as, av] = P0.a, mc = P.m.map(v => v / 255), ml = Math.max(.05, mc[0] * .3 + mc[1] * .59 + mc[2] * .11), mk = P.mk, [dh, ds, dg] = P.dk, gl = P.glow ? P.glow.map(v => v / 255) : null;
   const hsv = (h, s, v) => { h = ((h % 360) + 360) % 360; const i = Math.floor(h / 60) % 6, f = h / 60 - Math.floor(h / 60), p = v * (1 - s), q = v * (1 - s * f), t = v * (1 - s * (1 - f)); return [[v, t, p], [q, v, p], [p, v, t], [p, q, v], [t, p, v], [v, p, q]][i]; };
   const adist = (a, b) => { const z = Math.abs(a - b) % 360; return z > 180 ? 360 - z : z; };
   // matières (20 nov.) : sur les armures sombres, tissu lisse (cape, tabard) ≠ métal ciselé — carte de « lissé » par variance locale
   let SM = null, CX = W / 2, HW = W / 2;
   { let x0 = W, x1 = 0; for (let y = 0; y < H; y += 3) for (let xx = 0; xx < W; xx += 3) if (d[(y * W + xx) * 4 + 3] > 120) { if (xx < x0) x0 = xx; if (xx > x1) x1 = xx; } if (x1 > x0) { CX = (x0 + x1) / 2; HW = (x1 - x0) / 2; } }
-  if (darkArt) { const n = W * H, L = new Float32Array(n), L2 = new Float32Array(n); for (let p = 0; p < n; p++) { const q = p * 4, v = (d[q] * .3 + d[q + 1] * .59 + d[q + 2] * .11) / 255; L[p] = v; L2[p] = v * v; }
+  { const n = W * H, L = new Float32Array(n), L2 = new Float32Array(n); for (let p = 0; p < n; p++) { const q = p * 4, v = (d[q] * .3 + d[q + 1] * .59 + d[q + 2] * .11) / 255; L[p] = v; L2[p] = v * v; }
     const R = Math.max(2, Math.round(Math.min(W, H) / 110)), box = A => { const T = new Float32Array(n), O = new Float32Array(n);
       for (let y = 0; y < H; y++) { let s = 0; for (let x = -R; x < W; x++) { if (x + R < W) s += A[y * W + x + R]; if (x - R - 1 >= 0) s -= A[y * W + x - R - 1]; if (x >= 0) T[y * W + x] = s; } }
       for (let x = 0; x < W; x++) { let s = 0; for (let y = -R; y < H; y++) { if (y + R < H) s += T[(y + R) * W + x]; if (y - R - 1 >= 0) s -= T[(y - R - 1) * W + x]; if (y >= 0) O[y * W + x] = s; } } return O; };
@@ -78,19 +85,19 @@ function chromaArt(im, name, key) {
     const sk = SK[i >> 2], skin = sk >= .999, gold = h >= 32 && h < 62 && s > .3 && v > .3, grey = s < .25 && v > .24;
     let o = [r, g, b];
     if (skin) { /* peau intacte */ }
-    else if (gold || grey) { const t = [0, 1, 2].map(k => Math.min(1, lum * mc[k] / ml)); o = o.map((z, k) => z * (1 - mk) + t[k] * mk); }
+    else if (gold || grey) { const t = [0, 1, 2].map(k => Math.min(1, lum * mc[k] / ml)); if (P.goldHi && v > .5) { const gk = Math.min(1, (v - .5) / .3); t[0] = t[0] * (1 - gk) + Math.min(1, v * 1.05) * gk; t[1] = t[1] * (1 - gk) + v * .76 * gk; t[2] = t[2] * (1 - gk) + v * .25 * gk; } o = o.map((z, k) => z * (1 - mk) + t[k] * mk); }
     else if (s >= .25 && v > .1) { // tissu, cuir coloré, gemmes : principale si proche de la teinte dominante, sinon accent
       const near = adist(h, dom) < 50, off = ((h - dom + 540) % 360) - 180;
       if (near) { const k2 = Math.max(0, Math.min(1, (.42 - v) / .25)) * .55, hd = ((((ah - ph) % 360) + 540) % 360) - 180; // replis sombres du tissu tirés vers l'accent
         o = hsv(ph + off * .35 + hd * k2, Math.min(1, (ps + (as - ps) * k2) * (.55 + .45 * s)), Math.min(1, v * (pv + (av - pv) * k2))); }
       else o = hsv(ah + off * .15, Math.min(1, as * (.55 + .45 * s)), Math.min(1, v * av));
-    } else if (darkArt && v > .015) { // armure sombre : tissu lisse → couleurs de la tenue, métal ciselé → teinte de métal (or, argent…), comme les tenues claires
-      const u = Math.min(1, v / vTop), w = al < 200 ? al / 200 * .92 : .92, cl = Math.max(0, Math.min(1, (SM ? SM[i >> 2] : .5) * 1.4 + (.42 - u) * 1.6));
+    } else if ((darkArt || s < .3) && v > .015 && !(gold || grey) || (!darkArt && grey && SM && SM[i >> 2] > .55)) { // armure sombre : tissu lisse → couleurs de la tenue, métal ciselé → teinte de métal (or, argent…), comme les tenues claires
+      const u = Math.min(1, v / vTop), w = (al < 200 ? al / 200 : 1) * (darkArt ? .92 : .82), cl = Math.max(0, Math.min(1, (SM ? SM[i >> 2] : .5) * 1.4 + (.42 - u) * 1.6));
       const k2 = Math.max(0, Math.min(1, (.45 - u) / .35)); // replis profonds du tissu → couleur d'accent
       const hd = ((((ah - ph) % 360) + 540) % 360) - 180;
       const px = (i >> 2) % W, side = Math.max(0, Math.min(1, (Math.abs(px - CX) / HW - .22) / .2)); // cape et pans extérieurs → couleur principale ; vêtements du corps → accent
       const kk = Math.max(k2 * .5, 1 - side) * .85, cloth = hsv(ph + hd * kk, Math.min(.8, (ps + (as - ps) * kk) * .95 + .14), Math.min(1, (.16 + .62 * u) * (pv + (av - pv) * kk)));
-      const ml2 = .1 + .78 * Math.pow(u, .9), metal = [0, 1, 2].map(z => Math.min(1, ml2 * mc[z] / ml));
+      const ml2 = .1 + .78 * Math.pow(u, .9), metal = [0, 1, 2].map(z => Math.min(1, ml2 * mc[z] / ml)); if (P.goldHi && u > .55) { const gk = Math.min(1, (u - .55) / .3), G = [.96, .73, .22]; for (let z = 0; z < 3; z++) metal[z] = metal[z] * (1 - gk) + G[z] * ml2 * 1.1 * gk; }
       const t = cloth.map((z, k) => z * cl + metal[k] * (1 - cl));
       o = o.map((z, k) => z * (1 - w) + t[k] * w);
     } else { // ombres et armure sombre : teinte légère, luminosité gardée (gamma doux), jamais sur les bords du détourage

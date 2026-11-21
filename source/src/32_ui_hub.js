@@ -3,7 +3,7 @@ function hubLayout(w, h) {
   const port = w < h * .9, s = port ? Math.min(w / 4.2, h / 8) : Math.min(w / 8.5, h / 5.2);
   const P = (k, fx, fy, k2 = 1) => ({ k, x: fx * w, y: fy * h, s: s * k2 });
   // portrait : tout le monde au sol de la cour, en trois rangées (fond → devant)
-  return port ? [P("academie", .22, .47, .72), P("menagerie", .78, .47, .72), P("chapelle", .14, .64, .82), P("fonderie", .86, .64, .82), P("porte", .5, .7, .98), P("taverne", .25, .85, .9), P("forge", .75, .85, .9)]
+  return port ? [P("academie", .22, .47, .72), P("menagerie", .78, .47, .72), P("chapelle", .18, .64, .82), P("fonderie", .82, .64, .82), P("porte", .5, .7, .98), P("taverne", .25, .85, .9), P("forge", .75, .85, .9)]
     : [P("academie", .33, .6, .78), P("menagerie", .67, .6, .78), P("chapelle", .1, .8), P("taverne", .27, .82), P("porte", .5, .78, 1.15), P("forge", .73, .82), P("fonderie", .9, .8)];
 }
 // ménagerie : d'abord les compagnons possédés (l'actif en tête), puis ceux qu'on peut acheter, enfin ceux à débloquer plus tard

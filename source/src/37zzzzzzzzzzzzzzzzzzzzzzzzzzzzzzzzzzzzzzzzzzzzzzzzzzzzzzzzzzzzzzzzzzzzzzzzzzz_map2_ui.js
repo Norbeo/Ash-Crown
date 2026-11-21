@@ -23,7 +23,7 @@ function ashTrail(x, a, b, mx, my, style, rng) {
     const [px, py] = pts[k]; if (Math.hypot(px - a[0], py - a[1]) < gap || Math.hypot(px - b[0], py - b[1]) < gap) continue;
     const ang = Math.atan2(py - pts[k - 1][1], px - pts[k - 1][0]), o = left ? 3.2 : -3.2;
     x.save(); const im = artImg("map_step" + (1 + (k % 4))), fx = px - Math.sin(ang) * o, fy = py + Math.cos(ang) * o;
-    if (im) { x.translate(fx, fy); x.rotate(ang + Math.PI / 2); if (!left) x.scale(-1, 1); x.globalAlpha = style === "done" ? 1 : style === "hot" ? 1 : .6; if (C.g) { x.shadowColor = C.g; x.shadowBlur = C.gb; } x.filter = style === "hot" ? "brightness(3) sepia(.3)" : style === "done" ? "brightness(1.3)" : "brightness(2.4) sepia(.2)"; const hh = 24, ww = hh * .58; x.drawImage(im, -ww / 2, -hh / 2, ww, hh); }
+    if (im) { x.translate(fx, fy); x.rotate(ang + Math.PI / 2); if (!left) x.scale(-1, 1); x.globalAlpha = style === "done" ? 1 : style === "hot" ? 1 : .6; if (C.g) { x.shadowColor = C.g; x.shadowBlur = C.gb; } x.filter = style === "hot" ? "brightness(1.15)" : style === "done" ? "brightness(.6) sepia(1) saturate(3) hue-rotate(-12deg)" : "brightness(.8)"; if (style === "") x.globalAlpha = .38; const hh = 20, ww = hh * .58; x.drawImage(im, -ww / 2, -hh / 2, ww, hh); }
     else { x.fillStyle = C.f; if (C.g) { x.shadowColor = C.g; x.shadowBlur = C.gb; } ashFoot(x, fx, fy, ang, left, .72); } x.restore();
     if (style === "done" && rng() < .35) { x.fillStyle = "rgba(255,140,50,.85)"; x.beginPath(); x.arc(px - Math.sin(ang) * o + (rng() - .5) * 3, py + Math.cos(ang) * o + (rng() - .5) * 3, .9, 0, 7); x.fill(); }
     left = !left; } }

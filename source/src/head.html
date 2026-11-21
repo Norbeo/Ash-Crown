@@ -570,13 +570,14 @@ body.ukoff .mphero{border:1px solid #5a4a3a;background:#1a1210;border-radius:6px
 </style>
 <style>
 /* carte du monde : médaillons peints et pas de cendres (21 nov.) */
-.wmap svg .road{display:none}.wmst image{opacity:.55;filter:brightness(2.4) sepia(.2)}.wmst.done image{opacity:1;filter:brightness(1.3) url(#wmember)}.wmst.next image{opacity:1;filter:brightness(3) sepia(.3) drop-shadow(0 0 3px #ffd9a0)}.wmst.abyss image{opacity:.8;filter:hue-rotate(230deg) brightness(1.4)}
+.wmap svg .road{display:none}.wmst{position:absolute;inset:0;pointer-events:none;z-index:0}.wmap3 .wnode{z-index:2}.wmst .st{position:absolute;width:14px;height:25px;margin:-12px 0 0 -7px;background:center/contain no-repeat;transform:rotate(var(--a));opacity:.45;filter:brightness(.8) drop-shadow(0 1px 1px #000)}.wmst .st.r{transform:rotate(var(--a)) scaleX(-1)}
+.wmst.done .st{opacity:.95;filter:brightness(.55) sepia(1) saturate(3) hue-rotate(-12deg) drop-shadow(0 0 3px #ff6a1a) drop-shadow(0 1px 1px #000)}.wmst.next .st{opacity:1;filter:brightness(1.1) drop-shadow(0 0 4px #ffd9a0) drop-shadow(0 1px 1px #000)}.wmst.abyss .st{opacity:.9;filter:brightness(.8) sepia(1) hue-rotate(220deg) saturate(3) drop-shadow(0 0 3px #a070ff)}
 .wmap3 .wnode i{width:46px!important;height:46px!important;border:0!important;border-radius:0!important;box-shadow:none!important;background:url(assets/wm_med_cur.webp) center/contain no-repeat!important;filter:drop-shadow(0 3px 5px #000)}
 .wmap3 .wnode.wdone i{background-image:url(assets/wm_med_done.webp)!important}
 .wmap3 .wnode.wlock i{background-image:url(assets/wm_med_lock.webp)!important;filter:drop-shadow(0 3px 5px #000)!important}
 .wmap3 .wnode.wcur i{filter:drop-shadow(0 0 8px #ff8a2a) drop-shadow(0 3px 5px #000)}
 .wmap3 .wnode.sel i{filter:drop-shadow(0 0 10px #ffd27a) drop-shadow(0 0 4px #ffb84a)!important;animation:wpulse 1.6s ease-in-out infinite}
-.wmap3 .wnode .wnum{font:900 13px/46px 'Cinzel Decorative','Cinzel',serif!important;letter-spacing:.04em;background:linear-gradient(#fff3c8 10%,#e8b860 45%,#8a5a1e 80%)!important;-webkit-background-clip:text!important;background-clip:text!important;color:transparent!important;-webkit-text-stroke:.4px #2a1606;filter:drop-shadow(0 1px 0 #000) drop-shadow(0 0 3px #000c);border:0!important;padding:0!important}
+.wmap3 .wnode .wnum{font:900 15px/46px 'Cinzel',serif!important;letter-spacing:.04em;background:linear-gradient(#fff3c8 10%,#e8b860 45%,#8a5a1e 80%)!important;-webkit-background-clip:text!important;background-clip:text!important;color:transparent!important;-webkit-text-stroke:.4px #2a1606;filter:drop-shadow(0 1px 0 #000) drop-shadow(0 0 3px #000c);border:0!important;padding:0!important}
 .wmap3 .wnode.wcur .wnum{background:linear-gradient(#fff0c0 10%,#ffa850 45%,#a8401a 85%)!important;-webkit-background-clip:text!important;background-clip:text!important}.wmap3 .wnode.wlock .wnum{background:linear-gradient(#c8c0b8,#6a625a)!important;-webkit-background-clip:text!important;background-clip:text!important}
 .wmap3 .wnode em{display:none}
 .wmap3 .wnode span{font-family:var(--f-head);font-size:13px!important;border:1px solid #c8a06066}

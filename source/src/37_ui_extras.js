@@ -431,7 +431,7 @@ function hubRailHTML() {
     ${it("merchant", "coin", "#e8c060", "Marchand", "")}
     ${it("bounty", "skull", b && !b.done ? "#e05050" : "#7a6a5a", "Prime", b && !b.done && !S.daily.bountySeen ? "!" : "")}
     ${it("trophies", "trophy", "#e8c878", "Trophées", "")}
-    ${dl ? it("dailyRun", "star", "#e8c878", "Du jour", "") : ""}
+    ${dl ? it("dailyRun", "map", "#e8c878", "Expédition du jour", "") : ""}
   </div>`;
 }
 

@@ -20,4 +20,5 @@ function wmStepsSVG(a, b, style, i, W) { const dx = b[0] - a[0], dy = b[1] - a[1
       h = h.replace(/<svg viewBox="0 0 ([\d.]+) ([\d.]+)" preserveAspectRatio="none">/, `<svg viewBox="0 0 $1 $2" preserveAspectRatio="none"><defs>${WM_FOOT}<filter id="wmember" x="-50%" y="-50%" width="200%" height="200%"><feGaussianBlur stdDeviation="${(W / 400).toFixed(1)}" result="b"/><feFlood flood-color="#ff7a2a"/><feComposite in2="b" operator="in" result="g"/><feMerge><feMergeNode in="g"/><feMergeNode in="SourceGraphic"/></feMerge></filter></defs>`);
       // état des médaillons
       h = h.replace(/<button class="wnode ([^"]*)"([^>]*?)data-v="([^"]+)"/g, (m, c, mid, id) => { const ok = regionUnlocked(id), cl = S.prog[id] && S.prog[id].clears; return `<button class="wnode ${c} ${!ok ? "wlock" : cl ? "wdone" : "wcur"}"${mid}data-v="${id}"`; });
+      h = h.replace(/(<button class="wnode[^"]*abyss[^"]*"[^>]*><i[^>]*>)(<\/i>)/, `$1<b class="wnum wabyss">∞</b>$2`);
     } catch (e) { } return h; }; }

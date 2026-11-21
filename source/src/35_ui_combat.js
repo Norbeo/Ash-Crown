@@ -452,7 +452,7 @@ function drawCombat(x, t, dt) {
   for (const tx2 of CB.txt) {
     tx2.t += dt; const k = tx2.t / tx2.life; if (k >= 1) { tx2.done = 1; continue; }
     const sc = tx2.big ? 1.4 : 1, yy = tx2.y - easeOut(k) * (tx2.bark ? 18 : 50), a = k < .8 ? 1 : (1 - k) * 5;
-    x.save(); x.globalAlpha = a; x.font = tx2.bark ? `italic 600 ${Math.round(15 * Math.max(.85, Math.min(1.2, CB.scale * 1.5)))}px Alegreya, Georgia, serif` : `${tx2.big ? 900 : 700} ${Math.round((16 + (/^\d+$/.test(tx2.text) ? 6 : 0)) * sc * Math.max(.8, Math.min(1.3, CB.scale * 1.5)))}px 'Grenze Gotisch', Cinzel, serif`; x.textAlign = "center";
+    x.save(); x.globalAlpha = a; x.font = tx2.bark ? `italic 600 ${Math.round(15 * Math.max(.85, Math.min(1.2, CB.scale * 1.5)))}px 'Crimson Pro', Georgia, serif` : `${tx2.big ? 900 : 700} ${Math.round((16 + (/^\d+$/.test(tx2.text) ? 6 : 0)) * sc * Math.max(.8, Math.min(1.3, CB.scale * 1.5)))}px 'Grenze Gotisch', Cinzel, serif`; x.textAlign = "center";
     const hw = x.measureText(tx2.text).width / 2 + 6, tx = clamp(tx2.x, hw, SC.w - hw), ty = Math.max(CB.port ? 96 : 70, yy); // jamais hors de l'écran ni sous le bandeau
     x.lineWidth = 4; x.strokeStyle = "#000"; x.strokeText(tx2.text, tx, ty); x.fillStyle = tx2.col; x.fillText(tx2.text, tx, ty); x.restore();
   }

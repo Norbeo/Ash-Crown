@@ -73,7 +73,7 @@ function dangerOf(B, h) {
     const hits = t === "ae" ? (sk.at || [1, 2, 3, 4]).includes(r) : e.intent.tgt === h.uid; if (hits) sum += (e.dmgHi || 0) * sk.m * (1 - (h.prot || 0)); }
   return sum >= h.hp;
 }
-{ const du0 = drawUnitUI; drawUnitUI = function (x, u, v, t) { du0.apply(this, arguments); try { if (u.side === "h" && !u.agony && CB.B && dangerOf(CB.B, u)) { const pk = .5 + Math.sin(t * 6) * .5; glow(x, v.x, v.y - 60 * CB.scale, 70 * CB.scale, "#ff1a1a", .16 + pk * .18); x.save(); x.font = `700 ${Math.round(16 * CB.scale)}px serif`; x.textAlign = "center"; x.fillStyle = "#ff4a3a"; x.fillText("☠", v.x + 42 * CB.scale, v.y - 150 * CB.scale); x.restore(); } } catch (e) { } }; }
+{ const du0 = drawUnitUI; drawUnitUI = function (x, u, v, t) { du0.apply(this, arguments); try { if (u.side === "h" && !u.agony && CB.B && dangerOf(CB.B, u)) { const pk = .5 + Math.sin(t * 6) * .5; glow(x, v.x, v.y - 60 * CB.scale, 70 * CB.scale, "#ff1a1a", .16 + pk * .18); x.save(); x.font = `700 ${Math.round(16 * CB.scale)}px 'Grenze Gotisch', serif`; x.textAlign = "center"; x.fillStyle = "#ff4a3a"; x.fillText("☠", v.x + 42 * CB.scale, v.y - 150 * CB.scale); x.restore(); } } catch (e) { } }; }
 // 5 · priorités du combat automatique, propres à chaque héros
 const AI_PRI = { def: "Équilibrée", heal50: "Soigne dès qu'un allié passe sous 50 %", ultBoss: "Garde l'ultime pour les élites et gardiens", focusHeal: "Vise d'abord les soigneurs ennemis", focusLow: "Achève les ennemis blessés" };
 { const ac0 = autoChoice; autoChoice = function (u) { const h = heroById(u.hid), P = h && h.aiPri; const B = CB.B; if (!P || P === "def" || !B) return ac0.apply(this, arguments);

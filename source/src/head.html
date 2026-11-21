@@ -1,6 +1,13 @@
+<style>
+@font-face{font-family:"Grenze Gotisch";src:url(assets/fonts/grenze.woff) format("woff");font-weight:100 900;font-display:swap}
+@font-face{font-family:"Crimson Pro";src:url(assets/fonts/crimson.woff) format("woff");font-weight:200 900;font-style:normal;font-display:swap}
+@font-face{font-family:"Crimson Pro";src:url(assets/fonts/crimson-i.woff) format("woff");font-weight:200 900;font-style:italic;font-display:swap}
+@font-face{font-family:"Cinzel";src:url(assets/fonts/cinzel.woff) format("woff");font-weight:400 900;font-display:swap}
+@font-face{font-family:"Cinzel Decorative";src:url(assets/fonts/cinzeldeco-7.woff) format("woff");font-weight:700;font-display:swap}
+@font-face{font-family:"Cinzel Decorative";src:url(assets/fonts/cinzeldeco-9.woff) format("woff");font-weight:900;font-display:swap}
+</style>
+<link rel="preload" href="assets/fonts/grenze.woff" as="font" type="font/woff" crossorigin><link rel="preload" href="assets/fonts/crimson.woff" as="font" type="font/woff" crossorigin>
 <title>Le Royaume des Cendres</title>
-<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Cinzel+Decorative:wght@700;900&family=Cinzel:wght@500;700;900&family=Alegreya:ital,wght@0,400;0,600;0,800;1,400&family=Grenze+Gotisch:wght@500;700;800&family=Crimson+Pro:ital,wght@0,400;0,500;0,600;0,700;1,400&display=swap" rel="stylesheet">
 <style>
 :root{color-scheme:dark;--bg:#07060a;--ink:#0b0807;--pan:rgba(16,12,14,.92);--pan2:rgba(26,19,20,.95);--line:#3a2a22;--gold:#c9a24a;--gold2:#e8c878;--goldd:#7a5a2a;--blood:#a0201a;--ember:#ff7a2a;--txt:#e6dccb;--dim:#9a8c7a;--good:#8fd07a;--bad:#ff6a5a;--blue:#7ab0ff;--purple:#c090ff;
 --f-title:"Cinzel Decorative","Cinzel",serif;--f-head:"Cinzel",serif;--f-body:"Alegreya",Georgia,serif;--r:4px;--nav:64px}
@@ -231,7 +238,7 @@ body.bigtxt #modal .box,body.bigtxt #view .wrap,body.bigtxt #view .panel{zoom:1.
 body.rarlbl .slot{position:relative}body.rarlbl .slot::after{position:absolute;right:1px;bottom:1px;font:700 9px/1 'Cinzel',serif;color:#fff;background:#000c;border-radius:3px;padding:1px 3px;pointer-events:none}
 body.rarlbl .slot.r0::after{content:"C"}body.rarlbl .slot.r1::after{content:"PC"}body.rarlbl .slot.r2::after{content:"R"}body.rarlbl .slot.r3::after{content:"É"}body.rarlbl .slot.r4::after{content:"L"}body.rarlbl .slot.r5::after{content:"M"}body.rarlbl .slot.r6::after{content:"D"}body.rarlbl .slot.r7::after{content:"Cé"}body.rarlbl .slot.r8::after{content:"P"}body.rarlbl .slot.r9::after{content:"Ét"}
 .cxfam{margin-bottom:4px}.cxfam .btn{flex:1}.cxsub .btn{font-size:11px;padding:4px 8px}
-.hubrail.more{top:auto;margin-top:4px}.hrail.on{border-color:#e8c878}.resmore{background:#0008;border:1px solid #e8c87844;color:#e8c878;border-radius:10px;padding:0 8px;margin-left:4px;cursor:pointer;font:700 14px/18px serif}
+.hubrail.more{top:auto;margin-top:4px}.hrail.on{border-color:#e8c878}.resmore{background:#0008;border:1px solid #e8c87844;color:#e8c878;border-radius:10px;padding:0 8px;margin-left:4px;cursor:pointer;font:700 14px/18px var(--f-head)}
 .wmap3.img{background-size:100% 100%}.wmap3 .wnode i{width:34px!important;height:34px!important;background-image:none!important;background:radial-gradient(circle at 40% 35%,#5a4630,#1a120a 70%);border:2px solid #c8a060;box-shadow:0 0 0 2px #000a,0 0 12px #000}.wmap3 .wnode.sel i{border-color:#ffe2a0;box-shadow:0 0 0 2px #000a,0 0 16px #ffb84a}.wmap3 .wnode.lock i{filter:grayscale(1) brightness(.6)}.wmap3 .wnode .wnum{position:static;display:block;border:0;background:none;padding:0;font-size:12px;line-height:30px;text-align:center}.wmap3 .wnode span{background:#000b;padding:1px 6px;border-radius:6px;margin-top:2px}.wmap3 .wnode.abyss i{border-color:#a87aff}
 .wmart .road{vector-effect:non-scaling-stroke;stroke:#d8c8a0;stroke-width:5;stroke-dasharray:.1 16;stroke-linecap:round;opacity:.7;filter:drop-shadow(0 0 2px #000)}.wmart .road.done{stroke:#ffd27a;stroke-width:6;stroke-dasharray:.1 14;opacity:1}.wmart .road.abyss{stroke:#b890ff}.wmart .road.abyss.done{stroke:#c8a0ff}
 .wmscroll{overflow-x:auto;overflow-y:hidden;-webkit-overflow-scrolling:touch;border-radius:10px}@media (max-width:700px){.wmscroll .wmart{width:720px}}
@@ -567,14 +574,38 @@ body.ukoff .mphero{border:1px solid #5a4a3a;background:#1a1210;border-radius:6px
 .wmst.done use{fill:#1a120e;filter:url(#wmember)}
 .wmst.next use{fill:rgba(236,224,204,.9)}
 .wmst.abyss use{fill:rgba(170,120,255,.6)}
-.wmap3 .wnode i{width:62px!important;height:62px!important;border:0!important;border-radius:0!important;box-shadow:none!important;background:url(assets/wm_med_cur.webp) center/contain no-repeat!important;filter:drop-shadow(0 3px 5px #000)}
+.wmap3 .wnode i{width:46px!important;height:46px!important;border:0!important;border-radius:0!important;box-shadow:none!important;background:url(assets/wm_med_cur.webp) center/contain no-repeat!important;filter:drop-shadow(0 3px 5px #000)}
 .wmap3 .wnode.wdone i{background-image:url(assets/wm_med_done.webp)!important}
 .wmap3 .wnode.wlock i{background-image:url(assets/wm_med_lock.webp)!important;filter:drop-shadow(0 3px 5px #000)!important}
 .wmap3 .wnode.wcur i{filter:drop-shadow(0 0 8px #ff8a2a) drop-shadow(0 3px 5px #000)}
 .wmap3 .wnode.sel i{filter:drop-shadow(0 0 10px #ffd27a) drop-shadow(0 0 4px #ffb84a)!important;animation:wpulse 1.6s ease-in-out infinite}
-.wmap3 .wnode .wnum{font:900 18px/62px 'Cinzel',serif!important;color:#f0cf8a;text-shadow:0 0 4px #000,0 1px 2px #000;letter-spacing:.02em}
-.wmap3 .wnode.wcur .wnum{color:#ffb060}.wmap3 .wnode.wlock .wnum{color:#8a8078}
+.wmap3 .wnode .wnum{font:900 13px/46px 'Cinzel Decorative','Cinzel',serif!important;letter-spacing:.04em;background:linear-gradient(#fff3c8 10%,#e8b860 45%,#8a5a1e 80%)!important;-webkit-background-clip:text!important;background-clip:text!important;color:transparent!important;-webkit-text-stroke:.4px #2a1606;filter:drop-shadow(0 1px 0 #000) drop-shadow(0 0 3px #000c);border:0!important;padding:0!important}
+.wmap3 .wnode.wcur .wnum{background:linear-gradient(#fff0c0 10%,#ffa850 45%,#a8401a 85%)!important;-webkit-background-clip:text!important;background-clip:text!important}.wmap3 .wnode.wlock .wnum{background:linear-gradient(#c8c0b8,#6a625a)!important;-webkit-background-clip:text!important;background-clip:text!important}
 .wmap3 .wnode em{display:none}
-.wmap3 .wnode span{font-family:'Cinzel',serif;border:1px solid #c8a06066}
+.wmap3 .wnode span{font-family:var(--f-head);font-size:13px!important;border:1px solid #c8a06066}
 .wmap3 .wnode.abyss i{filter:hue-rotate(230deg) drop-shadow(0 0 8px #a87aff)!important}
 </style>
+<style>
+.evart{width:calc(100% + 8px);margin:-2px -4px 8px;aspect-ratio:16/8;background:center/cover no-repeat;border-radius:4px;box-shadow:inset 0 0 30px #000,0 3px 10px #000a;border:1px solid #e8c87833;-webkit-mask-image:linear-gradient(#000 80%,#0000);mask-image:linear-gradient(#000 80%,#0000)}
+</style>
+<style>
+.boottxt{font-family:var(--f-body);font-style:italic;font-size:15px}
+#bootskip{font-family:var(--f-head)}
+.bootkick{font-family:var(--f-body)!important;font-style:italic;letter-spacing:.18em!important;font-size:14px!important;text-transform:none!important}
+</style>
+<style>
+#modal .box.railsheet{min-height:0!important;max-width:460px}
+.railgrp2{gap:8px}body #modal .railrow{background:linear-gradient(#2a1f19,#140e0b)!important;border:1px solid #e8c87840!important;border-image:none!important;border-radius:5px!important;box-shadow:inset 0 0 18px #000a,0 2px 6px #000a!important;filter:none!important}body #modal .railrow:hover{border-color:#e8c878aa!important}.railrow{display:flex!important;align-items:center;gap:12px;text-align:left;padding:10px 12px!important;position:relative}
+.railrow .rri{flex:none;width:44px;height:44px;display:flex;align-items:center;justify-content:center}.railrow .rri svg,.railrow .rri img,.railrow .rri .ic{width:36px!important;height:36px!important}
+.railrow .rrt{flex:1;display:flex;flex-direction:column;gap:2px}.railrow .rrt b{font-family:var(--f-head);font-size:17px;color:#ecd9b0}.railrow .rrt small{font-family:var(--f-body);font-size:13px;color:#b8a888;line-height:1.25}
+.railrow .rrb{font-style:normal;min-width:20px;height:20px;padding:0 6px;border-radius:10px;background:#a8281c;color:#fff;font-size:12px;line-height:20px;text-align:center;font-weight:700}
+.railrow .rra{font-size:22px;color:#e8c878}
+.logo small{font-family:var(--f-body)!important;font-style:italic;letter-spacing:.3em!important;text-transform:uppercase}
+</style>
+<style>
+/* fonds éclairés derrière les portraits (héros, compagnons, tenues, recrues) */
+:root{--portbg:url(assets/bg_port.webp) center 30%/cover no-repeat,radial-gradient(ellipse at 50% 40%,#7a5e44 0%,#3a2c22 55%,#1a120e 100%)}
+canvas.port[data-cv^="h:"],canvas.port[data-cv^="pe:"],canvas.port[data-cv^="tier:"],canvas.port[data-cv^="ro:"],canvas.port[data-cv^="pt:"],canvas.port[data-cv^="lg:"],canvas.port[data-cv^="of:"],canvas.port[data-cv^="full"],canvas.port[data-cv^="zoom"],canvas.port[data-cv^="sheet"],canvas.port[data-cv^="r:"],canvas.port[data-cv^="petevo"],canvas.port[data-cv^="pet"],canvas.port[data-cv^="p:"],canvas.port[data-cv^="mh:"],canvas.port[data-cv^="hero:"],canvas.port[data-cv^="evo:"],canvas.port[data-cv^="cl:"]{background:var(--portbg)!important;border-radius:4px;box-shadow:inset 0 0 18px #000c,0 0 0 1px #e8c87833}
+.wmap3 .wnode .wnum svg,.wmap3 .wnode .wnum img{vertical-align:middle;filter:drop-shadow(0 0 4px #000)}
+</style>
+<style>.wmap3 .wnode .wnum.wabyss{font-size:22px!important;background:linear-gradient(#f0e0ff 10%,#b080ff 50%,#5a2aa0 90%)!important;-webkit-background-clip:text!important;background-clip:text!important}</style>

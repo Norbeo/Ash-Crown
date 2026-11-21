@@ -17,16 +17,17 @@ function ashFoot(x, px, py, ang, left, s) { x.save(); x.translate(px, py); x.rot
 function ashTrail(x, a, b, mx, my, style, rng) {
   const L = Math.hypot(b[0] - a[0], b[1] - a[1]), N = Math.max(8, L | 0), pts = [];
   for (let k = 0; k <= N; k++) { const t = k / N, u = 1 - t; pts.push([u * u * a[0] + 2 * u * t * mx + t * t * b[0], u * u * a[1] + 2 * u * t * my + t * t * b[1]]); }
-  const step = 13, gap = 26; let acc = 0, left = rng() < .5;
+  const step = 17, gap = 28; let acc = 0, left = rng() < .5;
   const C = style === "done" ? { f: "rgba(26,18,14,.92)", g: "#ff7a2a", gb: 7 } : style === "hot" ? { f: "rgba(236,222,200,.92)", g: "#ffc06a", gb: 9 } : { f: "rgba(215,200,180,.34)", g: null, gb: 0 };
   for (let k = 1; k < pts.length; k++) { acc += Math.hypot(pts[k][0] - pts[k - 1][0], pts[k][1] - pts[k - 1][1]); if (acc < step) continue; acc = 0;
     const [px, py] = pts[k]; if (Math.hypot(px - a[0], py - a[1]) < gap || Math.hypot(px - b[0], py - b[1]) < gap) continue;
     const ang = Math.atan2(py - pts[k - 1][1], px - pts[k - 1][0]), o = left ? 3.2 : -3.2;
-    x.save(); x.fillStyle = C.f; if (C.g) { x.shadowColor = C.g; x.shadowBlur = C.gb; }
-    ashFoot(x, px - Math.sin(ang) * o, py + Math.cos(ang) * o, ang, left, .72); x.restore();
+    x.save(); const im = artImg("map_step" + (1 + (k % 4))), fx = px - Math.sin(ang) * o, fy = py + Math.cos(ang) * o;
+    if (im) { x.translate(fx, fy); x.rotate(ang + Math.PI / 2); if (!left) x.scale(-1, 1); x.globalAlpha = style === "done" ? 1 : style === "hot" ? 1 : .6; if (C.g) { x.shadowColor = C.g; x.shadowBlur = C.gb; } x.filter = style === "hot" ? "brightness(3) sepia(.3)" : style === "done" ? "brightness(1.3)" : "brightness(2.4) sepia(.2)"; const hh = 24, ww = hh * .58; x.drawImage(im, -ww / 2, -hh / 2, ww, hh); }
+    else { x.fillStyle = C.f; if (C.g) { x.shadowColor = C.g; x.shadowBlur = C.gb; } ashFoot(x, fx, fy, ang, left, .72); } x.restore();
     if (style === "done" && rng() < .35) { x.fillStyle = "rgba(255,140,50,.85)"; x.beginPath(); x.arc(px - Math.sin(ang) * o + (rng() - .5) * 3, py + Math.cos(ang) * o + (rng() - .5) * 3, .9, 0, 7); x.fill(); }
     left = !left; } }
-const paintMapBgSteps = function (c, run, W, H, pos) { // pas de cendres : en attente de l'illustration peinte
+paintMapBg = function (c, run, W, H, pos) { // pas de cendres peints
   const x = c.getContext("2d"), k = c.width / W, rng = mkRng((run.seed || 7) * 13 + (run.floor || 0));
   x.save(); x.scale(k, k); x.clearRect(0, 0, W, H); const cur = run.pos;
   for (const col of run.map) for (const n of col) for (const j of n.links) {

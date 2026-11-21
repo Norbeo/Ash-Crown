@@ -570,10 +570,7 @@ body.ukoff .mphero{border:1px solid #5a4a3a;background:#1a1210;border-radius:6px
 </style>
 <style>
 /* carte du monde : médaillons peints et pas de cendres (21 nov.) */
-.wmst use{fill:rgba(205,192,175,.28)}
-.wmst.done use{fill:#1a120e;filter:url(#wmember)}
-.wmst.next use{fill:rgba(236,224,204,.9)}
-.wmst.abyss use{fill:rgba(170,120,255,.6)}
+.wmap svg .road{display:none}.wmst image{opacity:.55;filter:brightness(2.4) sepia(.2)}.wmst.done image{opacity:1;filter:brightness(1.3) url(#wmember)}.wmst.next image{opacity:1;filter:brightness(3) sepia(.3) drop-shadow(0 0 3px #ffd9a0)}.wmst.abyss image{opacity:.8;filter:hue-rotate(230deg) brightness(1.4)}
 .wmap3 .wnode i{width:46px!important;height:46px!important;border:0!important;border-radius:0!important;box-shadow:none!important;background:url(assets/wm_med_cur.webp) center/contain no-repeat!important;filter:drop-shadow(0 3px 5px #000)}
 .wmap3 .wnode.wdone i{background-image:url(assets/wm_med_done.webp)!important}
 .wmap3 .wnode.wlock i{background-image:url(assets/wm_med_lock.webp)!important;filter:drop-shadow(0 3px 5px #000)!important}

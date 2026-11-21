@@ -620,6 +620,7 @@ const HINTS = {
 };
 function hintOnce(k) {
   const H = HINTS[k]; if (!H) return; S.hints = S.hints || {}; if (S.hints[k] || (S.opts && S.opts.noHints)) return; S.hints[k] = 1; save();
+  { const m = $("#modal"); if (m && !m.hidden) { S.hints[k] = 0; return setTimeout(() => hintOnce(k), 900); } }
   const t = document.createElement("div"); t.className = "toast hint"; t.style.cssText = "max-width:min(360px,90vw);text-align:left";
   t.innerHTML = `${ico("info", "#e8c878", 14)} <b class="gold">${H[0]}</b><div class="small" style="margin-top:2px">${H[1]}</div>`;
   $("#toasts").appendChild(t); setTimeout(() => t.remove(), 7000);

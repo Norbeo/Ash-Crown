@@ -80,7 +80,7 @@ function weekPanel() {
 }
 ACT.weekRun = () => { if (!S.week || S.week.done) return; UI.expe = { region: S.week.region, week: 1 }; go("expe"); };
 ACT.dailyRun = () => { if (S.daily.done) return; closeModal(); const d = dailyRun(); UI.expe = { region: d.region, daily: d }; go("expe"); };
-function tutoHint(k, text) { if (S.tuto[k]) return; S.tuto[k] = 1; setTimeout(() => toast(`${ico("info", "#e8c878")} ${text}`, "hint"), 700); }
+function tutoHint(k, text) { if (S.tuto[k]) return; S.tuto[k] = 1; const go2 = () => { const m = $("#modal"); if (m && !m.hidden) return setTimeout(go2, 900); toast(`${ico("info", "#e8c878")} ${text}`, "hint"); }; setTimeout(go2, 700); }
 ACT.bld = k => { if (k === "porte") { sfx("door"); go("expe"); return; } sfx("open"); openBuilding(k); };
 function advBonusText(k) { const A = advA(); if (!A) return "Gagnez des niveaux d'aventure pour renforcer ce bâtiment.";
   return { taverne: `+${Math.floor(A / 10)} recrue${Math.floor(A / 10) > 1 ? "s" : ""} · recrues +${Math.floor(A / 3)} niveaux`, forge: `meilleures qualités à la fabrication · améliorations −${Math.round(Math.min(.3, .01 * A) * 100)} %`, chapelle: `+${Math.floor(A / 12)} potion${Math.floor(A / 12) > 1 ? "s" : ""} · soins −${Math.round(Math.min(.4, .01 * A) * 100)} %`, academie: `rang de compétence +${Math.floor(A / 15)}`, menagerie: `expérience des compagnons +${3 * A} %`, fonderie: `production +${8 * A} % (et ×${fondHeroMul().toFixed(1)} selon le meilleur héros) · réserve +${Math.floor(A / 5)} h · dîme ×${(1 + A / 10).toFixed(1)}` }[k] || ""; }

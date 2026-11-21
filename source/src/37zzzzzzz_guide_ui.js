@@ -39,7 +39,7 @@ const GUIDE = {
   forge: { n: "La Forge", ic: "anvil", p: [
     "<b>Forger</b> : armes et armures du palier choisi (chaque palier demande un niveau de héros). <b>Inventaire</b> : améliorer (+N à l'or), recycler (une partie de l'or investi est rendue), verrouiller 🔒, comparer (appui long sur un objet).",
     "<b>Optimiser l'équipement</b> équipe toute la compagnie ; <b>Tout améliorer</b> dépense un budget d'or ; le <b>recyclage rapide</b> vide l'inventaire par qualité.",
-    "Onglets <b>Panoplies</b>, <b>Bibelots</b> (fusion de trois bibelots en un meilleur) et <b>Gemmes</b>. Enchantement, gravure de panoplie et sertissage se font par héros, par qualité ou dans l'inventaire. À +15, une arme ou une armure se spécialise.",
+    "Onglet <b>Améliorer</b> : équipement, <b>Bibelots</b>, <b>Panoplies</b> (fusion de trois bibelots en un meilleur) et <b>Gemmes</b>. Enchantement, gravure de panoplie et sertissage se font par héros, par qualité ou dans l'inventaire. À +15, une arme ou une armure se spécialise.",
     "Chaque niveau de Forge ajoute +1 % de dégâts à tous les héros." ] },
   chapelle: { n: "La Chapelle", ic: "heal", p: [
     "Soignez les blessures entre deux expéditions (ou toute la compagnie d'un coup) et remplissez vos potions.",

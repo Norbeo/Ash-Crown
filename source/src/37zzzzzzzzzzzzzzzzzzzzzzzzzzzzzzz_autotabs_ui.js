@@ -4,7 +4,7 @@
    L'onglet et la page choisis sont mémorisés par écran (UI.atTab / UI.atPg). */
 const AT_MIN_H = 1250, AT_PAGE = 24;
 UI.atTab = UI.atTab || {}; UI.atPg = UI.atPg || {};
-function atLabel(t) { t = t.replace(/\s+/g, " ").trim(); if (!/^Chapitre/.test(t)) t = t.split(/ — | – | \(/)[0].trim(); const m = t.match(/^Chapitre ([IVXLC]+)\s*[—-]\s*(.*)$/); if (m) return m[1] + " · " + m[2].replace(/^(Le |La |Les |L')/, "").slice(0, 16); return t.length > 22 ? t.slice(0, 21) + "…" : t; }
+function atLabel(t) { t = t.replace(/\s+/g, " ").trim(); if (!/^Chapitre/.test(t)) t = t.split(/ — | – | \(/)[0].trim(); const m = t.match(/^Chapitre ([IVXLC]+)\s*[—-]\s*(.*)$/); if (m) return m[1] + " · " + m[2].replace(/^(Le |La |Les |L')/, "").slice(0, 16); return t.length > 34 ? t.slice(0, 33) + "…" : t; }
 function atItemName(c) { const h = c.querySelector("h3, h4, b, strong"); let t = (h || c).textContent.replace(/\s+/g, " ").trim(); t = t.split(/ — | – | · | \(/)[0]; return t.length > 20 ? t.slice(0, 19) + "…" : t; }
 function atPager(list, key) { // longue liste → sections repliables (une ouverte par défaut), au lieu de pages numérotées
   const items = [...list.children].filter(c => !c.classList.contains("atfold")); const lh = list.scrollHeight || list.offsetHeight;

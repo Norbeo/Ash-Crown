@@ -455,3 +455,22 @@ h1{font-weight:800}h2{font-weight:700}
 .tiny{font-weight:500}
 body:not(.ukoff) .slot{border:0;border-radius:0;background:url(assets/uk_slot.webp) center/100% 100% no-repeat,radial-gradient(#2a201c 30%,#0e0a0a 70%) center/78% 78% no-repeat;box-shadow:none}
 </style>
+
+<style>
+/* 20 nov. : bandeau de description de compétence (combat) — plaque peinte, en-tête icône + nom + rangs lisibles */
+body:not(.ukoff) .skdesc{border-style:solid;border-color:transparent;border-width:11px 13px;border-image:url(assets/uk_card.webp) 65 fill / 11px 13px stretch;background:none;border-radius:0;padding:2px 4px;filter:drop-shadow(0 4px 10px #000c)}
+.skdesc .sdh{display:flex;align-items:center;gap:7px;flex-wrap:wrap;margin-bottom:2px}
+.skdesc .sdi{display:inline-flex;width:24px;height:24px;align-items:center;justify-content:center;border-radius:50%;background:radial-gradient(#3a2a20,#120c0a);box-shadow:0 0 0 1px #7a5a32,0 0 8px #ffb84833}
+.skdesc .sdi svg,.skdesc .sdi img,.skdesc .sdi i{max-width:18px;max-height:18px}
+.skdesc .sdn{font-family:var(--f-head);font-size:16px;color:#ffd890;letter-spacing:.03em;text-shadow:0 1px 3px #000}
+.skdesc .sdult{color:#ff9a4a}
+.skdesc .sdr{margin-left:auto;display:inline-flex;align-items:center;gap:5px}
+.skdesc .sdl{font-size:10.5px;letter-spacing:.08em;text-transform:uppercase;color:#a89878}
+.skdesc .sdt{display:block;color:#efe4cf;line-height:1.38}
+.skdesc .pips i{width:9px;height:9px;border-color:#6a5640;background:#1a120e;box-shadow:inset 0 0 2px #000}
+.skdesc .pips i.y{background:linear-gradient(135deg,#bfe0ff,#4a86d8);border-color:#9cc8ff;box-shadow:0 0 5px #6aa8ff88}
+.skdesc .pips i.t{background:linear-gradient(135deg,#ffb89a,#c8402a);border-color:#ff8a6a;box-shadow:0 0 5px #ff5a3a88}
+#cb-desc.mini .sdt{display:-webkit-box}
+</style>
+<style>@media (orientation:landscape) and (max-height:560px){body:not(.ukoff) .skdesc{max-height:74px;border-width:8px 10px;border-image-width:8px 10px}.skdesc .sdh{margin-bottom:0;gap:5px}.skdesc .sdi{width:18px;height:18px}.skdesc .sdn{font-size:13px}.skdesc .sdl{display:none}.skdesc .sdt{font-size:11.5px;line-height:1.25}}
+@media (max-width:480px){.skdesc .sdl{font-size:9px}.skdesc .sdn{font-size:15px}}</style>

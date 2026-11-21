@@ -165,7 +165,7 @@ function selectSkill(sk) {
   const t = sk.t || "e";
   const d = $("#cb-desc"), mini = skMini() && !CB.descOpen;
   d.classList.toggle("mini", mini);
-  d.innerHTML = `<b class="gold">${sk.n}</b>${sk.isUlt ? ' <span class="tag" style="color:#ff9a4a">ULTIME</span>' : ""} ${sk.use ? rankPips(sk.use, t === "e" || t === "ae" ? sk.at : null) : ""}${mini ? " " : "<br>"}<span class="small one">${skillText(sk, u)}</span>${mini ? "" : `<br><span class="tiny dim">${t === "e" || t === "a" ? "Touchez une cible en surbrillance." : "Touchez une cible en surbrillance (ou la compétence à nouveau) pour lancer."}</span>`}`;
+  d.innerHTML = `<div class="sdh"><span class="sdi">${ico(sk.ic, sk.isUlt ? "#ff9a4a" : "#e8d8b8")}</span><b class="sdn">${sk.n}</b>${sk.isUlt ? '<span class="tag sdult">Ultime</span>' : ""}<span class="sdr">${sk.use ? `<span class="sdl">Depuis</span>${rankPips(sk.use)}` : ""}${sk.use && (t === "e" || t === "ae") && sk.at ? `<span class="sdl">Cible</span>${rankPips(null, sk.at).replace(/^ /, "").replace('<span class="pips" title="Rangs"><i class=""></i><i class=""></i><i class=""></i><i class=""></i></span>', "")}` : ""}</span></div><span class="small one sdt">${skillText(sk, u)}</span>${mini ? "" : `<br><span class="tiny dim">${t === "e" || t === "a" ? "Touchez une cible en surbrillance." : "Touchez une cible en surbrillance (ou la compétence à nouveau) pour lancer."}</span>`}`;
   document.querySelectorAll("#cb-skills .sk").forEach(b => b.classList.toggle("on", b.dataset.v === sk.id));
   if (!mini) d.insertAdjacentHTML("beforeend", skillPreviewHTML(u, sk));
 }

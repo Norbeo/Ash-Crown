@@ -561,3 +561,20 @@ body.ukoff .mphero{border:1px solid #5a4a3a;background:#1a1210;border-radius:6px
 .nextgoal .ngq{display:flex;flex-direction:column;align-items:center;gap:1px;padding:2px 8px;margin-left:6px;border-left:1px solid #e8c87844;font-size:11px;color:#e8c878;cursor:pointer;flex:none}
 .nextgoal .ngq b{font-weight:600}
 </style>
+<style>
+/* carte du monde : médaillons peints et pas de cendres (21 nov.) */
+.wmst use{fill:rgba(205,192,175,.28)}
+.wmst.done use{fill:#1a120e;filter:url(#wmember)}
+.wmst.next use{fill:rgba(236,224,204,.9)}
+.wmst.abyss use{fill:rgba(170,120,255,.6)}
+.wmap3 .wnode i{width:62px!important;height:62px!important;border:0!important;border-radius:0!important;box-shadow:none!important;background:url(assets/wm_med_cur.webp) center/contain no-repeat!important;filter:drop-shadow(0 3px 5px #000)}
+.wmap3 .wnode.wdone i{background-image:url(assets/wm_med_done.webp)!important}
+.wmap3 .wnode.wlock i{background-image:url(assets/wm_med_lock.webp)!important;filter:drop-shadow(0 3px 5px #000)!important}
+.wmap3 .wnode.wcur i{filter:drop-shadow(0 0 8px #ff8a2a) drop-shadow(0 3px 5px #000)}
+.wmap3 .wnode.sel i{filter:drop-shadow(0 0 10px #ffd27a) drop-shadow(0 0 4px #ffb84a)!important;animation:wpulse 1.6s ease-in-out infinite}
+.wmap3 .wnode .wnum{font:900 18px/62px 'Cinzel',serif!important;color:#f0cf8a;text-shadow:0 0 4px #000,0 1px 2px #000;letter-spacing:.02em}
+.wmap3 .wnode.wcur .wnum{color:#ffb060}.wmap3 .wnode.wlock .wnum{color:#8a8078}
+.wmap3 .wnode em{display:none}
+.wmap3 .wnode span{font-family:'Cinzel',serif;border:1px solid #c8a06066}
+.wmap3 .wnode.abyss i{filter:hue-rotate(230deg) drop-shadow(0 0 8px #a87aff)!important}
+</style>

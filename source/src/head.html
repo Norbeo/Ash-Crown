@@ -504,4 +504,60 @@ body.lefty #cb-tr{flex-direction:row-reverse}
 body.lefty .stickybar{flex-direction:row-reverse}
 .losswhy summary{cursor:pointer;list-style:none}.losswhy summary::-webkit-details-marker{display:none}
 .gsrch{padding:0 7px}
+/* aura de rareté sur les emplacements peints (21 nov.) */
+body:not(.ukoff) .slot[class*=' r']::before{content:'';position:absolute;inset:13%;border-radius:4px;border:2px solid var(--rc);box-shadow:inset 0 0 10px var(--rc),0 0 8px var(--rc);opacity:.85;pointer-events:none;z-index:1}
+body:not(.ukoff) .slot[class*=' r']{position:relative;background:url(assets/uk_slot.webp) center/100% 100% no-repeat,radial-gradient(circle,var(--rg) 0%,transparent 62%) center/78% 78% no-repeat,radial-gradient(#2a201c 30%,#0e0a0a 70%) center/78% 78% no-repeat}
+body:not(.ukoff) .slot[class*=' r'] img,body:not(.ukoff) .slot[class*=' r'] .itw{position:relative;z-index:2}
+body:not(.ukoff) .slot[class*=' r'] .tier,body:not(.ukoff) .slot[class*=' r'] .up,body:not(.ukoff) .slot[class*=' r'] .lk,body:not(.ukoff) .slot[class*=' r'] .uparr{z-index:3}
+@keyframes rpulse{0%,100%{opacity:.7}50%{opacity:1}}
+body:not(.ukoff) .slot.r5::before,body:not(.ukoff) .slot.r6::before,body:not(.ukoff) .slot.r7::before,body:not(.ukoff) .slot.r8::before,body:not(.ukoff) .slot.r9::before{animation:rpulse 2.4s ease-in-out infinite}
+body:not(.ukoff) .slot.r0::before{border-width:1px;box-shadow:none;opacity:.45}
+.slot.r0{--rc:#a8a090;--rg:#a8a09000}
+.slot.r1{--rc:#7ac86a;--rg:#7ac86a31}
+.slot.r2{--rc:#5aa0ff;--rg:#5aa0ff3f}
+.slot.r3{--rc:#c070ff;--rg:#c070ff4d}
+.slot.r4{--rc:#ffb040;--rg:#ffb0405b}
+.slot.r5{--rc:#ff4a6a;--rg:#ff4a6a62}
+.slot.r6{--rc:#7af0ff;--rg:#7af0ff69}
+.slot.r7{--rc:#fff4c8;--rg:#fff4c870}
+.slot.r8{--rc:#ff3df0;--rg:#ff3df077}
+.slot.r9{--rc:#ffd84a;--rg:#ffd84a7e}
+</style>
+<style>
+/* La Porte en 3 onglets (21 nov.) */
+.xp3 .xptabs{gap:6px;justify-content:center;margin:4px 0 10px;flex-wrap:nowrap}.xp3 .xptabs .btn{flex:1;justify-content:center;font-size:15px;padding-top:8px;padding-bottom:8px}
+.xplvl{padding:10px 12px;margin-top:8px}.xpthr{gap:5px;justify-content:center;margin:8px 0 4px;flex-wrap:nowrap}.xpthr .btn{flex:1;justify-content:center;min-width:0}
+.xpparty{gap:6px!important}.xpcard{text-align:center;padding:8px 4px 6px!important;display:flex;flex-direction:column;align-items:center;gap:1px;min-width:0}
+.xpcard canvas{width:100%!important;max-width:124px;height:auto!important;aspect-ratio:112/140}.xpcard .xpn{font-weight:700;font-size:13px;line-height:1.1;overflow-wrap:anywhere;max-width:100%}.xplvl{margin:0 0 8px!important}
+.xparrs{gap:6px;justify-content:center;margin-top:5px;flex-wrap:nowrap}
+.xparr{width:38px;height:34px;padding:0;border:0;cursor:pointer;background:url(assets/uk_btn.webp) center/100% 100% no-repeat;display:flex;align-items:center;justify-content:center;filter:drop-shadow(0 2px 3px #000)}
+.xparr.r svg{transform:scaleX(-1)}.xp3 .wsel{display:none}.xparr[disabled]{opacity:.3;cursor:default}.xparr:not([disabled]):active{transform:translateY(1px)}
+.xpempty{padding:34px 4px;display:flex;flex-direction:column;align-items:center;gap:4px}
+.xppet{display:flex;align-items:center;gap:10px;padding:6px 12px!important;margin-top:10px;text-align:left}.xppet canvas{flex:none}
+.xpfold{margin:8px 0;border-radius:6px;background:#140e0bcc;border:1px solid #e8c87833}.xpfold>summary{list-style:none;cursor:pointer;display:flex;align-items:center;gap:8px;padding:10px 12px;font-family:var(--f-head);font-size:16px;color:#ecd9b0}
+.xpfold>summary::-webkit-details-marker{display:none}.xpfold>summary .atchev{margin-left:auto;transition:transform .2s}.xpfold[open]>summary .atchev{transform:rotate(90deg)}.xpfold>.xpin{padding:2px 12px 12px}
+body:not(.ukoff) .xpfold{border:solid transparent;border-width:8px 13px;border-image:url(assets/uk_tab.webp) 26 40 fill / 8px 13px stretch;background:none}
+</style>
+<style>
+/* carte d'expédition (21 nov.) */
+.maphud{position:sticky;top:0;z-index:6;padding:6px 10px!important;background:#120c0aee!important;backdrop-filter:blur(3px)}
+.maphud .row{flex-wrap:nowrap}.maphud>.row:not(:first-child){overflow-x:auto;flex-wrap:nowrap!important;scrollbar-width:none;margin-top:5px!important}.maphud>.row::-webkit-scrollbar{display:none}
+.maphud .tag{white-space:nowrap;flex:none}
+@media (max-width:520px){.maphud>.row.sp{flex-wrap:wrap!important;gap:6px}.maphud>.row.sp>.row:last-child{margin-left:auto}.maphud .btn.sm{padding-left:8px;padding-right:8px}}
+.mapparty{position:sticky;bottom:0;z-index:6;justify-content:center;gap:6px;margin-top:6px;flex-wrap:nowrap;padding:6px 4px 8px;background:linear-gradient(#0000,#0c0807e6 30%)}
+.mphero{flex:1 1 0;max-width:96px;min-width:0;text-align:center;padding:6px 4px 5px;border:solid transparent;border-width:9px;border-image:url(assets/uk_card.webp) 30 fill / 9px stretch;filter:drop-shadow(0 3px 4px #000)}
+body.ukoff .mphero{border:1px solid #5a4a3a;background:#1a1210;border-radius:6px}
+.mphero canvas{width:100%!important;max-width:64px;height:auto!important;aspect-ratio:1}.mphero .tiny b{display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-family:var(--f-head);font-size:13px;color:#ecd9b0}
+.mphp{height:9px;margin:3px 2px 1px;position:relative;background:url(assets/cb_hpframe.webp) center/100% 100% no-repeat;border-radius:2px}.mphp i{position:absolute;left:6%;top:22%;bottom:22%;max-width:88%;background:url(assets/cb_hpfill.webp) left/auto 100% repeat-x,linear-gradient(#e0503a,#8a1a12);border-radius:1px}
+.node .nlab{font:600 11px var(--f-body,Georgia),serif!important;font-style:normal!important;padding:1px 7px;border-radius:3px;background:#0c0806cc;border:1px solid #e8c87855;color:#ecd9b0}
+.node.av .nlab{border-color:#e8c878;color:#ffe2a8}
+.node.done{opacity:.55}.node.av{filter:drop-shadow(0 0 8px #e8b04a88)}
+</style>
+<style>
+.railgrp{display:grid;grid-template-columns:repeat(auto-fill,minmax(96px,1fr));gap:10px;margin-top:6px}.railgrp .hrail{width:auto!important;height:auto!important;min-height:86px;position:relative}
+.railgrp .hrail span{font-size:13px}
+</style>
+<style>
+.nextgoal .ngq{display:flex;flex-direction:column;align-items:center;gap:1px;padding:2px 8px;margin-left:6px;border-left:1px solid #e8c87844;font-size:11px;color:#e8c878;cursor:pointer;flex:none}
+.nextgoal .ngq b{font-weight:600}
 </style>

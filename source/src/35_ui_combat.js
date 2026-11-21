@@ -40,7 +40,8 @@ function cbLayout() {
     CB.scale = Math.min((hY - eY) * .68 / 200, colW / 82); CB.hScale = Math.min(CB.scale, colH / 70); CB.ground = hY; CB.petX = W - colH * 4.5 - W * .012;
     const cx = rk => colW * (rk - .5) + W * .012 /* portrait : rang 1 ennemi (tank) à gauche, distance à droite */, hx = rk => W - colH * (rk - .5) - W * .012;
     let r = 1; for (const u of B.heroes) { pos[u.uid] = [hx(r), hY]; r++; }
-    r = 1; for (const u of B.enemies) { const s = u.sz || 1; pos[u.uid] = [cx(r + (s - 1) / 2), eY]; r += s; }
+    const tot = B.enemies.reduce((a, u) => a + (u.sz || 1), 0), sh = Math.max(0, 4 - tot) * colW; // peu d'ennemis : calés à droite, bien visibles
+    r = 1; for (const u of B.enemies) { const s = u.sz || 1; pos[u.uid] = [cx(r + (s - 1) / 2) + sh, eY]; r += s; }
   }
   for (const u of [...B.heroes, ...B.enemies, ...B.fallen, ...(B.dead || [])]) {
     const V = CB.vis[u.uid] = CB.vis[u.uid] || { a: 1, pose: "idle", pt: 0, off: 0, flash: 0, hp: u.hp, born: SC.t };

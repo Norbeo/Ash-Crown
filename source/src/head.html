@@ -570,8 +570,8 @@ body.ukoff .mphero{border:1px solid #5a4a3a;background:#1a1210;border-radius:6px
 </style>
 <style>
 /* carte du monde : médaillons peints et pas de cendres (21 nov.) */
-.wmap svg .road{display:none}.wmst{position:absolute;inset:0;pointer-events:none;z-index:0}.wmap3 .wnode{z-index:2}.wmst .st{position:absolute;width:14px;height:25px;margin:-12px 0 0 -7px;background:center/contain no-repeat;transform:rotate(var(--a));opacity:.45;filter:brightness(.8) drop-shadow(0 1px 1px #000)}.wmst .st.r{transform:rotate(var(--a)) scaleX(-1)}
-.wmst.done .st{opacity:.95;filter:brightness(.55) sepia(1) saturate(3) hue-rotate(-12deg) drop-shadow(0 0 3px #ff6a1a) drop-shadow(0 1px 1px #000)}.wmst.next .st{opacity:1;filter:brightness(1.1) drop-shadow(0 0 4px #ffd9a0) drop-shadow(0 1px 1px #000)}.wmst.abyss .st{opacity:.9;filter:brightness(.8) sepia(1) hue-rotate(220deg) saturate(3) drop-shadow(0 0 3px #a070ff)}
+.wmap svg .road{display:none}.wmst{position:absolute;inset:0;pointer-events:none;z-index:0}.wmap3 .wnode{z-index:2}.wmst .st{position:absolute;width:9px;height:3px;margin:-1.5px 0 0 -4.5px;border-radius:2px;transform:rotate(var(--a));background:#d8ccb8;opacity:.35;box-shadow:0 0 0 1px #0008}
+.wmst.done .st{opacity:1;background:#ffd08a;box-shadow:0 0 6px 1px #ff7a2a,0 0 0 1px #0009}.wmst.next .st{opacity:1;background:#fff4d0;box-shadow:0 0 7px 2px #ffcf6a,0 0 0 1px #0009}.wmst.abyss .st{opacity:.9;background:#e0c8ff;box-shadow:0 0 6px 1px #a070ff}
 .wmap3 .wnode i{width:46px!important;height:46px!important;border:0!important;border-radius:0!important;box-shadow:none!important;background:url(assets/wm_med_cur.webp) center/contain no-repeat!important;filter:drop-shadow(0 3px 5px #000)}
 .wmap3 .wnode.wdone i{background-image:url(assets/wm_med_done.webp)!important}
 .wmap3 .wnode.wlock i{background-image:url(assets/wm_med_lock.webp)!important;filter:drop-shadow(0 3px 5px #000)!important}
@@ -611,4 +611,8 @@ canvas.port[data-cv^="h:"],canvas.port[data-cv^="pe:"],canvas.port[data-cv^="tie
 /* fond des cartes : cuir brun peint (au lieu du gris marbré étiré) */
 body:not(.ukoff) .card,body:not(.ukoff) .hrail,body:not(.ukoff) .cevt,body:not(.ukoff) .skdesc,body:not(.ukoff) .toast,body:not(.ukoff) #coach,body:not(.ukoff) .mphero{border-image-slice:65!important;background:url(assets/uk_cardfill.webp) center/cover no-repeat!important;background-clip:padding-box!important;box-shadow:inset 0 0 26px #000a!important;-webkit-backdrop-filter:blur(4px);backdrop-filter:blur(4px)}
 body:not(.ukoff) .mphero{border-image-slice:30!important}
+</style>
+<style>
+/* compagnons : fond peint propre (niche de pierre en largeur), cadré sur l'animal */
+canvas.port[data-cv^="pe:"],canvas.port[data-cv^="p:"],canvas.port[data-cv="pet"],canvas.port[data-cv^="pet:"],canvas.port[data-cv^="petevo"]{background:url(assets/bg_pet.webp) center 60%/cover no-repeat,#2a1e16!important}
 </style>

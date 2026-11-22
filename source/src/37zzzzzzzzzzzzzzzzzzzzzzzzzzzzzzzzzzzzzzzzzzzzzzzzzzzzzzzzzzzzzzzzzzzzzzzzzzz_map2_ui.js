@@ -14,19 +14,22 @@
 function ashFoot(x, px, py, ang, left, s) { x.save(); x.translate(px, py); x.rotate(ang + Math.PI / 2); if (!left) x.scale(-1, 1); x.scale(s, s);
   x.beginPath(); x.ellipse(0, -4, 3.3, 5.2, .12, 0, 7); x.fill(); x.beginPath(); x.ellipse(.4, 5.2, 2.5, 2.8, 0, 0, 7); x.fill();
   for (const [tx, ty, r] of [[-2.6, -10.2, 1], [-.9, -11, 1], [.8, -10.9, .95], [2.4, -10.1, .85]]) { x.beginPath(); x.arc(tx, ty, r, 0, 7); x.fill(); } x.restore(); }
-function ashTrail(x, a, b, mx, my, style, rng) {
-  const L = Math.hypot(b[0] - a[0], b[1] - a[1]), N = Math.max(8, L | 0), pts = [];
+function ashTrail(x, a, b, mx, my, style, rng) { // chemin de braises : un fil de cendre sombre semé de tisons rougeoyants
+  const L = Math.hypot(b[0] - a[0], b[1] - a[1]), N = Math.max(8, L | 0), pts = [], gap = 26;
   for (let k = 0; k <= N; k++) { const t = k / N, u = 1 - t; pts.push([u * u * a[0] + 2 * u * t * mx + t * t * b[0], u * u * a[1] + 2 * u * t * my + t * t * b[1]]); }
-  const step = 17, gap = 28; let acc = 0, left = rng() < .5;
-  const C = style === "done" ? { f: "rgba(26,18,14,.92)", g: "#ff7a2a", gb: 7 } : style === "hot" ? { f: "rgba(236,222,200,.92)", g: "#ffc06a", gb: 10 } : style === "gold" ? { f: "rgba(232,200,120,.9)", g: "#e8b04a", gb: 4 } : style === "shut" ? { f: "rgba(150,40,30,.6)", g: null, gb: 0 } : { f: "rgba(215,200,180,.34)", g: null, gb: 0 };
-  for (let k = 1; k < pts.length; k++) { acc += Math.hypot(pts[k][0] - pts[k - 1][0], pts[k][1] - pts[k - 1][1]); if (acc < step) continue; acc = 0;
-    const [px, py] = pts[k]; if (Math.hypot(px - a[0], py - a[1]) < gap || Math.hypot(px - b[0], py - b[1]) < gap) continue;
-    const ang = Math.atan2(py - pts[k - 1][1], px - pts[k - 1][0]), o = left ? 3.2 : -3.2;
-    x.save(); const im = artImg("map_step" + (1 + (k % 4))), fx = px - Math.sin(ang) * o, fy = py + Math.cos(ang) * o;
-    if (im) { x.translate(fx, fy); x.rotate(ang + Math.PI / 2); if (!left) x.scale(-1, 1); x.globalAlpha = style === "done" ? 1 : style === "hot" ? 1 : .6; if (C.g) { x.shadowColor = C.g; x.shadowBlur = C.gb; } x.filter = style === "hot" ? "brightness(1.6) sepia(1) saturate(2.4) hue-rotate(-8deg)" : style === "done" ? "brightness(.6) sepia(1) saturate(3) hue-rotate(-12deg)" : style === "gold" ? "brightness(.9) sepia(1) saturate(1.9) hue-rotate(-24deg)" : "brightness(.42) sepia(1) saturate(8) hue-rotate(-28deg)"; if (style === "shut") x.globalAlpha = .6; if (style === "gold") x.globalAlpha = .9; const hh = 20, ww = hh * .58; x.drawImage(im, -ww / 2, -hh / 2, ww, hh); }
-    else { x.fillStyle = C.f; if (C.g) { x.shadowColor = C.g; x.shadowBlur = C.gb; } ashFoot(x, fx, fy, ang, left, .72); } x.restore();
-    if (style === "done" && rng() < .35) { x.fillStyle = "rgba(255,140,50,.85)"; x.beginPath(); x.arc(px - Math.sin(ang) * o + (rng() - .5) * 3, py + Math.cos(ang) * o + (rng() - .5) * 3, .9, 0, 7); x.fill(); }
-    left = !left; } }
+  const P = pts.filter(([px, py]) => Math.hypot(px - a[0], py - a[1]) > gap && Math.hypot(px - b[0], py - b[1]) > gap); if (P.length < 2) return;
+  const C = { done: ["#ff7a2a", "#ffd08a", 1, 8], hot: ["#ffcf6a", "#fff4d0", 1, 10], gold: ["#d8962a", "#f0cc80", .75, 5], shut: ["#8a1e14", "#c0402a", .55, 0] }[style] || ["#9a8a78", "#d8ccb8", .35, 0];
+  x.save(); x.lineCap = "round"; x.lineJoin = "round";
+  // lit de cendre (trait sombre et doux)
+  x.globalAlpha = .55 * C[2]; x.strokeStyle = "#0c0806"; x.lineWidth = 5; x.beginPath(); x.moveTo(...P[0]); for (const p of P) x.lineTo(...p); x.stroke();
+  // tisons : petits traits allongés espacés, qui suivent la courbe
+  let acc = 0, on = true; x.globalAlpha = C[2]; x.shadowColor = C[0]; x.shadowBlur = C[3];
+  for (let i = 1; i < P.length; i++) { const d = Math.hypot(P[i][0] - P[i - 1][0], P[i][1] - P[i - 1][1]); acc += d;
+    if (on) { const g = x.createLinearGradient(P[i - 1][0], P[i - 1][1], P[i][0], P[i][1]); x.strokeStyle = C[1]; x.lineWidth = 2.1; x.beginPath(); x.moveTo(...P[i - 1]); x.lineTo(...P[i]); x.stroke(); }
+    if (acc > (on ? 6 : 5)) { acc = 0; on = !on; } }
+  // quelques étincelles sur le chemin parcouru
+  if (style === "done" || style === "hot") { x.shadowBlur = 6; x.fillStyle = C[1]; for (let i = 0; i < P.length; i += 9) if (rng() < .5) { x.beginPath(); x.arc(P[i][0] + (rng() - .5) * 6, P[i][1] + (rng() - .5) * 6, .9, 0, 7); x.fill(); } }
+  x.restore(); }
 paintMapBg = function (c, run, W, H, pos) { // pas de cendres peints
   const x = c.getContext("2d"), k = c.width / W, rng = mkRng((run.seed || 7) * 13 + (run.floor || 0));
   x.save(); x.scale(k, k); x.clearRect(0, 0, W, H); const cur = run.pos;

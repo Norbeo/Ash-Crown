@@ -48,7 +48,7 @@ function campTalk() {
 function vigilHTML() {
   const V = UI.vigil, used = V.used;
   const rows = campAlive().map(h => { const C = CLASSES[h.cls], L = CAMP_SK[C.role] || [];
-    return `<div class="card vigrow" style="cursor:default"><div class="row" style="gap:8px;flex-wrap:nowrap">${canvasSlot("h:" + h.id, 52, 58)}<div style="flex:1;min-width:0"><b class="small">${esc(h.name)}</b> <span class="tiny dim">${C.n}</span>
+    return `<div class="card vigrow" style="cursor:default"><div class="row" style="gap:8px;flex-wrap:nowrap">${canvasSlotHD("h:" + h.id, 52, 58)}<div style="flex:1;min-width:0"><b class="small">${esc(h.name)}</b> <span class="tiny dim">${C.n}</span>
       ${L.map(sk => { const done = used[h.id + ":" + sk.k], can = !done && !used[h.id] && V.pts >= sk.c; return `<button class="btn sm ${can ? "" : "off"} vigbtn" data-a="vigil" data-v="${h.id}|${sk.k}" title="${sk.d}"><b>${sk.n}</b> <span class="tag">${"●".repeat(sk.c)}</span><span class="tiny dim vigd">${sk.d}</span></button>`; }).join("")}</div></div></div>`; }).join("");
   return `<h2>${ico("camp", "#ff9a3a")} Veillée</h2><p class="small">Points de veillée : <b class="gold">${"●".repeat(V.pts)}${"○".repeat(Math.max(0, CAMP_PTS - V.pts))}</b> · une compétence par héros.</p>
     ${V.talk || ""}${V.log.length ? `<div class="tiny good" style="margin:4px 0">${V.log.map(esc).join(" · ")}</div>` : ""}

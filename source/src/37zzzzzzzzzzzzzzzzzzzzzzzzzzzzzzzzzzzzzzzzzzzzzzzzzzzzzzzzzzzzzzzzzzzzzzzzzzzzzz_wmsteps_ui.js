@@ -1,14 +1,13 @@
 // ── Carte du monde (21 nov.) : médaillons peints (vaincu / ouvert / scellé) et chemin de pas de cendres en courbes
 const WM_FOOT = `<symbol id="wmfoot" viewBox="-6 -14 12 24" overflow="visible"><ellipse cx="0" cy="-4" rx="3.3" ry="5.2" transform="rotate(7)"/><ellipse cx=".4" cy="5.2" rx="2.5" ry="2.8"/><circle cx="-2.6" cy="-10.2" r="1"/><circle cx="-.9" cy="-11" r="1"/><circle cx=".8" cy="-10.9" r=".95"/><circle cx="2.4" cy="-10.1" r=".85"/></symbol>`;
 function wmStepsSVG(a, b, style, i, W, H) { const dx = b[0] - a[0], dy = b[1] - a[1], L = Math.hypot(dx, dy) || 1, bend = (i % 2 ? -.28 : .28) * L;
-  const mx = (a[0] + b[0]) / 2 - dy / L * bend, my = (a[1] + b[1]) / 2 + dx / L * bend, sz = W / 1000 * 3.1, step = sz * 8, gap = sz * 15;
+  const mx = (a[0] + b[0]) / 2 - dy / L * bend, my = (a[1] + b[1]) / 2 + dx / L * bend, sz = W / 1000 * 3.1, step = sz * 4.2, gap = sz * 15;
   const P = []; for (let k = 0; k <= 200; k++) { const t = k / 200, u = 1 - t; P.push([u * u * a[0] + 2 * u * t * mx + t * t * b[0], u * u * a[1] + 2 * u * t * my + t * t * b[1]]); }
   let acc = 0, left = true, out = "";
   for (let k = 1; k < P.length; k++) { acc += Math.hypot(P[k][0] - P[k - 1][0], P[k][1] - P[k - 1][1]); if (acc < step) continue; acc = 0; const [x, y] = P[k];
     if (Math.hypot(x - a[0], y - a[1]) < gap || Math.hypot(x - b[0], y - b[1]) < gap) continue;
     const ang = Math.atan2(y - P[k - 1][1], x - P[k - 1][0]), o = (left ? 1 : -1) * sz * 3.3, fx = x - Math.sin(ang) * o, fy = y + Math.cos(ang) * o;
-    const nI = 1 + ((k * 7 + i) % 4);
-    out += `<i class="st${left ? "" : " r"}" style="left:${(fx / W * 100).toFixed(2)}%;top:${(fy / H * 100).toFixed(2)}%;--a:${(ang * 180 / Math.PI + 90).toFixed(0)}deg;background-image:url(assets/map_step${nI}.webp)"></i>`; left = !left; }
+    out += `<i class="st" style="left:${(x / W * 100).toFixed(2)}%;top:${(y / H * 100).toFixed(2)}%;--a:${(ang * 180 / Math.PI).toFixed(0)}deg"></i>`; left = !left; }
   return `<div class="wmst ${style}">${out}</div>`; }
 { const wm0 = worldMapHTML; worldMapHTML = function (E, regs) { let h = wm0.apply(this, arguments);
     try { const vb = h.match(/<svg viewBox="0 0 ([\d.]+) ([\d.]+)"/); if (!vb) return h; const W = +vb[1], H = +vb[2];

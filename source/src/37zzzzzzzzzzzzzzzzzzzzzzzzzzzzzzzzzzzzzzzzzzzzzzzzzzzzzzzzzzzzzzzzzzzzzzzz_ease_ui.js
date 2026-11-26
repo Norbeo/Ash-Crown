@@ -108,3 +108,5 @@ ACT.gsHero = id => { closeModal(); ACT.heroInfo(id); };
 ACT.gsItem = id => { closeModal(); ACT.itemInfo(id); };
 ACT.gsBld = k => { closeModal(); if (k === "porte") return go("expe"); if (UI.screen !== "bastion") go("bastion"); openBuilding(k); };
 ACT.gsMon = k => { closeModal(); ACT.monSheet(k); };
+// notifications (26 nov.) : une notification qui a fini de s'effacer est retirée aussitôt — plus de zone invisible qui capte le toucher
+if (typeof document !== "undefined") document.addEventListener("animationend", e => { const t = e.target; if (e.animationName === "tout" && t && t.classList && t.classList.contains("toast")) { if (t === TPILE.el) TPILE.el = null; t.remove(); } }, true);

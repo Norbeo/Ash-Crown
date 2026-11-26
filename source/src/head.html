@@ -132,7 +132,7 @@ p{margin:6px 0;line-height:1.45}
 #toasts{position:fixed;bottom:calc(env(safe-area-inset-bottom) + 86px);left:50%;transform:translateX(-50%);z-index:30;display:flex;flex-direction:column;gap:6px;align-items:center;pointer-events:none;width:min(92vw,440px)}
 .toast{background:#120c0cee;border:1px solid #5a3a22;border-left:3px solid var(--gold);padding:8px 14px;border-radius:3px;font-size:14px;box-shadow:0 6px 20px #000c;animation:tin .35s ease-out,tout .4s ease-in 2.8s forwards;text-align:center}
 .toast.bad{border-left-color:var(--bad)}.toast.good{border-left-color:var(--good)}.toast.epic{border-left-color:var(--purple);box-shadow:0 0 24px #c090ff55}
-@keyframes tin{from{opacity:0;transform:translateY(-12px)}}@keyframes tout{to{opacity:0;transform:translateY(-8px)}}
+@keyframes tin{from{opacity:0;transform:translateY(-12px)}}@keyframes tout{99%{pointer-events:none}to{opacity:0;transform:translateY(-8px);visibility:hidden;pointer-events:none}}
 .enter>*{animation:rise .45s cubic-bezier(.2,.9,.3,1) both}.enter>*:nth-child(2){animation-delay:.05s}.enter>*:nth-child(3){animation-delay:.1s}.enter>*:nth-child(4){animation-delay:.15s}.enter>*:nth-child(5){animation-delay:.2s}
 /* écran-titre */
 .titlebox{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;padding:0 16px calc(env(safe-area-inset-bottom) + 9vh);gap:12px;text-align:center}
@@ -615,4 +615,21 @@ body:not(.ukoff) .mphero{border-image-slice:30!important}
 <style>
 /* compagnons : fond peint propre (niche de pierre en largeur), cadré sur l'animal */
 canvas.port[data-cv^="pe:"],canvas.port[data-cv^="p:"],canvas.port[data-cv="pet"],canvas.port[data-cv^="pet:"],canvas.port[data-cv^="petevo"]{background:url(assets/bg_pet.webp) center 60%/cover no-repeat,#2a1e16!important}
+</style>
+<style>
+/* carte en paysage (26 nov.) : bandeau sur une ligne, compagnie en vignettes compactes */
+@media (orientation:landscape) and (max-height:720px){
+.maphud{display:flex;align-items:center;gap:6px;padding:4px 8px!important;overflow-x:auto;scrollbar-width:none}.maphud::-webkit-scrollbar{display:none}
+.maphud>.row{margin:0!important;flex:none;flex-wrap:nowrap!important}.maphud>.row.sp{order:9;margin-left:auto!important;gap:6px}.maphud>.row.sp>.row:first-child{flex-wrap:nowrap}
+.maphud>.row.sp{order:0;margin-left:0!important}.maphud .btn.sm{padding:3px 8px}
+.mapparty{position:sticky;bottom:0;justify-content:flex-start;gap:4px;padding:4px;background:none;pointer-events:none}
+.mphero{pointer-events:auto;flex:none;width:auto;max-width:none;display:flex;align-items:center;gap:5px;padding:2px 6px 2px 2px;border-width:6px}
+.mphero canvas{width:34px!important;max-width:34px;height:34px!important}
+.mphero .tiny{text-align:left;line-height:1.1}.mphero .tiny b{font-size:11px;max-width:70px}.mphp{width:60px;height:7px;margin:2px 0 0}
+.mapparty{justify-content:center}.mphero{display:grid!important;grid-template-columns:34px 66px;column-gap:6px;row-gap:0;align-items:center;flex:none!important;max-width:none!important}.mphero>canvas{grid-row:1/4}.mphero .tiny.dim{font-size:10px}
+}
+</style>
+<style>
+/* vignettes d'objet jamais écrasées dans une rangée (26 nov.) */
+.slot{flex:none!important}.slot>img,.slot>canvas{max-width:100%;max-height:100%;object-fit:contain}
 </style>

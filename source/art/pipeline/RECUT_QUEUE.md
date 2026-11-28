@@ -34,7 +34,7 @@ Note : les compagnons et créatures du bestiaire sont dans les planches px_/mx_ 
 - [x] mon_homme_poisson (Canva MAHcKfJJuIE) — PRIORITÉ (28 nov.) : torse criblé de trous. Prompt : même homme-poisson, même pose accroupie avec sa lance, torse et haillons PLEINS (aucun trou), entier, fond gris.
 - [x] hero_menestrel_chantre_t7 (Canva MAHcKWu3BX8) — réf. le chantre VI refait, plus riche, même silhouette, cape fermée.
 - [x] hero_menestrel_heraut_t7 (Canva MAHcKvozN-M) — réf. le héraut VI refait.
-- [ ] hero_menestrel_chantre_t8 — réf. chantre VII refait.
+- [x] hero_menestrel_chantre_t8 (Canva MAHcKnaeajM) — réf. chantre VII refait.
 - [ ] hero_menestrel_heraut_t8 — réf. héraut VII refait.
 - [ ] hero_menestrel_chantre_t9 — réf. chantre VIII refait.
 - [ ] hero_menestrel_heraut_t9 — réf. héraut VIII refait.

@@ -29,8 +29,8 @@ Note : les compagnons et créatures du bestiaire sont dans les planches px_/mx_ 
 - [x] mon_rat_os
 - [x] pet_molosse_evo
 - [x] hero_menestrel_t5 — PRIORITÉ (demande du 28 nov.) : trou entre la cape et les cuisses. Prompt : même ménestrel, même armure noire, même chapeau à plume et luth, MAIS cape longue fermée qui tombe derrière les jambes jusqu'aux bottes (aucun vide entre cape et jambes), personnage entier, fond gris. Après recut.sh : python3 cx.py.
-- [x] hero_menestrel_chantre — ÉVOLUTIONS DU MÉNESTREL À ADAPTER (28 nov.) : référence = NOUVEAU hero_menestrel_t5 (cape fermée derrière les jambes) + ancien chantre pour le style de la voie ; armure plus riche que le V, même silhouette étroite, cape fermée, aucun vide ni bloc noir entre les jambes. Puis cx.py + build (hx_menestrel).
-- [ ] hero_menestrel_heraut — même méthode (réf. nouveau t5 + ancien héraut : tabard bleu à fleurs de lys, dorures) ; aucun vide à la cuisse.
+- [x] hero_menestrel_chantre (Canva MAHcKJ785So) — ÉVOLUTIONS DU MÉNESTREL À ADAPTER (28 nov.) : référence = NOUVEAU hero_menestrel_t5 (cape fermée derrière les jambes) + ancien chantre pour le style de la voie ; armure plus riche que le V, même silhouette étroite, cape fermée, aucun vide ni bloc noir entre les jambes. Puis cx.py + build (hx_menestrel).
+- [ ] hero_menestrel_heraut — même méthode (réf. nouveau t5 MAHcKJmFkUI + ancien héraut déjà importé MAHcKC05zUI : tabard bleu à fleurs de lys, dorures) ; aucun vide à la cuisse.
 - [ ] mon_homme_poisson — PRIORITÉ (28 nov.) : torse criblé de trous. Prompt : même homme-poisson, même pose accroupie avec sa lance, torse et haillons PLEINS (aucun trou), entier, fond gris.
 - [ ] hero_menestrel_chantre_t7 — réf. le chantre VI refait, plus riche, même silhouette, cape fermée.
 - [ ] hero_menestrel_heraut_t7 — réf. le héraut VI refait.

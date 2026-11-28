@@ -50,8 +50,14 @@ Règles : cape fermée sans trou, AUCUN vide ni bloc noir entre jambes/armes, si
 - [x] hero_ombre_t4 (Canva MAHcMQvFz2E)
 - [x] hero_ombre_t5 (Canva MAHcMkbDUMc)
 
+## APERÇUS VOIES DE LA LAME D'OMBRE (28 nov. 11 h 16) — À MONTRER À L'UTILISATEUR AVANT DE LANCER LES PALIERS VI–X
+Les deux voies doivent être deux personnages distincts sur la même base (comme Purificateur / Traqueur du chasseur), pas un simple changement de couleur.
+- [ ] apercu_ombre_assassin — Assassin (« Un seul coup. Au bon endroit. ») : tueuse silencieuse, silhouette fine et sobre, capuche profonde + masque, cuir noir mat ajusté, cape courte, lames droites (stylets / dague longue), fioles de poison, sangles, touches d'argent froid ; aucun rouge.
+- [ ] apercu_ombre_ombre_sang — Ombre-sang (« Elle danse entre ses proies et laisse des rivières derrière elle ») : danseuse sanguinaire, sans capuche (cheveux noirs tressés, demi-masque d'os), armure écarlate et noire à épines, voiles rouges déchirés, deux faucilles dentelées, runes de sang ; silhouette en mouvement.
+(les lignes hero_ombre_assassin*/hero_ombre_ombre_sang* restent en attente de l'accord)
+
 ## PIED MANQUANT (28 nov., 11 h 04)
-- [ ] hero_medecin_peste_t5 — un seul pied visible (l'autre caché par la cape) : deux bottes bien visibles, cape fermée derrière les jambes
+- [x] hero_medecin_peste_t5 (Canva MAHcMuKIqxE) — un seul pied visible (l'autre caché par la cape) : deux bottes bien visibles, cape fermée derrière les jambes
 
 ## AURÉOLES (28 nov., 11 h) — fond sombre peint à l'intérieur de l'auréole → repeindre avec un anneau fin, fond gris visible dans l'anneau, aucun disque sombre derrière la tête
 - [ ] hero_hallebardier_garde_roi_t10 — disque noir + rayons noirs

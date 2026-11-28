@@ -32,7 +32,7 @@ Note : les compagnons et créatures du bestiaire sont dans les planches px_/mx_ 
 - [x] hero_menestrel_chantre (Canva MAHcKJ785So) — ÉVOLUTIONS DU MÉNESTREL À ADAPTER (28 nov.) : référence = NOUVEAU hero_menestrel_t5 (cape fermée derrière les jambes) + ancien chantre pour le style de la voie ; armure plus riche que le V, même silhouette étroite, cape fermée, aucun vide ni bloc noir entre les jambes. Puis cx.py + build (hx_menestrel).
 - [x] hero_menestrel_heraut (Canva MAHcKcDILSc) — même méthode (réf. nouveau t5 MAHcKJmFkUI + ancien héraut déjà importé MAHcKC05zUI : tabard bleu à fleurs de lys, dorures) ; aucun vide à la cuisse.
 - [x] mon_homme_poisson (Canva MAHcKfJJuIE) — PRIORITÉ (28 nov.) : torse criblé de trous. Prompt : même homme-poisson, même pose accroupie avec sa lance, torse et haillons PLEINS (aucun trou), entier, fond gris.
-- [ ] hero_menestrel_chantre_t7 — réf. le chantre VI refait, plus riche, même silhouette, cape fermée.
+- [x] hero_menestrel_chantre_t7 (Canva MAHcKWu3BX8) — réf. le chantre VI refait, plus riche, même silhouette, cape fermée.
 - [ ] hero_menestrel_heraut_t7 — réf. le héraut VI refait.
 - [ ] hero_menestrel_chantre_t8 — réf. chantre VII refait.
 - [ ] hero_menestrel_heraut_t8 — réf. héraut VII refait.

@@ -453,7 +453,7 @@ function bestiaryHTML() {
 const BLIFE = { smoke: [], walk: null, sig: "" };
 function bastionLife(x, L, t, dt) {
   const B = Object.fromEntries(L.map(b => [b.k, b]));
-  const chim = { forge: [.06, 1.12, "#4a4440"], fonderie: [0, 1.08, "#3a5a4a"], taverne: [-.25, 1.12, "#4a4440"] }; // cheminées (décalage x, hauteur relative)
+  const chim = {}; // fumées retirées (28 nov., demande de l'utilisateur)
   for (const k in chim) { const b = B[k]; if (!b) continue; const lvl = S.bld[k] || 1, [ox, oy, col] = chim[k];
     if (Math.random() < dt * (1.5 + lvl * 1.2)) BLIFE.smoke.push({ x: b.x + ox * b.s, y: b.y - b.s * oy * (k === "forge" ? 1.1 : 1), vx: 6 + Math.random() * 8, vy: -18 - Math.random() * 14, r: b.s * .05, a: .35 + lvl * .04, col, life: 0 }); }
   BLIFE.smoke = BLIFE.smoke.filter(p => (p.life += dt) < 4.5);

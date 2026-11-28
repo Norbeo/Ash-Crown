@@ -39,7 +39,7 @@ Note : les compagnons et créatures du bestiaire sont dans les planches px_/mx_ 
 - [x] hero_menestrel_chantre_t9 (Canva MAHcKj075Gk) — réf. chantre VIII refait.
 - [x] hero_menestrel_heraut_t9 (Canva MAHcK3yQbq8) — réf. héraut VIII refait.
 - [x] hero_menestrel_chantre_t10 (Canva MAHcK7vfhv0) — réf. chantre IX refait (palier X : le plus somptueux).
-- [ ] hero_menestrel_heraut_t10 — réf. héraut IX refait.
+- [x] hero_menestrel_heraut_t10 (Canva MAHcMLYagKM) — réf. héraut IX refait.
 - [ ] pet_tortue_evo
 - [ ] pet_rat_geant
 - [ ] pet_renard

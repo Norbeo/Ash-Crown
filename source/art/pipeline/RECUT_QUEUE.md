@@ -46,7 +46,7 @@ Note : les compagnons et créatures du bestiaire sont dans les planches px_/mx_ 
 Règles : cape fermée sans trou, AUCUN vide ni bloc noir entre jambes/armes, silhouette étroite, personnage entier avec marge (tête/cornes non coupées), fond gris, peau intacte. Tissus de couleur unie et lisible (pour que les tenues se recolorent bien). Chaque palier = réf. du palier précédent refait. Après recut.sh : cx.py.
 - [x] hero_ombre_t1 (Canva MAHcMXxke0w)
 - [x] hero_ombre_t2 (Canva MAHcMcPK8rI)
-- [ ] hero_ombre_t3
+- [x] hero_ombre_t3 (Canva MAHcMY68JKw)
 - [ ] hero_ombre_t4
 - [ ] hero_ombre_t5
 - [ ] hero_ombre_assassin (VI)

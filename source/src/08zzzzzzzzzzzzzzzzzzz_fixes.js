@@ -1,0 +1,4 @@
+/* Correctifs de la campagne de bots du 12 nov. : gemmes rendues quand un objet serti disparaît (recyclage, vente, éveil). */
+function gemsBack(it) { if (!it || !it.gems || !it.gems.length) return; for (const g of it.gems) { const [k, l] = String(g).split(":"); if (typeof gemAdd === "function" && GEMS[k]) gemAdd(k, +l || 1); } it.gems = []; }
+{ const si = salvageItem; salvageItem = function (it) { const r = si.apply(this, arguments); if (r) gemsBack(it); return r; }; }
+if (typeof awakenTrait === "function") { const aw = awakenTrait; awakenTrait = function (it, idx, sacId) { const sac = S.inv.find(x => x.id === sacId), g = sac && sac.gems ? sac.gems.slice() : null; const r = aw.apply(this, arguments); if (r && !r.err && g && sac && !S.inv.includes(sac)) gemsBack(Object.assign({}, sac, { gems: g })); return r; }; }

@@ -1,0 +1,102 @@
+{
+ "mon_alpha": [
+  0.1,
+  0.58,
+  0.4
+ ],
+ "mon_archonte_cendres": [
+  0.37,
+  0.22,
+  0.15
+ ],
+ "mon_charognard": [
+  0.13,
+  0.45,
+  0.28
+ ],
+ "mon_crabe_geant": [
+  0.45,
+  0.4,
+  0.5
+ ],
+ "mon_diablotin": [
+  0.25,
+  0.3,
+  0.25
+ ],
+ "mon_gargouille": [
+  0.24,
+  0.36,
+  0.27
+ ],
+ "mon_golem": [
+  0.3,
+  0.15,
+  0.24
+ ],
+ "mon_jarl_mort": [
+  0.22,
+  0.14,
+  0.17
+ ],
+ "mon_loup": [
+  0.13,
+  0.47,
+  0.45
+ ],
+ "mon_loup_givre": [
+  0.15,
+  0.42,
+  0.4
+ ],
+ "mon_rat": [
+  0.13,
+  0.47,
+  0.5
+ ],
+ "mon_seraphin_dechu": [
+  0.15,
+  0.15,
+  0.16
+ ],
+ "mon_spectre_blizzard": [
+  0.3,
+  0.12,
+  0.18
+ ],
+ "mon_troll_givre": [
+  0.44,
+  0.2,
+  0.3
+ ],
+ "mon_follet": [
+  0.5,
+  0.6,
+  0.35
+ ],
+ "mon_profond": [
+  0.38,
+  0.2,
+  0.18
+ ],
+ "mon_devoreur_lumiere": [
+  0.22,
+  0.2,
+  0.3
+ ],
+ "mon_coeur_montagne": [
+  0.3,
+  0.17,
+  0.22
+ ],
+ "mon_colosse_braise": [
+  0.42,
+  0.13,
+  0.2
+ ],
+ "mon_chevaucheur_calcine": [
+  0.58,
+  0.12,
+  0.18
+ ]
+}

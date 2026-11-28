@@ -1,0 +1,55 @@
+/* ═══════════════════════ Couronne de Cendres — utilitaires ═══════════════════════ */
+"use strict";
+const HASWIN = typeof window !== "undefined" && typeof document !== "undefined";
+const SAVE_KEY = "couronne-de-cendres-v1";
+
+// générateur pseudo-aléatoire déterministe (mulberry32)
+function mkRng(seed) {
+  let a = (seed >>> 0) || 1;
+  const f = () => { a |= 0; a = a + 0x6D2B79F5 | 0; let t = Math.imul(a ^ a >>> 15, 1 | a); t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t; return ((t ^ t >>> 14) >>> 0) / 4294967296; };
+  f.int = (lo, hi) => lo + Math.floor(f() * (hi - lo + 1));
+  f.pick = arr => arr[Math.floor(f() * arr.length)];
+  f.chance = p => f() < p;
+  f.shuffle = arr => { for (let i = arr.length - 1; i > 0; i--) { const j = Math.floor(f() * (i + 1)); [arr[i], arr[j]] = [arr[j], arr[i]]; } return arr; };
+  f.weighted = (items, w) => { let tot = 0; for (const it of items) tot += w(it); let r = f() * tot; for (const it of items) { r -= w(it); if (r <= 0) return it; } return items[items.length - 1]; };
+  f.state = () => a; f.seed = s => { a = s >>> 0; };
+  return f;
+}
+let RNG = mkRng(Date.now() & 0xffffffff);
+const rnd = () => RNG();
+const rint = (lo, hi) => RNG.int(lo, hi);
+const pick = arr => RNG.pick(arr);
+const chance = p => RNG.chance(p);
+
+const clamp = (v, lo, hi) => v < lo ? lo : v > hi ? hi : v;
+const lerp = (a, b, t) => a + (b - a) * t;
+const ease = t => t < .5 ? 2 * t * t : 1 - Math.pow(-2 * t + 2, 2) / 2;
+const easeOut = t => 1 - Math.pow(1 - t, 3);
+const easeBack = t => { const c1 = 1.70158, c3 = c1 + 1; return 1 + c3 * Math.pow(t - 1, 3) + c1 * Math.pow(t - 1, 2); };
+const sum = arr => arr.reduce((a, b) => a + b, 0);
+const uid = (() => { let n = 0; return p => (p || "u") + (Date.now() % 1e7).toString(36) + (n++).toString(36); })();
+const fmt = n => { n = Math.round(n); return n >= 1e6 ? (n / 1e6).toFixed(n >= 1e7 ? 0 : 1).replace(".", ",") + " M" : n >= 1e4 ? Math.round(n / 1000) + " k" : String(n).replace(/\B(?=(\d{3})+(?!\d))/g, " "); };
+const pct = v => Math.round(v * 100) + " %";
+const esc = s => String(s).replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+const deepCopy = o => JSON.parse(JSON.stringify(o));
+const dayKey = (d = new Date()) => d.getFullYear() * 10000 + (d.getMonth() + 1) * 100 + d.getDate();
+const hashStr = s => { let h = 2166136261; for (let i = 0; i < s.length; i++) { h ^= s.charCodeAt(i); h = Math.imul(h, 16777619); } return h >>> 0; };
+
+function roman(n) { n = Math.max(1, Math.floor(n)); if (n > 3999) return String(n); const V = [[1000, "M"], [900, "CM"], [500, "D"], [400, "CD"], [100, "C"], [90, "XC"], [50, "L"], [40, "XL"], [10, "X"], [9, "IX"], [5, "V"], [4, "IV"], [1, "I"]]; let s = ""; for (const [v, r] of V) while (n >= v) { s += r; n -= v; } return s; }
+
+// nom court d'une unité : sans article (« Le Docteur Peste » → « Docteur Peste »), un ou deux mots
+function shortName(n) { const w = String(n || "").replace(/^(le|la|les|l')\s*/i, "").split(/[ ,]+/).filter(Boolean); if (!w.length) return n; const two = w.length > 1 && /^[A-ZÉÈÀ]/.test(w[1]) && (w[0] + " " + w[1]).length <= 14; return two ? w[0] + " " + w[1] : w[0]; }
+
+// « de » + nom de lieu accordé : de Le Bourg → du Bourg, de Les Catacombes → des Catacombes…
+function deNom(N) { N = String(N || ""); return /^Le /.test(N) ? "du " + N.slice(3) : /^Les /.test(N) ? "des " + N.slice(4) : /^La /.test(N) ? "de la " + N.slice(3) : /^L'/.test(N) ? "de l'" + N.slice(2) : (/^[AEIOUÉÈÂ]/i.test(N) ? "d'" : "de ") + N; }
+
+// Nom court d'un monstre ou d'un gardien : jamais un simple adjectif ou un mot commun à plusieurs créatures (« Docteur Peste », « Feu follet », « Écho de guerrier », « Mère des Ronces »)
+function monShort(n) { let w = String(n || "").replace(/^(le |la |les |l')/i, ""); w = w.charAt(0).toUpperCase() + w.slice(1);
+  w = w.replace(/ (Sanglante?|Spectrale?|Ardente?|Abyssale?)$/, ""); // variante de gardien : le nom de la créature d'abord
+  if (w.length <= 24) return w;
+  const p = w.split(" "); let o = ""; for (const x of p) { if ((o + " " + x).trim().length > 22) break; o = (o + " " + x).trim(); }
+  o = o.replace(/ (de la|de l'|des|du|de|d'|aux|au|à la|à|sans|et)$/i, ""); return o || p[0]; }
+// nom court d'une unité de combat : héros → prénom ; ennemi → nom de la créature
+function unitShort(u) { return !u ? "" : u.side === "h" || u.uid === "PET" ? shortName(u.name) : monShort(u.name); }
+// « à » + nom de lieu accordé : à Les Racines → aux Racines, à Le Bourg → au Bourg, à La Cité → à la Cité
+function aNom(N, cap) { N = String(N || ""); const r = /^Le /.test(N) ? "au " + N.slice(3) : /^Les /.test(N) ? "aux " + N.slice(4) : /^La /.test(N) ? "à la " + N.slice(3) : /^L'/.test(N) ? "à l'" + N.slice(2) : "à " + N; return cap ? r.charAt(0).toUpperCase() + r.slice(1) : r; }

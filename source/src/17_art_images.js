@@ -1,0 +1,155 @@
+/* ═══════════════════════ Illustrations peintes (générées avec Canva) ═══════════════════════
+   Les images (assets/*.webp) remplacent le dessin procédural dès qu'elles sont chargées.
+   Tant qu'une image manque (hors ligne, chargement en cours, node), le dessin procédural sert de repli. */
+const PIC = { v: 0, img: {}, queue: [], busy: 0, done: 0, total: 0, timer: 0 };
+// liste des illustrations livrées (complétée par le build : window.ART_LIST)
+const ART_SET = new Set(typeof window !== "undefined" && window.ART_LIST ? window.ART_LIST : []);
+// images tournées vers la gauche à retourner (héros : face à droite ; monstres : face à droite avant le miroir du combat)
+const ART_FLIP = new Set(typeof window !== "undefined" && window.ART_FLIP ? window.ART_FLIP : []);
+// part de l'image au-dessus de la tête (bâton, arme levée) : tous les héros ont la même taille de corps
+const ART_CX = typeof window !== "undefined" && window.ART_CX ? window.ART_CX : {};
+const ART_META = typeof window !== "undefined" && window.ART_META ? window.ART_META : {};
+function artHas(n) { return ART_SET.has(n); }
+function artImg(n) {
+  if (!ART_SET.has(n) || typeof Image === "undefined") return null;
+  let e = PIC.img[n];
+  if (!e) { e = PIC.img[n] = { ok: 0 }; PIC.queue.unshift(n); artPump(); }
+  return e.ok ? e.im : null;
+}
+// icônes regroupées dans la planche ui_atlas : découpées à la demande une fois la planche chargée
+const UIA = typeof window !== "undefined" && window.UI_ATLAS ? window.UI_ATLAS : null;
+const uiAtlasIdx = n => UIA && n.startsWith("ui_") ? UIA.n[n.slice(3)] : undefined;
+function atlasCut(n, e) {
+  const A = PIC.img.ui_atlas; if (!A || !A.ok) return false; const i = uiAtlasIdx(n), S = UIA.s;
+  const c = document.createElement("canvas"); c.width = c.height = S; c.getContext("2d").drawImage(A.im, (i % UIA.c) * S, Math.floor(i / UIA.c) * S, S, S, 0, 0, S, S);
+  e.im = c; e.ok = 1; return true;
+}
+// icônes d'objets (wpn_*, tr_*) regroupées dans la planche it_atlas : rectangles de tailles variables
+const ITA = typeof window !== "undefined" && window.IT_ATLAS ? window.IT_ATLAS : null;
+const itAtlasRect = n => ITA && ITA.n[n];
+const itAtlasFile = n => (ITA && ITA.f && ITA.f[n]) || "it_atlas";
+function itAtlasCut(n, e) {
+  const A = PIC.img[itAtlasFile(n)]; if (!A || !A.ok) return false; const [x, y, w, h] = ITA.n[n];
+  const c = document.createElement("canvas"); c.width = w; c.height = h; c.getContext("2d").drawImage(A.im, x, y, w, h, 0, 0, w, h);
+  e.im = c; e.ok = 1; return true;
+}
+function artPump() {
+  while (PIC.busy < 6 && PIC.queue.length) {
+    const n = PIC.queue.shift(), e = PIC.img[n] || (PIC.img[n] = { ok: 0 });
+    if (e.started) continue;
+    if (uiAtlasIdx(n) != null) { // icône de la planche
+      if (atlasCut(n, e)) { e.started = 1; PIC.done++; artProgress(); continue; }
+      const A = PIC.img.ui_atlas || (PIC.img.ui_atlas = { ok: 0 }); (A.wait = A.wait || []).push(n); if (!A.started) PIC.queue.unshift("ui_atlas"); e.started = 1; continue; }
+    if (itAtlasRect(n)) { // icône d'objet de la planche
+      if (itAtlasCut(n, e)) { e.started = 1; PIC.done++; artProgress(); continue; }
+      const af = itAtlasFile(n), A = PIC.img[af] || (PIC.img[af] = { ok: 0 }); (A.wait = A.wait || []).push(n); if (!A.started) PIC.queue.unshift(af); e.started = 1; continue; }
+    e.started = 1; PIC.busy++;
+    const im = new Image(); im.decoding = "async"; if (typeof window !== "undefined" && window.CC_PD) im.crossOrigin = "anonymous";
+    im.onload = () => { e.im = im; e.ok = 1; PIC.busy--; PIC.done++; if (n === "ui_atlas" && e.wait) { for (const w of e.wait.splice(0)) { atlasCut(w, PIC.img[w]); PIC.done++; } } if ((n === "it_atlas" || n.startsWith("hx_") || n.startsWith("mx_") || n.startsWith("px_")) && e.wait) { for (const w of e.wait.splice(0)) { itAtlasCut(w, PIC.img[w]); PIC.done++; } } artProgress(); artChanged(); artPump(); };
+    im.onerror = () => { e.fail = 1; PIC.busy--; PIC.done++; artProgress(); artPump(); };
+    im.src = "assets/" + n + ".webp" + (typeof window !== "undefined" && window.ART_V && window.ART_V[n] ? "?v=" + window.ART_V[n] : "");
+  }
+}
+// précharge tout en tâche de fond (après les images demandées par l'écran courant)
+function artPreload() { if (typeof Image === "undefined") return; PIC.total = ART_SET.size; if (!PIC.total) return bootDone(); for (const n of [...ART_SET].sort((a, b) => /^(tr|wpn|map)_/.test(b) - /^(tr|wpn|map)_/.test(a))) if (!PIC.img[n]) { PIC.img[n] = { ok: 0 }; PIC.queue.push(n); } artPump(); artProgress(); }
+// barre de chargement discrète (premier lancement : ensuite tout vient du cache de l'appli)
+function artProgress() {
+  if (typeof document === "undefined" || !PIC.total) return;
+  const el = document.getElementById("artload"); if (!el) return;
+  const k = Math.min(1, PIC.done / PIC.total);
+  bootProgress(k);
+  if (k >= 1) { el.classList.add("done"); return; }
+  if (document.getElementById("boot")) return; // l'écran de chargement affiche déjà la progression
+  el.hidden = false; el.firstElementChild.style.width = (k * 100).toFixed(1) + "%"; el.lastElementChild.textContent = "Illustrations " + Math.min(PIC.done, PIC.total) + " / " + PIC.total;
+}
+// écran de chargement : attend les illustrations (instantané ensuite, tout vient du cache), avec une issue si le réseau traîne
+const BOOT_TXT = ["Les braises s'allument…", "On aiguise les lames…", "Les morts se retournent dans leurs tombes…", "La Cendre retombe sur Morvaine…", "Le Bastion ouvre ses portes…"];
+function bootProgress(k) {
+  const b = document.getElementById("boot"); if (!b || b.classList.contains("out")) return;
+  b.querySelector(".bootbar i").style.width = (k * 100).toFixed(1) + "%";
+  const t = b.querySelector(".boottxt"); if (t) t.textContent = BOOT_TXT[Math.min(BOOT_TXT.length - 1, Math.floor(k * BOOT_TXT.length))] + " " + Math.round(k * 100) + " %";
+  if (k >= 1) bootDone();
+}
+function bootDone() { const b = document.getElementById("boot"); if (!b || b.classList.contains("out")) return; b.classList.add("out"); setTimeout(() => b.remove(), 1000); }
+if (typeof document !== "undefined") { setTimeout(() => { const s = document.getElementById("bootskip"); if (s) { s.style.display = ""; s.onclick = bootDone; } }, 9000); setTimeout(bootDone, 45000); }
+const ART_REPAINT = [];
+// une image vient d'arriver : on vide les caches de sprites et on repeint les vignettes encore à l'écran
+// iOS (Safari) limite la mémoire totale des canevas et ne libère les anciens que tard : au-delà, les nouveaux restent vides.
+// On rend donc immédiatement la mémoire des canevas hors écran qu'on jette (largeur/hauteur à 0).
+function cvFree(c) { try { if (c && c.getContext && !c.isConnected && c.width) { c.width = 0; c.height = 0; } } catch (e) { } }
+function dropCache(o) { for (const k in o) { const v = o[k]; if (v && v.getContext) cvFree(v); else if (v && typeof v === "object") for (const x of Object.values(v)) cvFree(x); delete o[k]; } }
+function artChanged() {
+  PIC.v++;
+  if (PIC.timer) return;
+  PIC.timer = setTimeout(() => {
+    PIC.timer = 0;
+    dropCache(BG_CACHE);
+    if (typeof PORT_CACHE !== "undefined") dropCache(PORT_CACHE);
+    if (typeof WALK_CACHE !== "undefined") dropCache(WALK_CACHE);
+    if (typeof CB !== "undefined") { for (const id in CB.vis) if (CB.vis[id]) { dropCache(CB.vis[id].cache || {}); CB.vis[id].cache = {}; } CB.petCache = null; }
+    if (typeof ICON_CACHE !== "undefined") for (const k in ICON_CACHE) delete ICON_CACHE[k];
+    if (typeof ITEM_WAIT !== "undefined" && ITEM_WAIT.size && typeof document !== "undefined") document.querySelectorAll("span.itw[data-iw]").forEach(sp => {
+      const it = ITEM_WAIT.get(sp.dataset.iw); const u = it && itemArt(it); if (u) { sp.outerHTML = `<img class="itimg" src="${u}" alt="">`; ITEM_WAIT.delete(sp.dataset.iw); } });
+    for (let i = ART_REPAINT.length - 1; i >= 0; i--) {
+      const [root, fn] = ART_REPAINT[i];
+      if (!root.isConnected) { ART_REPAINT.splice(i, 1); continue; }
+      root.querySelectorAll("canvas[data-cv]").forEach(c => { try { c.getContext("2d").clearRect(0, 0, c.width, c.height); fn(c, c.dataset.cv); } catch (e) { console.error(e); } });
+    }
+  }, 120);
+}
+// hauteur (unités de dessin à l'échelle 1) et largeur max des illustrations de monstres
+const MON_H = { rat: 90, charognard: 125, loup: 120, araignee: 105, alpha: 165, follet: 105, sangsue: 135, crapaud: 125, oeil: 150, diablotin: 150, gargouille: 165, horreur: 230, golem: 255, hydre: 300, mere_ronces: 340, mere_noyes: 330, ogre: 275, boucher: 245, bourreau: 250, chevalier_os: 240, prieur: 240, chevalier_dechu: 230, docteur: 320, liche: 340, abbe: 340, reine_sabbat: 335, roi: 350, sans_nom: 360, necrophage: 175, pendu: 210, spectre: 215 };
+// petites créatures du bestiaire étoffé : ramenées à leur taille (oiseaux, insectes, rongeurs)
+Object.assign(MON_H, { grand_duc: 125, chat_noir: 110, rat_os: 95, moustique: 130, mouches: 135, salamandre: 120, vautour_calcine: 150, aigle_givre: 150, goeland_suie: 125, chauve_clocher: 120, phalene_bleme: 130, scarabee_fouisseur: 120, crabe_braise: 115, parasite_rouge: 110, scorpion_sel: 135, chien_guerre: 150 });
+const PET_H = { chauve_souris: 95, feu_follet: 85, corbeau: 95, chouette: 100, vipere: 90, araignee: 80, salamandre: 70, crapaud: 80, chat_noir: 85, renard: 85, griffon: 120, drake: 120, gargouille: 95, ours: 105, sanglier: 100, cerf: 125, loup: 110, molosse: 105 };
+// sprite à partir d'une illustration : même convention que les sprites procéduraux (pieds en ax, ay)
+// pose : lean (penché, + = vers l'avant), hx/hy (décalage), atk (fente), hurt, agony, glow
+function imgSprite(im, o) {
+  const sc = o.sc || 1, fh = (o.h || 210) * sc, maxW = (o.maxW || 260) * sc;
+  let s = fh / (im.height * (1 - (o.top || 0))); if (im.width * s > maxW) s = maxW / im.width;
+  const iw = im.width * s, ih = im.height * s, pad = Math.ceil(Math.max(iw, ih) * .35 + 30 * sc);
+  const W = Math.ceil(iw + pad * 2), H = Math.ceil(ih + pad + 24 * sc), cv = mkCanvas(W, H), x = cv.getContext("2d");
+  const ax = W / 2, ay = H - 22 * sc, p = o.pose || {};
+  let rot = (p.lean || 0) * .32, dx = (p.hx || 0) * sc, dy = (p.hy || 0) * sc, sy = 1, sx = 1;
+  if (p.atk) { rot += .1; dx += 12 * sc; }
+  if (p.agony) { rot = .22; dy = 10 * sc; sy = .82; }
+  if (p.cast) { dy -= 4 * sc; sx = 1.02; }
+  x.save(); x.translate(ax + dx, ay + dy); x.rotate(rot); x.scale(sx * (o.flip ? -1 : 1), sy);
+  x.drawImage(im, -iw * (o.cx || .5), -ih, iw, ih); // o.cx : centre du corps (art/cx.json), pas celui de l'image (bras ou arme tendus)
+  x.restore();
+  if (o.hue) { const cp = document.createElement("canvas"); cp.width = W; cp.height = H; cp.getContext("2d").drawImage(x.canvas, 0, 0); x.save(); x.globalCompositeOperation = "color"; x.fillStyle = o.hue; x.fillRect(0, 0, W, H); x.globalCompositeOperation = "destination-in"; x.drawImage(cp, 0, 0); x.restore(); } // tenue : recoloration qui garde les ombres
+  if (o.tint) { x.save(); x.globalCompositeOperation = "source-atop"; x.fillStyle = o.tint; x.fillRect(0, 0, W, H); x.restore(); }
+  cv.ax = ax; cv.ay = ay; cv.sc = sc; cv.art = 1; return cv;
+}
+// illustration d'un héros : sa voie d'évolution si elle est peinte, sinon son palier d'armure
+// l'illustration de la voie n'apparaît qu'avec une armure de palier VI (ascendante) ; avant, palier d'armure
+function evoTopTier(cls, evo) { for (let t = 10; t >= 7; t--) if (artHas("hero_" + cls + "_" + evo + "_t" + t)) return t; return 6; } // palier le plus haut déjà peint pour une voie
+function heroArtName(L) { if (L.evo && (L.tier || 1) >= 6) { for (let t = Math.min(10, L.tier); t >= 7; t--) { const n = "hero_" + L.cls + "_" + L.evo + "_t" + t; if (artHas(n)) return n; } if (artHas("hero_" + L.cls + "_" + L.evo)) return "hero_" + L.cls + "_" + L.evo; } const n = "hero_" + L.cls + "_t" + clamp(L.tier || 1, 1, 5); return artHas(n) ? n : "hero_" + L.cls + "_t3"; }
+function heroArt(L) { return artImg(heroArtName(L)) || (L.evo && L.tier >= 6 ? artImg("hero_" + L.cls + "_t" + clamp(L.tier || 1, 1, 5)) : null); }
+function heroImgSprite(L, pose, sc, o = {}) {
+  let im = heroArt(L); if (!im) return null; if (L.outfit && typeof chromaArt === "function") im = chromaArt(im, heroArtName(L), L.outfit);
+  const hurt = pose.lean < -.25 && pose.hx < 0, agony = pose.hy > 15;
+  const nm = heroArtName(L);
+  return imgSprite(im, { sc, cx: ART_CX[nm], h: 182, maxW: 165, top: ART_META[nm] || ART_META["hero_" + L.cls + "_t3"] || 0, flip: ART_FLIP.has(nm),
+    pose: Object.assign({}, pose, { agony, cast: pose.free || pose.aBs > 1.5 }), tint: o.tint || (agony ? "rgba(70,8,8,.38)" : hurt ? "rgba(160,20,20,.16)" : null), hue: L.tint || null });
+}
+function monImgSprite(key, pose, sc) {
+  const M = MONSTERS[key] || {}, n = "mon_" + (M.art || key), im = artImg(n); if (!im) return null;
+  const big = (M.sz || 1) > 1, f = pose.fig || {};
+  return imgSprite(im, { sc, cx: ART_CX[n], h: MON_H[M.art || key] || (M.boss ? 335 : M.elite ? 240 : 190), maxW: big ? 320 : (M.elite ? 200 : 140), flip: !ART_FLIP.has(n),
+    pose: { atk: pose.atk, lean: f.lean, hx: f.hx }, tint: f.lean < 0 ? "rgba(170,20,20,.16)" : null, hue: M.hue || null });
+}
+function petImgSprite(id0, o, sc) {
+  const P = PETS[id0], id = (P && P.artOf) || id0; // familier légendaire : illustration de son modèle, recolorée
+  const n = "pet_" + id + (o.evo ? "_evo" : ""), im = artImg(n) || artImg("pet_" + id); if (!im) return null;
+  return imgSprite(im, { sc, cx: ART_CX[artHas(n) ? n : "pet_" + id], h: (PET_H[id] || 100) * (o.evo ? 1.25 : 1) * (P && P.legend ? 1.15 : 1), maxW: o.evo ? 150 : 120, flip: ART_FLIP.has(n), pose: { atk: o.atk }, hue: (P && P.hue) || null });
+}
+// fond de région peint : recadré en 16/9 (la ligne de sol reste dans le tiers bas)
+function regionArt(id, w, h) {
+  const im = artImg("bg_" + id); if (!im) return null;
+  const cv = mkCanvas(w, h), x = cv.getContext("2d");
+  const s = Math.max(w / im.width, h / im.height); x.drawImage(im, (w - im.width * s) / 2, (h - im.height * s) / 2, im.width * s, im.height * s);
+  // léger voile sombre pour que l'interface reste lisible
+  x.fillStyle = lgrad(x, 0, 0, 0, h, [[0, "rgba(5,4,8,.25)"], [.6, "rgba(5,4,8,0)"], [1, "rgba(5,4,8,.35)"]]); x.fillRect(0, 0, w, h);
+  return cv;
+}

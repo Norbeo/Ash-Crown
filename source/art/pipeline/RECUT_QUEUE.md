@@ -47,7 +47,7 @@ Règles : cape fermée sans trou, AUCUN vide ni bloc noir entre jambes/armes, si
 - [x] hero_ombre_t1 (Canva MAHcMXxke0w)
 - [x] hero_ombre_t2 (Canva MAHcMcPK8rI)
 - [x] hero_ombre_t3 (Canva MAHcMY68JKw)
-- [ ] hero_ombre_t4
+- [x] hero_ombre_t4 (Canva MAHcMQvFz2E)
 - [ ] hero_ombre_t5
 - [ ] hero_ombre_assassin (VI)
 - [ ] hero_ombre_assassin_t7

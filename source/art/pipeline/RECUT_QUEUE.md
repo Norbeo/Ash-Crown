@@ -42,6 +42,48 @@ Note : les compagnons et créatures du bestiaire sont dans les planches px_/mx_ 
 - [x] hero_menestrel_heraut_t10 (Canva MAHcMLYagKM) — réf. héraut IX refait.
 - [x] pet_tortue_evo (Canva MAHcMFJ0krw)
 - [x] pet_rat_geant (Canva MAHcMURYDPc)
+## PRIORITÉ 28 nov. (10 h 13) — refaire entièrement Lame d'ombre, Sorcière des haies, Berserker
+Règles : cape fermée sans trou, AUCUN vide ni bloc noir entre jambes/armes, silhouette étroite, personnage entier avec marge (tête/cornes non coupées), fond gris, peau intacte. Tissus de couleur unie et lisible (pour que les tenues se recolorent bien). Chaque palier = réf. du palier précédent refait. Après recut.sh : cx.py.
+- [x] hero_ombre_t1 (Canva MAHcMXxke0w)
+- [ ] hero_ombre_t2
+- [ ] hero_ombre_t3
+- [ ] hero_ombre_t4
+- [ ] hero_ombre_t5
+- [ ] hero_ombre_assassin (VI)
+- [ ] hero_ombre_assassin_t7
+- [ ] hero_ombre_assassin_t8
+- [ ] hero_ombre_assassin_t9
+- [ ] hero_ombre_assassin_t10
+- [ ] hero_ombre_ombre_sang (VI)
+- [ ] hero_ombre_ombre_sang_t7
+- [ ] hero_ombre_ombre_sang_t8
+- [ ] hero_ombre_ombre_sang_t9
+- [ ] hero_ombre_ombre_sang_t10
+- [ ] hero_sorciere_t1
+- [ ] hero_sorciere_t2
+- [ ] hero_sorciere_t3
+- [ ] hero_sorciere_t4
+- [ ] hero_sorciere_t5
+- [ ] hero_sorciere_druidesse (VI)
+- [ ] hero_sorciere_druidesse_t7
+- [ ] hero_sorciere_druidesse_t8
+- [ ] hero_sorciere_druidesse_t9
+- [ ] hero_sorciere_druidesse_t10
+- [ ] hero_sorciere_sorciere_noire (VI)
+- [ ] hero_sorciere_sorciere_noire_t7
+- [ ] hero_sorciere_sorciere_noire_t8
+- [ ] hero_sorciere_sorciere_noire_t9
+- [ ] hero_sorciere_sorciere_noire_t10
+- [ ] hero_berserker_chef_guerre (VI) — tête/cornes coupées
+- [ ] hero_berserker_chef_guerre_t7 — tête coupée
+- [ ] hero_berserker_chef_guerre_t9 — tête coupée
+- [ ] hero_berserker_chef_guerre_t10 — tête coupée
+- [ ] hero_berserker_ecorcheur (VI) — tête/cornes coupées
+- [ ] hero_berserker_ecorcheur_t7 — tête coupée
+- [ ] hero_berserker_ecorcheur_t9 — tête coupée
+- [ ] hero_berserker_ecorcheur_t10 — tête coupée
+
+## Suite (compagnons / créatures)
 - [ ] pet_renard
 - [ ] pet_crapaud_evo
 - [ ] pet_chouette_evo
@@ -60,3 +102,4 @@ Note : les compagnons et créatures du bestiaire sont dans les planches px_/mx_ 
 - [ ] pet_lievre_evo
 - [ ] pet_raie
 - [ ] pet_serpent_eau_evo
+

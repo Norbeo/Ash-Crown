@@ -1,6 +1,7 @@
 /* Version du jeu et journal des nouveautés / correctifs (Archives › Nouveautés, écran-titre, Options). Version 0.x jusqu'à la sortie (1.0). */
-const GAME_VERSION = "0.254";
+const GAME_VERSION = "0.255";
 const CHANGELOG = [
+  { v: "0.255", d: "28 nov. 2026", add: ["Lame d'ombre paliers II à V repeints."], fix: ["Forge : les armures de chaque palier (et leur aperçu en grand) sont cadrées sur le personnage entier au lieu d'être posées en bas.", "Sorcière des haies : couleurs des tenues adoucies, les détails restent visibles."] },
   { v: "0.254", d: "28 nov. 2026", add: ["Tenues du ménestrel, de la Lame d'ombre et de la sorcière des haies aux couleurs bien plus franches (tous les paliers).", "Lame d'ombre palier I repeinte."], fix: ["Plus de taches noires sur les tenues de la Lame d'ombre et de la sorcière."] },
   { v: "0.253", d: "28 nov. 2026", add: ["Ménestrel : palier V et ses deux voies (Chantre, Héraut) repeints du palier VI au X, cape fermée sans trou aux cuisses ; homme-poisson repeint."], fix: ["Plus de fumée sur les bâtiments du Bastion.", "Noms des bâtiments plus compacts sur téléphone.", "Chiffres romains des bâtiments affichés (ancienne planche d'icônes en cache)."] },
   { v: "0.252", d: "28 nov. 2026", add: ["Roue de la Taverne : une vraie roue peinte (bois, fer forgé et couronne brisée, 9 secteurs) qui tourne, ralentit en cliquetant sous le pointeur et s'arrête sur la récompense (or, éclats, tomes, essence, gemme, objets Légendaire, Mythique ou Céleste)."], fix: ["Illustrations entières (sans coupure au bord) : renard et renarde évolués, crabe de braise, Sans-Visage, carapace de sel, scorpion, tortue de vase, chat noir, équarrisseur, rat d'os, molosse évolué."] },

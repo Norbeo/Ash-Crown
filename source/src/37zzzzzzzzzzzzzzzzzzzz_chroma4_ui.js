@@ -2,7 +2,7 @@
 // Après la recoloration, couleur de la tenue renforcée hors peau et hors reflets métalliques clairs.
 const CHROMA_BOOST = /^hero_(menestrel|ombre|sorciere)_/;
 // force de l'accentuation par classe (sorcière adoucie le 28 nov. : détails noyés)
-const CHROMA_BOOST_K = { sorciere: .4 };
+const CHROMA_BOOST_K = { sorciere: .3, menestrel: .6, ombre: .6 };
 function chromaBoost(im, c, name, P) {
   const W = c.width, H = c.height, cv = document.createElement("canvas"); cv.width = W; cv.height = H;
   const x = cv.getContext("2d"); x.drawImage(c, 0, 0); const D = x.getImageData(0, 0, W, H), d = D.data;

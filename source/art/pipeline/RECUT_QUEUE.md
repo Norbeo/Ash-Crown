@@ -50,6 +50,9 @@ Règles : cape fermée sans trou, AUCUN vide ni bloc noir entre jambes/armes, si
 - [x] hero_ombre_t4 (Canva MAHcMQvFz2E)
 - [x] hero_ombre_t5 (Canva MAHcMkbDUMc)
 
+## PIED MANQUANT (28 nov., 11 h 04)
+- [ ] hero_medecin_peste_t5 — un seul pied visible (l'autre caché par la cape) : deux bottes bien visibles, cape fermée derrière les jambes
+
 ## AURÉOLES (28 nov., 11 h) — fond sombre peint à l'intérieur de l'auréole → repeindre avec un anneau fin, fond gris visible dans l'anneau, aucun disque sombre derrière la tête
 - [ ] hero_hallebardier_garde_roi_t10 — disque noir + rayons noirs
 - [ ] hero_exorciste_penitent_t9 — disque noir

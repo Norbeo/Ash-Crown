@@ -42,6 +42,8 @@ Note : les compagnons et créatures du bestiaire sont dans les planches px_/mx_ 
 - [x] hero_menestrel_heraut_t10 (Canva MAHcMLYagKM) — réf. héraut IX refait.
 - [x] pet_tortue_evo (Canva MAHcMFJ0krw)
 - [x] pet_rat_geant (Canva MAHcMURYDPc)
+## RÈGLE TENUES (28 nov. 11 h 17, utilisateur) : pour toute illustration de héros refaite, prévoir la recoloration des tenues — grandes surfaces de tissu UNIES (cape, tabard, robe) dans un ton sombre et neutre (noir, gris, brun sombre), métal sombre/patiné plutôt que doré brillant, peu de motifs dorés sur le tissu ; ambiance dark, jamais flashy.
+
 ## PRIORITÉ 28 nov. (10 h 13) — refaire entièrement Lame d'ombre, Sorcière des haies, Berserker
 Règles : cape fermée sans trou, AUCUN vide ni bloc noir entre jambes/armes, silhouette étroite, personnage entier avec marge (tête/cornes non coupées), fond gris, peau intacte. Tissus de couleur unie et lisible (pour que les tenues se recolorent bien). Chaque palier = réf. du palier précédent refait. Après recut.sh : cx.py.
 - [x] hero_ombre_t1 (Canva MAHcMXxke0w)

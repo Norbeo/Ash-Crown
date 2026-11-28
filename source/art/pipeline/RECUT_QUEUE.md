@@ -35,7 +35,7 @@ Note : les compagnons et créatures du bestiaire sont dans les planches px_/mx_ 
 - [x] hero_menestrel_chantre_t7 (Canva MAHcKWu3BX8) — réf. le chantre VI refait, plus riche, même silhouette, cape fermée.
 - [x] hero_menestrel_heraut_t7 (Canva MAHcKvozN-M) — réf. le héraut VI refait.
 - [x] hero_menestrel_chantre_t8 (Canva MAHcKnaeajM) — réf. chantre VII refait.
-- [ ] hero_menestrel_heraut_t8 — réf. héraut VII refait.
+- [x] hero_menestrel_heraut_t8 (Canva MAHcKtXKUxc) — réf. héraut VII refait.
 - [ ] hero_menestrel_chantre_t9 — réf. chantre VIII refait.
 - [ ] hero_menestrel_heraut_t9 — réf. héraut VIII refait.
 - [ ] hero_menestrel_chantre_t10 — réf. chantre IX refait (palier X : le plus somptueux).

@@ -48,7 +48,17 @@ Règles : cape fermée sans trou, AUCUN vide ni bloc noir entre jambes/armes, si
 - [x] hero_ombre_t2 (Canva MAHcMcPK8rI)
 - [x] hero_ombre_t3 (Canva MAHcMY68JKw)
 - [x] hero_ombre_t4 (Canva MAHcMQvFz2E)
-- [ ] hero_ombre_t5
+- [x] hero_ombre_t5 (Canva MAHcMkbDUMc)
+
+## AURÉOLES (28 nov., 11 h) — fond sombre peint à l'intérieur de l'auréole → repeindre avec un anneau fin, fond gris visible dans l'anneau, aucun disque sombre derrière la tête
+- [ ] hero_hallebardier_garde_roi_t10 — disque noir + rayons noirs
+- [ ] hero_exorciste_penitent_t9 — disque noir
+- [ ] hero_exorciste_confesseur_t10 — disque brun
+- [ ] hero_gardien_runes_thane_pierre_t9 — disque bleu nuit
+- [ ] hero_revenant_spectre_t9 — disque sombre
+- [ ] hero_revenant_seigneur_sang_t10 — disque rouge sombre
+(ombre_sang_t9 : visage troué par l'auréole ; berserker_ecorcheur_t9, sorciere_noire_t9/t10 : déjà dans la file ci-dessous)
+
 - [ ] hero_ombre_assassin (VI)
 - [ ] hero_ombre_assassin_t7
 - [ ] hero_ombre_assassin_t8

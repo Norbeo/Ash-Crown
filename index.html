@@ -11387,8 +11387,9 @@ ACT.closeModal = () => navClose();
 { const cb0 = confirmBox; confirmBox = function (text, yes, o) { return cb0(text, () => { yes(); setTimeout(() => { if ($("#modal").hidden && MNAV.stack.length) navRestore(MNAV.stack.pop()); }, 30); }, o); }; }
 { const g0 = go; go = function () { MNAV.stack = []; MNAV.cur = null; MNAV.closed = null; return g0.apply(this, arguments); }; }
 /* Version du jeu et journal des nouveautés / correctifs (Archives › Nouveautés, écran-titre, Options). Version 0.x jusqu'à la sortie (1.0). */
-const GAME_VERSION = "0.253";
+const GAME_VERSION = "0.254";
 const CHANGELOG = [
+  { v: "0.254", d: "28 nov. 2026", add: ["Tenues du ménestrel, de la Lame d'ombre et de la sorcière des haies aux couleurs bien plus franches (tous les paliers).", "Lame d'ombre palier I repeinte."], fix: ["Plus de taches noires sur les tenues de la Lame d'ombre et de la sorcière."] },
   { v: "0.253", d: "28 nov. 2026", add: ["Ménestrel : palier V et ses deux voies (Chantre, Héraut) repeints du palier VI au X, cape fermée sans trou aux cuisses ; homme-poisson repeint."], fix: ["Plus de fumée sur les bâtiments du Bastion.", "Noms des bâtiments plus compacts sur téléphone.", "Chiffres romains des bâtiments affichés (ancienne planche d'icônes en cache)."] },
   { v: "0.252", d: "28 nov. 2026", add: ["Roue de la Taverne : une vraie roue peinte (bois, fer forgé et couronne brisée, 9 secteurs) qui tourne, ralentit en cliquetant sous le pointeur et s'arrête sur la récompense (or, éclats, tomes, essence, gemme, objets Légendaire, Mythique ou Céleste)."], fix: ["Illustrations entières (sans coupure au bord) : renard et renarde évolués, crabe de braise, Sans-Visage, carapace de sel, scorpion, tortue de vase, chat noir, équarrisseur, rat d'os, molosse évolué."] },
   { v: "0.251", d: "26 nov. 2026", add: [], fix: ["Capes complètes : les trous entre le corps et la cape (une soixantaine d'illustrations de héros) sont comblés par l'étoffe de la cape, dans sa couleur ; avec une tenue, les grandes zones d'un noir plein prennent la couleur de la tenue — plus de taches noires ni de vides.", "Illustrations coupées au bord du cadre : bord adouci (fondu) au lieu d'une coupure nette.", "Carte d'expédition en paysage : bandeau sur une seule ligne et compagnie en vignettes compactes — la carte redevient visible.", "Notifications : une notification effacée ne capte plus le toucher.", "Récompenses : les icônes d'armes et d'armures ne sont plus écrasées en fines bandes."] },
@@ -11835,6 +11836,35 @@ function chromaCape(src, out, key) {
     if (typeof CHROMA_CACHE !== "undefined" && CHROMA_CACHE.has(id)) return CHROMA_CACHE.get(id);
     const r = ca.apply(this, arguments); if (!r || r === im || !r.getContext || !key || S && S.opts && S.opts.chromaOld) return r;
     const W = im.naturalWidth || im.width; if (!W) return r; let o = r; try { o = chromaCape(im, r, key); } catch (e) { } CHROMA_CACHE.set(id, o); return o; }; }
+// Tenues accentuées (28 nov., validé par l'utilisateur) : ménestrel, Lame d'ombre, sorcière des haies.
+// Après la recoloration, couleur de la tenue renforcée hors peau et hors reflets métalliques clairs.
+const CHROMA_BOOST = /^hero_(menestrel|ombre|sorciere)_/;
+function chromaBoost(im, c, name, P) {
+  const W = c.width, H = c.height, cv = document.createElement("canvas"); cv.width = W; cv.height = H;
+  const x = cv.getContext("2d"); x.drawImage(c, 0, 0); const D = x.getImageData(0, 0, W, H), d = D.data;
+  const o0 = document.createElement("canvas"); o0.width = W; o0.height = H; const x0 = o0.getContext("2d"); x0.drawImage(im, 0, 0, W, H);
+  const d0 = x0.getImageData(0, 0, W, H).data, SK = chromaSkinMask(d0, W, H, false, name);
+  const hsv = (h, s, v) => { h = ((h % 360) + 360) % 360; const i = Math.floor(h / 60) % 6, f = h / 60 - Math.floor(h / 60), p = v * (1 - s), q = v * (1 - s * f), t = v * (1 - s * (1 - f)); return [[v, t, p], [q, v, p], [p, v, t], [p, q, v], [t, p, v], [v, p, q]][i]; };
+  const ps = P.p[1], T = P.trial ? null : (ps >= .3 ? P.p : (P.a && P.a[1] >= .25 ? P.a : P.p));
+  for (let i = 0; i < d.length; i += 4) {
+    if (d[i + 3] < 8 || SK[i >> 2] > .5) continue;
+    const r0 = d0[i] / 255, g0 = d0[i + 1] / 255, b0 = d0[i + 2] / 255, m0 = Math.max(r0, g0, b0), s0 = m0 ? (m0 - Math.min(r0, g0, b0)) / m0 : 0;
+    if (s0 < .2 && m0 > .42) continue;
+    const r = d[i] / 255, g = d[i + 1] / 255, b = d[i + 2] / 255, mx = Math.max(r, g, b), mn = Math.min(r, g, b), s = mx ? (mx - mn) / mx : 0, dd = Math.max(mx - mn, 1e-6);
+    let h = mx === r ? ((g - b) / dd) % 6 : mx === g ? (b - r) / dd + 2 : (r - g) / dd + 4; h *= 60; if (h < 0) h += 360;
+    let hh = h, ns, nv;
+    if (T) { const dh = ((((T[0] - h) % 360) + 540) % 360) - 180; hh = h + dh * .55; ns = Math.min(.9, Math.max(s * 1.5, T[1] * .85)); nv = Math.min(1, mx * 1.22 * (T[2] > 1.2 ? 1.3 : 1) + .03); }
+    else { ns = Math.min(.92, s * 1.5); nv = Math.min(1, mx * 1.15); }
+    const o = hsv(hh, ns, nv); d[i] = o[0] * 255; d[i + 1] = o[1] * 255; d[i + 2] = o[2] * 255;
+  }
+  x.putImageData(D, 0, 0); return cv;
+}
+{ const ca = chromaArt; chromaArt = function (im, name, key) {
+    if (!CHROMA_BOOST.test(name || "")) return ca.apply(this, arguments);
+    const id = "boost|" + name + "|" + key; if (CHROMA_CACHE.has(id)) return CHROMA_CACHE.get(id);
+    const r = ca.apply(this, arguments); if (!r || r === im || !r.getContext) return r;
+    const O = (typeof OUTFITS !== "undefined" ? OUTFITS : []).find(o => o.k === key); if (!O || !O.pal) return r;
+    let o = r; try { o = chromaBoost(im, r, name, O.pal); } catch (e) { } CHROMA_CACHE.set(id, o); return o; }; }
 /* Synergies nombreuses : affichage replié (nombre + liste dépliable), étiquette unique sur la carte. */
 { const nt = synergyNeedText; synergyNeedText = Y => Y === SYNERGIES.rg_quatre ? "4 héros" : nt(Y); }
 { const sh = synergyHTML; synergyHTML = function (classes) { const act = activeSynergies(classes); let h = sh.apply(this, arguments); if (!h || act.length <= 4) return h;
